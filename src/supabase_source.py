@@ -8,9 +8,12 @@ from typing import Any, Dict, List, Tuple
 from urllib.parse import quote
 import re
 import requests
+import time
 
 
 DEFAULT_TIMEOUT = 20
+_DEFAULT_SUPABASE_RETRY = 3
+_DEFAULT_SUPABASE_RETRY_WAIT_SECONDS = 1.0
 
 
 def _parse_datetime_like(value: Any) -> datetime | None:
@@ -163,6 +166,44 @@ def _parse_embedding(value: Any) -> List[float]:
     return out
 
 
+def _request_with_retries(
+    method: str,
+    url: str,
+    *,
+    headers: Dict[str, str],
+    timeout: int,
+    retries: int = _DEFAULT_SUPABASE_RETRY,
+    retry_wait_seconds: float = _DEFAULT_SUPABASE_RETRY_WAIT_SECONDS,
+    log_prefix: str = "Supabase",
+    **kwargs: Any,
+) -> requests.Response:
+  attempts = max(int(retries), 0) + 1
+  last_err: Exception | None = None
+  for attempt in range(1, attempts + 1):
+    try:
+      resp = requests.request(
+        method.upper(),
+        url,
+        headers=headers,
+        timeout=timeout,
+        **kwargs,
+      )
+      if resp.status_code < 500 or attempt >= attempts:
+        return resp
+      msg = f"{log_prefix} 状态码重试 ({attempt}/{attempts})：HTTP {resp.status_code}"
+      print(f"[WARN] {msg}", flush=True)
+    except Exception as e:
+      last_err = e
+      msg = f"{log_prefix} 异常重试 ({attempt}/{attempts})：{e}"
+      print(f"[WARN] {msg}", flush=True)
+    if attempt >= attempts:
+      if last_err is not None:
+        raise last_err
+      raise RuntimeError(msg)
+    time.sleep(max(float(retry_wait_seconds or 0.0), 0.0))
+  raise RuntimeError(f"{log_prefix} 请求重试失败")
+
+
 def fetch_recent_papers(
     *,
     url: str,
@@ -248,7 +289,15 @@ def fetch_papers_by_date_range(
                 f"&limit={int(page_limit)}"
                 f"&offset={int(offset)}"
             )
-            resp = requests.get(endpoint, headers=_build_headers(api_key, schema), timeout=timeout)
+            resp = _request_with_retries(
+              "GET",
+              endpoint,
+              headers=_build_headers(api_key, schema),
+              timeout=max(int(timeout or DEFAULT_TIMEOUT), 1),
+              retries=_DEFAULT_SUPABASE_RETRY,
+              retry_wait_seconds=_DEFAULT_SUPABASE_RETRY_WAIT_SECONDS,
+              log_prefix="[Supabase]",
+            )
             if resp.status_code >= 300:
                 return ([], f"papers 查询失败：HTTP {resp.status_code} {resp.text[:200]}")
             rows = resp.json() or []
@@ -333,7 +382,8 @@ def match_papers_by_embedding(
         "match_count": k,
     }
     try:
-        resp = requests.post(
+        resp = _request_with_retries(
+            "POST",
             endpoint,
             headers={
                 **_build_headers(api_key, schema),
@@ -341,6 +391,9 @@ def match_papers_by_embedding(
             },
             json=payload,
             timeout=max(int(timeout or DEFAULT_TIMEOUT), 1),
+            retries=_DEFAULT_SUPABASE_RETRY,
+            retry_wait_seconds=_DEFAULT_SUPABASE_RETRY_WAIT_SECONDS,
+            log_prefix="[Supabase RPC]",
         )
         if resp.status_code >= 300:
             return ([], f"rpc 查询失败：HTTP {resp.status_code} {resp.text[:200]}")
@@ -416,7 +469,8 @@ def match_papers_by_bm25(
         "match_count": k,
     }
     try:
-        resp = requests.post(
+        resp = _request_with_retries(
+            "POST",
             endpoint,
             headers={
                 **_build_headers(api_key, schema),
@@ -424,6 +478,9 @@ def match_papers_by_bm25(
             },
             json=payload,
             timeout=max(int(timeout or DEFAULT_TIMEOUT), 1),
+            retries=_DEFAULT_SUPABASE_RETRY,
+            retry_wait_seconds=_DEFAULT_SUPABASE_RETRY_WAIT_SECONDS,
+            log_prefix="[Supabase RPC]",
         )
         if resp.status_code >= 300:
             return ([], f"rpc 查询失败：HTTP {resp.status_code} {resp.text[:200]}")

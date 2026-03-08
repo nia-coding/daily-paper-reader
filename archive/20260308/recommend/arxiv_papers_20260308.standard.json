@@ -1,0 +1,171 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-08T19:01:24.340914+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 3,
+    "quick_skim_target": 11,
+    "quick_selected": 3
+  },
+  "deep_dive": [
+    {
+      "id": "2603.03727v1",
+      "title": "Understanding Parents' Desires in Moderating Children's Interactions with GenAI Chatbots through LLM-Generated Probes",
+      "abstract": "This paper studies how parents want to moderate children's interactions with Generative AI chatbots, with the goal of informing the design of future GenAI parental control tools. We first used an LLM to generate synthetic child-GenAI chatbot interaction scenarios and worked with four parents to validate their realism. From this dataset, we carefully selected 12 diverse examples that evoked varying levels of concern and were rated the most realistic. Each example included a prompt and a GenAI chatbot response. We presented these to parents (N=24) and asked whether they found them concerning, why, and how they would prefer the responses to be modified and communicated. Our findings reveal three key insights: (1) parents express concern about interactions that current GenAI chatbot parental controls neglect; (2) parents want fine-grained transparency and moderation at the conversation level; and (3) parents need personalized controls that adapt to their desired strategies and children's ages.",
+      "authors": [
+        "John Driscoll",
+        "Yulin Chen",
+        "Viki Shi",
+        "Izak Vucharatavintara",
+        "Yaxing Yao",
+        "Haojian Jin"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.AI"
+      ],
+      "published": "2026-03-04T05:00:14+00:00",
+      "link": "https://arxiv.org/pdf/2603.03727v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "parents desires in moderating children interactions and parental control tools",
+      "llm_evidence_cn": "家长对调节孩子互动的需求及家长控制工具",
+      "llm_evidence": "家长对调节孩子互动的需求及家长控制工具",
+      "canonical_evidence": "家长对调节孩子互动的需求及家长控制工具",
+      "llm_tldr_en": "Investigates parental moderation preferences for children's AI interactions to inform control tool design.",
+      "llm_tldr_cn": "研究家长对孩子使用AI的监管偏好，为开发家长控制工具提供参考。",
+      "llm_tldr": "研究家长对孩子使用AI的监管偏好，为开发家长控制工具提供参考。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "parental monitoring",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.00343v1",
+      "title": "Causal Inference with MNAR Self-Masking Confounders: A Stratified Delta-Imputed Propensity Estimation Method",
+      "abstract": "In observational studies, causal inference becomes difficult when confounders are missing-not-at-random (MNAR), particularly where the missingness depends on the confounder's own unreported value (self-masking). Existing methods for handling MNAR confounders often rely on strong, unverifiable assumptions, leading to biased estimates. We propose a simple approach with Stratified Delta-Imputed Propensity Estimator (SDIPE) in the presence of self-masking confounders. SDIPE first stratifies data into observed and missing groups, imputes missing confounders via delta-adjusted multiple imputation. Then, within each group, average-treatment-effects (ATEs) are estimated by stabilized-inverse-probability-weights. The final ATE is obtained by combining the subgroup-specific estimates, weighted by respective proportions in the sample. Simulation study shows that SDIPE achieves low bias and near-nominal coverage (94-96%) across varying missingness, sample sizes, and treatment prevalence. In contrast, conventional sensitivity-based multiple imputation exhibits substantial bias and poor coverage (18-89%). Additionally, SDIPE is robust to the choice of the delta parameter. Applied to NHANES-2017-2018, SDIPE estimates that married individuals have a 1.19-point lower depression score than unmarried individuals (95% CI: -1.76, -0.64), adjusting for MNAR income data. SDIPE provides a practical and robust approach for causal inference with self-masking MNAR confounders, offering improved performance over existing methods without requiring restrictive assumptions about the missingness mechanism.",
+      "authors": [
+        "Md. Niamul Islam Sium",
+        "Mohammad Hridoy Patwary"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME"
+      ],
+      "published": "2026-02-27T22:22:00+00:00",
+      "link": "https://arxiv.org/pdf/2603.00343v1",
+      "tags": [
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "causal inference with missing confounders in observational studies",
+      "llm_evidence_cn": "观察性研究中缺失混杂因素的因果推断",
+      "llm_evidence": "观察性研究中缺失混杂因素的因果推断",
+      "canonical_evidence": "观察性研究中缺失混杂因素的因果推断",
+      "llm_tldr_en": "Proposes a method for causal inference when data is missing not at random, useful for longitudinal studies.",
+      "llm_tldr_cn": "提出一种处理非随机缺失数据的因果推断方法，适用于纵向研究分析。",
+      "llm_tldr": "提出一种处理非随机缺失数据的因果推断方法，适用于纵向研究分析。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "longitudinal association between parenting and executive function",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.04622v1",
+      "title": "INTENSE: Detecting and disentangling neuronal selectivity in calcium imaging data",
+      "abstract": "Neurons encode information about the environment through their activity. As animals explore the environment, neurons rapidly acquire selectivity for distinct features of the external world; characterizing how these selectivity patterns emerge, reorganize, and overlap is key to linking neural activity to behavior and cognition. Calcium imaging in freely behaving animals can record large neuronal populations, but quantifying neuron-behavior selectivity directly from continuous fluorescence is challenging because both signals are temporally autocorrelated and calcium kinetics introduce time lags.   Here we present INTENSE (INformation-Theoretic Evaluation of Neuronal SElectivity), an open-source framework that uses mutual information to detect neuron-behavior associations from raw calcium fluorescence data. INTENSE controls false discoveries using circular-shift permutation testing that preserves temporal structure and optimizes temporal delays to account for indicator kinetics and prospective/retrospective encoding. To separate genuine mixed selectivity from associations driven by behavioral covariance, INTENSE applies conditional mutual information-based disentanglement.   We validated INTENSE on synthetic datasets, demonstrating robust detection across diverse signal-to-noise ratios and reliability conditions, whereas methods lacking temporal controls show poor performance. Applied to CA1 miniscope recordings in mice freely exploring an open field, INTENSE reveals robust selectivity to multiple variables (place, head direction, object interaction, locomotion) and refines mixed-selectivity estimates by distinguishing redundant from genuinely multi-variable encoding. Together, INTENSE enables high-throughput, information-theoretic selectivity mapping with principled control of temporal structure and behavioral covariance, bridging large-scale recordings to circuit-level hypotheses.",
+      "authors": [
+        "Nikita Pospelov",
+        "Viktor Plusnin",
+        "Olga Rogozhnikova",
+        "Anna Ivanova",
+        "Vladimir Sotskov",
+        "Ksenia Toropova",
+        "Olga Ivashkina",
+        "Vladik Avetisov",
+        "Konstantin Anokhin"
+      ],
+      "primary_category": "q-bio.NC",
+      "categories": [
+        "q-bio.NC",
+        "q-bio.QM"
+      ],
+      "published": "2026-03-04T21:31:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.04622v1",
+      "tags": [
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "linking neural activity to behavior and cognition",
+      "llm_evidence_cn": "将神经活动与行为和认知联系起来",
+      "llm_evidence": "将神经活动与行为和认知联系起来",
+      "canonical_evidence": "将神经活动与行为和认知联系起来",
+      "llm_tldr_en": "Presents an information-theoretic framework to detect neuronal selectivity in freely behaving animals.",
+      "llm_tldr_cn": "提出了一个信息论框架，用于检测自由活动动物的神经元选择性。",
+      "llm_tldr": "提出了一个信息论框架，用于检测自由活动动物的神经元选择性。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "Neurobiological mechanisms linking parenting styles to inhibitory control",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.05321v1",
+      "title": "Designing for Adolescent Voice in Health Decisions: Embodied Conversational Agents for HPV Vaccination",
+      "abstract": "Adolescents are directly affected by preventive health decisions such as vaccination, yet their perspectives are rarely solicited or supported. Most digital interventions for Human Papillomavirus (HPV) vaccination are designed exclusively for parents, implicitly treating adolescents as passive recipients rather than stakeholders with agency. We present the design and evaluation of a mobile intervention that gives adolescents a voice in HPV vaccination decisions alongside their parents. The system uses embodied conversational agents tailored to each audience: parents interact with an animated physician using education and motivational interviewing techniques, while adolescents can choose between an age-appropriate doctor or a narrative fantasy game that conveys HPV facts through play. We report findings from a clinic-based pilot study with 21 parent-adolescent dyads. Results indicate high satisfaction across both audiences, improved HPV knowledge, and increased intent to vaccinate. We discuss design implications for supporting adolescent participation, choice, and agency in decisions about their health.",
+      "authors": [
+        "Ian Steenstra",
+        "Neha Patkar",
+        "Rebecca B. Perkins",
+        "Michael K. Paasche-Orlow",
+        "Timothy Bickmore"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-03-05T16:00:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.05321v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "adolescent agency and parent-child interaction in health decision making",
+      "llm_evidence_cn": "健康决策中的青少年能动性与亲子互动",
+      "llm_evidence": "健康决策中的青少年能动性与亲子互动",
+      "canonical_evidence": "健康决策中的青少年能动性与亲子互动",
+      "llm_tldr_en": "Examines adolescent agency and parent-child dynamics, relevant to parenting styles and adolescent development.",
+      "llm_tldr_cn": "研究青少年的能动性和亲子互动动态，与教养方式和青少年发展相关。",
+      "llm_tldr": "研究青少年的能动性和亲子互动动态，与教养方式和青少年发展相关。",
+      "llm_tags": [
+        "query:pr-ef:composite"
+      ],
+      "matched_query_tag": "query:pr-ef:composite",
+      "matched_query_text": "Papers central to 父母控制与执行功能关系研究检索规划, especially work that connects or combines: parental monitoring; impact of parental behavioral control on child development; effects of parental psychological control on executive function; development of executive function in children and adolescents; parenting styles and child inhibitory control; self-determination theory and basic psychological needs satisfaction; mediating role of emotion regulation in parenting and cognition; longitudinal association between parenting and executive function; parental control and executive function in preschool samples; How does parental psychological control affect children's executive function?.",
+      "matched_requirement_id": "req-composite-pr-ef",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

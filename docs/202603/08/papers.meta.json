@@ -1,0 +1,65 @@
+{
+  "label": "2026-03-08",
+  "date": "2026-03-08",
+  "generated_at": "2026-03-08T19:03:07",
+  "count": 4,
+  "papers": [
+    {
+      "paper_id": "202603/08/2603.03727v1-understanding-parents-desires-in-moderating-childrens-interactions-with-genai-chatbots-through-llm-generated-probes",
+      "section": "deep",
+      "title_en": "Understanding Parents' Desires in Moderating Children's Interactions with GenAI Chatbots through LLM-Generated Probes",
+      "authors": "John Driscoll, Yulin Chen, Viki Shi, Izak Vucharatavintara, Yaxing Yao, Haojian Jin",
+      "date": "2026-03-04",
+      "pdf": "https://arxiv.org/pdf/2603.03727v1",
+      "score": "9.0",
+      "evidence": "家长对调节孩子互动的需求及家长控制工具",
+      "tldr": "本研究旨在探讨家长对儿童与生成式AI聊天机器人互动的监管需求。研究者利用大语言模型生成了12个真实的互动场景作为探针，对24名家长进行了访谈。研究发现，家长关注现有工具忽略的互动细节，渴望对话级别的细粒度透明度与监管，并强调了个性化及随年龄调整控制策略的重要性，为未来家长控制工具的设计提供了指导。",
+      "tags": "query:pr-ef",
+      "abstract_en": "This paper studies how parents want to moderate children's interactions with Generative AI chatbots, with the goal of informing the design of future GenAI parental control tools. We first used an LLM to generate synthetic child-GenAI chatbot interaction scenarios and worked with four parents to validate their realism. From this dataset, we carefully selected 12 diverse examples that evoked varying levels of concern and were rated the most realistic. Each example included a prompt and a GenAI chatbot response. We presented these to parents (N=24) and asked whether they found them concerning, why, and how they would prefer the responses to be modified and communicated. Our findings reveal three key insights: (1) parents express concern about interactions that current GenAI chatbot parental controls neglect; (2) parents want fine-grained transparency and moderation at the conversation level; and (3) parents need personalized controls that adapt to their desired strategies and children's ages.",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202603/08/2603.00343v1-causal-inference-with-mnar-self-masking-confounders-a-stratified-delta-imputed-propensity-estimation-method",
+      "section": "quick",
+      "title_en": "Causal Inference with MNAR Self-Masking Confounders: A Stratified Delta-Imputed Propensity Estimation Method",
+      "authors": "Md. Niamul Islam Sium, Mohammad Hridoy Patwary",
+      "date": "2026-02-27",
+      "pdf": "https://arxiv.org/pdf/2603.00343v1",
+      "score": "6.0",
+      "evidence": "观察性研究中缺失混杂因素的因果推断",
+      "tldr": "在因果推断中，处理非随机缺失（MNAR）且具有自掩蔽特性的混杂因素是一项挑战。本文提出了一种分层Delta插补倾向估计法（SDIPE），通过将数据分为观测组和缺失组，利用Delta调整的多重插补和稳定逆概率加权来估计平均处理效应（ATE）。该方法在模拟实验中表现出低偏差和高覆盖率，且对参数选择具有鲁棒性，为处理复杂的MNAR混杂因素提供了实用的解决方案。",
+      "tags": "query:pr-ef",
+      "abstract_en": "In observational studies, causal inference becomes difficult when confounders are missing-not-at-random (MNAR), particularly where the missingness depends on the confounder's own unreported value (self-masking). Existing methods for handling MNAR confounders often rely on strong, unverifiable assumptions, leading to biased estimates. We propose a simple approach with Stratified Delta-Imputed Propensity Estimator (SDIPE) in the presence of self-masking confounders. SDIPE first stratifies data into observed and missing groups, imputes missing confounders via delta-adjusted multiple imputation. Then, within each group, average-treatment-effects (ATEs) are estimated by stabilized-inverse-probability-weights. The final ATE is obtained by combining the subgroup-specific estimates, weighted by respective proportions in the sample. Simulation study shows that SDIPE achieves low bias and near-nominal coverage (94-96%) across varying missingness, sample sizes, and treatment prevalence. In contrast, conventional sensitivity-based multiple imputation exhibits substantial bias and poor coverage (18-89%). Additionally, SDIPE is robust to the choice of the delta parameter. Applied to NHANES-2017-2018, SDIPE estimates that married individuals have a 1.19-point lower depression score than unmarried individuals (95% CI: -1.76, -0.64), adjusting for MNAR income data. SDIPE provides a practical and robust approach for causal inference with self-masking MNAR confounders, offering improved performance over existing methods without requiring restrictive assumptions about the missingness mechanism.",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202603/08/2603.04622v1-intense-detecting-and-disentangling-neuronal-selectivity-in-calcium-imaging-data",
+      "section": "quick",
+      "title_en": "INTENSE: Detecting and disentangling neuronal selectivity in calcium imaging data",
+      "authors": "Nikita Pospelov, Viktor Plusnin, Olga Rogozhnikova, Anna Ivanova, Vladimir Sotskov, Ksenia Toropova, Olga Ivashkina, Vladik Avetisov, Konstantin Anokhin",
+      "date": "2026-03-04",
+      "pdf": "https://arxiv.org/pdf/2603.04622v1",
+      "score": "6.0",
+      "evidence": "将神经活动与行为和认知联系起来",
+      "tldr": "INTENSE是一个开源框架，旨在从钙成像数据中检测和解耦神经元与行为的关联。它利用互信息处理原始荧光信号，通过循环移位排列检验控制假阳性，并优化时间延迟以应对钙动力学。该方法能有效区分真实的混合选择性与行为协方差引起的关联，为大规模神经记录与行为认知的关联研究提供了高通量的分析工具。",
+      "tags": "query:pr-ef",
+      "abstract_en": "Neurons encode information about the environment through their activity. As animals explore the environment, neurons rapidly acquire selectivity for distinct features of the external world; characterizing how these selectivity patterns emerge, reorganize, and overlap is key to linking neural activity to behavior and cognition. Calcium imaging in freely behaving animals can record large neuronal populations, but quantifying neuron-behavior selectivity directly from continuous fluorescence is challenging because both signals are temporally autocorrelated and calcium kinetics introduce time lags.   Here we present INTENSE (INformation-Theoretic Evaluation of Neuronal SElectivity), an open-source framework that uses mutual information to detect neuron-behavior associations from raw calcium fluorescence data. INTENSE controls false discoveries using circular-shift permutation testing that preserves temporal structure and optimizes temporal delays to account for indicator kinetics and prospective/retrospective encoding. To separate genuine mixed selectivity from associations driven by behavioral covariance, INTENSE applies conditional mutual information-based disentanglement.   We validated INTENSE on synthetic datasets, demonstrating robust detection across diverse signal-to-noise ratios and reliability conditions, whereas methods lacking temporal controls show poor performance. Applied to CA1 miniscope recordings in mice freely exploring an open field, INTENSE reveals robust selectivity to multiple variables (place, head direction, object interaction, locomotion) and refines mixed-selectivity estimates by distinguishing redundant from genuinely multi-variable encoding. Together, INTENSE enables high-throughput, information-theoretic selectivity mapping with principled control of temporal structure and behavioral covariance, bridging large-scale recordings to circuit-level hypotheses.",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "202603/08/2603.05321v1-designing-for-adolescent-voice-in-health-decisions-embodied-conversational-agents-for-hpv-vaccination",
+      "section": "quick",
+      "title_en": "Designing for Adolescent Voice in Health Decisions: Embodied Conversational Agents for HPV Vaccination",
+      "authors": "Ian Steenstra, Neha Patkar, Rebecca B. Perkins, Michael K. Paasche-Orlow, Timothy Bickmore",
+      "date": "2026-03-05",
+      "pdf": "https://arxiv.org/pdf/2603.05321v1",
+      "score": "6.0",
+      "evidence": "健康决策中的青少年能动性与亲子互动",
+      "tldr": "针对青少年在HPV疫苗接种决策中常被忽视的现状，本研究设计了一款移动干预系统，旨在提升青少年的参与度和自主权。该系统利用具身对话代理（ECA），为家长提供医生引导的教育，为青少年提供医生模式或叙事游戏模式。通过对21对家长-青少年进行的临床试点研究，结果显示该系统显著提高了双方的满意度、HPV知识及接种意愿，为支持青少年参与健康决策提供了设计参考。",
+      "tags": "query:pr-ef",
+      "abstract_en": "Adolescents are directly affected by preventive health decisions such as vaccination, yet their perspectives are rarely solicited or supported. Most digital interventions for Human Papillomavirus (HPV) vaccination are designed exclusively for parents, implicitly treating adolescents as passive recipients rather than stakeholders with agency. We present the design and evaluation of a mobile intervention that gives adolescents a voice in HPV vaccination decisions alongside their parents. The system uses embodied conversational agents tailored to each audience: parents interact with an animated physician using education and motivational interviewing techniques, while adolescents can choose between an age-appropriate doctor or a narrative fantasy game that conveys HPV facts through play. We report findings from a clinic-based pilot study with 21 parent-adolescent dyads. Results indicate high satisfaction across both audiences, improved HPV knowledge, and increased intent to vaccinate. We discuss design implications for supporting adolescent participation, choice, and agency in decisions about their health.",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

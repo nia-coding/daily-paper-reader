@@ -1,0 +1,1040 @@
+Title: Combined PDF
+
+URL Source: https://arxiv.org/pdf/2603.00343v1
+
+Published Time: Tue, 03 Mar 2026 01:19:01 GMT
+
+Number of Pages: 27
+
+Markdown Content:
+1
+
+Causal Inference with MNAR Self -Masking Confounders: A Stratified Delta -Imputed 
+
+Propensity Estimat ion Method 
+
+Md. Niamul Islam Sium 1; Mohammad Hridoy Patwary 2* 
+
+> 1
+
+Mathematical Sciences , The University of Texas at El Paso , 500 W. University Ave , El Paso ,
+
+Tex as , USA .   
+
+> 2Health Systems and Population Studies Division, icddr,b, GPO Box 128, Dhaka -1000, Dhaka,
+> Bangladesh .
+
+*Corresponding author: 
+
+Mohammad Hridoy Patwary 
+
+Email: mpatwary @isrt.ac.bd 
+
+1. Summary 
+
+In observational studies, causal inference becomes diffi cult when confounders are missing -not -at -
+
+random (MNAR), particularly where the missingness depends on the confounder’s own unreported 
+
+value (self -masking). Existing methods for handling MNAR confounders often rely on strong, 
+
+unverifiable assumptions, leadi ng to biased estimates. We propose a simple approach with 
+
+Stratified Delta -Imputed Propensity Estimator (SDIPE) in the presence of self -masking 
+
+confounders. SDIPE first stratifies data into observed and missing groups, imputes missing 
+
+confounders via delta -adjusted multiple imputation. Then, within each group, average -treatment -2
+
+effects (ATEs) are estimated by stabilized -inverse -probability -weights. The final ATE is obtained 
+
+by combining the subgroup -specific estimates, weighted by respective proportions in the sample. 
+
+Simulation study shows that SDIPE achieves low bias and near -nominal coverage (~94 –96%) 
+
+across varying missingness, sample sizes, and treatment prevalence. In contrast, conventional 
+
+sensitivity -based multiple imputation exhibits substantial b ias and poor coverage (18 -89%). 
+
+Additionally, SDIPE is robust to the choice of the delta parameter. Applied to NHANES -2017 –
+
+2018, SDIPE estimates that married individuals have a 1.19 -point lower depression score than 
+
+unmarried individuals (95%CI: -1.76, -0. 64), adjusting for MNAR income data. SDIPE provides 
+
+a practical and robust approach for causal inference with self -masking MNAR confounders, 
+
+offering improved performance over existing methods without requiring restrictive assumptions 
+
+about the missingness mechanism. 
+
+Keywords 
+
+MNAR, Self -Masking Confounder, SDIPE, Multiple Imputation , Sensitivity 
+
+2 Introduction 
+
+Observational studies have become indispensable for evaluating causal effects when randomized 
+
+experiments are ethically or practically infeasible (Gianicolo et al., 2020) . Estimating causal 
+
+effects using obser vational data is, however, challenging due to the need for adequate control of 
+
+confounding variables that jointly influence both treatment assignment and the outcome. 
+
+Established methods like parametric g -formula (L odi et al., 2015; Taubman et al., 2009) ,
+
+propensity score -based methods (Cain et al., 2010; Hernán et al., 2000; Neugebauer et al., 2014) ,
+
+or doubly robust methods (Bang & Robins, 2005; Tran et al., 2019; Wen et al., 2023) are widely 3
+
+used when confounders are all completely observed , commonly referred to as the exchangeability 
+
+assumption (M. A. Hernán & J. M. Robins, 2020) .
+
+In reality , this assumption is often violated. Key confounders may be missing due to various 
+
+reasons , and this missingness of confounders often plays a crucial role in causal effect estimation ;
+
+if unaddressed, it can result in substantial bias in treatment effect estimates (Yang et al., 2019) .
+
+Different approaches are th ere to handle unmeasured confounders : propensity score calibration 
+
+(Stürmer et al., 2005) , sensitivity analysis (VanderWeele & Arah, 2011) , E -value approach 
+
+(VanderWeele & Ding, 2017) . But partially missing confounders is often an overlo ok detail in 
+
+causal inference , which seems very common in observational data (Lu & Ashmead, 2018) .
+
+These missing values in confounders ma y arise under several mi ssing mechanism s: missing 
+
+completely at random (MCAR), missing at random (MAR), and missing not at random (MNAR) 
+
+(Little & Rubin, 2019) . If a confounder is MCAR , then complete case analysis can still yield an 
+
+unbiased estimate of the average causal effect (Imai & van Dyk, 2004) . When confounders are 
+
+missing at random (MAR), commonly used methods include multiple imputation (MI) (Mitra & 
+
+Reiter, 2011; Seaman & Wh ite, 2014) and inverse probability weighting (IPW) (Ross et al., 2021) .
+
+Methods for handling MNAR confounders have been developed recently . For instance, Ding and 
+
+Geng (Ding & Geng, 2014) examined the identifiability of causal effects in randomized 
+
+experiments including MNAR covariates only for discrete covariates and outcomes, later Corder 
+
+and Yang (Corder & Yang, 2020 ) demonstrated that causal effects can be identified under a 
+
+specific assumption: the missingness mechanism is independent of the outcome. To estimate 
+
+causal effects under this framework, they proposed both a nonparametric two -stage least squares 
+
+estimato r and parametric likelihood -based methods. Additionally, Yang et al. (Yang et al., 2014) 
+
+addressed nonignorable missing covariates in the context of instrumental variable approaches for 4
+
+unmeasured confounding. They developed a maximum likelihood estimation method using the 
+
+EM algorithm to pr oduce unbiased causal effect estimates. While these methods offer valuable 
+
+insights, they often rel y on additional assumptions th at cannot be verified from the observed data. 
+
+Moreover, none of the existing approaches has explicitly addressed scenarios invo lv ing the self -
+
+masking (SM) MNAR mechanism .
+
+SM is one kind of MNAR missing mechanism where the probability of being missing depends on 
+
+the unobserved value itself (Little & Rubin, 2019) , as seen in economics (high -income individuals 
+
+omitting financial data; (Slemrod, 2007) ), education (low -performing students' test scores 
+
+withheld; (Van der Linden & van der Linden, 2016) ). Methodologically, SM creates a perfect 
+
+storm of identifiability challenges. When missingness depends solely on the unobserved 
+
+confounder (without auxiliary predictors), the full data distribution becomes non -identifiable 
+
+without strong assumptions (Mohan & Pearl, 2021 ), which poses challenges to estimate the causal 
+
+effect. To bridge this gap, we introduce the Stratified Delta -Imputed Propensity Estimator (SDIPE) 
+
+that integrates delta -adjusted MI with stratified propensity score estimation . Unlike existing 
+
+methods that require strong assumptions about the independence of the missingness mechanism 
+
+from the treatment or outcome, SDIPE adopts a flexible imputation -based framework with delta -
+
+adjustment for sensitivity analysis, thereby offering broader practical applicabili ty. 
+
+3 Material and Methods 
+
+3.1 Causal Framework & Notations 
+
+Consider , we have 𝑛 independent samples. Assume a continuous outcome variable 𝑌 , a binary 
+
+exposure of interest, 𝐴 and a vector of continuous potential confounders, 𝑪 = (𝐶 1, 𝐶 2, … , 𝐶 𝑝 )𝑇 .5
+
+Under the potential outcome framework , each individual in the population of interest has a 
+
+potential outcome ( 𝑌 𝑎 ) under each treatment state (𝐴 = 𝑎 ; 𝑎 ∈ {0,1}), even though each individual 
+
+can be observed in only one treatment state at any poi nt in time (Pearl, 2010) . The consistency 
+
+assumption links th is observed outcome to the relevant potential outcome (Hernán & Robins, 
+
+2010) : if an individual receives treatment level 𝐴 𝑖 = 𝑎 , then the observed outcome 𝑌 𝑖 equals the 
+
+potential outcome under that treatment level, i.e., 
+
+if 𝐴 𝑖 = 𝑎 then, 𝑌 𝑖 𝑎 = 𝑌 𝑖 𝐴 = 𝑌 𝑖 .
+
+Using this notion, the observed outcome 𝑌 can be written as 
+
+𝑌 = 𝐴 × 𝑌 𝑎 =1 + (1 − 𝐴 ) × 𝑌 𝑎 =0,
+
+where, 
+
+𝑌 𝑎 =1 is the potential outcome under exposed condition, 
+
+𝑌 𝑎 =0 is the potential outcome under unexposed condition. 
+
+3.2 Missing Data Structure 
+
+Let, 𝐶 = (𝑍 , 𝐶 2, 𝐶 3, … , 𝐶 𝑝 )′ = (𝑍 , 𝑊 )′ denote the vector of confounders, where 𝑊 is fully 
+
+observed, but 𝑍 is partially observed. Let 𝑅 𝑍 ∈ {0,1} be the missingness indicator for 𝑍 , with 𝑅 𝑧 =
+
+1 if 𝑍 is observed and 𝑅 𝑧 = 0 if 𝑍 is missing. 
+
+We assume a SM MNAR mechanism, meaning the probability that 𝑍 is observed depends on ly on 
+
+its own value , i.e. 𝑃 (𝑅 𝑍 = 1|𝑍 , 𝑊 , 𝐴 , 𝑌 ) = 𝑃 (𝑅 𝑧 = 1|𝑍 ).6
+
+Figure 1: A DAG presenting the data generating process. 
+
+3.3 Additional Assumptions and Decomposition of the ATE 
+
+Now, to estimate the average treatment effect (ATE), 𝜏 = 𝐸 (𝑌 𝑎 =1 − 𝑌 𝑎 =0), the two key 
+
+assumptions must hold (M. H ernán & J. Robins, 2020) :
+
+1. Positivity: 0 < 𝑃 (𝐴 = 𝑎 |𝐶 = 𝑐 ) < 1 ∀ 𝑎 ∈ {0,1}, and ∀ 𝑐 with 𝑃 (𝐶 = 𝑐 ) > 0
+
+2. Conditional Exchangeability: 𝑌 𝑎 ⊥ 𝐴 | 𝐶 (1)
+
+Equation (1) holds if the confounder vector 𝐶 is fully observed. However, when element(s) of 𝐶 
+
+are partially observed, the equation (1) does not hold as the treatment assignment 𝐴 may still be 
+
+associated with the potential outcomes through the unmeasured or missing compon ents of 𝐶 (M. 
+
+Hernán & J. Robins, 2020) . In this scenario, the ATE can be divided into two parts based on the 
+
+values of 𝑅 𝑧 as: 
+
+𝜏 = 𝐸 (𝑌 𝑎 =1 − 𝑌 𝑎 =0) = 𝐸 𝑅 𝑧 [𝐸 ( 𝑌 𝑎 =1 − 𝑌 𝑎 =0|𝑅 𝑧 )]7
+
+= ∑ 𝐸 (𝑌 𝑎 =1 − 𝑌 𝑎 =0|𝑅 𝑧 = 𝑟 ) × 𝑃 (𝑅 𝑧 = 𝑟 )
+
+> 1
+> 𝑟 =0
+
+= 𝐸 (𝑌 𝑎 =1 − 𝑌 𝑎 =0|𝑅 𝑧 = 1) × 𝑃 (𝑅 𝑧 = 1) + 𝐸 (𝑌 𝑎 =1 − 𝑌 𝑎 =0|𝑅 𝑧 = 0) × 𝑃 (𝑅 𝑧 = 0), (2)
+
+whe re, the treatment effect from the first part is identifiable, but the second one is not. As a result, 
+
+estimates of the ATE based on only observed data may be biased, and causal inference is no longer 
+
+valid without further assumptions or methods. 
+
+3.4 Stra tified Delta -Imputed Propensity Estimator 
+
+To address the identification challenges arising from the missingness in the confounder 𝑍 under 
+
+MNAR mechanism , we employed a MI technique combined with sensitivity analysis and subgroup 
+
+estimation of the ATE. MI combined with sensitivity analysis has been widely recommended for 
+
+handling missing variable s under MNAR assumptions (Carpenter et al., 2023; Rezvan et al., 2018) .
+
+This approach enables researchers to explore how inference s may vary under plausible departures 
+
+from the MAR assumption. Sensitivity analysis methods often rely on shifting the distribution of 
+
+the missing data relative to the observed, using techniques such as location and/or scale 
+
+adjustments (Dioni et al., 2025) . Among these, a location shift (𝛿 ) adjustment seems appropriate 
+
+for our context, given our use of a linear model for imputing the partially missing confounder 𝑍 .
+
+This method assumes that the distribution of the missing values is a shifted version of the observed 
+
+data, enabling a transp arent and interpretable sensitivity analysis under the MNAR framework. It 
+
+is particularly suitable in linear settings where departures from MAR can be modeled as additive 
+
+shifts in the mean structure (Gachau et al., 2020) .
+
+3.5 Estimation Procedure 8
+
+For simplicity, we consider two continuous scalar confounding variables, 𝑍 and 𝑊 , where 𝑍 is 
+
+partially observed and 𝑊 is fully observed. Let 𝑅 𝑧 denote the missingness indicator for 𝑍 , such 
+
+that 𝑅 𝑧 = 1 if 𝑍 is observed and 𝑅 𝑧 = 0 if 𝑍 is missing. We assume that the missingness 
+
+mechanism is SM , meaning that 𝑅 𝑧 depends only on the value of 𝑍 itself and not on any other 
+
+variables. Under this setting, we observe the vector 𝑂 = (𝐴 , 𝑌 , 𝑊 , 𝑅 𝑧 )′ for all individuals, while 
+
+the value of 𝑍 is available only for those with 𝑅 𝑍 = 1. Let, 𝑍 𝑜𝑏𝑠 deno tes the observed portion of 
+
+𝑍 (for which 𝑅 𝑍 = 1) and 𝑍 𝑚𝑖𝑠𝑠 denotes the missing portion of 𝑍 (for which 𝑅 𝑍 = 0). 
+
+We propose separate estimation of ATE through stabilized IP weights (SW) for missing and 
+
+observed portion of the data: 
+
+𝜏 ̂ = 𝐸 (𝑌 𝑎 =1 − 𝑌 𝑎 =0|𝑅 𝑧 = 1)̂ × 𝑃 (𝑅 𝑧 = 1) + 𝐸 (𝑌 𝑎 =1 − 𝑌 𝑎 =0|𝑅 𝑧 = 0)̂ × 𝑃 (𝑅 𝑧 = 0)
+
+= 𝜏  ̂ 𝑆𝑊 𝑅 𝑧 =1 × 𝑃 (𝑅 𝑧 = 1) + 𝜏  ̂ 𝑆𝑊 𝑅 𝑧 =0 × 𝑃 (𝑅 𝑧 = 0).
+
+Here, 
+
+𝜏  ̂ 𝑆𝑊 𝑅 𝑧 =1 : estimated ATE among individuals with ob served 𝑍 , using SW .
+
+𝜏  ̂ 𝑆𝑊 𝑅 𝑧 =0 : estimated ATE among individuals with missing 𝑍 , using SW .
+
+Now to obtain 𝜏  ̂ 𝑆𝑊 𝑅 𝑧 =0 , we apply MI to predict the values of 𝑍 𝑚𝑖𝑠𝑠 by modeling 𝑍 𝑜𝑏𝑠 as a function 
+
+of the observed data (𝐴 , 𝑊 , 𝑌 )′ and then using the fitted model to predict for 𝑍 𝑚𝑖𝑠𝑠 . A shift 
+
+parameter (𝛿 ) was used during the imputation to allow for departures from the MAR assumption. 9
+
+4 Simulation Study 
+
+We conducted a simulation study to rigorously evaluate the performance of our proposed 
+
+estimating method for average treatment effects when facing SM missingness in a confounder. 
+
+The simulation framework was designed to mirror real -world conditions where missingness in 
+
+confounder 𝑍 depends on its own unobser ved value, a real challenge in observational studies. 
+
+Data generation followed a well -defined causal structure: For each subject 𝑖 = 1, … , 𝑛 .
+
+• We first simulated covariate 𝑊 𝑖 ~𝑁 (0,1) and the confounder 𝑍 𝑖 ~𝑁 (0,1).
+
+• A binary treatment 𝐴 𝑖 was th en generated from a Bernoulli distribution with 
+
+probability 𝑙𝑜𝑔𝑖 𝑡 −1(𝛼 1 + 𝛼 2𝑊 𝑖 + 𝛼 3𝑍 𝑖 ), with 𝛼 2 = 0.5, 𝛼 3 = 0.5, and 𝛼 1, where 𝛼 1
+
+controlled the overall treatment prevalence in the simulated dataset. 
+
+• The continuous out come 𝑌 𝑖 was constructed as 𝑌 𝑖 = 𝛽 0 + 𝛽 1𝐴 𝑖 + 𝛽 2𝑊 𝑖 + 𝛽 3𝑍 𝑖 + 𝜖 𝑖 , here 
+
+𝛽 1 = 1.5 reflected the true ATE and the values of the other parameters were 𝛽 2 = 0.8, and 
+
+𝛽 3 = 0.7.
+
+• The SM mechanism was implemented by setting 𝑍 as missing whenever 𝑙𝑜𝑔𝑖 𝑡 −1(𝑎 +
+
+𝑍 𝑖 ) = 1, where parameter 𝑎 controlled missingness probabilities at different percentages .
+
+Our SDIPE method strategically split s data into Observed (𝑍 𝑜𝑏𝑠 ) and Missing (𝑍 𝑚𝑖𝑠𝑠 ) groups. For 
+
+the missi ng group, we imputed 𝑍 via regressing on (𝐴 , 𝑊 , 𝑌 ) with incorporating a sensitivity 
+
+adjustment (𝛿 ) to quantify MNAR bias. ATE estimates were derived using SW with the imputed 
+
+confounder, and final estimates combined group -specific results weighted by sa mple proportions .
+
+Performance was assessed through three key metric s: average bias , 95% confidence intervals 
+
+(CIs), and corresponding coverage probabilit ies . To compute the bias, and CI s, we used 500 Monte 
+
+Carlo (MC) replicates with 10 imputations each. Fo r assessing coverage probability, we used the 10 
+
+same number of MC replicates and imputations, with each replicate including 200 bootstrap 
+
+samples. 
+
+4.1 Results 
+
+Our proposed estimation method consistently demonstrated superior performance compared to 
+
+sensitiv ity -based MI across all tested conditions of missing data and sample sizes . We examined 
+
+two treatment prevalence settings (20% and 40%), two sample sizes (n = 500 and n = 1000), and 
+
+three levels of missingness in the partially observed confounder (10%, 30% , and 50%). 
+
+Table 1 represents the findings for 20% of overall treatment prevalence , where n indicates different 
+
+sample sizes . For 500 sample size , our proposed method exhibited near -negligible relative bias, 
+
+ranging from 1.20% to 0.49% across m issing data proportions . In contrast, sensitivity -based MI 
+
+showed several times higher relative bias ( 5.00% to 16.09% ). This scenario was the same for 1000 
+
+sample size. Sensitivity based MI showed a narrower CI tha n our proposed method in almost all 
+
+aspects. 
+
+Table 1 Estimated relative biases, confidence intervals and coverage rates of ATE over different 
+
+missing percentages of confounder across several sample sizes for 20% of total treatment 
+
+prevalence. 
+
+Methods  n
+
+Missing 
+
+percentage 
+
+Bias † 95% CI  Coverage probability 
+
+Multiple 
+
+Imputation 
+
+500 
+
+10  5.48  [1.3, 1.86]  0.86 
+
+30  11.08  [1.37, 1.97]  0. 75 11 
+
+with 
+
+Sensitivity 
+
+50  16.09  [1.46, 2.05]  0.59 
+
+1000 
+
+10  5.00  [1.35, 1.78]  0.86 
+
+30  11.58  [1.47, 1.88]  0.54 
+
+50  15.75  [1.53, 1.95]  0.37 
+
+SDIPE 
+
+500 
+
+10  1.20  [1.18,1.80]  0.92 
+
+30  0.33  [1.12,1.85]  0.95 
+
+50  0.49  [1.03,1.99]  0.93 
+
+1000 
+
+10  0.27  [1.27,1.73]  0.94 
+
+30  0.00  [1.21,1.76]  0.94 
+
+50  0.20  [1.14,1.82]  0.93 
+
+> †
+
+Percentage of bias relative to true ATE. 
+
+The coverage rate for our proposed method was consistently higher , closely approximating the 
+
+nominal 95% target regardless of missingness or sample size . Conversely, sensitivity -based MI 
+
+showed marked declines in coverage under higher missingness: coverage probability fell 
+
+to 0.59 (n = 500) and 0.37 (n = 1000) at 50% mi ssing data. 
+
+Table 2 Estimated relative biases, confidence intervals and coverage rates of ATE over different 
+
+missing percentages of confounder across several sample sizes for 40% of total treatment 
+
+prevalence. 
+
+Methods  n
+
+Missing 
+
+percentage 
+
+Bias † 95% CI  Coverage probability 
+
+500  10  4.65  [1.39, 1.77]  0.89 12 
+
+Multiple 
+
+Imputation 
+
+with Sensitivity 
+
+30  9.58  [1.4 3, 1.84]  0.71 
+
+50  14.78  [1.50, 1.96]  0.46 
+
+1000 
+
+10  5.05  [1.43, 1.72]  0.85 
+
+30  4.97  [1.50, 1.80]  0.47 
+
+50  5.40  [1.56, 1.87]  0.18 
+
+SDIPE 
+
+500 
+
+10  0.13  [1.30,1.71]  0.95 
+
+30  0.83  [1.28,1.75]  0.95 
+
+50  1.14  [1.18,1.79]  0.96 
+
+1000 
+
+10  0.01  [1.36,1.65]  0. 96 
+
+30  0.27  [1.33,1.67]  0.95 
+
+50  0.33  [1.29,1.72]  0.94 
+
+> †
+
+Percentage of bias relative to true ATE. 
+
+Table 2 presents the simulation results for overall 40% of treatment prevalence. Our proposed 
+
+method demonstrated consistently low relative bias for 50 0 sample size , ranging from 0.13% to 
+
+1.14% as missingness increased. In contrast, the sensitivity -based MI method yielded substantially 
+
+higher bias levels, with values escalating from 4.65% to 14.78%. A similar pattern was observed 
+
+for the larger sample si ze (n = 1000), where the proposed method maintained bias below 0.5% 
+
+even at 50% missingness, whereas the sensitivity -based a pproach showed bias between 4.97 % and 
+
+5.40%. Confidence intervals fo r the proposed method remained slightly wide yet stable across 
+
+conditions, while the intervals from the sensitivity -based method were slightly narrower but 
+
+accompanied by significantly poorer coverage. Specifically, the coverage probability for the 
+
+proposed method covered around the nominal 95% level in all settings, r anging from 0.94 to 0.96. 13 
+
+Conversely, the coverage for the sensitivity -based method dropped sharply with increasing 
+
+missingness: from 0.89 to 0.46 at n = 500, and from 0.85 to as low as 0.18 at n = 1000. 
+
+Figure  2 and  Figure  3 represent the average bias of ATE of 500 replications under a range of delta 
+
+values for overall treatment prevalence 20% and 40% respectively for our proposed method. These 
+
+figures denote the reliability of our estimated ATE through different missingness percentage of 
+
+partially observed confounder and sample sizes. Though there were some deflections in the graph 
+
+denoting 
+
+Figure 2 Sensitivity analysis of ATE under treatment prevalence of 20%. 
+
+the change of average bias i n estimated ATE, but the magnitudes of those deflections were 
+
+negligible. Large sample size showed comparatively less deflections denoting com paratively 
+
+slightly more stability in estimated ATE than the small sample size . This scenario was almost same 
+
+in t he both cases, i.e., for smaller and larger sample sizes. Both the graphs indicated a good 
+
+reliability and robustness of estimated ATE. 14 
+
+Figure 3 Sensitivity analysis of ATE under treatment prevalence of 40%. 
+
+5 Application to Real Data 
+
+We applied our pr oposed estimation procedure to investigate the causal effect of marital status on 
+
+depression among adults age d 30 to 55 using data from the 2017 -2018 U.S. National Health and 
+
+Nutrition Examination Survey (NHANES), which is publicly available online. We had a total 1302 
+
+individuals of aged between 30 to 55 among which 807 (62%) were married (including living 
+
+together) and 495 (38%) were single (including divorced or widowed) (Sun & Fu, 2025) . Patient 
+
+Health Questionnaire -9 (PHQ -9) was considered as cont inuous outcome varia ble which is a 
+
+measure of depression severity ranging from 0 to 27 (Kroenke et al., 2001; Sun & Fu, 2025) . In 
+
+2017 -2018 NHANES Questionnaire Data, depressive symptom frequency was assessed by the 
+
+PHQ -9 instrument. Respondents used this nine -item scale to report depressive symptoms 15 
+
+experienced in the past 14 days . We considered Income -to -poverty ratio, age, education level, and 
+
+gender as potential confounders (Assari, 2020; Kroenke et al., 2001) . Only income -to -poverty 
+
+ratios contained missing values among our confounders. S ince individuals with high income may 
+
+be less likely to disclose their information, it is more likely that missingness in this variable is 
+
+MNAR (Assari, 2020; Davern et al., 2005; Sun & Fu, 2025) . Income data was m issing for 10.9% 
+
+of married individuals versus 11.3% of single participants. 
+
+We calculated the ATE along with 95% confidence interval (CI). For CI, 500 bootstrap samples 
+
+were used. We found that being married was associated with a lower likelihood of depr ession .
+
+Married individuals were found to have a 1.19 -point lower PHQ -9 score (95% CI: -1.76, -0.64) on 
+
+average .
+
+6 Discussion 
+
+This work addressed the challenge of estimating causal effects in the presence of partially observed 
+
+MNAR confounders , a setting in which standard identification assumptions fail, and conventional 
+
+estimators may yield biased results. We proposed a subgroup -specific estimation of causal effects 
+
+via delta -adjusted multiple imputation and demonstrated consistent performance across var ying 
+
+sample sizes, treatment prevalence, and degrees of missingness relative to a benchmark delta -
+
+adjusted multiple imputation approach. 
+
+In the recent literature, some work has been done to identify the causal effects in the presence of 
+
+partially missing M NAR confounders (Lu & Ashmead, 2018; Sun & Fu, 2025; Wen & McGee, 
+
+2025) . However, o ne of the major challenges of the developed approaches is the reliance of several 
+
+strong and unverifiable assumptions, including as sumptions like: correct specification of the 16 
+
+missingness mechanism, independence of the outcome with the missingness mechanism ,
+
+independence of the treatment with the missingness mechanism . These assumptions limit 
+
+applicability of the proposed methods in wider context . Among approaches with fewer 
+
+assumptions, delta -adjusted MI offers a practical alternative because it does not require the 
+
+missingness mechanism to be fully known (Dioni et al., 2025) . Instead, it assumes that the 
+
+distribution of missing values systematically differs from the observed values and incorporates 
+
+this through a user -specified shift parameter (𝛿 ) during the imputation process (Jolani, 2012) .
+
+However, the method’s validity depends critically on the correct choice of delta, which must be 
+
+informed by external data, expert elicitati on, or sensitivity analysis (Dioni et al., 2025; Héraud -
+
+Bousquet et al., 2012) . Additionally, as the distribution of the MNAR confounder differs between 
+
+observed and missing portion of the data , the relationship be tween confounders and treatment may 
+
+also differ across these subgroups. Applying a single propensity score model after imputation 
+
+assumes a common treatment –covariate relationship, which can leave residual confounding and 
+
+lead to bias ed estimates . Our resu lts suggest that estimating the propensity score separately for 
+
+observed and missing subgroups leads to better covariate balance (Supplementary Table 1 and 
+
+Supplementary Figure 1 and 2), particularly in the missing subgroup, and therefore can yield more 
+
+ac curate causal effect estimates in the presence of partially observed MNAR confounders. 
+
+Furthermore, our method demonstrated reduced sensitivity to the choice of the shift parameter 
+
+(Figures 2 and 3), which highlight s the method’s robustness to 𝛿 misspecif ication. 
+
+6.1 Strength and Contributions 
+
+A key strength of this method is its capacity to address MNAR confounders without relying on 
+
+strong or unverifiable assumptions about the dependencies among treatment, outcome, and 
+
+missingness mechanisms , unlike exi sting approaches . A further novelty of the current study is the 17 
+
+estimation of the ATE by calculating stabilized inverse probability weights separately for the 
+
+missing and observed groups, and then combining the estimates based on their proportional 
+
+represe ntation in the sample . This subgroup estimation of weights ensures the covariate balance 
+
+between treatment and control group as shown in the results. Additionally, the low sensitivity to 
+
+the choice of 𝛿 , ensures robustness of the approach under misspecifi cation. 
+
+6.2 Limitations and Future Work 
+
+This approach has several limitations. First, although the method shows relative stability across 
+
+different values δ, choosing an appropriate value remains challenging without external data or 
+
+expert knowledge. Fut ure work could address this by using a Bayesian framework to incorporate 
+
+prior information about plausible delta values. Second, the accuracy of the method relies on the 
+
+correctness of the parametric imputation model; using machine learning models for impu tation 
+
+may improve performance in future applications. The method may also become unstable when the 
+
+proportion of missing data is extremely high. Currently, the framework is designed for continuous 
+
+outcomes and a single partially missing confounder. Future extensions could incorporate binary or 
+
+categorical outcomes, multiple MNAR confounders, and potentially time -varying covariates to 
+
+broaden the method’s applicability. 
+
+Acknowledgments 
+
+Not applicable. 
+
+Ethical Statement 
+
+Not applicable. 
+
+Funding Statement 18 
+
+Th e authors received no financial support for the research, authorship, and/or publication of this 
+
+article 
+
+Data Accessibility 
+
+The U.S. National Health and Nutrition Examination Survey (NHANES) data for the 2017 –2018 
+
+cycle is publicly available through the Ce nters for Disease Control and Prevention (CDC) 
+
+(https://wwwn.cdc.gov/nchs/nhanes/default.aspx ). 
+
+Competing interests 
+
+The authors declared no potential conflicts of interest with respect to the research, authorship, 
+
+and/or publication of this article. 
+
+Author ’s Contributions 
+
+MNS conceptualized and developed the methodological framework, conducted all simulations and 
+
+data analysis, and drafted the manuscript. MHP conceptualized the study, conducted all 
+
+simulations and data analysis, and drafted the manuscript. 
+
+ORCID iD 
+
+Md. Niamul Islam Sium:  https://orcid.org/0009 -0005 -1822 -8294 
+
+Mohammad Hridoy Patwary:  https://orcid.org/0009 -0008 -4920 -7017 
+
+References 19 
+
+Assari, S. (2020). Combined Effects of Ethnicity and Education on Burden of Depressive 
+
+Symptoms over 24 Years in Middle -Aged and Older Adults in the United States. Brain 
+
+Sciences , 10 (4), 209.  https://www.mdpi.com/2076 -3425/10/4/209 
+
+Bang, H., & Robins, J. M. (2005). Doubly Robust Estimation in Missing Data and Causal Inference 
+
+Models. Biometrics , 61 (4), 962 -973.  https://doi.org/10.1111/j.1541 -0420.2005.00377.x 
+
+Cain, L. E., Robins, J. M., Lanoy, E., Logan, R., Costagliola, D., & Hernán, M. A. (2010). When 
+
+to Start Treatment? A Systematic Approach to the Comparison of Dynamic Regimes Using 
+
+Observational Data. The International Journal of Biostatistics , 6(2). 
+
+https://doi.org/doi:10.2202/1557 -4679.1212 
+
+Carpenter, J. R., Bartlett, J. W., Morris, T. P., Wood, A. M., Quartagno, M., & Kenward, M. G. 
+
+(2023). Multiple imputation and its application . John Wiley & Sons. 
+
+Corder, N., & Yang, S. (2020). Estimating Average Treatment Effects Utilizing Fractional 
+
+Imputation when Confounders are Subject to Missingness. Journal of causal inference ,
+
+8(1), 249 -271.  https://doi.org/doi:10.1515/jci -2019 -0024 
+
+Davern, M., Rodin, H., Beebe, T. J., & Call, K. T. (2005). The Effect of Income Question Design 
+
+in Health Surveys on Family Income, Poverty and Eligibility Estima tes. Health Services 
+
+Research , 40 (5p1), 1534 -1552.  https://doi.org/10.1111/j.1475 -6773.2005.00416.x 
+
+Ding, P., & Geng, Z. (2014). Identifiability of subgroup causal effects in randomized expe riments 
+
+with nonignorable missing covariates. Statistics in medicine , 33 (7), 1121 -1133. 
+
+https://doi.org/10.1002/sim.6014 
+
+Dioni, A., Bureau, A., Moore, L., & Eslami, A. (2025). Sensitivity analysis method in the presence 
+
+of a missing not at random ordinal independent variable. arXiv preprint arXiv:2506.24025 .20 
+
+Gachau, S., Quartagno, M., Njagi, E. N., Owuor, N., English, M., & Ayieko, P. (2020). Handling 
+
+missing data in modelling quality of clinician -prescribe d routine care: Sensitivity analysis 
+
+of departure from missing at random assumption. Stat Methods Med Res , 29 (10), 3076 -
+
+3092.  https://doi.org/10.1177/0962280220918279 
+
+Gianicolo, E. A., Eichler, M., Muensterer, O., Strauch, K., & Blettner, M. (2020). Methods for 
+
+Evaluating Causality in Observational Studies. Deutsches Arzteblatt International , 116 (7), 
+
+101 -107. 
+
+Héraud -Bousquet, V., Larsen, C., Carpenter, J., Desenclos, J. C., & Le Strat, Y. (2012). Pr actical 
+
+considerations for sensitivity analysis after multiple imputation applied to epidemiological 
+
+studies with incomplete data. BMC Med Res Methodol , 12 , 73. 
+
+https://doi.org/10.1186/1471 -2288 -12 -73 
+
+Hernán, M., & Robins, J. (2020). Causal inference: What if. boca raton: Chapman &
+
+hill/crc.(2020). Publisher’s Note Springer Nature remains neutral with regard to 
+
+jurisdictional claims in published maps and institutional affiliations .
+
+Hernán, M. Á., Brumback, B., & Robins, J. M. (2000). Marginal Structural Models to Estimate 
+
+the Causal Effect of Zidovudine on the Survival of HIV -Positive Men. Epidemiology ,
+
+11 (5), 561 -570. 
+
+https://journals.lww.com/epidem/fulltext/2000/09000/marginal_structural_models_to_est 
+
+imate_the_causal.12.aspx 
+
+Hernán, M. A., & Robins, J. M. (2010). Causal inference. In: CRC Boca Raton, FL. 
+
+Her nán, M. A., & Robins, J. M. (2020). Causal Inference: What If . Chapman & Hall/CRC. 
+
+https://miguelhernan.org/whatifbook 21 
+
+Imai, K., & van Dyk, D. A. (2004). Causal Inference With General Treatment Regimes. Journal 
+
+of the American Statistical Association , 99 (467), 854 -866. 
+
+https://doi.org/10.1198/016214504000001187 
+
+Jolani, S. (2012). Dual imputation strategies for analyzing incomplete data . Utrecht U niversity. 
+
+Kroenke, K., Spitzer, R. L., & Williams, J. B. W. (2001). The PHQ -9. Journal of General Internal 
+
+Medicine , 16 (9), 606 -613.  https://doi.org/10.1046/j.1525 -1497.2001.016009606.x 
+
+Little, R. J., & Rubin, D. B. (2019). Statistical Analysis with Missing Data (3rd ed.). John Wiley 
+
+& Sons. 
+
+Lodi, S., Phillips, A., Logan, R., Olson, A., Costagliola, D., Abgrall, S., van Sighem, A., Reiss, P., 
+
+Miró, J. M., Ferrer, E., Justice, A., Gandh i, N., Bucher, H. C., Furrer, H., Moreno, S., 
+
+Monge, S., Touloumi, G., Pantazis, N., Sterne, J., . . . Hernán, M. A. (2015). Comparative 
+
+effectiveness of immediate antiretroviral therapy versus CD4 -based initiation in HIV -
+
+positive individuals in high -incom e countries: observational cohort study. The Lancet HIV ,
+
+2(8), e335 -e343.  https://doi.org/10.1016/S2352 -3018(15)00108 -3
+
+Lu, B., & Ashmead, R. (2018). Propensity score matching analysis for caus al effects with MNAR 
+
+covariates. Statistica Sinica , 28 (4), 2005 -2025. 
+
+Mitra, R., & Reiter, J. P. (2011). Estimating propensity scores with missing covariate data using 
+
+general location mixture models. Statistics in medicine , 30 (6), 627 -641. 
+
+https://doi.org/10.1002/sim.4124 
+
+Mohan, K., & Pearl, J. (2021). Graphical models for processing missing data. Journal of the 
+
+American Statistical Association , 116 (534), 1023 -1037. 22 
+
+Neugebauer, R., Schmittdiel, J. A., & V an Der Laan, M. J. (2014). Targeted learning in real‐world 
+
+comparative effectiveness research with time‐varying interventions. Statistics in medicine ,
+
+33 (14), 2480 -2520.  https://doi.org/10.1002/sim.6099 
+
+Pea rl, J. (2010). Causal inference. Causality: objectives and assessment , 39 -58. 
+
+Rezvan, P. H., Lee, K. J., & Simpson, J. A. (2018). Sensitivity analysis within multiple imputation 
+
+framework using delta -adjustment: Application to Longitudinal Study of Austra lian 
+
+Children. Longitudinal and Life Course Studies , 9(3), 259 -278. 
+
+Ross, R. K., Breskin, A., Breger, T. L., & Westreich, D. (2021). Reflection on modern methods: 
+
+combining weights for confounding and missing data. International Journal of 
+
+Epidemiology , 51(2), 679 -684.  https://doi.org/10.1093/ije/dyab205 
+
+Seaman, S., & White, I. (2014). Inverse Probability Weighting with Missing Predictors of 
+
+Treatment Assignment or Missingness. Communications in Statisti cs - Theory and 
+
+Methods , 43 (16), 3499 -3515.  https://doi.org/10.1080/03610926.2012.700371 
+
+Slemrod, J. (2007). Cheating Ourselves: The Economics of Tax Evasion. Journal of Economic 
+
+Perspectives , 21(1), 25 –48.  https://doi.org/10.1257/jep.21.1.25 
+
+Stürmer, T., Schneeweiss, S., Avorn, J., & Glynn, R. J. (2005). Adjusting Effect Estimates for 
+
+Unmeasured Confounding with Validation Data using Propensit y Score Calibration. 
+
+American Journal of Epidemiology , 162 (3), 279 -289.  https://doi.org/10.1093/aje/kwi192 
+
+Sun, J., & Fu, B. (2025). Identification and estimation of causal effects with confounders missin g
+
+not at random. Biostatistics , 26 (1).  https://doi.org/10.1093/biostatistics/kxaf015 
+
+Taubman, S. L., Robins, J. M., Mittleman, M. A., & Hernán, M. A. (2009). Intervening on risk 
+
+factors for cor onary heart disease: an application of the parametric g -formula. International 
+
+journal of epidemiology , 38 (6), 1599 -1611.  https://doi.org/10.1093/ije/dyp192 23 
+
+Tran, L., Yiannoutsos, C., Wools -Kaloustian, K. , Siika, A., Laan, M. v. d., & Petersen, M. (2019). 
+
+Double Robust Efficient Estimators of Longitudinal Treatment Effects: Comparative 
+
+Performance in Simulations and a Case Study. The International Journal of Biostatistics ,
+
+15 (2).  https://doi.org/doi:10.1515/ijb -2017 -0054 
+
+Van der Linden, W. J., & van der Linden, W. (2016). Handbook of item response theory (Vol. 1). 
+
+CRC press New York. 
+
+VanderWeele, T. J., & Arah, O. A. (2011). Bias Formulas for Sensi tivity Analysis of Unmeasured 
+
+Confounding for General Outcomes, Treatments, and Confounders. Epidemiology , 22 (1), 
+
+42 -52.  https://doi.org/10.1097/EDE.0b013e3181f74493 
+
+VanderWeele, T. J., & Ding, P. (2017). Sensitivity analysis in observational research: introducing 
+
+the E -value. Annals of internal medicine , 167 (4), 268 -274. 
+
+Wen, L., Marcus, J. L., & Young, J. G. (2023). Intervention treatment distributions that depend on 
+
+the observed treatment pro cess and model double robustness in causal survival analysis. 
+
+Statistical Methods in Medical Research , 32 (3), 509 -523. 
+
+https://doi.org/10.1177/09622802221146311 
+
+Wen, L., & McGee, G. (2025). Estimat ing Average Causal Effects with Incomplete Exposure and 
+
+Confounders. arXiv preprint arXiv:2506.21786 .
+
+Yang, F., Lorch, S. A., & Small, D. S. (2014). ESTIMATION OF CAUSAL EFFECTS USING 
+
+INSTRUMENTAL VARIABLES WITH NONIGNORABLE MISSING COVARIATES: 
+
+APPLICATIO N TO EFFECT OF TYPE OF DELIVERY NICU ON PREMATURE 
+
+INFANTS. The Annals of Applied Statistics , 8(1), 48 -73. 
+
+http://www.jstor.org/stable/24521725 24 
+
+Yang, S., Wang, L., & Ding, P. (2019). Causal inference wit h confounders missing not at random. 
+
+Biometrika , 106 (4), 875 -888. Supplementary Table 1. Comparison of Covariate Balance Between the Proposed Approach 
+
+and Delta -Adjusted MI ( Absolute Average Across 500 Simulations) .
+
+Treatment 
+
+Prevalence 
+
+Missingness  Confounder  Subgroup of 
+
+Data 
+
+Difference in Mean 
+
+Proposed 
+
+approach 
+
+Delta adjusted 
+
+MI 
+
+20  10  W Observed  0.063  0.066 
+
+20  10  W Missing  0.148  0.311 
+
+20  10  Z Observed  0.06 9 0.103 
+
+20  10  Z Missing  0.144  0.432 
+
+20  30  W Observed  0.06 7 0.103 
+
+20  30  W Missing  0.0 90  0.148 
+
+20  30  Z Observed  0.076  0.180 
+
+20  30  Z Missing  0.08 1 0.311 
+
+20  50  W Observed  0.084  0.126 
+
+20  50  W Missing  0.063  0.091 
+
+20  50  Z Observed  0.093  0.224 
+
+20  50  Z Missing  0.06 5 0.239 
+
+40  10  W Observed  0.027  0.066 
+
+40  10  W Missing  0.06 9 0.309 
+
+40  10  Z Observed  0.025  0.104 
+
+40  10  Z Missing  0.074  0.435 
+
+40  30  W Observed  0.03 1 0.103 
+
+40  30  W Missing  0.03 5 0.148 
+
+40  30  Z Observed  0.032  0.181 
+
+40  30  Z Missing  0.037  0.311 
+
+40  50  W Observed  0.037  0.126 
+
+40  50  W Missing  0.02 8 0.088 
+
+40  50  Z Observed  0.0 40  0.235 
+
+40  50  Z Missing  0.027  0.247 Supplementary Figure 1. Comparison of covariate balance between the proposed approach and 
+
+delta -adjusted MI for treatment prevalence of 20%, missingness levels of 10%, 30%, and 50%, 
+
+with a sample size of 500, using three random datasets. Supplementary Figure 2. Comparison of covariate balance between the proposed approach and 
+
+delta -adjusted MI for treatment prevalence of 40%, missingness levels of 10%, 30%, and 50%, 
+
+with a sample size of 500, using three random datasets.

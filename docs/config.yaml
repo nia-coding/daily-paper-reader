@@ -30,6 +30,9 @@ subscriptions:
       description: 父母控制与执行功能关系研究检索规划
       enabled: true
       keywords:
+        - keyword: parental monitoring
+          keyword_cn: 父母监控
+          query: parental monitoring
         - keyword: parental behavioral control
           keyword_cn: 父母行为控制
           query: impact of parental behavioral control on child development
@@ -80,4 +83,4 @@ subscriptions:
           enabled: true
           source: manual
           note: ''
-      updated_at: '2026-03-08T05:11:38.521Z'
+      updated_at: '2026-03-08T16:36:27.403Z'

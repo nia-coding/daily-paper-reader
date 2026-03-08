@@ -6,29 +6,33 @@
 - [推荐链路与日报结构说明](/newbie/workflow)
 
 ## 每次日报
-- 最新运行日期：2026-02-07 ~ 2026-03-08
-- 运行时间：2026-03-08 05:28:37 UTC
+- 最新运行日期：2026-03-08
+- 运行时间：2026-03-08 19:02:54 UTC
 - 运行状态：成功
-- 本次总论文数：2
-- 精读区：0
-- 速读区：2
+- 本次总论文数：4
+- 精读区：1
+- 速读区：3
 
 ### 今日简报（AI）
-今日聚焦社交 VR 中的心理需求满足机制与动态结构方程模型的高效贝叶斯估计算法。
-研究揭示了临场感对 VR 社交体验的关键预测作用，并提出通过状态空间边缘化显著提升复杂动态模型的计算效率。
-建议关注沉浸式社交的心理效应，并尝试应用新算法优化大规模动态数据的建模分析。
-- 详情：[/20260207-20260308/README](/20260207-20260308/README)
+今日深度解析 GenAI 时代下家长对儿童交互监管的真实诉求，并同步关注 AI 在青少年健康决策与神经科学中的应用。
+核心研究通过 LLM 探针揭示了家长在孩子使用聊天机器人时的干预偏好，
+- 详情：[/202603/08/README](/202603/08/README)
 
 ### 精读区论文标签
-- 本次无精读推荐。
+1. [Understanding Parents' Desires in Moderating Children's Interactions with GenAI Chatbots through LLM-Generated Probes](/202603/08/2603.03727v1-understanding-parents-desires-in-moderating-childrens-interactions-with-genai-chatbots-through-llm-generated-probes)  
+   标签：评分：9.0/10、query:pr-ef
+   evidence：家长对调节孩子互动的需求及家长控制工具
 
 ### 速读区论文标签
-1. [Social, Spatial, and Self-Presence as Predictors of Basic Psychological Need Satisfaction in Social Virtual Reality](/20260207-20260308/2602.12764v1-social-spatial-and-self-presence-as-predictors-of-basic-psychological-need-satisfaction-in-social-virtual-reality)  
-   标签：评分：8.0/10、query:pr-ef
-   evidence：基本心理需求与自我决定理论
-2. [Efficient Bayesian Estimation of Dynamic Structural Equation Models via State Space Marginalization](/20260207-20260308/2603.04003v1-efficient-bayesian-estimation-of-dynamic-structural-equation-models-via-state-space-marginalization)  
-   标签：评分：8.0/10、query:pr-ef
-   evidence：纵向数据动态结构方程模型的高效估计
+1. [Causal Inference with MNAR Self-Masking Confounders: A Stratified Delta-Imputed Propensity Estimation Method](/202603/08/2603.00343v1-causal-inference-with-mnar-self-masking-confounders-a-stratified-delta-imputed-propensity-estimation-method)  
+   标签：评分：6.0/10、query:pr-ef
+   evidence：观察性研究中缺失混杂因素的因果推断
+2. [INTENSE: Detecting and disentangling neuronal selectivity in calcium imaging data](/202603/08/2603.04622v1-intense-detecting-and-disentangling-neuronal-selectivity-in-calcium-imaging-data)  
+   标签：评分：6.0/10、query:pr-ef
+   evidence：将神经活动与行为和认知联系起来
+3. [Designing for Adolescent Voice in Health Decisions: Embodied Conversational Agents for HPV Vaccination](/202603/08/2603.05321v1-designing-for-adolescent-voice-in-health-decisions-embodied-conversational-agents-for-hpv-vaccination)  
+   标签：评分：6.0/10、query:pr-ef
+   evidence：健康决策中的青少年能动性与亲子互动
 
 
 ### ⚡ 这个站点能做什么

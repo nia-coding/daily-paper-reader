@@ -25,3 +25,59 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: PR EF
+      description: 父母控制与执行功能关系研究检索规划
+      enabled: true
+      keywords:
+        - keyword: parental behavioral control
+          keyword_cn: 父母行为控制
+          query: impact of parental behavioral control on child development
+        - keyword: parental psychological control
+          keyword_cn: 父母心理控制
+          query: effects of parental psychological control on executive function
+        - keyword: executive function
+          keyword_cn: 执行功能
+          query: development of executive function in children and adolescents
+        - keyword: inhibitory control
+          keyword_cn: 抑制控制
+          query: parenting styles and child inhibitory control
+        - keyword: basic psychological needs
+          keyword_cn: 基本心理需求
+          query: self-determination theory and basic psychological needs satisfaction
+        - keyword: emotion regulation
+          keyword_cn: 情绪调节
+          query: mediating role of emotion regulation in parenting and cognition
+        - keyword: longitudinal study
+          keyword_cn: 纵向研究
+          query: longitudinal association between parenting and executive function
+        - keyword: preschool children
+          keyword_cn: 学前儿童
+          query: parental control and executive function in preschool samples
+      intent_queries:
+        - query: How does parental psychological control affect children's executive function?
+          query_cn: 父母心理控制如何影响儿童的执行功能？
+          enabled: true
+          source: manual
+          note: ''
+        - query: The mediating role of basic psychological needs in the relationship between parenting and EF
+          query_cn: 基本心理需求在教养方式与执行功能关系中的中介作用
+          enabled: true
+          source: manual
+          note: ''
+        - query: Differences between behavioral and psychological control on child self regulation
+          query_cn: 行为控制与心理控制对儿童自我调节影响的差异
+          enabled: true
+          source: manual
+          note: ''
+        - query: Meta analysis of parental control and child internalizing or externalizing problems
+          query_cn: 父母控制与儿童内/外化问题的元分析
+          enabled: true
+          source: manual
+          note: ''
+        - query: Neurobiological mechanisms linking parenting styles to inhibitory control
+          query_cn: 教养方式与抑制控制关联的神经生物学机制
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-03-08T05:11:38.521Z'

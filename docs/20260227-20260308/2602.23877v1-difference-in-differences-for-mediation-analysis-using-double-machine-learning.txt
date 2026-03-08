@@ -1,0 +1,3178 @@
+Title: Difference-in-differences for mediation analysis using double machine learning
+
+URL Source: https://arxiv.org/pdf/2602.23877v1
+
+Published Time: Mon, 02 Mar 2026 01:54:42 GMT
+
+Number of Pages: 56
+
+Markdown Content:
+# Difference-in-differences for mediation analysis using double machine learning 
+
+## Martin Huber 
+
+University of Fribourg, Dept. of Economics 
+
+## Sarina Oberhänsli 
+
+University of Fribourg, Dept. of Economics 
+
+## February 27, 2026 
+
+Abstract 
+
+We propose a difference-in-differences (DiD) framework with mediation for possibly multivalued discrete or continuous treatments and mediators, aimed at identifying the direct effect of the treatment on the outcome (net of effects operating through the mediator), the indirect effect via the mediator, and the joint effects of treatment and mediator, consistent with the framework of dynamic treatment effects. Identification relies on a conditional parallel trends assumption imposed on the mean potential outcome across treatment and mediator states, or (depending on the causal parameter) additionally on the mean potential outcomes and potential mediator distributions across treatment states. We propose ATET estimators for repeated cross sections and panel data within the double/debiased machine learning framework, which allows for data-driven control of covariates, and we establish their asymptotic normality under standard regularity conditions. We investigate the finite-sample performance of the proposed methods in a simulation study and illustrate our approach in an empirical application to the US National Longitudinal Survey of Youth, estimating the direct effect of health care coverage on general health as well as the indirect effect operating through routine checkups. 
+
+Keywords: Difference-in-differences, mediation, causal inference, machine learning, parallel trends, controlled direct effect, dynamic treatment effects, natural direct effect, natural indirect effect. 
+
+Addresses for correspondence: Martin Huber, Sarina Oberhänsli, University of Fribourg, Bd. de Pérolles 90, 1700 Fribourg, Switzerland; martin.huber@unifr.ch, sarinajoy.oberhaensli@unifr.ch. 
+
+> arXiv:2602.23877v1 [econ.EM] 27 Feb 2026
+
+# 1 Introduction 
+
+Difference-in-differences (DiD) (Ashenfelter, 1978; Snow, 1855) is among the most popular methods for treatment evaluation, that is, for assessing the impact of a treatment on an outcome of interest in observational studies, provided that outcomes can be observed both before and after the introduction of the treatment. In such studies, the outcomes of treated individuals observed before and after treatment typically do not allow researchers to directly infer the treatment effect, due to confounding time trends in the treated individuals’ counterfactual outcomes — those that would have occurred in the absence of treatment. The DiD approach addresses this issue by using a control group that does not receive the treatment and by invoking a parallel trend assumption, which requires that the treated group’s unobserved counterfactual outcomes under non-treatment follow the same mean outcome trend as observed in the control group. This permits identifying the average treatment effect on the treated (ATET). While the standard DiD setup focuses on the evaluation of the total effect of a treatment, researchers are often also interested in the causal mechanisms through which the effect operates, such as indirect effects transmitted via intermediate variables (so-called mediators) or the treatment’s direct effect, net of effects transmitted through mediators. Furthermore, one may wish to study the joint effects of specific treatment and mediator values, which corresponds to dynamic treatment effects obtained by setting the treatment and mediator to specific levels. Building on this motivation, our study proposes a new DiD framework for causal mediation and dynamic treatment effect analysis that accommodates (possibly multivalued discrete or continuous) treatments and mediators. Depending on the form of the imposed parallel trends assumption, the framework allows the assessment of average direct and indirect treatment effects, as well as joint effects of the treatment and the mediator. Identification of dynamic treatment effects — such as the joint effect of treatment and mediator, or the (controlled) direct effect of the treatment when fixing the mediator at a specific value — relies on a conditional parallel trends assumption imposed on mean potential outcomes under no treatment and no mediation, or under specific nonzero treatment or mediator values, conditional on observed covariates. The assumption requires that, conditional on covariates, the mean potential outcomes of the treatment group (characterized by specific 1values of the treatment and the mediator) would have followed the same average trend as those of the control group not receiving the treatment and mediator (or exposed to a different treatment-mediator combination than the treatment group), had the treatment group been assigned the same treatment and mediator values as the control group. A further class of causal parameters studied in causal mediation analysis are natural direct and indirect effects (Pearl, 2001; Robins & Greenland, 1992), which are defined in terms of potential mediator values as functions of the treatment, rather than fixed mediator values. For example, the natural indirect effect captures the effect of the treatment on the outcome operating through treatment-induced changes in the mediator. We show that additional assumptions permit identification of such natural effects, by imposing conditional parallel trends either on mean potential outcomes across treatment groups (in addition to across treatment–mediator combinations), or on the distribution of the mediator across treatment groups. We propose flexible DiD estimators for both repeated cross sections, where subjects differ across time periods, and panel data, where the same subjects are repeatedly observed over time. The estimators build on the double/debiased machine learning (DML) framework of Chernozhukov et al. (2018) to control for covariates in a data-driven manner, which is particularly advantageous when the number of potential control variables is large relative to the sample size. To this end, we estimate the conditional mean outcome and treatment models using machine learning methods and employ these nuisance estimates as plug-ins in doubly robust (DR) score functions (e.g., Robins & Rotnitzky, 1995; Robins, Rotnitzky, & Zhao, 1994), which we adapt to the DiD setting for estimating direct and indirect effects. We show that our estimators satisfy the Neyman (1959)-orthogonality condition, implying that they are relatively robust—i.e., first-order insensitive—to estimation errors in the nuisance parameters under suitable regularity conditions, such as approximate sparsity when lasso regression is used for nuisance estimation (Belloni, Chernozhukov, & Hansen, 2014). Following Chernozhukov et al. (2018), we further employ cross-fitting to ensure that nuisance parameters and score functions are not estimated on the same subsamples, thereby mitigating overfitting bias. Furthermore, we present simulation evidence demonstrating favorable finite-sample performance of our estimators for sample sizes in the order of several thousand observations. Finally, we provide an empirical application that revisits the setting of Farbmacher, Huber, 2Lafférs, Langen, and Spindler (2022), in which the direct effect of health care coverage on general health is disentangled from the indirect effect operating through routine checkups, using data from the National Longitudinal Survey of Youth 1997 (NLSY97). Even though the point estimates of both the total and direct effects suggest a health-improving effect, we find no statistically significant evidence of a short-term effect of health care coverage on general health among individuals who obtain coverage, either through routine checkups or through other causal mechanisms. Our study contributes to a growing literature on the semi- and nonparametric DiD-based identification of causal effects. This framework avoids potential misspecification errors of classical linear two-way fixed effects models — see, for instance, the discussion in Goodman-Bacon (2021) and De Chaisemartin and d’Haultfoeuille (2020), among others. In contrast to much of the existing work, we not only consider binary treatments but also multivalued (and possibly continuous) treatments, as in Callaway, Goodman-Bacon, and Sant’Anna (2024) and de Chaisemartin, d’Haultfoeuille, Pasquier, Sow, and Vazquez-Bare (2024), who, however, do not focus on mediation analysis or on controlling for observed covariates. In this paper, we invoke a conditional parallel trends assumption within a semiparametric DiD framework, implying that parallel trends are assumed to hold conditional on observed covariates, as considered in Abadie (2005) for binary treatments (for ATET estimation rather than mediation analysis). We study identification in both panel data and repeated cross-section settings. Our approach for repeated cross-sections can accommodate covariate distributions that vary over time within treatment groups, whereas many existing methods require these distributions to remain time-invariant within groups, as pointed out by Hong (2013). This limitation affects, for example, DiD estimators for binary or discrete treatments proposed by Abadie (2005) (inverse probability weighting), Sant’Anna and Zhao (2020) (DR estimation), and Chang (2020) (DML). A notable exception is the DML approach by Zimmert (2020), which allows for time-varying covariate distributions within treatment groups but applies it to ATET estimation for binary treatments rather than to mediation analysis (with possibly non-binary treatments and mediators), as we do. Further related work includes Zhang (2025), who consider DML-based DiD estimation of the ATET for continuous versus no treatment, and Haddad, Huber, and Zhang (2024), who extend the framework to the evaluation of time-3varying treatments and comparisons of strictly positive treatment doses (as also considered by de Chaisemartin et al. (2024), though without covariate adjustment). In contrast, our paper considers (potentially non-binary) treatments and mediators to assess direct and indirect effects on the treated, rather than the ATET alone. Our paper is also related to recent work on DiD methods for mediation analysis. Deuchert, Huber, and Schelker (2019) consider a binary, random treatment and a binary, nonrandom mediator to identify direct and indirect effects in specific subpopulations defined by potential mediator states as functions of treatment, based on parallel trend assumptions within those subpopulations. Their results demonstrate that natural direct and indirect effects defined in terms of potential mediators (Pearl, 2001; Robins & Greenland, 1992) for the total or treated population can be obtained only if specific parallel trend assumptions hold across multiple subpopulations. In this paper, we impose parallel trend assumptions that are strong enough to identify natural direct and indirect effects among the treated, but assume them to hold conditional on observed control variables, for which we adjust in a data-adaptive manner using machine learning. As a further distinction, we also consider non-binary treatments and mediators. Similar to our setting, Schenk (2024) assumes both the treatment and mediator to be nonrandom and discusses the identification of natural direct and indirect effects among the treated based on specific parallel trend assumptions. The study highlights interesting trade-offs between different sets of assumptions: for a binary treatment and mediator, for instance, one may impose parallel trend assumptions that only hold across some, but not all subpopulations defined by potential mediators, but must then make additional assumptions such as monotonicity of the mediator in treatment. In contrast, our paper imposes stronger parallel trend assumptions across groups defined by treatment and potential mediator values. As a result, monotonicity is not required, and identification is also feasible for non-binary treatments and mediators. Furthermore, unlike Schenk (2024), we employ machine learning methods to control for covariates in a data-adaptive way when imposing parallel trends. Blackwell, Glynn, Hilbig, and Phillips (2022) considers the identification of controlled direct effects under a random treatment and a nonrandom mediator - that is, when fixing the mediator at a specific value to assess the direct treatment effect, rather than at its potential value as in the natural direct effect. Also in this paper, we derive identification results for 4the controlled direct effect. However, our framework allows both the treatment and the mediator to be nonrandom and furthermore, accommodates data-adaptive adjustment for covariates using machine learning. Our paper is further related to the literature on dynamic treatment effects (of which the identification of controlled direct effects is a special case); see, for instance, Robins (1986) and Robins, Hernan, and Brumback (2000). Within this literature, DR identification has been studied for instance in Tran et al. (2019), as well as DML estimation; see Lewis and Syrgkanis (2021), Bodory, Huber, and Lafférs (2022), and Bradic, Ji, and Zhang (2024). However, these studies rely on selection-on-observables assumptions, while our paper focuses DiD methods that invoke parallel trend assumptions. The remainder of this paper is organized as follows. Section 2 discusses the DiD-based identification of dynamic treatment effects and controlled direct effects in repeated cross-sectional data. Section 3 focuses on the identification of natural direct and indirect effects in causal mediation analysis in repeated cross-sectional data. Section 4 considers identification in panel data. Section 5 proposes estimators based on DML with cross-fitting and also provides asymptotic results for the proposed estimators. Section 6 provides a simulation study for the repeated cross-section and panel data cases. Section 7 presents an empirical application that decomposes the effect of health care coverage on general health into a direct effect and an indirect effect operating through routine checkups. Section 8 concludes. 
+
+# 2 Identification of dynamic treatment and controlled direct effects in repeated cross sections 
+
+This section discusses DiD-based identification of dynamic treatment effects as well as direct and indirect effects in repeated cross-sectional data. We consider a discretely distributed treatment and mediator, denoted by D and M , respectively. Furthermore, let T denote the time period, where T = 0 is the baseline period prior to treatment and mediator assignment, while T = 1 is a post-treatment and post-mediator period in which the effect on the outcome is measured. We use capital letters to refer to random variables and lowercase letters for specific realizations of these variables. Yt denotes the observed outcome in period T = t,while Yt(d, m ) represents the potential outcome in period t when hypothetically setting the 5treatment to D = d and the mediator to M = m; see e.g. Neyman (1923) and D. B. Rubin (1974) for more discussion on the potential outcome framework. Throughout the paper, we impose the stable unit treatment value assumption (SUTVA), implying that a subject’s potential outcomes are not affected by the treatment or mediators of others; see, for instance, the discussion in D. Rubin (1980) and Cox (1958). Finally, we denote by X observed covariates that may serve as control variables. In our discussion, we refer to the treatment group as those subjects receiving a specific treatment value D = d and mediator value M = m. We consider the identification of the average treatment effect on the treated (ATET) for this treatment–mediator combination, which is defined by comparing the observed average outcomes in the treatment group to the average potential outcomes for the same group under counterfactual treatment and mediator values d′ and m′. Formally, the ATET of treatment and mediator states D = d, M = m
+
+versus D = d′, M = m′ in the treatment group with D = d, M = m in the post treatment period T = 1 is given by 
+
+∆d,m (d, m, d ′, m ′) = E[Y1(d, m ) − Y1(d′, m ′) | D = d, M = m, T = 1] . (1) For instance, for a binary treatment and mediator and for d = m = 1 , d′ = m′ = 0 , the ATET 
+
+∆1,1(1 , 1, 0, 0) = E[Y1(1 , 1) − Y1(0 , 0) | D = 1 , M = 1 , T = 1] corresponds to the average effect of receiving both the treatment and the mediator versus receiving neither, among the group that actually receives the treatment and the mediator and is observed in the post-treatment period. More generally, for d̸ = d′ and m̸ = m′, the effect in (5) corresponds to the joint effect of the treatment and mediator on the outcome among those with D = d and M = m. This framework permits the consideration of dynamic treatment effects, i.e., the effects of different sequences of treatments and mediators, as, for example, in Robins (1986) and Robins, Hernan, and Brumback (2000) (which rely on sequential selection-on-observables assumptions, whereas our study relies on parallel trends assumptions). In contrast, if we fix the mediator value at m = m′, the resulting ATET corresponds to the controlled direct effect; see, e.g., Pearl (2001). For instance, ∆1,1(1 , 0, 0, 0) = E[Y1(1 , 0) − Y1(0 , 0) | D = 1 , M = 1 , T = 1] represents the controlled direct effect when fixing the mediator at m = m′ = 0 .For identification of the ATET, we impose the following assumptions related to Lechner 6(2011) for binary treatments, but now imposed w.r.t. to a combination of discrete treatment and mediator variables: 
+
+Assumption 1. (Conditional parallel trends across treatment-mediator combina-tions): 
+
+E[Y1(d′, m ′) − Y0(d′, m ′)|D = d, M = m, X ] = E[Y1(d′, m ′) − Y0(d′, m ′)|D = d′, M = m′, X ].
+
+Assumption 1 imposes parallel trends in the mean potential outcome under the treat-ment–mediator combination D = d′, M = m′ across the treatment group with D = d, M = m
+
+on the one hand and the control group with D = d′, M = m′ on the other hand, conditional on covariates X. For binary treatment and mediator variables with d = m = 1 and d′ = m′ = 0 ,this implies E[Y1(0 , 0) − Y0(0 , 0) |D = 1 , M (1) = 1 , X ] = E[Y1(0 , 0) − Y0(0 , 0) |D = 0 , M (0) = 0, X ], where we have used the fact that, by the observational rule, M = M (1) conditional on D = 1 , while M = M (0) conditional on D = 0 . Therefore, the parallel trend assumption is imposed not only across groups with treatment values D = 1 and D = 0 , but also across groups defined by potential mediators under treatment ( M (1) = 1 ) and under nontreatment (M (0) = 0 ). It is worth emphasizing that these are generally distinct subgroups in terms of how the mediator responds to treatment, an issue that fits into the causal framework of principal stratification, see Frangakis and Rubin (2002), and is closely related to compliance in instrumental variable contexts, see Angrist, Imbens, and Rubin (1996): The subpopulation with M (1) = 1 consists of subjects complying with the treatment in the sense that they take the mediator as a result of being treated, characterized by M (0) = 0 , M (1) = 1 , as well as subjects who always take the mediator, characterized by M (0) = M (1) = 1 . In contrast, the subpopulation with M (0) = 0 includes complying subjects ( M (0) = 0 , M (1) = 1 ) and subjects who never take the mediator ( M (0) = M (1) = 0 ). We note that this specific type of parallel trends assumption, E[Y1(0 , 0) − Y0(0 , 0) |D =1, M (1) = 1 , X ] = E[Y1(0 , 0) − Y0(0 , 0) |D = 0 , M (0) = 0 , X ], is commonly imposed in the DiD literature on multiple treatment periods, including staggered treatment adoption across groups. See, for instance, the discussions in Borusyak, Jaravel, and Spiess (2024), Callaway and Sant’Anna (2021), Goodman-Bacon (2021), de Chaisemartin and D’Haultfeuille (2020), and Sun and Abraham (2021). Indeed, the multiple treatment period setup can be interpreted through the lens of our mediation framework by defining D as treatment adoption in an 7earlier period and M as treatment adoption in a later period, while typically allowing for additional treatment periods beyond these two. For this reason, Assumption 1 implicitly imposes parallel trends across (mediator) always-and never-takers. Depending on the context and the values of d, d ′, m, m ′ considered, our parallel trend assumptions are more stringent than those considered for causal mediation in Deuchert et al. (2019) under random treatment and nonrandom mediator, or in Schenk (2024) under nonrandom treatment and mediator, who tailor parallel trend assumptions to specific subpopulations defined by potential mediator states as a function of treatment. Consequently, identification of particular direct and indirect effects in Deuchert et al. (2019) and Schenk (2024) may require additional assumptions, such as monotonicity of the mediator in treatment, e.g., Pr (M (1) − M (0) ≥ 0 | D = 1) = 1 . Such monotonicity is not imposed here, due to the stronger parallel trend assumption across subgroups defined by potential mediators (and treatments). This parallel trend assumption imposes restrictions on the selection bias arising from unobserved confounders that jointly affect the treatment/mediator and the outcome, which can cause treatment and control groups defined by different treatment–mediator combinations, D = d, M = m and D = d′, M = m′, to have different average potential outcomes under control, Yt(d′, m ′). Specifically, this selection bias must be constant across time periods t = 0 and t = 1 , conditional on X.|D=d, 
+
+Assumption 2. (No anticipation of effect on outcome): 
+
+E[Y0(d, m )|D = d, M = m, X ] − E[Y0(d′, m ′)|D = d, M = m, X ] = 0 .
+
+Assumption 2 requires that, conditional on X, the ATET is zero in the baseline period. This rules out, on average, any anticipation effects among treated units in period T = 0 with respect to the treatment and mediator to come. In other words, since the treatment and mediator have not yet been realized, they cannot, on average, induce behavioral adjustments in the treated group that affect pretreatment outcomes in anticipation of future treatment or mediator values. 
+
+Assumption 3. (Common support): 
+
+Pr (D = d, M = m, T = 1 |X, (D, M, T ) ∈ { (d∗, m ∗, t ∗), (d, m, 1) }) < 1 for (d∗, m ∗, t ∗) ∈{(d, m, 0) , (d′, m ′, 1) , (d′, m ′, 0) }.
+
+8Assumption 3 requires that, for any subject with D = d, M = m in the post-treatment period T = 1 , there exist, in terms of X, comparable subjects with D = d, M = m
+
+in the baseline period, with D = d′, M = m′ in the post-treatment period, and with 
+
+D = d′, M = m′ in the baseline period. In other words, for every combination of covariates observed among treated and mediated units in the post-treatment period, there must exist comparable observations in all other three treatment/mediator–time cells. This common support condition ensures that the counterfactual outcome distributions for the target population with D = d, M = m in the post-treatment period can be recovered from observable data in the other cells. 
+
+Assumption 4. (Exogenous covariates): 
+
+X(d∗, m ∗) = X for all d∗, m ∗ in the support of D, M .
+
+Assumption 4 imposes that the covariates are not causally affected by the treatment or the mediator. This can be a delicate restriction if the covariates include post-treatment variables (as is often the case in repeated cross sections); see, for instance, the discussion in Caetano, Callaway, Payne, and Rodrigues (2022). Controlling for post-treatment X generally introduces bias if X is affected by D and/or M , and X either affects Y , is correlated with unobservables affecting Y , or both. Assumption 4 rules out such bias by requiring that potential covariates are not a function of the treatment or mediator, but this assumption should be carefully scrutinized in practice whenever one conditions on post-treatment covariates. Under these assumptions, the mean potential outcome under non-treatment D = d′ and mediator state M = m′ is identified in the post-treatment period among the group receiving treatment doses D = d and M = m, conditional on X:
+
+E[Y1(d′, m ′)|D = d, M = m, X ]=E[Y0(d′, m ′)|D = d, M = m, X ] + E[Y1(d′, m ′)|D = d, M = m, X ] − E[Y0(d′, m ′)|D = d, M = m, X ]=E[Y0(d, m )|D = d, M = m, X ] + E[Y1(d′, m ′)|D = d, M = m, X ] − E[Y0(d′, m ′)|D = d, M = m, X ]] =E[Y0(d, m )|D = d, M = m, X ] + E[Y1(d′, m ′)|D = d′, M = m′, X ]
+
+−E[Y0(d′, m ′)|D = d′, M = m′, X ]=E[Y0|D = d, M = m, X ] + E[Y1|D = d′, M = m′, X ] − E[Y0|D = d′, M = m′, X ]. (2) 9The first equality in (2) follows from subtracting and adding E[Y0(d′, m ′)|D = d, M = m, X ]
+
+and the second from Assumption 2. The third equality follows from Assumption 1. The fourth equality follows from the fact that Yt = Yt(d, m ) conditional on D = d and M = m,which is known as the observational rule. Finally, note that by Assumption 4, X is not causally affected by either D or M , implying that conditioning on X does not block any causal effect of D or M on Y .It follows that E[Y1(d′, m ′)|D = d, M = m] can be obtained by averaging the expression in the last line of (2) over X conditional on D = d, M = m in the post-treatment period 
+
+T = 1 . This step requires satisfaction of Assumption 3 (common support): 
+
+E[Y1(d′, m ′)|D = d, M = m] = E[E[Y0|D = d, M = m, X ]|D = d, M = m, T = 1] + {E[E[Y1|D = d′, M = m′, X ] − E[Y0|D = d′, M = m′, X ]|D = d, M = m, T = 1] } (3) Furthermore, we have by the observational rule that 
+
+E[Y1(d, m )|D = d, M = m] = E[Y1|D = d, M = m]. (4) For notational convenience, we henceforth denote the conditional mean outcome by 
+
+μd,m (t, X ) = E[Yt | D = d, M = m, X ]. Furthermore, let Πd,m,t = Pr (D = d, M = m, T = t)
+
+denote the joint probability of treatment, mediator, and period, and ρd,m,t (X) = Pr (D =
+
+d, M = m, T = t | X) the corresponding conditional probability given X, also known as propensity score. Let I· denote the indicator function, which equals one if its argument is satisfied and zero otherwise. For the moment, assume that the treatment D and mediator 
+
+M are discrete. Taking the difference between (4) and the average of (3) then identifies the ATET of treatment and mediator states D = d, M = m versus D = d′, M = m′ in the group with D = d, M = m in the post-treatment period, as given in equation (1): 
+
+∆d,m (d, m, d ′, m ′) = E[Y1|D = d, M = m]
+
+− E[μd,m (0 , X ) + μd′,m ′ (1 , X ) − μd′,m ′ (0 , X )|D = d, M = m, T = 1] (5) 
+
+= E 
+
+> [
+
+I{D = d} · I{M = m} · T · [YT − { μd,m (0 , X ) + μd′,m ′ (1 , X ) − μd′,m ′ (0 , X )}]Πd,m, 1
+
+> ]
+
+.
+
+10 As a methodological contribution, we propose an alternative, doubly robust (DR) expres-sion for the ATET which is numerically equivalent to (5) under our identifying assumptions and, in contrast to (5) , satisfies Neyman (1959)-orthogonality. This property makes it partic-ularly attractive for combination with machine learning methods for the estimation of the conditional mean outcomes and propensity scores. The DR identification result is provided in Proposition 1. 
+
+Proposition 1. Under Assumptions 1–4, the ATET is identified by the following expression, which satisfies Neyman orthogonality: 
+
+∆d,m (d, m, d ′, m ′)= E 
+
+> [
+
+I{D = d} · I{M = m} · T · [YT − { μd,m (0 , X ) + μd′,m ′ (1 , X ) − μd′,m ′ (0 , X )}]Πd,m, 1
+
+− (YT − μD,M (T, X )) · ρd,m, 1(X)Πd,m, 1
+
+· 
+
+> {
+
+I{D = d} · I{M = m} · (1 − T )
+
+ρd,m, 0(X)+ I{D = d′} · I{M = m′} · Tρd′,m ′,1(X) − I{D = d′} · I{M = m′} · (1 − T )
+
+ρd′,m ′,0(X)
+
+> }]
+
+. (6) Appendix A.1 provides formal proofs that equation (6) identifies the ATET and satisfies Neyman orthogonality. It is worth noting that, in addition to the ATET as defined in (1) , strengthening Assump-tions 1–4 to not only hold for the population with D = d, M = m, but also in analogous manner for the population with D = d′, M = m′ permits identification of the average treatment effect (ATE) in the total population in the post-treatment period, defined as 
+
+∆( d, m, d ′, m ′) = E[Y1(d, m ) − Y1(d′, m ′)|T = 1] . (7) This result follows because, under the stated assumptions applied symmetrically to both 
+
+(D = d, M = m) and (D = d′, M = m′) cells, the conditional mean potential outcomes 
+
+E[Y1(d, m ) | X] and E[Y1(d′, m ′) | X] are identified for all vlues of X in the population. Assuming for instance that both D and M are binary, imposing Assumption 1 sym-metrically to (D = 1 , M = 1) and (D = 0 , M = 0) imposes parallel trends both without and with treatment and mediation, that is, E[Y1(0 , 0) − Y0(0 , 0) |D = 1 , M = 1 , X ] = 
+
+E[Y1(0 , 0) − Y0(0 , 0) |D = 0 , M = 0 , X ] and E[Y1(1 , 1) − Y0(1 , 1) |D = 1 , M = 1 , X ] = 
+
+11 E[Y1(1 , 1) − Y0(1 , 1) |D = 0 , M = 0 , X ], respectively. It is worth noting that these two as-sumptions jointly imply homogeneity in average effects. To see this, note that by subtracting the two parallel trend conditions, we obtain 
+
+E[Y1(0 , 0) − Y0(0 , 0) − Y1(1 , 1) + Y0(1 , 1) |D = 1 , M = 1 , X ]= E[Y1(0 , 0) − Y0(0 , 0) − Y1(1 , 1) + Y0(1 , 1) |D = 0 , M = 0 , X ]= E[Y1(0 , 0) − Y0(0 , 0) − Y1(1 , 1) + Y0(0 , 0) |D = 1 , M = 1 , X ]= E[Y1(0 , 0) − Y0(0 , 0) − Y1(1 , 1) + Y0(0 , 0) |D = 0 , M = 0 , X ]= E[Y1(0 , 0) − Y1(1 , 1) |D = 1 , M = 1 , X ] = E[Y1(0 , 0) − Y1(1 , 1) |D = 0 , M = 0 , X ], (8) where the second and third equalities follow from Assumption 2. Under this stronger set of assumptions, the ATE is identified by 
+
+∆( d, m, d ′, m ′) = E[μd,m (1 , X ) − μd,m (0 , X ) − { μd′,m ′ (1 , X ) − μd′,m ′ (0 , X )}| T = 1] . (9) A corresponding DR expression for identifying the ATE that is Neyman orthogonal (as formally shown in Appendix A.1) is given in Proposition 2, where pt(X) = Pr (T = t | X)
+
+denotes the conditional period probability given covariates. 
+
+Proposition 2. Under Assumptions 1–4 and assuming that these assumptions also hold when swapping D = d′, M = m′ and D = d, M = m, the ATE is identified by the following expression, which satisfies Neyman orthogonality: 
+
+∆( d, m, d ′, m ′) = E 
+
+> [
+
+T · [μd,m (1 , X ) − μd,m (0 , X ) − { μd′,m ′ (1 , X ) − μd′,m ′ (0 , X )}]Pr( T = 1) (10) 
+
++ (YT − μD,M (T, X )) · p1(X)Pr( T = 1) · 
+
+> {
+
+I{D = d} · I{M = m} · Tρd,m, 1(X) − I{D = d} · I{M = m} · (1 − T )
+
+ρd,m, 0(X)
+
+− 
+
+> (
+
+I{D = d′} · I{M = m′} · Tρd′,m ′,1(X) − I{D = d′} · I{M = m′} · (1 − T )
+
+ρd′,m ′,0(X)
+
+> )}]
+
+.
+
+12 3 Identification of natural direct and indirect effects in repeated cross sections 
+
+While the last section focused on the identification of directed controlled effects as well as dynamic treatment effects, this section discusses the disentangling of the total ATET into natural direct and indirect effects defined in terms of potential mediators as a function of the treatment (Pearl, 2001; Robins & Greenland, 1992), as aimed for in causal mediation analysis; see, for instance, Huber (2021) for a survey. The motivation is that while canonical DiD has been developed for assessing the average effect of some treatment D on the treated population, we are frequently interested in decomposing this ATET into various causal mechanisms, such as the average indirect effect operating through a mediator M . For this reason, we now consider the (total) ATET of treatment D in the post-treatment period, defined as 
+
+∆d(d, d ′, M (d), M (d′)) = E[Y1(d, M (d)) − Y1(d′, M (d′)) |D = d, T = 1] = E[Y1(d) − Y1(d′)|D = d, T = 1] , (11) where the second equality follows from the conventional definition of a potential outcome as a function of D only, such that Y1(d, M (d)) = Y1(d), as typically considered in the canonical DiD literature. By adding and subtracting Y1(d′, M (d)) within the expectation in (11) , it can be easily seen that the ATET can be decomposed into a natural direct effect, defined as 
+
+∆d(d, d ′, M (d), M (d)) = E[Y1(d, M (d)) − Y1(d′, M (d)) |D = d, T = 1] , (12) and a natural indirect effect, defined as 
+
+∆d(d′, d ′, M (d), M (d′)) = E[Y1(d′, M (d)) − Y1(d′, M (d′)) |D = d, T = 1] . (13) While E[Y1(d, M (d)) |D = d, T = 1] = E[Y1|D = d] is directly observed in the data, identifi-cation of the ATET and the natural effects hinges on the identification of the counterfactuals 
+
+E[Y1(d′, M (d′)) |D = d, T = 1] , (14) 13 E[Y1(d′, M (d)) |D = d, T = 1] = ∑
+
+> m∈M
+
+E[Y1(d′, m )|D = d, M (d) = m, T = 1] · Pr( M (d) = m|D = d, T = 1) , (15) where M denotes the support of M , which is here assumed to be discrete. The identification of the counterfactual in equation (15) requires that Assumption 1 holds for potential outcomes Y1(d′, m ) across treatment groups D = d and D = d′ when fixing the mediator at any value m in the support of M (d) among the group with D = d, T = 1 :
+
+E[Y1(d′, m ) − Y0(d′, m )|D = d, M = m, X ] = E[Y1(d′, m ) − Y0(d′, m )|D = d′, M = m, X ].This condition permits identification of E[Y1(d′, m )|D = d, M (d) = m], while Pr (M (d) = 
+
+m | D = d, T = 1) is directly identified from the observed data. Under this assumption, 
+
+E[Y1(d′, M (d)) | D = d] is given by 
+
+E[Y1(d′, M (d)) |D = d, T = 1] = ∑
+
+> m∈M
+
+E[Y1(d′, m )|D = d, M (d) = m] · Pr( M (d) = m|D = d, T = 1) = ∑
+
+> m∈M
+
+E[Y1(d′, m )|D = d, M = m] · Pr( M = m|D = d, T = 1) (16) 
+
+= ∑
+
+> m∈M
+
+E[E[Y1(d′, m )|D = d, M = m, X ]|D = d, M = m, T = 1] · Pr( M = m|D = d, T = 1) = ∑
+
+> m∈M
+
+E[μd,m (0 , X ) + μd′,m (1 , X ) − μd′,m (0 , X )|D = d, M = m, T = 1] · Pr( M = m|D = d, T = 1) = E[μd,M (0 , X ) + μd′,M (1 , X ) − μd′,M (0 , X )|D = d, T = 1] ,
+
+where the second equality follows from the observational rule, the third from the law of iterated expectations, and the fourth from Assumption 1 if it holds for all values m in the support of M (d).A DR expression for the counterfactual, which under the identifying assumptions is numerically equivalent to the fourth line of equation (16) and satisfies Neyman orthogonality (as formally shown in Appendix A.1), is given in Proposition 3: 
+
+Proposition 3. Under Assumptions 1–4, holding for any m in the support of M (d) conditional on D = d and T = 1 , the counterfactual E[Y1(d′, M (d)) |D = d, T = 1] is identified by the 
+
+14 following expression, which satisfies Neyman orthogonality: 
+
+E[Y1(d′, M (d)) |D = d, T = 1] = ∑
+
+> m∈M
+
+Pr( M = m|D = d, T = 1) 
+
+× E 
+
+> [
+
+I{D = d} · I{M = m} · T · [μd,m (0 , X ) + μd′,m (1 , X ) − μd′,m (0 , X )] Πd,m, 1
+
++ (YT − μD,M (T, X )) · ρd,m, 1(X)Πd,m, 1
+
+· 
+
+> {
+
+I{D = d} · I{M = m} · (1 − T )
+
+ρd,m, 0(X) (17) 
+
++ I{D = d′} · I{M = m} · Tρd′,m, 1(X) − I{D = d′} · I{M = m} · (1 − T )
+
+ρd′,m, 0(X)
+
+> }]
+
+.
+
+Rather than conditioning on each specific mediator value m and averaging over mediator values among the treated in the post-treatment period using the weights Pr (M = m | D =
+
+d, T = 1) , we may instead average directly over the distribution of the realized mediator 
+
+M among the treated in the post-treatment period. That is, instead of computing for any conditional mean outcome 
+
+E 
+
+> [
+
+I{D = d} · I{M = m} · T
+
+Πd,m, 1
+
+· μd′,m (t, X )
+
+> ]
+
+· Pr( M = m | D = d, T = 1) =E [μd′,m (t, X )|D = d, M = m, T = 1] · Pr( M = m | D = d, T = 1) ,
+
+we may consider the equivalent expression 
+
+E [
+
+μd′,M (t, X )∣∣∣D = d, T = 1 ]
+
+= E 
+
+> [
+
+I{D = d} · TPd, 1
+
+· μd′,M (t, X )
+
+> ]
+
+,
+
+which integrates over the observed distribution of M given D = d and T = 1 . Analogously, for any debiasing term based on inverse weighting by the propensity score, instead of 
+
+E 
+
+> [
+
+(YT − μD,M (T, X )) · ρd,m, 1(X)Πd,m, 1
+
+· I{D = d′} · I{M = m} · I{T = t}
+
+ρd′,m,t (X)
+
+> ]
+
+·Pr( M = m | D = d, T = 1) ,
+
+we may consider 
+
+E 
+
+> [
+
+(YT − μD,M (T, X )) · πd, 1(M, X )
+
+Pd, 1
+
+· I{D = d′} · I{T = t}
+
+πd′,t (M, X )
+
+> ]
+
+,
+
+where πd,t (M, X ) = Pr (D = d, T = t | M, X ) is the joint propensity score of treatment d and 15 time t given M and X. Therefore, the identification result in equation (17) is equivalent to the following expression, which avoids conditional mediator probabilities: 
+
+E[Y1(d′, M (d)) |D = d] = E 
+
+> [
+
+I{D = d} · T · [μd,M (0 , X ) + μd′,M (1 , X ) − μd′,M (0 , X )] 
+
+Pd, 1
+
++ (YT − μD,M (T, X )) · πd, 1(M, X )
+
+Pd, 1
+
+· 
+
+> {
+
+I{D = d} · (1 − T )
+
+πd, 0(M, X ) (18) 
+
++ I{D = d′} · Tπd′,1(M, X ) − I{D = d′} · (1 − T )
+
+πd′,0(M, X )
+
+> }]
+
+.
+
+The identification of the mean potential outcome in (14) , that is, the counterfactual under treatment d′, requires a different parallel trends assumption than Assumption 1 (for identifying the counterfactual under treatment d′ and mediator m′). The assumption is now imposed with respect to treatment only (rather than both treatment and mediator), and is formalized in the following assumption. 
+
+Assumption 5. (Conditional parallel trends across treatments): 
+
+E[Y1(d′, M (d′)) − Y0(d′, M (d′)) |D = d, X ] = E[Y1(d′, M (d′)) − Y0(d′, M (d′)) |D = d′, X ].
+
+It is worth noting that, in contrast to Assumption 1, the validity of Assumption 5 implies that those confounders affecting treatment and outcome, which are differenced out by a DiD approach, do not directly affect the mediator M other than through the treatment D. If there were unobserved variables affecting both D and M , the assumption would fail because differencing mean outcomes over time cannot account for these confounders. To see this, consider the following example. Suppose the outcome in some time period T
+
+is a (possibly unknown) function, denoted by F1, of the observed variables D, M , and X,which may interact with time T , and an additively separable, time-constant function, F2, of time-invariant unobservables: 
+
+YT = F1(D, M, X, T ) + F2(U ).
+
+Furthermore, assume that the treatment is a function of X and U ,
+
+D = FD(X, U ),
+
+16 while the mediator is a function of D and X,
+
+M = FM (D, X ).
+
+Random, time-varying, and additively separable error terms could be added to the models for YT , D, and M , but they are omitted for simplicity. The outcome model implies that differencing mean potential outcomes under treatment value d′ across periods conditional on X = x eliminates the time-constant component F2(U ):
+
+E[Y1(d′, M (d′)) − Y0(d′, M (d′)) | X = x] = E[F1(d′, M (d′), x, 1) − F 1(d′, M (d′), x, 0)] .
+
+For this reason, Assumption 5 holds because U , while affecting D, does not affect E[F1(d′, M (d′), x, 1) −F1(d′, M (d′), x, 0)] , as the potential mediator M (d′) = FM (d′, X ) is not a function of U . How-ever, changing the mediator model to M = FM (D, X, U ) would violate Assumption 5, as the potential mediator becomes M (d′) = FM (d′, X, U ). In this case, U influences both the mean potential outcome difference 
+
+E[Y1(d′, M (d′)) −Y0(d′, M (d′)) | X = x] = E[F1(d′, FM (d′, x, U ), x, 1) −F 1(d′, FM (d′, x, U ), x, 0)] ,
+
+through the mediator, and also the treatment, such that it acts as a confounder of the treatment and the difference in mean potential outcomes. When representing the potential outcome only as a function of d′, i.e. Yt(d′) = Yt(d′, M (d′)) ,we see that Assumption 5 corresponds to the parallel trend assumption in the canonical DiD literature on ATET identification, E[Y1(d′) − Y0(d′)|D = d, X ] = E[Y1(d′) − Y0(d′)|D =
+
+d′, X ].The identification of E[Y1(d′, M (d′)) |D = d, X ] can be shown by following analogous steps as in equation (2) . Denoting by μd(0 , X ) = E[Y0|D = d, X ], we have that under Assumptions 1–3 and 5 satisfied for the distribution of M (d′) among D = d, T = 1 ,
+
+E[Y1(d′, M (d′)) |D = d, X ] = μd(0 , X ) + μd′ (1 , X ) − μd′ (0 , X ), and therefore, 
+
+E[Y1(d′, M (d′)) |D = d, T = 1] = E[μd(0 , X ) + μd′ (1 , X ) − μd′ (0 , X )|D = d, T = 1] . (19) Denoting by Pd,t = Pr (D = d, T = t) and πd,t (X) = Pr (D = d, T = t|X), a DR robust 17 expression of (19) is given in Proposition 4. For d = 1 and d′ = 0 , the expression for counterfactual E[Y1(d′, M (d′)) |D = d, T = 1] in the proposition is equivalent to that derived in Zimmert (2020), who shows that it satisfies Neyman orthogonality (and for completeness, identification based on expression (19) and Neyman orthogonality is also demonstrated in Appendix A.1). 
+
+Proposition 4. Under Assumptions 1–3 and 5 holding for any m in the support of M (d′)
+
+conditional on D = d and T = 1 , the counterfactual E[Y1(d′, M (d′)) |D = d, T = 1] is identified by the following expression, which satisfies Neyman orthogonality: 
+
+E[Y1(d′, M (d′)) |D = d, T = 1] = E 
+
+> [
+
+I{D = d} · T · [μd(0 , X ) + μd′ (1 , X ) − μd′ (0 , X )] 
+
+Pd, 1
+
++ (YT − μD(T, X )) · πd, 1(X)
+
+Pd, 1
+
+· 
+
+> {
+
+I{D = d} · (1 − T )
+
+πd, 0(X)+ I{D = d′} · Tπd′,1(X) − I{D = d′} · (1 − T )
+
+πd′,0(X)
+
+> }]
+
+. (20) As an alternative to Assumption 5, we may impose Assumption 1, which permits identifying 
+
+E[Y1(d, m )|D = d, M = m, T = 1] , for all mediator values occurring among the treated and an additional parallel trend assumption on the mediator that permits identifying Pr (M (d′) = 
+
+m|D = d, T = 1) . This assumption pertains not only to the conditional mean of the mediator but to its entire distribution for all m in the support of M (d′) given D = d, T = 1 , see Callaway, Li, and Oka (2018) and Callaway and Li (2019) for related distributional parallel trend conditions. The approach requires that the past value of the mediator can be observed in the pretreatment period. For this reason, we introduce additional notation and denote by M0 the mediator in the pretreatment period ( T = 0 ), while M continues to denote the post-treatment mediator through which D may affect the post-treatment outcome Yt. The parallel trend assumption on the conditional distribution of the mediator is formalized as follows: 
+
+Assumption 6. (Conditional distributional parallel trends in the mediator): 
+
+Pr( M (d′) = m|D = d, X ) − Pr( M0(d′) = m|D = d, X )= Pr( M (d′) = m|D = d′, X ) − Pr( M0(d′) = m|D = d′, X ).
+
+It is worth noting that if the pre-treatment value of the mediator is zero (or more generally, 18 the same) for everyone, Assumption 6 collapses to a standard selection-on-observables assumption with respect to the mediator, as discussed in Imbens (2004). Specifically, in that case, we have Pr (M0(D) = 0 |D, X ) = 1 and Pr (M0(D)̸ = 0 |D, X ) = 0 , so that Assumption 6 reduces to Pr (M (d′) = m|D = d, X ) = Pr (M (d′) = m|D = d′, X ). This, together with Assumption 1, in turn implies Assumption 5, since conditional on X the distribution of M (d′)
+
+cannot depend on unobserved variables that jointly affect the treatment and mediator. Hence, scenarios such as the one discussed further above with an unobserved term U entering both 
+
+D = FD(X, U ) and M = FM (D, X, U ) are ruled out. Consequently, when the pre-treatment mediator is degenerate (i.e., has the same value for everyone), jointly imposing Assumptions 1 and 6 provides no different identifying content beyond imposing Assumption 5 alone. In addition to parallel trends with respect to the mediator, we also need to impose a no-anticipation assumption on the mediator values in the pretreatment period, analogous to Assumption 2 for the outcomes: 
+
+Assumption 7. (No anticipation of effect on mediator): 
+
+M0(d) = M0 for any d in the support of D among the treated. 
+
+The newly introduced assumptions permit the identification of the mean counterfactual outcome based on the following approach: 
+
+E[Y1(d′, M (d′)) |D = d, T = 1] = E[E[Y1(d′, M (d′)) |D = d, X ]|D = d, T = 1] = ∑
+
+> m∈M
+
+E[E[Y1(d′, m )|M (d′) = m, D = d, X ] · Pr( M (d′) = m|D = d, X )|D = d, T = 1] = ∑
+
+> m∈M
+
+E[{E[Y0(d, m )|M = m, D = d, X ] + E[Y1(d′, m ) − Y0(d′, m )|M = m, D = d′, X ]}× { Pr( M0(d) = m|D = d, X )+ Pr( M (d′) = m|D = d′, X ) − Pr( M0(d′) = m|D = d′, X )}| D = d, T = 1] = ∑
+
+> m∈M
+
+E[{μd,m (0 , X ) + μd′,m (1 , X ) − μd′,m (0 , X )} (21) 
+
+× { Pr( M0 = m|D = d, X ) + Pr( M = m|D = d′, X ) − Pr( M0 = m|D = d′, X )}| D = d, T = 1] ,
+
+where the first equality follows from the law of iterated expectations, the third from As-sumptions 1 and 6 (parallel trends for mean potential outcomes and potential mediators, respectively), as well as from the satisfaction of Assumptions 2 and 7 (no anticipation) across 19 mediator values m in the support of M (d′) among the treated in the post-treatment period. The last equality follows from the observational rule. As shorthand notation, we henceforth denote by νd,m (0 , X ) = Pr (M0 = m | D = d, X )
+
+and νd,m (1 , X ) = Pr (M = m | D = d, X ) = E[I{M = m} | D = d, X ] the conditional mediator probabilities in the pre- and post-treatment periods, respectively. Furthermore, we note that MT = M0 if T = 0 and M if T = 1 . The DR expression corresponding to (21) for identifying E[Y1(d′, M (d′)) | D = d, T = 1] is given in Proposition 5, which is also shown to satisfy Neyman orthogonality in Appendix A.1. 
+
+Proposition 5. Under Assumptions 1–4 and 6–7 holding for any m in the support of M (d′)
+
+conditional on D = d and T = 1 , the counterfactual E[Y1(d′, M (d′)) |D = d, T = 1] is identified by the following expression, which satisfies Neyman orthogonality: 
+
+E[Y1(d′, M (d′)) |D = d, T = 1] = ∑
+
+> m∈M
+
+E 
+
+> [{
+
+I{D = d} · I{M = m} · T · [μd,m (0 , X ) + μd′,m (1 , X ) − μd′,m (0 , X )] Πd,m, 1
+
++ (YT − μD,M (T, X )) · ρd,m, 1(X)Πd,m, 1
+
+· 
+
+> (
+
+I{D = d} · I{M = m} · (1 − T )
+
+ρd,m, 0(X)+ I{D = d′} · I{M = m} · Tρd′,m, 1(X) − I{D = d′} · I{M = m} · (1 − T )
+
+ρd′,m, 0(X)
+
+> )}
+
+× 
+
+> {
+
+I{D = d} · T · [νd,m (0 , X ) + νd′,m (1 , X ) − νd′,m (0 , X )] 
+
+Pd, 1
+
++ (I{MT = m} − νD,m (T, X )) · πd, 1(X)
+
+Pd, 1
+
+· 
+
+> (
+
+I{D = d} · (1 − T )
+
+πd, 0(X)+ I{D = d′} · Tπd′,1(X) − I{D = d′} · (1 − T )
+
+πd′,0(X)
+
+> )}]
+
+. (22) As a final remark in this section, we note that all previous results derived for discrete treatments and mediators can be extended to the case of continuous treatments and mediators. To this end, each indicator function for treatment values d and d′ as well as mediator values 
+
+m and m′ is replaced by a kernel weighting function with a bandwidth approaching zero to achieve identification. Consider, for instance, a continuous treatment D taking value d, while maintaining a discretely distributed mediator. We denote by ω(D; d, h ) a weighting function that depends on the distance between D and the reference value d, as well as on a non-negative bandwidth parameter h: ω(D; d, h ) = 1 
+
+> h
+
+K ( D−dh
+
+> )
+
+, where K denotes a well-behaved kernel 20 function. The closer h is to zero, the less weight is assigned to observations with larger discrepancies between D and d.Furthermore, note that the previously defined (conditional) probabilities, such as Πd,m,t 
+
+and ρd,m,t (X), correspond to (conditional) density functions when the treatment is continuous. As discussed in Fan, Yao, and Tong (1996), the conditional treatment density — also referred to as the generalized propensity score in Imai and van Dyk (2004) and Hirano and Imbens (2005) — can be expressed as ρd,m,t (X) = lim h→0 E[ω(D; d, h ) · I{M = m} · I{T = t}| X].Furthermore, Πd,m,t = lim h→0 E[ω(D; d, h ) · I{M = m} · I{T = t}].Applying these modifications, for instance, to the DR expression in equation (6) yields 
+
+∆d,m (d, m, d ′, m ′)= E 
+
+> [
+
+ω(D; d, h ) · I{M = m} · T · [YT − { μd,m (0 , X ) + μd′,m ′ (1 , X ) − μd′,m ′ (0 , X )}]Πd,m, 1
+
+− (YT − μD,M (T, X )) · ρd,m, 1(X)Πd,m, 1
+
+· 
+
+> {
+
+ω(D; d, h ) · I{M = m} · (1 − T )
+
+ρd,m, 0(X)+ ω(D; d′, h ) · I{M = m′} · Tρd′,m ′,1(X) − ω(D; d′, h ) · I{M = m′} · (1 − T )
+
+ρd′,m ′,0(X)
+
+> }]
+
+. (23) If the mediator is continuous as well, analogous modifications apply to I{M = m} and 
+
+I{M = m′}, which are then replaced by kernel weighting functions. 
+
+# 4 Identification in panel data 
+
+This section discusses identification in panel data under the identifying assumptions proposed in the previous section. Panel data permit taking outcome differences within subjects over time, such that we now consider conditional means of within-subject differences in outcomes over time, defined as μd′,m ′ (X) = E[Y1 − Y0|D = d′, M = m′, X ], instead of differences in time-specific conditional means, μd′,m ′ (1 , X ) − μd′,m ′ (0 , X ) = E[Y1|D = d′, M =
+
+m′, X ] − E[Y0|D = d′, M = m′, X ], as in the previous section. Furthermore, as the same individuals are observed in both time periods T = 1 and T = 0 , it follows that the treatment and mediator distributions are independent of T , both unconditionally and conditional on covariates X, the distribution of which does not change over time either. For this reason, 
+
+Πd,m, 1 = Pr (D = d, M = m, T = 1) = Pr (D = d, M = m) = Π d,m and ρd,m, 1(X) = Pr (D =
+
+21 d, M = m, T = 1 |X) = Pr( D = d, M = m|X) = ρd,m (X).We first reconsider the identification of the treatment effect in equation (1) , which (as conditioning on T = 1 is unnecessary) simplifies to ∆d,m (d, m, d ′, m ′) = E[Y (d, m ) −
+
+Y (d′, m ′)|D = d, M = m]. Not conditioning on T and taking within-subject differences allows simplifying the previous identification result provided in equation (6) to the DR expression in Proposition 6, with the proof of Neyman orthogonality given in Appendix A.2. We note that this proposition is closely related to the conventional DR expression for ATET evaluation of discrete treatments under the selection-on-observables assumption (see, for example, Section 4.6 in Huber (2023)), with the difference that here, outcome differences (rather than outcome levels) and indicators for both the treatment and the mediator (rather than the treatment alone) enter the expression. 
+
+Proposition 6. Under Assumptions 1–4, the ATET is identified by the following expression, which satisfies Neyman orthogonality: 
+
+∆d,m (d, m, d ′, m ′) = E 
+
+> [
+
+I{D = d} · I{M = m} · [Y1 − Y0 − μd′,m ′ (X)] Πd,m 
+
+− I{D = d′} · I{M = m′} · [Y1 − Y0 − μD,M (X)] · ρd,m (X)Πd,m · ρd′,m ′ (X)
+
+> ]
+
+. (24) In analogous manner, the DR expression in Proposition 2 for the ATE defined in equation (7) , now denoted by ∆( d, m, d ′, m ′) = E[Y (d, m )−Y (d′, m ′)] , can be simplified when compared to to repeated cross sections. Notably, in panel data we have Pr (T = 1) = Pr (T = 0) and 
+
+p1(X) = Pr (T = 1 | X) = Pr (T = 0 | X), as each subject is observed in both time periods. Hence, reweighting based on T , Pr (T = 1) , and p1(X) is no longer required, which yields the equation stated in Proposition 7, with the proof of Neyman orthogonality provided in Appendix A.2. The equation is closely related to the standard DR expression for ATE identification under the selection-on-observables assumption, with the difference that here, outcome differences (rather than outcome levels) and indicators for both the treatment and the mediator (rather than the treatment alone) enter the expression. 
+
+Proposition 7. Under Assumptions 1–4 and assuming that these assumptions also hold when swapping D = d′, M = m′ and D = d, M = m, the ATE is identified by the following 
+
+22 expression, which satisfies Neyman orthogonality: 
+
+∆( d, m, d ′, m ′) = E
+
+> [
+
+[μd,m (X) − μd′,m ′ (X)] (25) 
+
++ [ Y1 − Y0 − μD,M (X)] · 
+
+> (
+
+I{D = d} · I{M = m}
+
+ρd,m (X) − I{D = d′} · I{M = m′}
+
+ρd′,m ′ (X)
+
+> )]
+
+.
+
+Likewise, the DR identification result of Proposition 3, which identifies the counterfactual 
+
+E[Y1(d′, M (d)) | D = d] (where conditioning on T = 1 is now omitted), simplifies in panel data to the expression in Proposition 8. 
+
+Proposition 8. Under Assumptions 1–4, holding for any m in the support of M (d) conditional on D = d, the counterfactual E[Y1(d′, M (d)) |D = d] is identified by the following expression, which satisfies Neyman orthogonality: 
+
+E[Y1(d′, M (d)) |D = d] = ∑
+
+> m∈M
+
+Pr( M = m|D = d) × E 
+
+> [
+
+I{D = d} · I{M = m} · [Y0 + μd′,m (X)] Πd,m 
+
++ I{D = d′} · I{M = m} · [Y1 − Y0 − μD,M (X)] · ρd,m (X)Πd,m · ρd′,m (X)
+
+> ]
+
+. (26) In analogy to (18) for repeated cross sections, an alternative (but numerically equiva-lent) DR expression to that in Proposition 8, which, however, avoids conditional mediator probabilities, is given by: 
+
+E[Y1(d′, M (d)) |D = d]= E 
+
+> [
+
+I{D = d} · [Y0 + μd′,M (X)] Pr( D = d) + I{D = d′} · [Y1 − Y0 − μD,M (X)] · πd(M, X )Pr( D = d) · πd′ (M, X )
+
+> ]
+
+. (27) Furthermore, the DR expression in Proposition 4 for identifying the counterfactual 
+
+E[Y1(d′, M (d′)) | D = d] (where conditioning T = 1 is now omitted) simplifies, because 
+
+Pd,t = Pr (D = d, T = t) = Pr (D = d) and πd,t (X) = Pr (D = d, T = t | X) = Pr (D =
+
+d | X) = πd(X). Denoting μd′ (X) = E[Y1 − Y0 | D = d′, X ], we obtain the expression in Proposition 9, with the proof of Neyman orthogonality provided in Appendix A.2. This result is analogous to the DR expression, for instance, provided in Sant’Anna and Zhao (2020), although in that case it pertains to the ATET rather than to the counterfactual outcome, as considered here. 23 Proposition 9. Under Assumptions 1–3 and 5 holding for any m in the support of M (d′)
+
+conditional on D = d, the counterfactual E[Y1(d′, M (d′)) |D = d] is identified by the following expression, which satisfies Neyman orthogonality: 
+
+E[Y1(d′, M (d′)) |D = d] = E 
+
+> [
+
+I{D = d} · [Y0 + μd′ (X)] Pr( D = d)+ I{D = d′} · [Y1 − Y0 − μD(X)] · πd(X)Pr( D = d) · πd′ (X)
+
+> ]
+
+, (28) Finally, we consider the panel data version of the result in Proposition 5 for the identification of E[Y1(d′, M (d′)) | D = d] based on an alternative set of assumptions (including a parallel trends assumption on the mediator). To this end, we denote by 
+
+νd′,m (X) = E[I{M = m} − I{M0 = m} | D = d′, X ] the difference in the conditional probability that the mediator takes value m between post- and pre-treatment periods, given treatment and covariates. The result is given in Proposition 10, for which identification and Neyman orthogonality are shown in Appendix A.2. 
+
+Proposition 10. Under Assumptions 1–4 and 6–7 holding for any m in the support of M (d′)
+
+conditional on D = d, the counterfactual E[Y1(d′, M (d′)) |D = d] is identified by the following expression, which satisfies Neyman orthogonality: 
+
+E[Y1(d′, M (d′)) |D = d]= ∑
+
+> m∈M
+
+E 
+
+> [(
+
+I{D = d} · I{M = m} · [Y0 + μd′,m (X)] Πd,m 
+
++ I{D = d′} · I{M = m} · [Y1 − Y0 − μD,M (X)] · ρd,m (X)Πd,m · ρd′,m (X)
+
+> )
+
+× 
+
+> (
+
+I{D = d} · [I{M0 = m} + νd′,m (X)] Pr( D = d)+ I{D = d′} · [I{M = m} − I{M0 = m} − νD,m (X)] · πd(X)Pr( D = d) · πd′ (X)
+
+> )]
+
+. (29) 
+
+# 5 Estimation 
+
+In this section, we outline DiD estimation within the DML framework using cross-fitting, following Chernozhukov et al. (2018). The approach is based on the sample analogs of the DR 24 identification results in Sections 2 to 4. We focus on estimating the ATET ∆d,m (d, m, d ′, m ′)
+
+defined in equation (1) , using the sample analog of equation (6) from Proposition 1. Estimation for other DR results proceeds analogously using the corresponding normalized sample analogs; hence, we omit a detailed discussion. Let W = Wi | 1 ≤ i ≤ n, with Wi = ( Yi,T , D i, M i, X i, T i) for i = 1 , . . . , n , denote an i.i.d. sample of size n. The nuisance parameters, comprising conditional mean outcomes and propensity scores, are 
+
+η = ( μd,m (0 , X ), μ d′,m ′ (0 , X ), μ d′,m ′ (1 , X ), ρ d,m, 1(X), ρ d,m, 0(X), ρ d′,m ′,1(X), ρ d′,m ′,0(X)) ,
+
+with corresponding estimates 
+
+ˆη = (ˆ μd,m (0 , X ), ˆμd′,m ′ (0 , X ), ˆμd′,m ′ (1 , X ), ˆρd,m, 1(X), ˆρd,m, 0(X), ˆρd′,m ′,1(X), ˆρd′,m ′,0(X)) .
+
+We estimate ∆d,m (d, m, d ′, m ′) using the following DML algorithm with cross-fitting to avoid overfitting, where within-group weights — defined by treatment state and time period — are normalized to sum to one: 
+
+DML algorithm: 
+
+1. Split W into K subsamples. For each subsample k, let nk denote its size, Wk the set of observations in the subsample, and WCk the complement set of all observations not in 
+
+Wk.2. For each k, use WCk to estimate the nuisance parameters η via machine learning, and predict these nuisance parameters in Wk. Denote the predictions by ˆηk.3. Stack the fold-specific estimates ˆη1, . . . , ˆηK to form a matrix of nuisance estimates for the full sample: 
+
+ˆη =
+
+> 
+
+ˆη1
+
+...
+
+ˆηK 
+
+> 
+
+.
+
+4. Plug the nuisance estimates into the normalized sample analog of equation (6) to obtain 25 an estimate of the ATET ∆d,m (d, m, d ′, m ′), denoted by ˆ∆d,m (d, m, d ′, m ′):
+
+ˆ∆d,m (d, m, d ′, m ′) =  
+
+> n∑
+> i=1
+> 
+
+I{Di = d}I{Mi = m}Ti
+
+> [
+
+Yi,T − ˆμd,m (0 , X i) − ˆμd′,m ′ (1 , X i) + ˆ μd′,m ′ (0 , X i)]∑ni=1 I{Di = d}I{Mi = m}Ti
+
+− (Yi,T − ˆμd,m (0 , X i))ˆ ρd,m, 1(Xi)I{Di = d}I{Mi = m}(1 − Ti)/ˆρd,m, 0(Xi) 
+
+> ∑ni=1
+
+ˆρd,m, 1(Xi)I{Di = d}I{Mi = m}(1 − Ti)/ˆρd,m, 0(Xi)
+
+− (Yi,T − ˆμd′,m ′ (1 , X i))ˆ ρd′,m ′,1(Xi)I{Di = d′}I{Mi = m′}Ti/ˆρd′,m ′,1(Xi) 
+
+> ∑ni=1
+
+ˆρd′,m ′,1(Xi)I{Di = d′}I{Mi = m′}Ti/ˆρd′,m ′,1(Xi)+ (Yi,T − ˆμd′,m ′ (0 , X i))ˆ ρd′,m ′,0(Xi)I{Di = d′}I{Mi = m′}(1 − Ti)/ˆρd′,m ′,0(Xi) 
+
+> ∑ni=1
+
+ˆρd′,m ′,0(Xi)I{Di = d′}I{Mi = m′}(1 − Ti)/ˆρd′,m ′,0(Xi)
+
+> 
+
+.
+
+Under specific regularity conditions — in particular, that the nuisance parameter esti-mators converge at rate o(n−1/4) to the true models — DML-based effect or counterfactual estimators achieve √n-consistency and asymptotic normality for discrete treatments and mediators, analogous to Chernozhukov et al. (2018) for ATET and ATE with binary treat-ments. For example, lasso regression can be used to estimate the nuisance functions, and the required convergence rate is attainable under approximate sparsity, as shown in Belloni et al. (2014). When treatments and/or mediators are continuous and kernel smoothing is applied as in equation (23) , convergence rates are slower than √n due to the local nature of the estimation. Nonetheless, asymptotic normality can still be achieved under appropriate regularity conditions; see, for instance, Zhang (2025) and Haddad et al. (2024) for asymptotic results on DiD-based DML with continuous treatments. 
+
+# 6 Simulation study 
+
+This section presents a simulation study to assess the finite-sample behavior of the proposed methods for repeated cross-sections. We first focus on natural direct and indirect effects and consider the following data-generating process (DGP): 
+
+Xj = 0.5 · T + Qj for j ∈ { 1, ..., p }, X = ( X1, ..., X p),D = I{Xβ + 0 .5 · U + Vd > 0},
+
+26 M = Xβ + 0 .5 · D + Vm,YT = Xβ + (1 + D + M + D · M ) · T + U + W, Qj , U, V d, V m, W ∼ N (0 , 1) independent of each other ,T ∼ binomial (0 .5) .X is a vector of p = 100 covariates. Each covariate Xj , j ∈ { 1, ..., p }, depends on a random error term Qj and a binary time index T , where T = 0 denotes the pre-treatment period and 
+
+T = 1 denotes the post-treatment period, each occurring with equal probability. The binary treatment D is determined by the observed covariates X and two unobserved terms, U and 
+
+Vd. The mediator M is continuous and is a function of X, D, and the unobserved term Vm.The outcome YT depends on X, T , and unobserved terms U and W ; in the post-treatment period, it additionally depends on D, M , and their interaction. The impact of X on D,
+
+M , and YT is captured by the coefficient vector β. The jth element of β is set to 0.4/j 2,implying a quadratic decay in covariate importance such that covariates with lower indices 
+
+j exert stronger confounding. The unobserved variable U enters both the treatment and outcome equations and therefore acts as a confounder of the treatment-outcome relationship; this confounding is addressed by our proposed approach. Importantly, M does not depend on U , ensuring satisfaction of Assumption 5. All error terms Qj , U , Vd, Vm, and W are independently drawn from a standard normal distribution. We consider two sample sizes, n = 2000 and n = 8000 , and generate 1000 independent simulation replications. The parameters of interest are the natural direct effect, the natural indirect effect, and the total effect, as defined in equations (11) , (12) , and (13) , respectively. These effects depend on counterfactual outcomes identified in Propositions 3 and 4. Specifically, the counterfactuals are estimated using normalized sample analogs of equations (18) and (20). Our estimator is implemented in the statistical software R (R Core Team, 2025) and uses four-fold cross-fitting. All nuisance parameters are estimated by cross-validated lasso regression, with logit specifications for the propensity scores πd,t (X) and πd,t (M, X ) and linear specifications for the conditional mean outcomes μd(t, X ) and μd,M (t, X ). To safeguard against too influential observations in IPW, we impose a trimming rule based on the estimated propensity scores. Observations are dropped within each of the subgroups (d, 0) , (d′, 1) , (d′, 0) 
+
+27 Table 1: Simulation results for reapeated cross-sections 
+
+natural direct and indirect effects 
+
+n = 2000 n = 8000 
+
+estimator bias std rmse avse cover bias std rmse avse cover 
+
+ˆ∆1(1 , 0, M (1) , M (1)) 0.049 0.264 0.268 0.247 0.926 0.024 0.139 0.141 0.128 0.925 
+
+ˆ∆1(0 , 0, M (1) , M (0)) 0.029 0.137 0.140 0.125 0.925 0.025 0.073 0.077 0.069 0.925 
+
+ˆ∆1(1 , 0, M (1) , M (0)) 0.079 0.266 0.277 0.256 0.927 0.049 0.138 0.147 0.130 0.924 dynamic treatment and controlled direct effects 
+
+n = 2000 n = 8000 
+
+estimator bias std rmse avse cover bias std rmse avse cover 
+
+ˆ∆1,1(1 , 1, 0, 0) 0.049 0.318 0.322 0.306 0.944 0.033 0.167 0.171 0.154 0.923 
+
+ˆ∆1,1(1 , 0, 0, 0) 0.090 0.321 0.333 0.311 0.937 0.075 0.162 0.178 0.148 0.895 
+
+ˆ∆1,1(1 , 1, 0, 1) 0.008 0.288 0.288 0.265 0.927 0.010 0.145 0.146 0.133 0.923                
+
+> Notes: columns ‘bias’, ‘std’, ‘rmse’, ‘avse’, and ‘cover’ provide the bias of the estimator, its standard deviation, its root mean squared error, the average of the standard error, and the coverage rate of the 95% confidence intervals, respectively.
+> ˆ∆1(1 ,0, M (1) , M (1)) is the natural direct effect, ˆ∆1(0 ,0, M (1) , M (0)) is the natural indirect effect and ˆ∆1(1 ,0, M (1) , M (0)) is the total effect
+
+.whenever either πd,t (X) or πd,t (M, X ) falls below a pre-specified threshold. The trimming threshold is set to 0.05 in all simulations. Inference is conducted using an asymptotic approximation. Standard errors are computed based on the estimated variance of the score function associated with the estimator. The upper panel of Table 1 provides the simulation results for estimating the (total) ATET and decomposing it into the natural direct and indirect effects. The true ATET equals ∆1(1 , 0, M (1) , M (0)) = E[Y1(1) − Y1(0) |D = 1 , T = 1] = 1 .5 + M (1) = 2 .419 ,with a natural direct effect of ∆1(1 , 0, M (1) , M (1)) = E[Y1(1 , M (1)) − Y1(0 , M (1)) |D =1, T = 1] = 1 + M (1) = 1 .919 and a natural indirect effect of ∆1(0 , 0, M (1) , M (0)) = 
+
+E[Y1(0 , M (1)) − Y1(0 , M (0)) |D = 1 , T = 1] = M (1) − M (0) = 0 .5. For each estimator and sample size, the table reports the bias (‘bias’), standard deviation (‘std’), root mean squared error (‘rmse’), average standard error (‘avse’), and the coverage rate of the 95% confidence intervals (‘cover’). For n = 2000 , all estimators exhibit only small finite-sample bias. A direct comparison in the table suggests that the natural indirect effect is least biased; however, because its 28 true effect size is smaller than those of the natural direct and total effects, its bias is more pronounced relative to the magnitude of the true effect. Root mean squared errors are moderate across all estimators. Regarding statistical inference, the average standard errors tend to be slightly smaller than the corresponding empirical standard deviations, resulting in mild undercoverage of the 95% confidence intervals. This indicates that statistical inference is slightly optimistic in finite samples. When the sample size is increased to n = 8000 , the standard deviations are approximately halved, which suggests that the estimators converge to the true effects at an n−1/2 rate. Next, we focus on dynamic treatment effects and controlled direct effects. To this end, we slightly modify the DGP. In contrast to the previous setting with a continuous mediator, we now assume that the mediator is binary. Specifically, the mediator equation in the DGP is replaced by 
+
+M = I{Xβ + 0 .5 · D + Vm > 0}.
+
+This modification ensures that the mediator levels M = m and M = m′ used to define the dynamic treatment effect and the controlled direct effect occur with positive probability. All other components of the DGP remain unchanged. As before, we consider sample sizes of 
+
+n = 2000 and n = 8000 and generate 1000 independent simulation replications. The effect of interest is the ATET defined in equation (1) . Estimation is based on the normalized sample analog of equation (6) in Proposition 1. In the simulation, we examine three scenarios that differ in the values at which d, d′, m, and m′ are fixed. Specifically, we estimate (i) the ATET of receiving both the treatment and the mediator versus receiving neither, (ii) the controlled direct effect under m = m′ = 0 , and (iii) the controlled direct effect under m = m′ = 1 .The estimation procedure mirrors that used for the natural direct and indirect effects. We again employ four-fold cross-fitting with nuisance parameters estimated via cross-validated lasso, using logit specifications for the propensity scores and linear specifications for the conditional mean outcomes. The trimming rule and statistical inference are implemented as before. The lower panel of Table 1 provides the simulation results for estimating the ATET at different values of d, d′, m, and m′. The true effects equal ∆1,1(1 , 1, 0, 0) = 
+
+E[Y1(1 , 1) −Y1(0 , 0) | D = 1 , M = 1 , T = 1] = 4 −1 = 3 , ∆1,1(1 , 0, 0, 0) = E[Y1(1 , 0) −Y1(0 , 0) |
+
+D = 1 , M = 1 , T = 1] = 2 − 1 = 1 and ∆1,1(1 , 1, 0, 1) = E[Y1(1 , 1) − Y1(0 , 1) | D = 1 , M =
+
+29 1, T = 1] = 3 − 1 = 2 in the three scenarios considered. The results are broadly similar to those for the natural direct and indirect effects in the upper panel. For n = 2000 , all estimators again exhibit small finite-sample bias, although their standard deviations and RMSEs are somewhat larger in absolute terms than those of the natural effects. Coverage rates remain slightly below 95%, reflecting that the average standard errors tend to be slightly smaller than the standard deviations. For n = 8000 ,the standard deviations are approximately half as large as those at n = 2000 , as expected for estimators that converge to the true effects at an n−1/2 rate. In terms of nearly all the performance metrics considered, the results for the controlled direct effect under m = m′ = 0 
+
+are somewhat worse than in the other two scenarios. This likely reflects that, under our DGP, the treatment–mediator combination d = 1 and m = 0 occurs least frequently, so support is weakest in this case. 
+
+# 7 Empirical application 
+
+In this section, we illustrate our approach by revisiting the empirical application of Farbmacher et al. (2022) using data from the National Longitudinal Survey of Youth 1997 (NLSY97), a nationally representative U.S. sample of 8984 respondents who were ages 12–17 at the first interview in 1997 1. Farbmacher et al. (2022) examine the causal effect of health care coverage (D) on general health ( Y ) and decompose this effect into an indirect effect operating through the incidence of routine checkups ( M ) and a direct effect capturing all remaining causal mechanisms. While we apply our method to this same research question, our analysis differs in two important respects. First, instead of the average treatment effect (ATE), we estimate the average treatment effect on the treated (ATET). Second, our identification strategy differs. The approach of Farbmacher et al. (2022) relies on a selection-on-observables assumption, whereas our DiD framework instead invokes the conditional common trend assumptions stated in Assumptions 1 and 5. We largely follow Farbmacher et al. (2022) in the definition of the main variables. The treatment is a binary indicator equal to one if the respondent had any kind of health care coverage in 2006 and zero otherwise. The outcome variable is self-reported general health, 
+
+> 1For additional information on the NLSY97 sample, see U.S. Bureau of Labor Statistics (2019)
+
+30 recorded on a five-point ordinal scale with categories excellent, very good, good, fair, and poor, where higher values correspond to poorer health status. We observe the pre-treatment outcome in 2005 and the post-treatment outcome in 2008. The mediator captures whether the respondent visited a doctor for a routine checkup within the past 12 months and is measured in 2007, i.e., after treatment but before the post-treatment outcome. Farbmacher et al. (2022) control for a rich set of demographic, socioeconomic, household, and health-related variables. We use the same set of control variables, including interactions and higher-order terms, to ensure comparability. One exception arises due to our different research design: we do not include the lagged outcome variables used in Farbmacher et al. (2022) among the control variables. All interactions involving these variables are excluded as well. Our DiD framework affects sample construction in two important ways. First, we require respondents to report their general health in both 2005 and 2008. Second, we exclude respondents who had any form of health care coverage prior to 2006. As a result, both the size and composition of our final sample differ markedly from those in Farbmacher et al. (2022). Our sample is considerably smaller, comprising 1020 observations compared to the 7486 observations in their study. To illustrate the differences in sample composition, we report descriptive statistics using the same selection of control variables as in Farbmacher et al. (2022). The variables displayed in Table 2 represent only a subset of the nearly 1000 control variables included in our dataset. While Farbmacher et al. (2022) find that treated and untreated respondents differ substantially with respect to the variables reported in the table, we find no statistically significant differences between the two groups for the majority of these variables in our sample. However, there are some notable exceptions. For instance, women, respondents living in urban areas, and more highly educated individuals are more likely to have health care coverage. A similar pattern emerges for the mediator. Farbmacher et al. (2022) again report substantial differences between respondents who underwent a routine checkup and those who did not, whereas in our sample the two groups are largely comparable across the variables shown in Table 2. Statistically significant differences arise only for a limited number of characteristics, such as gender, highest completed grade, certain ethnicity categories (‘Black’ and ‘White or Other’), and the number of household members under age 18. 31 Table 2:  Descriptive statistics 
+
+> overall  D = 1  D = 0  diff  p-val  M = 1  M = 0  diff  p-val
+> n 1020  245  775  347  673 Female  0.36  0.49  0.32  0.16  0 0.53  0.28  0.25  0Age  22.67  22.67  22.66  0.01  0.92  22.73  22.63  0.1  0.27 Ethnicity
+> Black  0.3  0.29  0.3  -0.01  0.83  0.38  0.25  0.13  0
+> Hispanic  0.28  0.26  0.28  -0.03  0.43  0.31  0.26  0.04  0.14
+> Mixed  0.01  0.01  0.01  0 0.79  0.01  0.01  0 0.75
+> White or Other  0.42  0.44  0.41  0.03  0.4  0.31  0.48  -0.18  0Relationship/marriage
+> Not Cohabiting  0.62  0.61  0.62  -0.02  0.65  0.62  0.62  0 0.96
+> Cohabiting  0.2  0.19  0.2  -0.01  0.64  0.19  0.2  -0.02  0.53
+> Married  0.15  0.17  0.14  0.03  0.22  0.15  0.14  0.01  0.67
+> Separated/Divorced/Widowed  0.03  0.03  0.03  0 0.85  0.03  0.03  0.01  0.59
+> Missing  0 0 0.01  0 0.82  0.01  0 0 0.79 Urban  0.79  0.84  0.77  0.07  0.02  0.79  0.78  0.01  0.85
+> Missing  0.02  0.01  0.02  -0.01  0.34  0.02  0.02  0.01  0.48 HH Income  29,830  30,672  29,564  1107  0.71  28,872  30,325  -1453  0.58
+> Missing  0.2  0.19  0.21  -0.02  0.52  0.21  0.2  0.01  0.63 HH Size  3.44  3.4  3.45  -0.05  0.73  3.56  3.37  0.19  0.13
+> Missing  0 0 0 0 0.32  0 0 0 0.32 HH Members under 18  0.81  0.76  0.82  -0.06  0.49  0.95  0.73  0.21  0.01
+> Missing  0 0 0 0 0.74  0 0 0 0.98 Biological Children  0.57  0.51  0.59  -0.08  0.2  0.6  0.56  0.04  0.56
+
+32 Table 2:  Continued 
+
+> overall  D = 1  D = 0  diff  p-val  M = 1  M = 0  diff  p-val
+> n 1020  245  775  347  673 Highest Completed Grade  11.44  12.05  11.25  0.8  0 11.71  11.31  0.4  0.01
+> Missing  0.01  0 0.01  -0.01  0 0 0.01  -0.01  0.12 Employment
+> Employed  0.66  0.71  0.64  0.06  0.06  0.63  0.67  -0.04  0.25
+> Unemployed  0.09  0.07  0.09  -0.02  0.2  0.1  0.08  0.01  0.44
+> Out of Labor Force  0.25  0.21  0.26  -0.05  0.11  0.25  0.24  0.01  0.77
+> Military  0 0.01  0 0.01  0.16  0 0 0 0.67
+> Missing  0.01  0.01  0.01  0 0.79  0.01  0 0.01  0.09 Working Hours (per Week)  24.89  25.84  24.59  1.25  0.41  23.25  25.73  -2.48  0.08 Weight (pounds)  168  166  168  -2  0.61  163  170  -7  0.05
+> Missing  0.04  0.06  0.03  0.03  0.07  0.04  0.03  0.01  0.54 Height (feet)  5.41  5.39  5.41  -0.03  0.75  5.27  5.48  -0.21  0.01
+> Missing  0.04  0.04  0.05  0 0.77  0.05  0.04  0.01  0.41 Days with 5+ drinks (per months)  1.91  1.67  1.99  -0.32  0.29  1.61  2.07  -0.46  0.13
+> Missing  0.04  0.05  0.04  0.01  0.46  0.04  0.05  -0.01  0.67 Days of Exercise (per week)  2.23  1.99  2.3  -0.32  0.07  2.12  2.29  -0.17  0.31
+> Missing  0.09  0.09  0.09  0 0.92  0.07  0.1  -0.02  0.2 Depressed/down
+> Never  0.31  0.28  0.32  -0.03  0.3  0.29  0.32  -0.02  0.49
+> Sometimes  0.46  0.47  0.46  0 0.9  0.46  0.46  -0.01  0.87
+> Mostly  0.1  0.14  0.09  0.05  0.03  0.11  0.09  0.01  0.52
+> Always  0.03  0.03  0.03  0 0.99  0.03  0.03  0 0.73
+> Missing  0.1  0.09  0.11  -0.02  0.26  0.12  0.1  0.02  0.41
+> Notes: columns ‘overall’, ‘ D = 1 ’,‘ D = 0 ’,‘ M = 1 ’, and ‘ M = 0 ’ report the mean of the respective variable for the full sample, the treated group, the untreated group, the mediated group, and the non-mediated group, respectively. ‘diff’ and ‘ p-val’ report the mean difference (across treatment or mediator states) and the  p-value from a two-sample t-test, respectively.
+
+33 Table 3: Total, natural direct and natural indirect effects on general health in 2008 
+
+effect se t-val p-val 
+
+ˆ∆1(1 , 0, M (1) , M (0)) -0.081 0.071 -1.134 0.257 
+
+ˆ∆1(1 , 0, M (1) , M (1)) -0.086 0.072 -1.192 0.233 
+
+ˆ∆1(0 , 0, M (1) , M (0)) 0.005 0.011 0.481 0.630                 
+
+> Notes: columns ‘effect’, ‘se’, ‘ t-val’, and ‘ p-val’, provide the effect estimate, standard error, t-value and p-value, respectively.
+> ˆ∆1(1 ,0, M (1) , M (0)) is the total effect, ˆ∆1(1 ,0, M (1) , M (1)) is the natural direct effect, and ˆ∆1(0 ,0, M (1) , M (0)) is the natural indirect effect
+
+.Given that the NLSY97 is a panel dataset, we implement the panel-data version of our DR estimator based on equations (27) and (28) of Propositions 8 and 9 to assess the total, natural direct, and natural indirect effects of health care coverage on self-reported general health. As in the simulations, our estimators are based on four-fold cross-fitting. The nuisance parameters are estimated by cross-validated lasso regression. Following Farbmacher et al. (2022), we set the trimming threshold to 0.02 (2%). However, no observations are dropped due to this trimming rule. Table 3 reports the estimated effects, standard errors, and p-values. The ATET is not statistically significant at any conventional level, nor are the natural direct and natural indirect effects. For individuals who obtain health care coverage, we find no statistically significant evidence of a short-term effect of coverage on general health, either through routine checkups or via other causal pathways. Nevertheless, the point estimates of both the total and direct effects are negative, indicating a health-improving effect, since lower values of the outcome correspond to better health. The results are broadly comparable to those reported by Farbmacher et al. (2022). In their application and depending on the estimation approach, most of the natural direct and indirect effects are not statistically significant. However, in contrast to our ATET, their ATE is statistically significant at the 10% or 5% level, depending on the estimation approach. Regarding effect magnitudes, the total effect and the natural direct effect are of comparable size in both applications. Our point estimates are slightly larger in absolute value than those obtained by Farbmacher et al. (2022); however, the corresponding standard errors are also larger, indicating lower precision. Although the natural indirect effects are of similar magnitude and close to zero in both applications, the 34 sign of the estimated effect differs, being slightly positive in our analysis and negative in Farbmacher et al. (2022). Overall, despite relying on a different identification strategy and focusing on the ATET rather than the ATE, our findings point in the same substantive direction as those of Farbmacher et al. (2022). 
+
+# 8 Conclusion 
+
+This paper suggests a flexible difference-in-differences (DiD) framework for causal mediation and dynamic treatment effect analysis. By extending the DiD design beyond total treatment effects, our approach allows evaluating controlled direct effects, natural direct and indirect effects operating through mediators, and joint treatment–mediator (or dynamic treatment) effects. Identification of controlled direct effects and dynamic treatment effects is achieved under conditional parallel trends assumptions on mean potential outcomes across treatment-mediator states. For the identification of natural direct and indirect effects, we impose additional parallel trend assumptions on mean potential outcomes or mediator distributions across treatment states. On the estimation side, we propose doubly robust DiD estimators within the double machine learning framework for both repeated cross sections and panel data. By combining machine learning–based nuisance estimation with Neyman-orthogonal score functions and cross-fitting, our estimators allow for data-driven covariate adjustment while retaining valid large-sample inference under specific regularity conditions. We establish asymptotic normality of our methods and demonstrate their favorable finite-sample performance in a simulation study. We also provide an empirical application using data from the National Longitudinal Survey of Youth 1997 to disentangle the direct effect of health care coverage on general health from the indirect effect operating through routine checkups. Despite point estimates of both the total and direct effects suggesting health improvements, we find no statistically significant short-term effect of health care coverage on general health among those who obtain coverage, either via routine checkups or other causal pathways. 35 A Appendix 
+
+## A.1 Identification and Neyman orthogonality in repeated cross sections 
+
+We first show that the score function underlying DR expression (6) for repeated cross sections satisfies Assumption 3.1(a)–(e) of Chernozhukov et al. (2018), implying that expression (6) identifies the ATET ∆d,m (d, m, d ′, m ′) = E[Y1(d, m ) − Y1(d′, m ′)|D = d, M = m] under Assumptions 1 to 4 and satisfies Neyman orthogonality. In the subsequent discussion, all bounds hold uniformly over all probability laws P ∈ P , where P is the set of all possible probability laws, and we omit P for brevity. We define the nuisance parameters 
+
+η = ( μd,m (0 , X ), μ d′,m ′ (0 , X ), μ d′,m ′ (1 , X ), ρ d,m, 1(X), ρ d,m, 0(X), ρ d′,m ′,1(X), ρ d′,m ′,0(X)) 
+
+and denote their true values by 
+
+η0 == ( μ0
+
+> d,m
+
+(0 , X ), μ 0 
+
+> d′,m ′
+
+(0 , X ), μ 0 
+
+> d′,m ′
+
+(1 , X ), ρ 0
+
+> d,m, 1
+
+(X), ρ 0
+
+> d,m, 0
+
+(X), ρ 0
+
+> d′,m ′,1
+
+(X), ρ 0
+
+> d′,m ′,0
+
+(X)) .
+
+We also define Ψd′,m ′,t = E[μd′,m ′ (t, X )|D = d, M = m, T = 1] to be the average of the conditional mean μd′,m ′ (t, X ) given D = d, M = m, and T = 1 , in order to express the ATET provided in equation (5) as a function of Ψd′,m ′,t :
+
+∆d,m (d, m, d ′, m ′) = E[YT |D = d, M = m, T = 1] − Ψd,m, 0 − Ψd′,m ′,1 + Ψ d′,m ′,0, (A.1) Therefore, considering Neyman-orthogonal functions for Ψd′,m ′,t yields a Neyman-orthogonal expres-sion of the ATET. Let us denote by ϕd′,m ′,t the Neyman-orthogonal score function for Ψd′,m ′,t , which corresponds to the following expression for W = ( Y, D, M, X, T ):
+
+ϕd′,m ′,t (W, η, Ψd′,m ′,t ) = I{D = d} · I{M = m} · T · μd′,m ′ (t, X )Πd,m, 1
+
+(A.2) 
+
++ I{D = d′} · I{M = m′} · I{T = t} · ρd,m, 1(X) · (YT − μd′,m ′ (t, X )) 
+
+ρd′,m ′,t (X) · Πd,m, 1
+
+− Ψd′,m ′,t .
+
+We note that the DR expression (6) for ATET identification is obtained by identifying Ψd′,m ′,t as the solution to the moment condition E[ϕd′,m ′,t (W, η 0, Ψd′,m ′,t )] = 0 and plugging it into equation 
+
+36 (A.1) . To show that E[ϕd′,m ′,t (W, η 0, Ψd′,m ′,t )] = 0 holds, we consider the expectation of term      
+
+> I{D=d′}· I{M=m′}· I{T=t}· ρ0
+> d,m, 1(X)·(YT−μ0
+> d′,m ′(t,X ))
+> ρ0
+> d′,m ′,t (X)·Πd,m, 1
+
+in equation (A.2) and note that it is zero. This follows from applying the law of iterated expectations and basic probability theory: 
+
+E
+
+[ I{D = d′} · I{M = m′} · I{T = t} · ρ0
+
+> d,m, 1
+
+(X) · (YT − μ0 
+
+> d′,m ′
+
+(t, X )) 
+
+ρ0
+
+> d′,m ′,t
+
+(X) · Πd,m, 1
+
+]
+
+= E
+
+[
+
+E
+
+[ ρ0
+
+> d,m, 1
+
+(X)Πd,m, 1
+
+· I{D = d′} · I{M = m′} · I{T = t} · (YT − μ0 
+
+> D,M
+
+(T, X )) 
+
+ρ0
+
+> d′,m ′,t
+
+(X)
+
+∣∣∣X
+
+]] 
+
+= E
+
+ ρ0
+
+> d,m, 1
+
+(X)Πd,m, 1
+
+· E
+
+[
+
+I{D = d′} · I{M = m′} · I{T = t} · (YT − μ0 
+
+> D,M
+
+(T, X )) |X
+
+]
+
+ρ0
+
+> d′,m ′,t
+
+(X)
+
+
+
+= E
+
+ E
+
+[
+
+I{D = d′} · I{M = m′} · I{T = t} · (YT − μ0 
+
+> D,M
+
+(T, X )) |X
+
+]
+
+ρ0
+
+> d′,m ′,t
+
+(X)
+
+ .
+
+We have by basic probability theory and iterated expectations that 
+
+E[I{D = d′} · I{M = m′} · I{T = t} · YT |X]
+
+ρ0
+
+> d′,m ′,t
+
+(X) = E[YT |D = d′, M = m′, T = t, X ] = μ0 
+
+> d′,m ′
+
+(t, X )
+
+and 
+
+E[I{D = d′} · I{M = m′} · I{T = t} · μ0 
+
+> d′,m ′
+
+(t, X )|X]
+
+ρ0
+
+> d′,m ′,t
+
+(X) = ρ0
+
+> d′,m ′,t
+
+(X) · μ0 
+
+> d′,m ′
+
+(t, X )
+
+ρ0
+
+> d′,m ′,t
+
+(X) = μ0 
+
+> d′,m ′
+
+(t, X ),
+
+and thus, the expression corresponds to 
+
+E[μ0 
+
+> d′,m ′
+
+(t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] = 0 . (A.3) For this reason, 
+
+E[ϕd′,m ′,t (W, η 0, Ψd′,m ′,t )] = E
+
+[ I{D = d} · I{M = m} · T · μ0 
+
+> d′,m ′
+
+(t, X )Πd,m, 1
+
+]
+
+− Ψd′,m ′,t 
+
+= E
+
+[
+
+μ0 
+
+> d′,m ′
+
+(t, X )|D = d, M = m, T = 1 
+
+]
+
+− Ψd′,m ′,t = Ψ d′,m ′,t − Ψd′,m ′,t = 0 .
+
+(A.4) The score function in equation (A.2) thus satisfies Assumption 3.1(a) of Chernozhukov et al. (2018). It also satisfies Assumptions 3.1(b) and (c) of Chernozhukov et al. (2018) because the score function is linear in Ψd′,m ′,t and the second Gateaux derivative η 7 → E[ϕd′,m ′,t (W, η 0, Ψd′,m ′,t )] is continuous. 
+
+37 The Gateaux derivative of E[ϕd′,m ′,t (W, η 0, Ψd′,m ′,t )] in the direction of [η0 − η] is given by: 
+
+∂E [ϕd′,m ′,t (W, η 0, Ψd′,m ′,t )][ η − η0]= E
+
+[ I{D = d} · I{M = m} · T · [μd′,m ′ (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] Πd,m, 1
+
+]
+
+− E
+
+[ I{D = d′} · I{M = m′} · I{T = t} · ρ0
+
+> d,m, 1
+
+(X) · [μd′,m ′ (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] 
+
+ρ0
+
+> d′,m ′,t
+
+(X) · Πd,m, 1
+
+]
+
++ E
+
+[ I{D = d′} · I{M = m′} · I{T = t} · [YT − μ0 
+
+> d′,m ′
+
+(t, X )] 
+
+ρ0
+
+> d′,m ′,t
+
+(X) · [ρd,m, 1(X) − ρ0
+
+> d,m, 1
+
+(X)] Πd,m, 1
+
+]
+
+− E
+
+[ I{D = d′} · I{M = m′} · I{T = t} · ρ0
+
+> d,m, 1
+
+(X) · [YT − μ0 
+
+> d′,m ′
+
+(t, X )] 
+
+ρ0
+
+> d′,m ′,t
+
+(X) · Πd,m, 1
+
+· ρd′,m ′,t (X) − ρ0
+
+> d′,m ′,t
+
+(X)
+
+ρ0
+
+> d′,m ′,t
+
+(X)
+
+]
+
+= 0 .
+
+(A.5) To see that the Gateaux derivative is zero, we first consider the first term and apply the law of iterated expectations: 
+
+E
+
+[ I{D = d} · I{M = m} · T · [μd′,m ′ (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] Πd,m, 1
+
+]
+
+(A.6) 
+
+E
+
+[
+
+E
+
+[ I{D = d} · I{M = m} · T · [μd′,m ′ (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] Πd,m, 1
+
+∣∣∣X
+
+]] 
+
+E
+
+[ E[I{D = d} · I{M = m} · T |X] · [μd′,m ′ (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] Πd,m, 1
+
+]
+
+= E
+
+[ ρ0
+
+> d,m, 1
+
+(X) · [μd′,m ′ (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] Πd,m, 1
+
+]
+
+.
+
+Concerning the second term, we have 
+
+− E
+
+[ I{D = d′} · I{M = m′} · I{T = t} · ρ0
+
+> d,m, 1
+
+(X) · [μd′,m ′ (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] 
+
+ρ0
+
+> d′,m ′,t
+
+(X) · Πd,m, 1
+
+]
+
+= −E
+
+[ ρ0
+
+> d′,m ′,t
+
+(X) · ρ0
+
+> d,m, 1
+
+(X) · [μd′,m ′ (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] 
+
+ρ0
+
+> d′,m ′,t
+
+(X) · Πd,m, 1
+
+]
+
+= −E
+
+[ ρ0
+
+> d,m, 1
+
+(X) · [μd′,m ′ (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] Πd,m, 1
+
+]
+
+. (A.7) Since the first and second terms involve identical expressions but with opposite signs, they cancel out. Applying the law of iterated expectations to the third term, we obtain 
+
+E
+
+[ I{D = d′} · I{M = m′} · I{T = t} · [YT − μ0 
+
+> d′,m ′
+
+(t, X )] 
+
+ρ0
+
+> d′,m ′,t
+
+(X) · [ρd,m, 1(X) − ρ0
+
+> d,m, 1
+
+(X)] Πd,m, 1
+
+]
+
+(A.8) 
+
+38 E
+
+[
+
+E
+
+[ I{D = d′} · I{M = m′} · I{T = t} · [YT − μ0 
+
+> d′,m ′
+
+(t, X )] 
+
+ρ0
+
+> d′,m ′,t
+
+(X) · [ρd,m, 1(X) − ρ0
+
+> d,m, 1
+
+(X)] Πd,m, 1
+
+∣∣∣∣∣X
+
+]] 
+
+= E
+
+ E
+
+[
+
+I{D = d′} · I{M = m′} · I{T = t} · [YT − μ0 
+
+> d′,m ′
+
+(t, X )] | X
+
+]
+
+ρ0
+
+> d′,m ′,t
+
+(X) · [ρd,m, 1(X) − ρ0
+
+> d,m, 1
+
+(X)] Πd,m, 1
+
+ .
+
+Concerning the first factor, we have by basic probability theory and iterated expectations that 
+
+E[I{D = d′} · I{M = m′} · I{T = t} · YT |X]
+
+ρ0
+
+> d′,m ′,t
+
+(X) = E[YT |D = d′, M = m′, T = t, X ] = μ0 
+
+> d′,m ′
+
+(t, X )
+
+and 
+
+E[I{D = d′} · I{M = m′} · I{T = t} · μ0 
+
+> d′,m ′
+
+(t, X )|X]
+
+ρ0
+
+> d′,m ′,t
+
+(X) = ρ0
+
+> d′,m ′,t
+
+(X) · μ0 
+
+> d′,m ′
+
+(t, X )
+
+ρ0
+
+> d′,m ′,t
+
+(X) = μ0 
+
+> d′,m ′
+
+(t, X ).
+
+Therefore, the third term corresponds to 
+
+E
+
+[
+
+[μ0 
+
+> d′,m ′
+
+(t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] · [ρd,m, 1(X) − ρ0
+
+> d,m, 1
+
+(X)] Πd,m, 1
+
+]
+
+= 0 . (A.9) Finally, we apply the same reasoning to the fourth term to obtain 
+
+− E
+
+[ I{D = d′} · I{M = m′} · I{T = t} · ρ0
+
+> d,m, 1
+
+(X) · [YT − μ0 
+
+> d′,m ′
+
+(t, X )] 
+
+ρ0
+
+> d′,m ′,t
+
+(X) · Πd,m, 1
+
+· ρd′,m ′,t (X) − ρ0
+
+> d′,m ′,t
+
+(X)
+
+ρ0
+
+> d′,m ′,t
+
+(X)
+
+]
+
+− E
+
+ E
+
+[
+
+I{D = d′} · I{M = m′} · I{T = t} · ρ0
+
+> d,m, 1
+
+(X) · [YT − μ0 
+
+> d′,m ′
+
+(t, X )] |X
+
+]
+
+ρ0
+
+> d′,m ′,t
+
+(X) · Πd,m, 1
+
+· ρd′,m ′,t (X) − ρ0
+
+> d′,m ′,t
+
+(X)
+
+ρ0
+
+> d′,m ′,t
+
+(X)
+
+
+
+= −E
+
+[ ρ0
+
+> d,m, 1
+
+(X) · [μ0 
+
+> d′,m ′
+
+(t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] Πd,m, 1
+
+· ρd′,m ′,t (X) − ρ0
+
+> d′,m ′,t
+
+(X)
+
+ρ0
+
+> d′,m ′,t
+
+(X)
+
+]
+
+= 0 . (A.10) For this reason, ∂E [ϕd′,m ′,t (W, η 0, Ψd′,m ′,t )][ η − η0] = 0 such that the Gateaux derivative of 
+
+E[ϕd′,m ′,t (W, η 0, Ψd′,m ′,t )] is equal to zero, which satisfies Assumption 3.1(d) of Chernozhukov et al. (2018). The Gateaux derivative of E[YT |D = d, M = m, T = 1] is trivially equal to zero, too. For this reason, expression (A.1) , which is a linear combination of these terms, satisfies Neyman orthogonality. Assumption 3.1(e) of Chernozhukov et al. (2018), which states that the factor multiplying Ψd′,m ′,t in the definition of the score function ϕd′,m ′,t must be bounded in expectation, holds trivially because the factor is a constant, specifically −1.Next, we consider the identification of counterfactual E[Y1(d′, M (d)) |D = d] based on the DR 
+
+39 expression (17) and note that the latter corresponds to 
+
+E[Y1(d′, M (d)) |D = d] = ∑
+
+> m∈M
+
+Pr( M = m|D = d, T = 1) · (Ψ d,m, 0 + Ψ d′,m, 1 − Ψd′,m, 0). (A.11) Therefore, given the previous results concerning identification and Neyman orthogonality of Ψd′,m ′,t 
+
+and the fact that the Gateaux derivative of Pr (M = m|D = d, T = 1) in the direction of [η0 − η] is trivially zero, too, we have that Assumptions 3.1(a)–(e) of Chernozhukov et al. (2018) hold with respect to expression (A.11). In a next step, we consider the identification of the counterfactual E[Y1(d′, M (d′)) |D = d, T = 1] 
+
+based on equation (20), which corresponds to 
+
+E[Y1(d′, M (d′)) |D = d] = Ψ d, 0 + Ψ d′,1 − Ψd′,0 (A.12) when defining Ψd′,t = E[μd′ (t, X )|D = d, T = 1] . Let us denote the nuisance parameters by 
+
+η = ( μd(0 , X ), μ d′ (1 , X ), μ d′ (0 , X ), π d, 1(X), π d, 0(X), π d′,1(X), π d′,0(X)) 
+
+and by ϕd′,t the Neyman-orthogonal score function of Ψd′,t , which defined as: 
+
+ϕd′,t (W, η, Ψd′,t ) = I{D = d} · T · μd′ (t, X )
+
+Pd, 1
+
+(A.13) 
+
++ I{D = d′} · I{T = t} · πd, 1(X) · (YT − μd′ (t, X )) 
+
+πd′,t (X) · Pd, 1
+
+− Ψd′,t .
+
+We note that the DR expression (20) for ATET identification is obtained by identifying Ψd′,t 
+
+as the solution to the moment condition E[ϕd′,t (W, η 0, Ψd′,t )] = 0 . Showing that Assumptions 3.1(a)–(e) of Chernozhukov et al. (2018) hold for ϕd′,t (W, η, Ψd′,t ) proceeds analogously to the case of ϕd′,m ′,t (W, η, Ψd′,m ′,t ) and is therefore omitted. Next we consider the alternative identification of the counterfactual based on equation (22) ,which corresponds to 
+
+E[Y1(d′, M (d′)) |D = d] = ∑
+
+> m∈M
+
+(Ψ d,m, 0 + Ψ d′,m, 1 − Ψd′,m, 0)
+
+︸ ︷︷ ︸
+
+> A
+
+· (Ψ( m)d, 0 + Ψ( m)d′,1 − Ψ( m)d′,0)
+
+︸ ︷︷ ︸
+
+> B
+
+,
+
+(A.14) where Ψ( m)d′,t = E[νd′,m (t, X )|D = d, T = 1] . Considering quotient A in (A.14) , we can directly use the previous results concerning identification and Neyman orthogonality of Ψd′,m ′,t such that 
+
+40 A satisfies these conditions, too. Concerning part B, we can shows identification and Neyman orthogonality of Ψ( m)d′,t in an analogous manner as for Ψd′,t , such that B satisfies these conditions, too. Furthermore, we note that the derivative of (A · B) with respect to the nuisance parameters corresponds to sum of the derivative of A times B and the derivative of B times A. As the derivate of both A and B is zero (as a result of Neyman orthognality), also the product is zero. It follows that (A.14) satisfies Neyman orthogonality. Finally, we show that the score function underlying DR expression (10) for repeated cross sections satisfies Assumption 3.1(a)–(e) of Chernozhukov et al. (2018), implying the identification of the ATE ∆( d, m, d ′, m ′) = E[Y1(d, m ) − Y1(d′, m ′)] under Assumptions 1 to 4 and satisfies Neyman orthogonality. To this end, we define the nuisance parameters 
+
+η = ( μd∗,m ∗ (t∗, X ), ρ d∗,m ∗,t ∗ (X), p 1(X)) 
+
+and denote their true values by 
+
+η0 = ( μ0 
+
+> d∗,m ∗
+
+(t∗, X ), ρ 0 
+
+> d∗,m ∗,t ∗
+
+(X), p 01(X)) ,
+
+for d∗ ∈ { d, d ′}, m∗ ∈ { m, m ′}, and t∗ ∈ { 1, 0}. Furthermore, we denote by Ψd,m,t = E[μd,m (t, X )|T =1] the average of the conditional mean μd,m (t, X ) given T = 1 , in order to express the ATE provided in equation (9) as a function of Ψd′,m ′,t :
+
+∆( d, m, d ′, m ′) = Ψ d,m, 1 − Ψd,m, 0 − Ψd′,m ′,1 + Ψ d′,m ′,0, (A.15) Let us denote by ϕd,m,t the Neyman-orthogonal score function for Ψd,m,t , which corresponds to the following expression: 
+
+ϕd,m,t (W, η, Ψd,m,t ) = T · μd,m (t, X )Pr( T = 1) (A.16) 
+
++ I{D = d} · I{M = m} · I{T = t} · p1(X) · (YT − μd,m (t, X )) 
+
+ρd,m,t (X) · Pr( T = 1) − Ψd,m,t .
+
+We note that the DR expression (10) for ATE identification is obtained by identifying Ψd,m,t as the solution to the moment condition E[ϕd,m,t (W, η 0, Ψd,m,t )] = 0 and plugging it into equation (A.15) . To show that E[ϕd,m,t (W, η 0, Ψd,m,t )] = 0 holds, we consider the expectation of term      
+
+> I{D=d}· I{M=m}· I{T=t}· p01(X)·(YT−μ0
+> d,m (t,X ))
+> ρ0
+> d,m,t (X)·Pr( T=1)
+
+in equation (A.16) and note that it is zero. This follows 
+
+41 from applying the law of iterated expectations and basic probability theory: 
+
+E
+
+[ I{D = d} · I{M = m} · I{T = t} · p01(X) · (YT − μ0
+
+> d,m
+
+(t, X )) 
+
+ρ0
+
+> d,m,t
+
+(X) · Pr( T = 1) 
+
+]
+
+= E
+
+ p01(X)Pr( T = 1) · E
+
+[
+
+I{D = d} · I{M = m} · I{T = t} · (YT − μ0 
+
+> D,M
+
+(T, X )) |X
+
+]
+
+ρ0
+
+> d,m,t
+
+(X)
+
+
+
+= E
+
+ E
+
+[
+
+I{D = d} · I{M = m} · I{T = t} · (YT − μ0 
+
+> D,M
+
+(T, X )) |X
+
+]
+
+ρ0
+
+> d,m,t
+
+(X)
+
+ .
+
+We have by basic probability theory and iterated expectations that 
+
+E[I{D = d} · I{M = m} · I{T = t} · YT |X]
+
+ρ0
+
+> d,m,t
+
+(X) = E[YT |D = d, M = m, T = t, X ] = μ0
+
+> d,m
+
+(t, X )
+
+and 
+
+E[I{D = d} · I{M = m} · I{T = t} · μ0
+
+> d,m
+
+(t, X )|X]
+
+ρ0
+
+> d,m,t
+
+(X) = ρ0
+
+> d,m,t
+
+(X) · μ0
+
+> d,m
+
+(t, X )
+
+ρ0
+
+> d,m,t
+
+(X) = μ0
+
+> d,m
+
+(t, X ),
+
+and thus, the expression corresponds to 
+
+E[μ0
+
+> d,m
+
+(t, X ) − μ0
+
+> d,m
+
+(t, X )] = 0 . (A.17) For this reason, 
+
+E[ϕd,m,t (W, η 0, Ψd,m,t )] = E
+
+[ T · μ0
+
+> d,m
+
+(t, X )Pr( T = 1) 
+
+]
+
+− Ψd,m,t 
+
+= E
+
+[
+
+μ0
+
+> d,m
+
+(t, X )|T = 1 
+
+]
+
+− Ψd,m,t = Ψ d,m,t − Ψd,m,t = 0 . (A.18) The score function in equation (A.16) thus satisfies Assumption 3.1(a) of Chernozhukov et al. (2018). It also satisfies Assumptions 3.1(b) and (c) of Chernozhukov et al. (2018) because the score function is linear in Ψd,m,t and the second Gateaux derivative η 7 → E[ϕd,m,t (W, η 0, Ψd,m,t )] is continuous. The Gateaux derivative of E[ϕd,m,t (W, η 0, Ψd,m,t )] in the direction of [η0 − η] is given by: 
+
+∂E [ϕd,m,t (W, η 0, Ψd,m,t )][ η − η0]= E
+
+[ T · [μd,m (t, X ) − μ0
+
+> d,m
+
+(t, X )] Pr( T = 1) 
+
+]
+
+42 − E
+
+[ I{D = d} · I{M = m} · I{T = t} · p01(X) · [μd,m (t, X ) − μ0
+
+> d,m
+
+(t, X )] 
+
+ρ0
+
+> d,m,t
+
+(X) · Pr( T = 1) 
+
+]
+
++ E
+
+[ I{D = d} · I{M = m} · I{T = t} · [YT − μ0
+
+> d,m
+
+(t, X )] 
+
+ρ0
+
+> d,m,t
+
+(X) · [p1(X) − p01(X)] Pr( T = 1) 
+
+]
+
+− E
+
+[ I{D = d} · I{M = m} · I{T = t} · p01(X) · [YT − μ0
+
+> d,m
+
+(t, X )] 
+
+ρ0
+
+> d,m,t
+
+(X) · Pr( T = 1) · ρd,m,t (X) − ρ0
+
+> d,m,t
+
+(X)
+
+ρ0
+
+> d,m,t
+
+(X)
+
+]
+
+= 0 .
+
+(A.19) To see that the Gateaux derivative is zero, we first consider the first term and apply the law of iterated expectations: 
+
+E
+
+[ T · [μd,m (t, X ) − μ0 
+
+> d′,m ′
+
+(t, X )] Pr( T = 1) 
+
+]
+
+(A.20) 
+
+= E
+
+[ p01(X) · [μd,m (t, X ) − μ0
+
+> d,m
+
+(t, X )] Pr( T = 1) 
+
+]
+
+.
+
+Concerning the second term, we have 
+
+− E
+
+[ I{D = d} · I{M = m} · I{T = t} · p01(X) · [μd,m (t, X ) − μ0
+
+> d,m
+
+(t, X )] 
+
+ρ0
+
+> d,m,t
+
+(X) · Pr( T = 1) 
+
+]
+
+= −E
+
+[ p01(X) · [μd,m (t, X ) − μ0
+
+> d,m
+
+(t, X )] Pr( T = 1) 
+
+]
+
+. (A.21) Since the first and second terms involve identical expressions but with opposite signs, they cancel out. Applying the law of iterated expectations to the third term, we obtain 
+
+E
+
+[ I{D = d} · I{M = m} · I{T = t} · [YT − μ0
+
+> d,m
+
+(t, X )] 
+
+ρ0
+
+> d,m,t
+
+(X) · [p1(X) − p01(X)] Pr( T = 1) 
+
+]
+
+(A.22) 
+
+= E
+
+ E
+
+[
+
+I{D = d} · I{M = m} · I{T = t} · [YT − μ0
+
+> d,m
+
+(t, X )] | X
+
+]
+
+ρ0
+
+> d,m,t
+
+(X) · [p1(X) − p01(X)] Pr( T = 1) 
+
+ .
+
+Concerning the first factor, we have by basic probability theory and iterated expectations that 
+
+E[I{D = d} · I{M = m} · I{T = t} · YT |X]
+
+ρ0
+
+> d,m,t
+
+(X) = E[YT |D = d, M = m, T = t, X ] = μ0
+
+> d,m
+
+(t, X )
+
+and 
+
+E[I{D = d} · I{M = m} · I{T = t} · μ0
+
+> d,m
+
+(t, X )|X]
+
+ρ0
+
+> d,m,t
+
+(X) = ρ0
+
+> d,m,t
+
+(X) · μ0
+
+> d,m
+
+(t, X )
+
+ρ0
+
+> d,m,t
+
+(X) = μ0
+
+> d,m
+
+(t, X ).
+
+43 Therefore, the third term corresponds to 
+
+E
+
+[
+
+[μ0
+
+> d,m
+
+(t, X ) − μ0
+
+> d,m
+
+(t, X )] · [p1(X) − p01(X)] Pr( T = 1) 
+
+]
+
+= 0 . (A.23) Finally, we apply the same reasoning to the fourth term to obtain 
+
+− E
+
+[ I{D = d} · I{M = m} · I{T = t} · p01(X) · [YT − μ0 
+
+> d′,m ′
+
+(t, X )] 
+
+ρ0
+
+> d,m,t
+
+(X) · Pr( T = 1) · ρd,m,t (X) − ρ0
+
+> d,m,t
+
+(X)
+
+ρ0
+
+> d,m,t
+
+(X)
+
+]
+
+= −E
+
+ E
+
+[
+
+I{D = d} · I{M = m} · I{T = t} · p01(X) · [YT − μ0
+
+> d,m
+
+(t, X )] |X
+
+]
+
+ρ0
+
+> d,m,t
+
+(X) · Pr( T = 1) · ρd,m,t (X) − ρ0
+
+> d,m,t
+
+(X)
+
+ρ0
+
+> d,m,t
+
+(X)
+
+
+
+= −E
+
+[ p01(X) · [μ0
+
+> d,m
+
+(t, X ) − μ0
+
+> d,m
+
+(t, X )] Pr( T = 1) · ρd,m,t (X) − ρ0
+
+> d,m,t
+
+(X)
+
+ρ0
+
+> d,m,t
+
+(X)
+
+]
+
+= 0 . (A.24) For this reason, ∂E [ϕd,m,t (W, η 0, Ψd,m,t )][ η−η0] = 0 such that the Gateaux derivative of E[ϕd,m,t (W, η 0, Ψd,m,t )] 
+
+is equal to zero, which satisfies Assumption 3.1(d) of Chernozhukov et al. (2018). For this reason, expression (A.15) , which is a linear combination of such terms, satisfies Neyman orthogonality, too. Assumption 3.1(e) of Chernozhukov et al. (2018), which states that the factor multiplying Ψd,m,t in the definition of the score function ϕd,m,t must be bounded in expectation, holds trivially because the factor is a constant, specifically −1.
+
+## A.2 Identification and Neyman orthogonality in panel data 
+
+We first show that the score function underlying DR expression (24) for panel data satisfies Assumption 3.1(a)–(e) of Chernozhukov et al. (2018), implying that expression (24) identifies the ATET ∆d,m (d, m, d ′, m ′) = E[Y1(d, m ) − Y1(d′, m ′)|D = d, M = m] under Assumptions 1 to 4 and satisfies Neyman orthogonality. In the subsequent discussion, all bounds hold uniformly over all probability laws P ∈ P , where P is the set of all possible probability laws, and we omit P for brevity. We define the nuisance parameters 
+
+η = ( μd,m (X), μ d′,m ′ (X), ρ d,m (X), ρ d′,m ′ (X)) 
+
+and denote their true values by 
+
+η0 = ( μ0
+
+> d,m
+
+(X), μ 0 
+
+> d′,m ′
+
+(X), ρ 0
+
+> d,m
+
+(X), ρ 0 
+
+> d′,m ′
+
+(X)) .
+
+44 We also define Ψd′,m ′ = E[μd′,m ′ (X)|D = d, M = m] to be the average of the conditional mean 
+
+μd′,m ′ (X) given D = d, M = m, in order to express the ATET as a function of Ψd′,m ′ :
+
+∆d,m (d, m, d ′, m ′) = E[Y1 − Y0|D = d, M = m] − Ψd′,m ′ . (A.25) Let us denote by ϕd′,m ′ the Neyman-orthogonal score function for Ψd′,m ′ , which corresponds to the following expression for W = ( Y1, Y 0, D, M, X ):
+
+ϕd′,m ′ (W, η, Ψd′,m ′ ) = I{D = d} · I{M = m} · μd′,m ′ (X)Πd,m 
+
+(A.26) 
+
++ I{D = d′} · I{M = m′} · ρd,m (X) · (Y1 − Y0 − μd′,m ′ (X)) 
+
+ρd′,m ′ (X) · Πd,m 
+
+− Ψd′,m ′ .
+
+DR expression (24) for ATET identification is obtained by identifying Ψd′,m ′ as the solution to the moment condition E[ϕd′,m ′ (W, η 0, Ψd′,m ′ )] = 0 and plugging it into equation (A.25) . To show that 
+
+E[ϕd′,m ′ (W, η 0, Ψd′,m ′ )] = 0 holds, we consider the expectation of term I{D=d′}· I{M =m′}· ρ0  
+
+> d,m (X)·(Y1−Y0−μ0
+> d′,m ′(X))
+> ρ0
+> d′,m ′(X)·Πd,m
+
+in equation (A.26) and note that it is zero. This follows from applying the law of iterated expectations and basic probability theory: 
+
+E
+
+[ I{D = d′} · I{M = m′} · ρ0
+
+> d,m
+
+(X) · (Y1 − Y0 − μ0 
+
+> d′,m ′
+
+(X)) 
+
+ρ0 
+
+> d′,m ′
+
+(X) · Πd,m 
+
+]
+
+= E
+
+ ρ0
+
+> d,m
+
+(X)Πd,m 
+
+· E
+
+[
+
+I{D = d′} · I{M = m′} · (Y1 − Y0 − μ0 
+
+> D,M
+
+(X)) |X
+
+]
+
+ρ0 
+
+> d′,m ′
+
+(X)
+
+
+
+= E
+
+ E
+
+[
+
+I{D = d′} · I{M = m′} · (Y1 − Y0 − μ0 
+
+> D,M
+
+(X)) |X
+
+]
+
+ρ0 
+
+> d′,m ′
+
+(X)
+
+ .
+
+We have by basic probability theory and iterated expectations that 
+
+E[I{D = d′} · I{M = m′} · (Y1 − Y0)|X]
+
+ρ0 
+
+> d′,m ′
+
+(X) = E[Y1 − Y0|D = d′, M = m′, X ] = μ0 
+
+> d′,m ′
+
+(X)
+
+and 
+
+E[I{D = d′} · I{M = m′} · μ0 
+
+> d′,m ′
+
+(X)|X]
+
+ρ0 
+
+> d′,m ′
+
+(X) = ρ0 
+
+> d′,m ′
+
+(X) · μ0 
+
+> d′,m ′
+
+(X)
+
+ρ0 
+
+> d′,m ′
+
+(X) = μ0 
+
+> d′,m ′
+
+(X),
+
+and thus, the expression corresponds to 
+
+E[μ0 
+
+> d′,m ′
+
+(X) − μ0 
+
+> d′,m ′
+
+(X)] = 0 . (A.27) 
+
+45 For this reason, 
+
+E[ϕd′,m ′ (W, η 0, Ψd′,m ′ )] = E
+
+[ I{D = d} · I{M = m} · μ0 
+
+> d′,m ′
+
+(X)Πd,m 
+
+]
+
+− Ψd′,m ′
+
+= E
+
+[
+
+μ0 
+
+> d′,m ′
+
+(X)|D = d, M = m
+
+]
+
+− Ψd′,m ′ = Ψ d′,m ′ − Ψd′,m ′ = 0 . (A.28) The score function in equation (A.26) thus satisfies Assumption 3.1(a) of Chernozhukov et al. (2018). It also satisfies Assumptions 3.1(b) and (c) of Chernozhukov et al. (2018) because the score function is linear in Ψd′,m ′ and the second Gateaux derivative η 7 → E[ϕd′,m ′ (W, η 0, Ψd′,m ′ )] is continuous. The Gateaux derivative of E[ϕd′,m ′ (W, η 0, Ψd′,m ′ )] in the direction of [η0 − η] is given by: 
+
+∂E [ϕd′,m ′ (W, η 0, Ψd′,m ′ )][ η − η0]= E
+
+[ I{D = d} · I{M = m} · [μd′,m ′ (X) − μ0 
+
+> d′,m ′
+
+(X)] Πd,m 
+
+]
+
+− E
+
+[ I{D = d′} · I{M = m′} · ρ0
+
+> d,m
+
+(X) · [μd′,m ′ (X) − μ0 
+
+> d′,m ′
+
+(X)] 
+
+ρ0 
+
+> d′,m ′
+
+(X) · Πd,m 
+
+]
+
++ E
+
+[ I{D = d′} · I{M = m′} · [Y1 − Y0 − μ0 
+
+> d′,m ′
+
+(X)] 
+
+ρ0 
+
+> d′,m ′
+
+(X) · [ρd,m (X) − ρ0
+
+> d,m
+
+(X)] Πd,m 
+
+]
+
+− E
+
+[ I{D = d′} · I{M = m′} · ρ0
+
+> d,m
+
+(X) · [Y1 − Y0 − μ0 
+
+> d′,m ′
+
+(X)] 
+
+ρ0 
+
+> d′,m ′
+
+(X) · Πd,m 
+
+· ρd′,m ′ (X) − ρ0 
+
+> d′,m ′
+
+(X)
+
+ρ0 
+
+> d′,m ′
+
+(X)
+
+]
+
+= 0 .
+
+(A.29) To see that the Gateaux derivative is zero, we first consider the first term and apply the law of iterated expectations: 
+
+E
+
+[ I{D = d} · I{M = m} · [μd′,m ′ (X) − μ0 
+
+> d′,m ′
+
+(X)] Πd,m 
+
+]
+
+(A.30) 
+
+= E
+
+[ E[I{D = d} · I{M = m}| X] · [μd′,m ′ (X) − μ0 
+
+> d′,m ′
+
+(X)] Πd,m 
+
+]
+
+= E
+
+[ ρ0
+
+> d,m
+
+(X) · [μd′,m ′ (X) − μ0 
+
+> d′,m ′
+
+(X)] Πd,m 
+
+]
+
+.
+
+Concerning the second term, we have 
+
+− E
+
+[ I{D = d′} · I{M = m′} · ρ0
+
+> d,m
+
+(X) · [μd′,m ′ (X) − μ0 
+
+> d′,m ′
+
+(X)] 
+
+ρ0 
+
+> d′,m ′
+
+(X) · Πd,m 
+
+]
+
+= −E
+
+[ ρ0
+
+> d,m
+
+(X) · [μd′,m ′ (X) − μ0 
+
+> d′,m ′
+
+(X)] Πd,m 
+
+]
+
+. (A.31) 
+
+46 Since the first and second terms involve identical expressions but with opposite signs, they cancel out. Applying the law of iterated expectations to the third term, we obtain 
+
+E
+
+[ I{D = d′} · I{M = m′} · [Y1 − Y0 − μ0 
+
+> d′,m ′
+
+(X)] 
+
+ρ0 
+
+> d′,m ′
+
+(X) · [ρd,m (X) − ρ0
+
+> d,m
+
+(X)] Πd,m 
+
+]
+
+(A.32) 
+
+E
+
+[
+
+E
+
+[ I{D = d′} · I{M = m′} · [Y1 − Y0 − μ0 
+
+> d′,m ′
+
+(X)] 
+
+ρ0 
+
+> d′,m ′
+
+(X) · [ρd,m (X) − ρ0
+
+> d,m
+
+(X)] Πd,m 
+
+∣∣∣∣∣X
+
+]] 
+
+= E
+
+ E
+
+[
+
+I{D = d′} · I{M = m′} · [Y1 − Y0 − μ0 
+
+> d′,m ′
+
+(X)] | X
+
+]
+
+ρ0 
+
+> d′,m ′
+
+(X) · [ρd,m (X) − ρ0
+
+> d,m
+
+(X)] Πd,m 
+
+ .
+
+Concerning the first factor, we have by basic probability theory and iterated expectations that 
+
+E[I{D = d′} · I{M = m′} · (Y1 − Y0)|X]
+
+ρ0 
+
+> d′,m ′
+
+(X) = E[Y1 − Y0|D = d′, M = m′, X ] = μ0 
+
+> d′,m ′
+
+(X)
+
+and 
+
+E[I{D = d′} · I{M = m′} · μ0 
+
+> d′,m ′
+
+(X)|X]
+
+ρ0 
+
+> d′,m ′
+
+(X) = ρ0 
+
+> d′,m ′
+
+(X) · μ0 
+
+> d′,m ′
+
+(X)
+
+ρ0 
+
+> d′,m ′
+
+(X) = μ0 
+
+> d′,m ′
+
+(X).
+
+Therefore, the third term corresponds to 
+
+E
+
+[
+
+[μ0 
+
+> d′,m ′
+
+(X) − μ0 
+
+> d′,m ′
+
+(X)] · [ρd,m (X) − ρ0
+
+> d,m
+
+(X)] Πd,m 
+
+]
+
+= 0 . (A.33) Finally, we apply the same reasoning to the fourth term to obtain 
+
+− E
+
+[ I{D = d′} · I{M = m′} · ρ0
+
+> d,m
+
+(X) · [Y1 − Y0 − μ0 
+
+> d′,m ′
+
+(X)] 
+
+ρ0 
+
+> d′,m ′
+
+(X) · Πd,m 
+
+· ρd′,m ′ (X) − ρ0 
+
+> d′,m ′
+
+(X)
+
+ρ0 
+
+> d′,m ′
+
+(X)
+
+]
+
+= −E
+
+ E
+
+[
+
+I{D = d′} · I{M = m′} · ρ0
+
+> d,m
+
+(X) · [Y1 − Y0 − μ0 
+
+> d′,m ′
+
+(X)] |X
+
+]
+
+ρ0 
+
+> d′,m ′
+
+(X) · Πd,m 
+
+· ρd′,m ′ (X) − ρ0 
+
+> d′,m ′
+
+(X)
+
+ρ0 
+
+> d′,m ′
+
+(X)
+
+
+
+= −E
+
+[ ρ0
+
+> d,m
+
+(X) · [μ0 
+
+> d′,m ′
+
+(X) − μ0 
+
+> d′,m ′
+
+(X)] Πd,m 
+
+· ρd′,m ′ (X) − ρ0 
+
+> d′,m ′
+
+(X)
+
+ρ0 
+
+> d′,m ′
+
+(X)
+
+]
+
+= 0 . (A.34) For this reason, ∂E [ϕd′,m ′ (W, η 0, Ψd′,m ′ )][ η−η0] = 0 such that the Gateaux derivative of E[ϕd′,m ′ (W, η 0, Ψd′,m ′ )] 
+
+is equal to zero, which satisfies Assumption 3.1(d) of Chernozhukov et al. (2018). The Gateaux derivative of E[Y1 − Y0|D = d, M = m] is trivially equal to zero, too. For this reason, expression (A.25) , which is a linear combination of these terms, satisfies Neyman orthogonality. Assumption 3.1(e) of Chernozhukov et al. (2018), which states that the factor multiplying Ψd′,m ′ in the definition 
+
+47 of the score function ϕd′,m ′ must be bounded in expectation, holds trivially because the factor is a constant, specifically −1.Next, we consider the identification of counterfactual E[Y1(d′, M (d)) |D = d] based on the DR expression (26) and note that the latter corresponds to 
+
+E[Y1(d′, M (d)) |D = d] = ∑
+
+> m∈M
+
+Pr( M = m|D = d) · (E[Y0|D = d, M = m] + Ψ d′,m ′ ). (A.35) Therefore, given the previous results concerning identification and Neyman orthogonality of Ψd′,m ′
+
+and the fact that the Gateaux derivatives of E[Y0|D = d, M = m] and Pr (M = m|D = d) in the direction of [η0 − η] are trivially zero, too, we have that Assumptions 3.1(a)–(e) of Chernozhukov et al. (2018) hold with respect to expression (A.11). In a next step, we consider the identification of the counterfactual E[Y1(d′, M (d′)) |D = d] based on equation (28), which corresponds to 
+
+E[Y1(d′, M (d′)) |D = d] = E[Y0|D = d] + Ψ d′ (A.36) when defining Ψd′ = E[μd′ (X)|D = d]. Let us denote the nuisance parameters by 
+
+η = ( μd(X), μ d′ (X), π d(X), π d′ (X)) 
+
+and by ϕd′ the Neyman-orthogonal score function of Ψd′ , which defined as: 
+
+ϕd′ (W, η, Ψd′ ) = I{D = d} · μd′ (X)Pr( D = d) (A.37) 
+
++ I{D = d′} · πd(X) · (Y1 − Y0 − μd′ (X)) 
+
+πd′ (X) · Pr( D = d) − Ψd′ .
+
+We note that the DR expression (28) for ATET identification is obtained by identifying Ψd′ as the solution to the moment condition E[ϕd′ (W, η 0, Ψd′ )] = 0 . Showing that Assumptions 3.1(a)– (e) of Chernozhukov et al. (2018) hold for ϕd′ (W, η, Ψd′ ) proceeds analogously to the case of 
+
+ϕd′,m ′ (W, η, Ψd′,m ′ ) and is therefore omitted. Next we consider the alternative identification of the counterfactual based on equation (29) ,
+
+48 which corresponds to 
+
+E[Y1(d′, M (d′)) |D = d] = ∑
+
+> m∈M
+
+(E[Y0|D = d, M = m] + Ψ d′,m )
+
+︸ ︷︷ ︸
+
+> A
+
+· (E[I{M0 = m}| D = 1] + Ψ( m)d′ )
+
+︸ ︷︷ ︸
+
+> B
+
+,
+
+(A.38) where Ψ( m)d′ = E[νd′,m (X)|D = d]. Considering quotient A in (A.14) , we can directly use the previous results concerning identification and Neyman orthogonality of Ψd′,m ′ such that A satisfies these conditions, too. Concerning part B, we can shows identification and Neyman orthogonality of 
+
+Ψ( m)d′ in an analogous manner as for Ψd′ , such that B satisfies these conditions, too. Furthermore, we note that the derivative of (A · B) with respect to the nuisance parameters corresponds to sum of the derivative of A times B and the derivative of B times A. As the derivate of both A and B is zero (as a result of Neyman orthognality), also the product is zero. It follows that (A.14) satisfies Neyman orthogonality. Finally, we show that the score function underlying DR expression (25) for panel data sat-isfies Assumption 3.1(a)–(e) of Chernozhukov et al. (2018), implying the identification of the ATE ∆( d, m, d ′, m ′) = E[Y1(d, m ) − Y1(d′, m ′)] under Assumptions 1 to 4 and satisfies Neyman orthogonality. To this end, we define the nuisance parameters 
+
+η = ( μd∗,m ∗ (X), ρ d∗,m ∗ (X)) 
+
+and denote their true values by 
+
+η0 = ( μ0 
+
+> d∗,m ∗
+
+(X), ρ 0 
+
+> d∗,m ∗
+
+(X)) ,
+
+for d∗ ∈ d, d ′ and m∗ ∈ { m, m ′}. Furthermore, we denote by Ψd,m = E[μd,m (X)] the average of the conditional mean difference μd,m (X), in order to express the ATE as a function of Ψd′,m ′ :
+
+∆( d, m, d ′, m ′) = Ψ d,m − Ψd′,m ′ . (A.39) Let us denote by ϕd,m the Neyman-orthogonal score function for Ψd,m , which corresponds to the following expression: 
+
+ϕd,m (W, η, Ψd,m ) = μd,m (X) + I{D = d} · I{M = m} · (Y1 − Y0 − μd,m (X)) 
+
+ρd,m (X) − Ψd,m . (A.40) 
+
+49 We note that the DR expression (25) for ATE identification is obtained by identifying Ψd,m 
+
+as the solution to the moment condition E[ϕd,m (W, η 0, Ψd,m )] = 0 and plugging it into equa-tion (A.39) . To show that E[ϕd,m (W, η 0, Ψd,m )] = 0 holds, we consider the expectation of term   
+
+> I{D=d}· I{M=m}· (Y1−Y0−μ0
+> d,m (X))
+> ρ0
+> d,m (X)
+
+in equation (A.40) and note that it is zero. This follows from applying the law of iterated expectations and basic probability theory: 
+
+E
+
+[ I{D = d} · I{M = m} · (Y1 − Y0 − μ0
+
+> d,m
+
+(X)) 
+
+ρ0
+
+> d,m
+
+(X)
+
+]
+
+= E
+
+ E
+
+[
+
+I{D = d} · I{M = m} · (Y1 − Y0 − μ0 
+
+> D,M
+
+(X)) |X
+
+]
+
+ρ0
+
+> d,m
+
+(X)
+
+ .
+
+We have by basic probability theory and iterated expectations that 
+
+E[I{D = d} · I{M = m} · (Y1 − Y0)|X]
+
+ρ0
+
+> d,m
+
+(X) = E[Y1 − Y0|D = d, M = m, X ] = μ0
+
+> d,m
+
+(X)
+
+and 
+
+E[I{D = d} · I{M = m} · μ0
+
+> d,m
+
+(X)|X]
+
+ρ0
+
+> d,m
+
+(X) = ρ0
+
+> d,m
+
+(X) · μ0
+
+> d,m
+
+(X)
+
+ρ0
+
+> d,m
+
+(X) = μ0
+
+> d,m
+
+(X),
+
+and thus, the expression corresponds to 
+
+E[μ0
+
+> d,m
+
+(X) − μ0
+
+> d,m
+
+(X)] = 0 . (A.41) For this reason, 
+
+E[ϕd,m (W, η 0, Ψd,m )] = E
+
+[
+
+μ0
+
+> d,m
+
+(X)
+
+]
+
+− Ψd,m = Ψ d,m − Ψd,m = 0 . (A.42) The score function in equation (A.40) thus satisfies Assumption 3.1(a) of Chernozhukov et al. (2018). It also satisfies Assumptions 3.1(b) and (c) of Chernozhukov et al. (2018) because the score function is linear in Ψd,m and the second Gateaux derivative η 7 → E[ϕd,m (W, η 0, Ψd,m )] is continuous. The Gateaux derivative of E[ϕd,m (W, η 0, Ψd,m )] in the direction of [η0 − η] is given by: 
+
+∂E [ϕd,m (W, η 0, Ψd,m )][ η − η0]= E
+
+[
+
+μd,m (X) − μ0
+
+> d,m
+
+(X)
+
+]
+
+− E
+
+[ I{D = d} · I{M = m} · [μd,m (X) − μ0
+
+> d,m
+
+(X)] 
+
+ρ0
+
+> d,m
+
+(X)
+
+]
+
+50 − E
+
+[ I{D = d} · I{M = m} · [Y1 − Y0 − μ0
+
+> d,m
+
+(X)] 
+
+ρ0
+
+> d,m
+
+(X) · ρd,m (X) − ρ0
+
+> d,m
+
+(X)
+
+ρ0
+
+> d,m
+
+(X)
+
+]
+
+= 0 . (A.43) To see that the Gateaux derivative is zero, we first consider the first term, E
+
+[
+
+μd,m (X) − μ0
+
+> d,m
+
+(X)
+
+]
+
+,as well as the second term, which is 
+
+− E
+
+[ I{D = d} · I{M = m} · [μd,m (X) − μ0
+
+> d,m
+
+(X)] 
+
+ρ0
+
+> d,m
+
+(X)
+
+]
+
+= −E
+
+[ ρ0
+
+> d,m
+
+(X) · [μd,m (X) − μ0
+
+> d,m
+
+(X)] 
+
+ρ0
+
+> d,m
+
+(X)
+
+]
+
+= −E
+
+[
+
+μd,m (X) − μ0
+
+> d,m
+
+(X)
+
+]
+
+. (A.44) Therefore, the first and second terms cancel out. Applying the law of iterated expectations to the third term, we have 
+
+− E
+
+[ I{D = d} · I{M = m} · [Y1 − Y0 − μ0 
+
+> d′,m ′
+
+(X)] 
+
+ρ0
+
+> d,m
+
+(X) · ρd,m (X) − ρ0
+
+> d,m
+
+(X)
+
+ρ0
+
+> d,m
+
+(X)
+
+]
+
+= −E
+
+ E
+
+[
+
+I{D = d} · I{M = m} · [Y1 − Y0 − μ0
+
+> d,m
+
+(X)] |X
+
+]
+
+ρ0
+
+> d,m
+
+(X) · ρd,m (X) − ρ0
+
+> d,m
+
+(X)
+
+ρ0
+
+> d,m
+
+(X)
+
+
+
+= −E
+
+[
+
+[μ0
+
+> d,m
+
+(X) − μ0
+
+> d,m
+
+(X)] · ρd,m (X) − ρ0
+
+> d,m
+
+(X)
+
+ρ0
+
+> d,m
+
+(X)
+
+]
+
+= 0 . (A.45) For this reason, ∂E [ϕd,m (W, η 0, Ψd,m )][ η−η0] = 0 such that the Gateaux derivative of E[ϕd,m (W, η 0, Ψd,m )] 
+
+is equal to zero, which satisfies Assumption 3.1(d) of Chernozhukov et al. (2018). For this reason, expression (A.39) , which is a linear combination of such terms, satisfies Neyman orthogonality, too. Assumption 3.1(e) of Chernozhukov et al. (2018), which states that the factor multiplying Ψd,m in the definition of the score function ϕd,m must be bounded in expectation, holds trivially because the factor is a constant, specifically −1.
+
+# References 
+
+Abadie, A. (2005). Semiparametric difference-in-differences estimators. Review of Economic Studies , 72 , 1-19. Angrist, J., Imbens, G., & Rubin, D. (1996). Identification of causal effects using instrumental variables. Journal of American Statistical Association , 91 , 444-472 (with discussion). 51 Ashenfelter, O. (1978). Estimating the effect of training programms on earnings. The Review of Economics and Statistics , 6 , 47-57. Belloni, A., Chernozhukov, V., & Hansen, C. (2014). Inference on treatment effects after selection among high-dimensional controls. The Review of Economic Studies , 81 ,608-650. Blackwell, M., Glynn, A., Hilbig, H., & Phillips, C. H. (2022). Difference-in-differences designs for controlled direct effects. working paper, Harvard University .Bodory, H., Huber, M., & Lafférs, L. (2022). Evaluating (weighted) dynamic treatment effects by double machine learning. The Econometrics Journal , 25 , 628-648. Borusyak, K., Jaravel, X., & Spiess, J. (2024). Revisiting Event-Study Designs: Robust and Efficient Estimation. The Review of Economic Studies , rdae007. Bradic, J., Ji, W., & Zhang, Y. (2024). High-dimensional inference for dynamic treatment effects. The Annals of Statistics , 52 , 415-440. Bureau of Labor Statistics, U.S. Department of Labor. (2019). National Longitudinal Survey of Youth 1997 cohort, 1997-2017 (rounds 1-18) . Produced and distributed by the Center for Human Resource Research (CHRR), The Ohio State University. https://www.nlsinfo.org/content/cohorts/nlsy97. Caetano, C., Callaway, B., Payne, S., & Rodrigues, H. S. (2022). Difference in differences with time-varying covariates. arXiv preprint 2202.02903 .Callaway, B., Goodman-Bacon, A., & Sant’Anna, P. H. (2024). Difference-in-differences with a continuous treatment (Tech. Rep.). National Bureau of Economic Research. Callaway, B., & Li, T. (2019). Quantile treatment effects in difference in differences models with panel data. Quantitative Economics , 10 , 1579-1618. Callaway, B., Li, T., & Oka, T. (2018). Quantile treatment effects in difference in differences models under dependence restrictions and with only two time periods. Journal of Econometrics , 206 , 395-413. Callaway, B., & Sant’Anna, P. H. (2021). Difference-in-differences with multiple time periods. 
+
+Journal of Econometrics , 225 , 200-230. Chang, N.-C. (2020, 02). Double/debiased machine learning for difference-in-differences models. The Econometrics Journal , 23 , 177-191. Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., & 52 Robins, J. (2018). Double/debiased machine learning for treatment and structural parameters. The Econometrics Journal , 21 , C1-C68. Cox, D. (1958). Planning of experiments . New York: Wiley. de Chaisemartin, C., & D’Haultfeuille, X. (2020). Two-way fixed effects estimators with heterogeneous treatment effects. American Economic Review , 110 , 2964-2996. de Chaisemartin, C., d’Haultfoeuille, X., Pasquier, F., Sow, D., & Vazquez-Bare, G. (2024). Difference-in-differences for continuous treatments and instruments with stayers. arXiv preprint 2201.06898 .De Chaisemartin, C., & d’Haultfoeuille, X. (2020). Two-way fixed effects estimators with heterogeneous treatment effects. American economic review , 110 , 2964-2996. Deuchert, E., Huber, M., & Schelker, M. (2019). Direct and indirect effects based on difference-in-differences with an application to political preferences following the vietnam draft lottery. Journal of Business & Economic Statistics , 37 , 710-720. Fan, J., Yao, Q., & Tong, H. (1996). Estimation of conditional densities and sensitivity measures in nonlinear dynamical systems. Biometrika , 83 (1), 189–206. Farbmacher, H., Huber, M., Lafférs, L., Langen, H., & Spindler, M. (2022). Causal mediation analysis with double machine learning. The Econometrics Journal , 25 , 277-300. Frangakis, C. E., & Rubin, D. B. (2002). Principal stratification in causal inference. Biometrics ,
+
+58 (1), 21–29. Goodman-Bacon, A. (2021). Difference-in-differences with variation in treatment timing. 
+
+Journal of Econometrics , 225 , 254-277. Haddad, M. F. C., Huber, M., & Zhang, L. Z. (2024). Difference-in-differences with time-varying continuous treatments using double/debiased machine learning. arXiv preprint 2410.21105 .Hirano, K., & Imbens, G. W. (2005). The propensity score with continuous treatments. In W. A. Shewhart, S. S. Wilks, A. Gelman, & X. Meng (Eds.), Applied bayesian modeling and causal inference from incomplete data-perspectives (p. 73-84). Wiley-Blackwell. Hong, S.-H. (2013). Measuring the effect of napster on recorded music sales: difference-in-differences estimates under compositional changes. Journal of Applied Econometrics ,
+
+28 , 297-324. Huber, M. (2021). Mediation analysis. In K. F. Zimmermann (Ed.), Handbook of labor, 
+
+53 human resources and population economics. Springer Nature Switzerland AG. Huber, M. (2023). Causal analysis: Impact evaluation and causal machine learning with applications in r . MIT Press. Imai, K., & van Dyk, D. A. (2004). Causal inference with general treatment regimes. Journal of the American Statistical Association , 99 , 854-866. Imbens, G. W. (2004, Feb.). Nonparametric estimation of average treatment effects under exogeneity: a review. The Review of Economics and Statistics , 86 , 4-29. Lechner, M. (2011). The estimation of causal effects by difference-in-difference methods. 
+
+Foundations and Trends in Econometrics , 4 , 165-224. Lewis, G., & Syrgkanis, V. (2021). Double/debiased machine learning for dynamic treatment effects. In Neurips (pp. 22695–22707). Neyman, J. (1923). On the application of probability theory to agricultural experiments. essay on principles. Statistical Science , Reprint, 5 , 463-480. Neyman, J. (1959). Optimal asymptotic tests of composite statistical hypotheses. In 
+
+Probability and statistics (p. 416-444). Wiley. Pearl, J. (2001). Direct and indirect effects. In Proceedings of the seventeenth conference on uncertainty in artificial intelligence (p. 411-420). San Francisco: Morgan Kaufman. R Core Team. (2025). R: A language and environment for statistical computing [Computer software manual]. Vienna, Austria. Robins, J. M. (1986). A new approach to causal inference in mortality studies with sustained exposure periods - application to control of the healthy worker survivor effect. 
+
+Mathematical Modelling , 7 , 1393-1512. Robins, J. M., & Greenland, S. (1992). Identifiability and exchangeability for direct and indirect effects. Epidemiology , 3 , 143-155. Robins, J. M., Hernan, M. A., & Brumback, B. (2000). Marginal structural models and causal inference in epidemiology. Epidemiology , 11 , 550-560. Robins, J. M., & Rotnitzky, A. (1995). Semiparametric efficiency in multivariate regression models with missing data. Journal of the American Statistical Association , 90 , 122-129. Robins, J. M., Rotnitzky, A., & Zhao, L. (1994). Estimation of regression coefficients when some regressors are not always observed. Journal of the American Statistical Association , 90 , 846-866. 54 Rubin, D. (1980). Comment on ’randomization analysis of experimental data: The fisher randomization test’ by d. basu. Journal of American Statistical Association , 75 ,591-593. Rubin, D. B. (1974). Estimating causal effects of treatments in randomized and nonrandomized studies. Journal of Educational Psychology , 66 , 688-701. Sant’Anna, P. H. C., & Zhao, J. B. (2020). Doubly robust difference-in-differences estimators. 
+
+Journal of econometrics , 219 , 101-122. Schenk, T. D. (2024). Mediation analysis in difference-in-differences designs. working paper, Aarhus University .Snow, J. (1855). On the mode of communication of cholera (J. Churchill, Ed.). Sun, L., & Abraham, S. (2021). Estimating dynamic treatment effects in event studies with heterogeneous treatment effects. Journal of Econometrics , 225 , 175-199. Tran, L., Yiannoutsos, C., Wools-Kaloustian, K., Siika, A., van der Laan, M., & Petersen, M. (2019). Double robust efficient estimators of longitudinal treatment effects: Comparative performance in simulations and a case study. The International Journal of Biostatistics ,
+
+15 (2), 1-27. Zhang, L. Z. (2025). Continuous difference-in-differences with double/debiased machine learning. arXiv preprint 2408.10509v2 .Zimmert, M. (2020). Efficient difference-in-differences estimation with high-dimensional common trend confounding. arXiv preprint 1809.01643 .55

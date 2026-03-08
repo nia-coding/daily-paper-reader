@@ -1,0 +1,1584 @@
+Title: Controllable Generative Sandbox for Causal Inference
+
+URL Source: https://arxiv.org/pdf/2603.03587v1
+
+Published Time: Thu, 05 Mar 2026 01:19:29 GMT
+
+Number of Pages: 34
+
+Markdown Content:
+# Controllable Generative Sandbox for Causal Inference 
+
+Qi Zhang 
+
+Emory University 
+
+qi.zhang2@emory.edu 
+
+Harsh Parikh 
+
+Yale University 
+
+harsh.parikh@yale.edu 
+
+Ashley Naimi 
+
+Emory University 
+
+ashley.naimi@emory.edu 
+
+Razieh Nabi 
+
+Emory University 
+
+razieh.nabi@emory.edu 
+
+Christopher Kim 
+
+Amgen 
+
+chrkim@amgen.com 
+
+Timothy Lash 
+
+Emory University 
+
+timothy.lee.lash@emory.edu 
+
+## Abstract 
+
+Method validation and study design in causal inference rely on synthetic data with known counterfactuals. Existing simulators trade off distributional realism , the ability to capture mixed-type and multimodal tabular data, against causal control-lability , including explicit control over overlap, unmeasured confounding, and treatment effect heterogeneity. We introduce C AUSAL MIX , a variational generative framework that closes this gap by coupling a mixture of Gaussian latent priors with data-type-specific decoders for continuous, binary, and categorical variables. The model incorporates explicit causal controls: an overlap regularizer shaping propensity-score distributions, alongside direct parameterizations of confounding strength and effect heterogeneity. This unified objective preserves fidelity to the observed data while enabling factorial manipulation of causal mechanisms, al-lowing overlap, confounding strength, and treatment effect heterogeneity to be varied independently at design time. Across benchmarks, C AUSAL MIX achieves state-of-the-art distributional metrics on mixed-type tables while providing stable, fine-grained causal control. We demonstrate practical utility in a comparative safety study of metastatic castration-resistant prostate cancer treatments, using CAUSAL MIX to compare estimators under calibrated data-generating processes, tune hyperparameters, and conduct simulation-based power analyses under targeted treatment effect heterogeneity scenarios. 
+
+## 1 Introduction 
+
+For each unit, only one potential outcome is observed, rendering individual causal effects fundamen-tally unobservable [ 1]. Consequently, assessing causal methods requires settings in which the ground truth is known. Synthetic data therefore serves as a workhorse for causal methodology: it supplies ground-truth counterfactuals, standardized benchmarks, and controllable stress-tests of identification assumptions. In this sandbox , researchers can probe robustness to confounding, model misspecifica-tion, and limited overlap; characterize finite-sample behavior; and tune hyperparameters (e.g., causal forest depth, super-learner libraries and cross-fitting folds) under conditions that mirror the intended application—all while retaining access to the truth [ 2; 3 ]. Real data-inspired simulations also support prospective study design (power and sample size under targeted heterogeneity/confounding) and privacy-preserving collaboration by releasing realistic, non-identifiable surrogates [4]. 
+
+> arXiv:2603.03587v1 [stat.ME] 3 Mar 2026
+
+Performance on synthetic data often fails to translate to complex real-world settings because estimator behavior depends on how well modeling assumptions align with properties of the data, including dependence structure, nonlinearity, confounding strength, overlap, outcome variability, and effect size. Consequently, an ideal benchmark must both provide access to (causal) truth and faithfully reproduce key features of the real data-generating process (DGP) [5; 6]. 
+
+Gaps. Despite significant advances in deep generative architectures for causal data [ 7; 8 ; 9 ], existing approaches continue to face a fundamental challenge: jointly achieving realistic modeling of mixed-type observational data and explicit, design-time control over key causal properties such as effect heterogeneity, confounding, and overlap. As a result, gains in empirical realism often come at the expense of causal transparency, limiting their usefulness for method evaluation and study planning. 
+
+Contributions. We propose C AUSAL MIX , a variational generative framework that unifies distribu-tional realism with fine-grained causal control. • Mixed-type fidelity. A hybrid latent architecture with a Bayesian Gaussian–mixture prior and data-type-specific decoder heads captures multimodal dependencies common in observational and clinical datasets. • Causal levers. We expose design-time controls for heterogeneous treatment effects, propensity overlap, and unmeasured confounding. Overlap is tuned via a log-likelihood–ratio regularizer that directly shapes treatment assignment; confounding and effect heterogeneity are parameterized in the outcome mechanism. • Stabilized causal fidelity. Regularization and variance constraints ensure that prespecified causal functions and controls are faithfully realized during training, particularly when causal mechanisms are low-dimensional or weakly nonlinear. • Unified objective. The model jointly optimizes distributional fit and causal constraints, ensuring that matching the observed data does not compromise control over the specified causal structure. We further introduce an integrated evaluation and application pipeline for causal synthetic data that jointly assesses distributional fidelity, causal fidelity, and privacy in terms of record-level disclosure risk under synthetic data release. Practitioners need calibrated sandboxes that both look like their data 
+
+and permit targeted “what-if” studies about overlap, confounding, and heterogeneity. C AUSAL MIX 
+
+enables (i) apples-to-apples estimator comparison under empirically grounded DGPs, (ii) principled 
+
+hyperparameter selection within the same calibrated regime, and (iii) simulation-based study design 
+
+(power/sample size calculation under tunable heterogeneity and residual confounding). We illustrate these benefits in a comparative-safety setting (abiraterone vs. enzalutamide in metastatic castration-resistant prostate cancer), where observational data exhibit realistic structure and plausible biases. The code is publicly available at https://github.com/zhangqiecho/causalmix .
+
+## 2 Background 
+
+2.1 Setup and Notation 
+
+We observe i.i.d. samples O = ( X, T, Y ), where X ∈ X denotes covariates, T ∈ { 0, 1} a binary treatment, and Y the observed outcome. Let Y (1) and Y (0) be the potential outcomes, with 
+
+Y = T Y (1) + (1 − T ) Y (0) by consistency. We define the conditional outcome regression μt(x) ≜
+
+E[Y (t) | X = x] and the propensity score e(x) ≜ P(T = 1 | X = x) [ 10 ], and consider the average and conditional average treatment effects ATE = E[Y (1) − Y (0)] and CATE (x) = μ1(x) − μ0(x).Identification of average and conditional treatment effects from observational data typically relies on assumptions of consistency, unconfoundedness given observed covariates X, and positivity. In practice, however, the finite-sample behavior of causal estimators depends strongly on the strength of confounding, model complexity, and the degree of propensity-score overlap. Violations of ignorability due to unmeasured confounders, as well as limited overlap between treatment groups, undermine point identification, inflate variance, and forces extrapolation of counterfactual outcomes in regions with limited overlap, complicating both estimation and method comparison. In such settings, synthetic data with a known and controllable causal structure provides a principled testbed to study these challenges: it enables systematic control over unmeasured confounding and 2overlap, supports diagnostic evaluation through known ground truth, and facilitates fair benchmarking of causal estimators under realistic departures from ideal identification conditions. 
+
+2.2 Background on Synthetic Data for Causal Inference 
+
+Synthetic data underpins algorithm development, fair comparison, and study design when counterfac-tual truths are otherwise unobservable [ 1 ]. We summarize three families, ordered by how tightly they are grounded in real data. 
+
+Arbitrary parametric simulators. Classical setups specify structural equations for (X, T, Y ),granting full control over effect sizes, functional forms, and noise. They are easy to vary and analyze but can yield method rankings that reflect the designer’s choices more than real-world complexity, especially for mixed-type, multimodal tabular data. 
+
+Semi-synthetic benchmarks. These approaches reuse covariates X from real datasets while simulat-ing T | X and Y | T, X from fixed mechanisms. This paradigm underlies widely used challenges and leaderboards [ 11 ; 2; 12 ; 13 ], enabling reproducible comparisons but offering limited, indirect control over causal “knobs” such as overlap and heterogeneity, with potential privacy constraints in sensitive domains. 
+
+Data-fit generators. A more recent direction learns the synthetic DGP from real data so that marginal and conditional distributions match empirical structure. Plasmode simulations preserve observed X and (sometimes) T , while generating outcomes from known models to inject ground truth [ 14 ; 15 ; 16 ; 17 ]; they are transparent but can be inflexible and sensitive to design choices [18 ; 19 ; 20 ; 21 ]. Neural approaches fit T | X (or X | T ) and Y | T, X using flexible generative models, including normalizing flows in R EAL CAUSE [7], Wasserstein Generative Adversarial Networks (WGANs) [ 8 ], and conditional variational autoencoder (VAE) frameworks [ 9; 22 ]. These models improve distributional fidelity but may suffer from training instability (for GANs) [ 23 ], limited support for mixed-type tabular data [ 9 ], or only coarse and indirect control over overlap, unmeasured confounding, and effect heterogeneity [7]. Methods emphasizing empirical realism, such as R EAL CAUSE and WGAN-based generators, closely mimic observed data distributions but offer limited explicit control over causal parameters. For instance, R EAL CAUSE adjusts effect scale, heterogeneity, and overlap via interpolation between fitted extremes while assuming no unmeasured confounding [ 7], and WGAN-based approaches lack direct mechanisms for manipulating treatment effects [ 8 ]. Frengression [ 24 ] enables direct control over marginal causal quantities through interventional modeling, but does not allow explicit specification of conditional effects, overlap, or unmeasured confounding, which are central to evaluating estimator robustness in observational settings. C REDENCE [9] allows users to prespecify functional forms for treatment effects and unmeasured confounding bias, but is limited in modeling realistic mixed-type, multimodal tabular data. Moreover, it lacks systematic empirical validation that the learned generator actually satisfies the prespecified causal functions and confounding controls. 
+
+Desiderata for benchmarks. Across applications, three properties are especially valuable: (i) mixed-type realism —faithfully modeling continuous, binary, and categorical variables with multimodality; (ii) causal controllability —treating effect size and heterogeneity, unmeasured confounding, and overlap as explicit design parameters ; and (iii) joint optimization —achieving distributional fidelity and causal control without trading one for the other. These desiderata motivate the framework developed in this paper, which extends conditional VAE–based generators with mixture priors, datatype-specific decoders, and explicit treatment effect, overlap and confounding controls. 
+
+## 3 Methods 
+
+3.1 Problem Formulation 
+
+The primary goal of this work is to learn a flexible data-generating mechanism Gθ such that the joint distribution of a generated sample, O′ = ( X′, T ′, Y ′) ∼ Gθ closely approximates the empirical distributions of the observed data, preal (X, T, Y ), while also providing explicit and user-controlled manipulation of key causal properties. To support this goal, we adopt a nonparametric structural causal model (SCM) in which all structural equations are unrestricted mappings. 3Let the observed sample O = {(Xi, T i, Y i)}ni=1 be generated from a latent causal process G† =[ϕX , ϕ T , ϕ Y (1) , ϕ Y (0) ] specified by: 
+
+X = ϕX (UX ),T = ϕT (X, U T ),Y (t) = ϕY (t)(X, U Y ), t ∈ { 0, 1},Y = T Y (1) + (1 − T ) Y (0) ,
+
+where UX , UT , and UY are mutually independent exogenous variables, and each ϕ· is an arbitrary, nonlinear function. This SCM induces the true joint distribution preal (X, T, Y ) that our learned generator aims to approximate. 
+
+Causal control functions. Beyond learning distributions that match observed data, we require the ability to specify key causal parameters in the generated synthetic data. We formalize three dimensions of causal control by introducing a set of user-specified, covariate-dependent control functions: 
+
+Ψ = {α(X), τ (X), κ (X, T )}.
+
+Each function governs a distinct causal property within the SCM: • Overlap refers to how similar the covariate distributions are for treated P (X | T = 1) vs. untreated groups P (X | T = 0) . To specify the desired positivity/overlap structure, we introduce a covariate-dependent conditional density ratio 
+
+α(x) = P (X = x | T = 0) 
+
+P (X = x | T = 1) .
+
+Values of α(X) near one indicate strong overlap between treatment groups, whereas large or small values correspond to regions of weak overlap or near-positivity violations in which the covariate space is dominated by the untreated or treated group, respectively. • Effect function τ (X) defines the CATE: 
+
+τ (x) = E[Y (1) − Y (0) | X = x],
+
+determining both the magnitude and heterogeneity of causal effects across covariates. • Unmeasured confounding κ(X, T ) introduces a dependence between T and the potential out-comes Y (t) through shared latent factors, capturing the degree and form of hidden confounding beyond X. It is defined as: 
+
+κ(x, t ) = E[Y (t) | X = x, T = 1] − E[Y (t) | X = x, T = 0] .κ(x, t ) encodes structural unmeasured confounding through its induced selection bias in potential outcomes across treatment groups, thereby governing departures from conditional ignorability. Recent developments in semiparametric causal inference have expanded identification and estimation theory to complex directed acyclic graphs with latent variables, enabling consistent estimation of causal functionals beyond classical back-door and front-door settings [ 25 ; 26 ; 27 ]. These approaches employ flexible machine-learning estimators together with one-step corrections or targeted minimum loss procedures to obtain doubly robust and asymptotically efficient estimates under weak modeling assumptions. However, their practical reliability depends critically on properties of the underlying data-generating process, including overlap, nuisance complexity, and the interaction between treat-ment assignment and latent confounding. Because such factors cannot be systematically varied in observational datasets, principled evaluation requires a generator capable of independently controlling these causal mechanisms. The control functions introduced above are designed precisely to support this type of estimator-level stress testing. 
+
+Joint optimization problem. Given the causal control functions Ψ = {α, τ, κ }, we want to learn a data generator Gθ whose induced distribution over generated samples O′ = ( X′, T ′, Y ′) ∼ Gθ is as close as possible to the empirical joint distribution preal (X, T, Y ) while remaining faithful—up to user-controlled rigidness—to the causal structure encoded in Ψ.4For any generator Gθ , we define the induced causal quantities using expectations over generated samples: 
+
+αθ (x) := pθ (X = x | T ′ = 0) 
+
+pθ (X = x | T ′ = 1) ,τθ (x) := E[Y ′(1) − Y ′(0) | X = x],κθ (x, t ) := E[Y ′(t) | X = x, T = 1] − E[Y ′(t) | X = x, T = 0] .
+
+The subset of generators that satisfy the causal specifications exactly is 
+
+G∗
+
+> Θ
+
+(Ψ) := 
+
+ Gθ :
+
+αθ (X) = α(X),τθ (X) = τ (X),κθ (X, T ) = κ(X, T )
+
+ .
+
+Similarly, let 
+
+G† 
+
+> Θ
+
+:= {Gθ : pθ (X′, T ′, Y ′) ≈ preal (X, T, Y )}
+
+be the set of generators reproducing the empirical distribution. If G† 
+
+> Θ
+
+∩ G ∗
+
+> Θ
+
+(Ψ) ̸ = ∅, an ideal solution lies in this intersection; otherwise, we seek a generator in G∗
+
+> Θ
+
+(Ψ) that is closest to G† 
+
+> Θ
+
+under a chosen discrepancy. This leads to the optimization principle: 
+
+min  
+
+> θ
+
+Ed (X, T, Y ), (X′, T ′, Y ′) 
+
++ λα EX [Rα(αθ (X), α (X))] + λτ EX [Rτ (τθ (X), τ (X))] + λκ EX,T [Rκ(κθ (X, T ), κ (X, T ))] .
+
+where d(·, ·) is a distributional distance, Rα, Rτ , Rκ are rigidness penalties that regulate adherence to the overlap, treatment-effect, and confounding specifications, and λα, λ τ , λ κ are regularization parameters. The first term enforces fidelity to the empirical distribution, whereas the penalty terms guide Gθ
+
+toward the user-specified causal structure. This framework learns a data-generating mechanism that approximates the true observational process while enabling controlled variation along three interpretable causal dimensions. 
+
+Problem statement : Our goal is to develop a model architecture, training algorithm, and data generation procedure that: • Effectively optimizes the unified training objective to find parameter values that balance all objec-tives • Satisfies the causal constraints with high fidelity (constraints are met within acceptable tolerance) • Handles mixed-type tabular data without preprocessing artifacts • Provides interpretable control over causal parameters through easily tunable hyperparameters • Generates high-quality synthetic samples efficiently The following sections present our proposed solution to this problem formulation, introducing specific design choices for the model architecture, prior distribution, causal regularization mechanism, and training procedures. 
+
+3.2 Model Overview and Data-Generating Process 
+
+CAUSAL MIX instantiates a modular data-generating mechanism Gθ built on a conditional VAE backbone. The observational distribution is factorized as 
+
+p(X, T, Y ) = p(T ) p(X | T ) p(Y | X, T ),
+
+5Observed        
+
+> Data
+> Conditioning Variables (C)
+> Target Variables
+> (O)
+> Probabilistic
+> Encoder
+> Target
+> Causal Functions
+> Latent Space
+> qθ(z | O)
+> Generated Data
+> BGMM
+> z∼Isotropic Gaussian
+> z∼Mixture Gaussian
+> New Latent Space
+> pθ(O | z)
+> Probabilistic
+> Decoder
+> Conditional VAE
+> Standard VAE
+> Output Heads
+> Postprocessed Data
+> with Causal Truth
+> Synthetic Data Evaluation
+> Preprocessing Bayesian Gaussian
+> Mixture Model
+> Mixed-type
+> Variables Adapted
+> pθ(O | z)
+> Reconstructed Data
+> Loss function Probabilistic
+> Decoder
+> Backpropagation
+> Training Phase Generation Phase
+
+Figure 1: Overview of the C AUSAL MIX generative framework. and modeled using three components: a treatment model for T , a pre-treatment generator for X | T ,and a post-treatment generator for the potential outcomes (Y (0) , Y (1)) | X, T .
+
+Modular generators. Given variable metadata, the C AUSAL MIX wrapper handles preprocessing and instantiates: (i) a Bernoulli model for treatment assignment, (ii) a conditional VAE GX,θ for 
+
+X | T , and (iii) a conditional VAE GY,θ for (Y (0) , Y (1)) | X, T . Synthetic data are generated sequentially by sampling T ′, then X′ | T ′, and finally (Y ′(0) , Y ′(1)) | X′, T ′, with the observed outcome constructed as Y ′ = T ′Y ′(1) + (1 − T ′)Y ′(0) . Generated samples are deterministically transformed back to the original data scale and representation using the preprocessing metadata (e.g., inverse standardization, re-integerization and categorical decoding). 
+
+Conditional VAE backbone. Both generators share a common conditional VAE structure with multilayer perceptron (MLP) encoders and decoders. The encoder maps target variables to a latent representation and outputs the mean and log-variance of a diagonal Gaussian posterior. The decoder maps the concatenated latent code and conditioning variables (either T or (X, T )) to a shared hidden representation, which is then routed through variable-specific output heads for binary, categorical, and continuous variables, enabling realistic modeling of mixed-type tabular data. 
+
+Potential outcomes and causal constraints. The post-treatment generator GY,θ jointly models both potential outcomes, enabling direct access to individual-level treatment effects. During training, reconstruction is conditioned on the observed treatment arm, while additional regularization enforces alignment with user-specified treatment-effect and confounding functions. Stabilization mechanisms are introduced to ensure that these causal targets are faithfully realized; we describe the corresponding objective in Section 3.3. 
+
+Overlap control. The covariate generator GX,θ incorporates an explicit overlap control mecha-nism that shapes the conditional distribution p(X | T ) to match a user-specified log-density ratio. This provides direct, design-time control over propensity-score overlap; implementation details are deferred to Section 3.3. 
+
+Latent prior. A key design choice in C AUSAL MIX is the use of a flexible mixture-based latent prior to capture multimodal structure in observational data. Instead of restricting the latent space to a standard Gaussian, each conditional VAE can employ a Bayesian Gaussian mixture model (BGMM) fitted in latent space after training. Latent samples drawn from this mixture prior are then decoded conditionally to generate X′ and (Y ′(0) , Y ′(1)) , improving the model’s ability to represent complex, heterogeneous distributions. 6Overall, this modular design enables C AUSAL MIX to generate synthetic datasets that preserve empirical structure while exposing explicit controls over overlap, unmeasured confounding, and treatment-effect heterogeneity. Figure 1 provides an overview of the C AUSAL MIX framework. 
+
+3.3 Objective Function 
+
+The parameters θ of the generative mechanism Gθ are learned by optimizing a unified objective that combines generative modeling with penalties enforcing user-specified causal structure. The objective integrates three components: (i) a variational autoencoder loss for distributional fidelity, (ii) penalties aligning induced causal quantities with target causal functions, and (iii) an overlap penalty controlling the covariate distribution pθ (X | T ). We describe each component in turn. 
+
+Generative modeling objective. Each module in C AUSAL MIX is implemented as a conditional VAE. For a batch of observed data (X, T, Y ) and latent variables Z ∼ qθ (z | · ), reconstruction is performed using likelihoods appropriate to each variable type: Gaussian likelihoods for continuous variables (Gaussian negative log-likelihood, rather than the MSE used in C REDENCE ), Bernoulli likelihoods for binary variables (logistic cross-entropy), and categorical likelihoods for discrete variables (softmax cross-entropy). Training maximizes the evidence lower bound (ELBO). For observed variables O (either X or Y ), the ELBO is 
+
+ELBO( θ) = Eqθ (z)
+
+ log pθ (O | z) − KL  qθ (z) ∥ p(z),
+
+where p(z) denotes the latent prior. Equivalently, minimizing the negative ELBO yields 
+
+−ELBO( θ) = −Eqθ (z)
+
+ log pθ (O | z) + KL  qθ (z) ∥ p(z).
+
+The encoder parameterizes a diagonal Gaussian posterior qθ (z) = N (μθ , diag( σ2 
+
+> θ
+
+)) , for which the KL divergence admits the closed form 
+
+KL  qθ (z) ∥ p(z) = 12
+
+> d
+
+X
+
+> j=1
+
+ μ2 
+
+> θ,j
+
++ σ2 
+
+> θ,j
+
+− log σ2 
+
+> θ,j
+
+− 1.
+
+Combining the reconstruction and KL terms gives the standard VAE loss 
+
+LVAE (θ) = −Eqθ (z)
+
+ log pθ (O | z) + λKL KL  qθ (z) ∥ p(z),
+
+where λKL controls the strength of latent regularization. In the post-treatment generator, recon-struction is conditioned on the observed treatment arm and uses only the corresponding outcome 
+
+Y (T ).
+
+Causal parameter control. To ensure that the learned generator realizes the desired causal structure, we introduce penalties on induced causal quantities defined by user-specified control functions: α(X)
+
+for overlap, τ (X) for treatment-effect magnitude and heterogeneity, and κ(X, T ) for unmeasured confounding. The strength of each constraint is governed by rigidness parameters λα, λ τ , λ κ ≥ 0.
+
+Treatment-effect control. To align the learned treatment-effect function with its target, τθ (X) ≈
+
+τ (X), we use a weighted composite penalty (Huber loss) that shapes the distribution of CATE residuals ∆τθ (X) = τθ (X) − τ (X). The quadratic term anchors mean alignment of these residuals, implicitly stabilizing the induced ATE, while the Smooth L1 term improves robustness to outliers and weakly identified regions, trading off precise alignment against stability when the target function is low-dimensional or weakly nonlinear. A separate variance regularizer discourages spurious unit-level dispersion around the target causal structure, stabilizing training without collapsing intended heterogeneity. 
+
+Lmean  
+
+> τ
+
+(θ) = EX
+
+h
+
+λmse  
+
+> τ
+
+(∆ τθ )2 + λsl1  
+
+> τ
+
+SmoothL1(∆ τθ )
+
+i
+
+, and Lvar  
+
+> τ
+
+(θ) = Var ∆τθ
+
+.
+
+Unmeasured confounding control. Let κθ (X, T ) denote the confounding bias induced by the outcome decoder. We impose an analogous composite penalty on the confounding residuals 
+
+∆κθ (X, T ) = κθ (X, T ) − κ(X, T ), using quadratic and Smooth L1 terms for mean alignment and robustness, together with a variance regularizer to control excess unit-level dispersion: 7Lmean  
+
+> κ
+
+(θ) = EX,T 
+
+h
+
+λmse  
+
+> κ
+
+(∆ κθ )2 + λsl1  
+
+> κ
+
+SmoothL1(∆ κθ )
+
+i
+
+, and Lvar  
+
+> κ
+
+(θ) = Var ∆κθ
+
+.
+
+Overlap control. A key feature of C AUSAL MIX is direct control over covariate overlap between treatment groups through the log-density ratio 
+
+log αθ (X) = log pθ (X | T ′ = 0) − log pθ (X | T ′ = 1) ,
+
+which quantifies the relative likelihood of a covariate profile under treatment versus control. By penalizing deviations of log αθ (X) from a user-specified target log α(X), the generator can induce regimes ranging from strong overlap to near-positivity violations. The conditional log-densities log pθ (X | T ′ = t) are computed from feature-wise decoder likelihoods. Binary, categorical, and continuous variables contribute Bernoulli, softmax, and Gaussian log-densities, respectively, as detailed in Appendix A. The overlap penalty takes the form 
+
+Lα(θ) = EX
+
+h  log αθ (X) − log α(X)2i
+
+,
+
+with λα controlling the rigidity of the constraint. 
+
+Unified objective. The full learning objective combines distributional fidelity with explicit causal control: L(θ) = LVAE (θ) + λα Lα(θ) + λτ Lmean  
+
+> τ
+
+(θ) + λvar  
+
+> τ
+
+Lvar  
+
+> τ
+
+(θ)+ λκ Lmean  
+
+> κ
+
+(θ) + λvar  
+
+> κ
+
+Lvar  
+
+> κ
+
+(θ).
+
+Minimizing L(θ) yields a generator that approximates the observational distribution while faithfully realizing the user-specified overlap, treatment-effect, and confounding structure. 
+
+3.4 Mixed Variable Types 
+
+Real-world tabular data typically contain heterogeneous variable types, including continuous, binary, categorical, and integer-valued features. To accommodate this heterogeneity within a unified gener-ative framework, each conditional VAE module employs a multi-head decoder, with each variable assigned a likelihood family consistent with its data type. Binary variables are modeled using Bernoulli likelihoods parameterized by decoder logits. Categorical variables are modeled using softmax logits with dimensionality matched to the number of classes. Continuous variables are modeled using Gaussian likelihoods with decoder-generated means and bounded log-variances, allowing the model to capture both heteroscedasticity and variable-specific uncertainty. In our experiments, using Gaussian negative log-likelihood for continuous variables, rather than mean-squared error as in C REDENCE , substantially improved performance, particularly for variables with heterogeneous variance or constrained support. This improvement arises because the NLL objective allows the decoder to learn both location and dispersion while maintaining well-scaled gradients. Integer-valued variables (e.g., counts stored as floats) are treated as continuous after standardization, with optional rounding applied during post-processing. In potential-outcome mode, each variable head emits separate parameter sets for Y (0) and Y (1) ; for numerical stability, multiclass categorical outcomes are disallowed in this mode. The exact per-variable log-likelihood expressions (Bernoulli, softmax, and Gaussian) used during training and overlap computation are provided in Appendix A, where the total log-density is formed by summing independent feature-wise contributions. Overall, this multi-head decoder design enables accurate and flexible modeling of mixed-type observational data within the VAE framework. 
+
+3.5 Gaussian Mixture Model Prior 
+
+Standard VAEs typically assume an isotropic Gaussian latent prior, p(z) = N (0 , I ). However, recent work on VAE–GMM integration for tabular data [ 28 ] shows that real-world datasets often induce latent representations that deviate substantially from a unimodal Gaussian due to complex, nonlinear 8feature dependencies. Sampling from a standard Gaussian prior can therefore distort the geometry of the learned latent space and reduce the realism of generated samples, a limitation that is especially pronounced in heterogeneous tabular domains characterized by multimodality and clustering. To address this, C AUSAL MIX replaces the fixed Gaussian prior with a Bayesian Gaussian mixture model (BGMM) fitted post hoc to the encoder’s latent means after VAE training. For each conditional VAE module, we collect encoder outputs {μθ (Oi)}Ni=1 and fit a BGMM with a Dirichlet-process prior, which adaptively infers the number of mixture components needed to represent the latent distribution. The resulting prior takes the form 
+
+pBGMM (z) = 
+
+> K
+
+X
+
+> k=1
+
+πk N (z | μk, Σk),
+
+where πk denotes the mixture weight of component k, μk and Σk are its mean and covariance, and P 
+
+> k
+
+πk = 1 . The Dirichlet-process prior encourages sparsity in the mixture weights, so that only a subset of components receives substantial probability mass. In practice, K is learned from data using truncated stick-breaking variational inference, with an upper bound set by the latent dimensionality. As emphasized in [ 28 ], this post hoc modeling preserves the original VAE training objective while providing a more faithful approximation of the learned latent geometry. During generation, latent samples are drawn from pBGMM (z), optionally augmented with noise consistent with the average encoder variance, concatenated with conditioning features (e.g., T ′ or 
+
+(X′, T ′)), and passed through the decoder trunk to produce a shared hidden representation from which variable-specific output heads generate model parameters. The BGMM prior offers two key advantages. First, by modeling the latent space as a mixture rather than a single Gaussian, it captures multimodal structure inherent in heterogeneous tabular data, yielding more realistic synthetic samples. Second, it integrates cleanly with our causal control framework: while overlap, treatment effects, and unmeasured confounding are enforced at the decoder level, the mixture prior preserves latent flexibility and diversity without interfering with these constraints. Together, these properties make the BGMM-enhanced VAE a central component of C AUSAL MIX ,enabling high-quality synthetic data generation under both empirical and user-specified causal structure. 
+
+3.6 Optimization Procedure 
+
+Training proceeds by minimizing the unified objective described in Section 3.3, which combines the negative ELBO with penalties enforcing user-specified causal structure. Each conditional VAE module is optimized independently using stochastic gradient descent with the Adam optimizer (learning rate 1 × 10 −3). Models are trained using mini-batches drawn from an 80/20 train–validation split. We use PyTorch Lightning to manage batching, device placement, logging, and early stopping. 
+
+Forward pass and latent sampling. For each mini-batch, the encoder produces latent parameters 
+
+(μ, log σ2), and latent samples are drawn using the standard reparameterization trick z = μ+σ⊙ϵ, ϵ ∼N (0 , I ). Conditioning features (either T for GX,θ or (X, T ) for GY,θ ) are concatenated with the latent code before decoding. Feature-specific output heads then produce logits for binary and categorical variables, and Gaussian parameters for continuous variables. 
+
+Reconstruction and KL terms. The reconstruction loss is computed by summing per-variable negative log-likelihoods under the appropriate likelihood family, while the KL divergence uses the closed-form Gaussian–Gaussian expression. For the post-treatment generator, reconstruction is conditioned on the observed treatment arm and includes only the corresponding potential outcome. 
+
+Causal penalties. During training of the post-treatment generator, the decoder also evaluates both potential outcomes Y ′(0) and Y ′(1) , allowing the induced treatment-effect function τθ (X) and confounding function κθ (X, T ) to be computed. Mean-alignment and variance penalties are applied as described in Section 3.3 to enforce the corresponding causal constraints, with rigidity parameters controlling their relative strength. Similarly, the pre-treatment generator computes the per-sample log-density ratio log pθ (X | T ′ = 1) − log pθ (X | T ′ = 0) , which is penalized against the target overlap function log α(X).9Early stopping and monitoring. Validation loss is monitored during training, and early stopping is triggered when no improvement is observed for several epochs. PyTorch Lightning logs the VAE loss, KL divergence, and individual causal penalty terms separately, enabling diagnostics of both distributional fit and causal constraint satisfaction. 
+
+Post-training BGMM fitting. After convergence, the latent means μθ (Oi) from the training set are used to fit a Bayesian Gaussian mixture model with a Dirichlet-process prior. The maximum number of components is set equal to the latent dimensionality. This BGMM defines a flexible latent prior used during generation and does not participate in gradient-based optimization. Together, these steps yield generators that approximate the empirical data distribution while faithfully realizing the specified overlap, treatment-effect, and confounding structure. 
+
+3.7 Evaluation Metrics 
+
+We evaluate the proposed generators along three complementary axes: (i) distributional fidelity between real and synthetic data, (ii) causal-structure fidelity—including treatment-effect, confounding, and overlap behavior, and (iii) privacy protection. All metrics compare the generated synthetic dataset to the observed data. We use a combination of standard library-based and custom evaluation metrics; a summary of metric definitions and implementations is provided in Table B.1. 
+
+Marginal fidelity. We assess one-dimensional marginals separately for continuous and discrete variables. For each continuous feature c, we compute a normalized Wasserstein distance 
+
+Wnorm (c) = W1(F (c)real , F (c)synth )sd (c)real + ε ,
+
+where F (c)real and F (c)synth denote the empirical distributions of feature c in the real and synthetic data, respectively, W1 is the 1-Wasserstein distance, sd (c)real is the standard deviation of feature c in the real data, and ε > 0 is a small constant for numerical stability. We also report KSComplement, defined as 
+
+1 − DKS , where DKS is the Kolmogorov–Smirnov distance. For binary and categorical variables, we report TVComplement based on total variance distance, 
+
+TVComplement( c) = 1 − 12
+
+X
+
+> x
+
+preal (x) − psynth (x) ,
+
+where preal (x) and psynth (x) refer to real and synthetic frequencies for the category x. Aggregate scores are obtained by averaging over variables. 
+
+Pairwise dependence. To evaluate low-order dependence structure, we compute three complementary measures. For continuous–continuous pairs, we report the average CorrelationSimilarity score based on Pearson correlation. For discrete–discrete pairs, we report the average ContingencySimilarity score based on total variation distance. In addition, we compute symmetric uncertainty (SU), a normalized mutual information measure [29]: 
+
+SU( i, j ) = 2 MI( i, j )
+
+H(i) + H(j) ,
+
+where MI( i, j ) denotes the mutual information between variables i and j, and H(i) and H(j) are their marginal entropies. Mutual information and entropies are estimated using k-nearest neighbors for continuous variables [ 30 ] or contingency tables with Laplace smoothing for discrete variables. We report SU similarity 
+
+1 − SU real (i, j ) − SU synth (i, j )
+
+averaged over all variable pairs. 
+
+Conditional fidelity. We assess preservation of conditional structure by evaluating discrepancies in 
+
+p(Z | C), where Z denotes all features except the conditioning variable C. For a chosen conditioning variable (e.g., treatment assignment), we partition both real and synthetic data into strata defined by quantile bins when C is continuous or by observed categories when C is discrete. Within each stratum, we compute a maximum mean discrepancy (MMD 2) between real and synthetic samples using a mixed kernel [ 31 ], with RBF kernels for continuous variables and Hamming kernels for discrete variables. The overall conditional fidelity score is obtained as a stratum-size–weighted 10 average of the per-stratum MMD 2 values. To contextualize the magnitude of the discrepancy, we normalize this quantity by a within-real reference computed from a stratified split of the real dataset; values near one indicate discrepancies comparable to the intrinsic variability within the real data itself. 
+
+Joint fidelity. Global fidelity is evaluated using (i) normalized energy distance on encoded represen-tations [ 32 ] and (ii) a classifier two-sample test (C2ST) [ 33 ]. The C2ST trains a logistic regression to distinguish real from synthetic samples and reports the ROC AUC along with the rescaled score 
+
+1 − 2 AUC − 0.5 ,
+
+which attains its maximum when the two distributions are indistinguishable. 
+
+Causal-structure diagnostics. Because the generator explicitly models potential outcomes and user-specified causal control functions, we evaluate fidelity along three dimensions: treatment effects, unmeasured confounding, and overlap. 
+
+Treatment-effect diagnostics. For each generated sample, the post-treatment generator produces potential outcomes Y ′(0) and Y ′(1) , yielding the induced individualized effect 
+
+τθ (X′) = Y ′(1) − Y ′(0) .
+
+Given the target function τ (X′), we compute the mean absolute error 
+
+MAE τ = E|τθ (X′) − τ (X′)|,
+
+the Pearson correlation ρ(τθ (X′), τ (X′)) to assess heterogeneity alignment, the induced average treatment effect ATE θ = E[τθ (X′)] and its deviation from the target ATE, and the 1D Wasserstein distance between the empirical distributions of τθ (X′) and τ (X′). Scatter plots of τθ (X′) versus 
+
+τ (X′) and overlaid histograms provide qualitative diagnostics. 
+
+Unmeasured confounding diagnostics. Using both observed and flipped treatment assignments, the generator induces confounding 
+
+κθ (X′, T ′) = E[Y ′(T ′) | X′, T ′] − E[Y ′(1 − T ′) | X′, T ′].
+
+Given the target κ(X′, T ′), we compute 
+
+MAE κ = E[|κθ (X′, T ′) − κ(X′, T ′)|],
+
+along with group-specific MAE for treated and control units, and a Wasserstein distance between the distributions of κθ (X′, T ′) and κ(X′, T ′). Scatter plots and distribution overlays provide intuitive visualization of confounding alignment. 
+
+Overlap diagnostics. Overlap (positivity) is evaluated using two complementary approaches. A decoder-based diagnostic computes the induced log-density ratio 
+
+∆θ (X′) = log pθ (X′ | T ′ = 0) − log pθ (X′ | T ′ = 1) ,
+
+which differs from the overlap control function by a sign convention. We report the mean squared error relative to the target log α(X′), summary statistics of ∆θ (X′), and the fraction of samples within a user-specified tolerance band. In addition, a model-agnostic, propensity-based diagnostic fits a logistic regression e(X′) = P(T ′ = 1 | X′), estimates smooth propensity densities via Gaussian KDE, and computes the overlap coefficient [34] 
+
+OverlapCoeff = 
+
+Z 10
+
+min  pT ′=0 (e), p T ′=1 (e) de. 
+
+The evaluation also produces an informative plot overlaying the two density curves and shading their intersection. Together, these diagnostics quantify how closely the generated data satisfy the user-specified causal constraints encoded in τ (X), κ(X, T ), and α(X).
+
+Privacy. Privacy is defined operationally in terms of record-level disclosure risk and quantified using distance-to-closest-record (DCR)–based diagnostics, which assess whether synthetic samples are unusually close to specific real individuals. [ 35 ; 36 ]. After encoding real and synthetic datasets into a common feature space, we compute for each real record the distance to its nearest synthetic neighbor 11 and to its nearest other real neighbor. From these distances, we report three closely related summaries. The DCR protection fraction is the proportion of real records for which the nearest synthetic neighbor is farther than the nearest real neighbor, with higher values indicating stronger protection. We additionally report summary statistics of the DCR distance ratio (synthetic–real distance divided by real–real distance), which quantifies relative closeness at the record level. Finally, we report the standardized DCRBaselineProtection score, which normalizes the median synthetic–real DCR by the corresponding median DCR obtained from randomly generated data; values near 1 indicate privacy protection comparable to random noise. Full details are provided in Appendix B. 
+
+3.8 CATE Estimation Methods 
+
+Accurate estimation of CATEs is central to individualized decision-making, yet estimators from different methodological families rely on distinct modeling assumptions and can behave very dif-ferently under confounding, limited overlap, and model misspecification. Meaningful comparison therefore requires data-generating processes with known ground-truth effects and controllable causal violations—conditions rarely met in observational studies. C AUSAL MIX provides a controllable generative sandbox in which treatment assignment, outcome mechanisms, overlap, and unmeasured confounding can be systematically varied, enabling principled stress-testing of CATE estimators across diverse causal regimes. We evaluate representative direct CATE estimators from four major families. Meta-learners [ 37 ], represented by the X-learner, construct CATE estimates by imputing individual treatment effects with weighted average of treatment effects using separate outcome models for treated and control units. 
+
+Doubly robust (DR) learners [ 38 ; 39 ] combine outcome regression and propensity score modeling to form pseudo-outcomes that remain consistent if either nuisance model is correctly specified. Double machine learning (DML) methods [ 40 ] use orthogonalized estimating equations and cross-fitting to reduce bias from high-dimensional nuisance estimation. Finally, tree-based approaches include causal forests [ 41 ], which estimate heterogeneous effects via adaptive local averaging with honest sample splitting, and Bayesian causal forests (BCF) [ 42 ], which model treatment and prognostic effects separately and regularize heterogeneity through Bayesian shrinkage. Together, these families span a broad range of modeling strategies and robustness properties, making them well suited for systematic evaluation within the C AUSAL MIX framework. 
+
+## 4 Case Study: Heterogeneous Treatment Effects in Advanced Prostate Cancer 
+
+4.1 Clinical context 
+
+Metastatic castration-resistant prostate cancer (mCRPC) is an advanced stage of prostate cancer characterized by resistance to androgen-deprivation therapy and is associated with rapid disease progression, poor prognosis, and limited overall survival [ 43 ]. The most commonly used first-line treatments for mCRPC are the novel androgen receptor–targeted therapies abiraterone and enzalutamide, which are frequently prescribed interchangeably in routine practice due to the absence of head-to-head phase III randomized trials. Both therapies are associated with clinically meaningful adverse events, and emerging observational evidence suggests that their safety profiles may differ across patient subgroups. In particular, differential risks have been reported among patients with pre-existing cardiovascular disease or diabetes, older adults, and those with higher comorbidity burden [44]. Despite these observations, the magnitude and drivers of heterogeneity in comparative treatment safety remain incompletely understood. Improved characterization of such heterogeneity is critical for informing individualized treatment decisions in mCRPC. Accordingly, this case study examines heterogeneous treatment effects in the comparative safety of abiraterone versus enzalutamide when used as first-line therapy for mCRPC, with a focus on adverse-event risk. 
+
+4.2 Data description Data source and cohort curation. Empirical data were obtained from the Optum Clinformatics Data Mart, a longitudinal administrative claims database containing information on beneficiaries 12 with commercial and Medicare Advantage plans. The database includes member enrollment and demographics, inpatient and outpatient medical claims, pharmacy claims, laboratory results, and provider information. Claims from January 1, 2014 to March 31, 2024 were used in this analysis. Patients with mCRPC were identified using a validated claims-based algorithm proposed by Freedland et al., which incorporates diagnosis codes, prostate-specific antigen test results, drug exposures, and procedure codes indicative of metastatic disease and castration resistance [ 45 ]. The algorithm was updated to include recently approved therapies. The analytic cohort comprised 4,098 patients who initiated first-line treatment with either enzalutamide or abiraterone following the mCRPC index date. 
+
+Variables. The primary outcome was the occurrence of treatment-related adverse events, defined as hospitalizations or emergency department visits attributable to any clinically relevant adverse event during the treatment period. Treatment exposure was defined by the first filled prescription after the mCRPC index date: patients initiating abiraterone were classified as treated, while those initiating enzalutamide served as the comparison group. Baseline covariates included 18 variables spanning binary, categorical, and continuous types. These encompassed demographic characteristics (age and race), metastatic disease sites, prior prostate cancer treatments (including taxanes and other systemic therapies), prior use of enzalutamide or abiraterone, comorbidity burden measured by the Charlson comorbidity index, history of cardiovascular disease and diabetes, other clinically relevant conditions, and concomitant treatments with potential drug–drug interactions. 
+
+4.3 Model training and hyperparameter selection 
+
+The C AUSAL MIX generator was trained using the variational architecture described above, with hy-perparameters chosen to promote stable optimization, faithful reproduction of empirical distributions, and robust control of causal targets across synthetic replications. The latent dimension was set equal to the number of target variables, while the number of mixture components in the Bayesian Gaussian mixture prior was inferred automatically. Both encoder and decoder used a single hidden layer with 64 units, and training was performed with a batch size of 10. Rigidity parameters controlling treatment-effect and unmeasured confounding alignment were fixed at 10 3, while those governing overlap were set between 10 1 and 10 2, reflecting their different sensi-tivity to misspecification. Treatment-effect and confounding losses combined MSE and Smooth L1 penalties. When control functions were low-dimensional or weakly nonlinear, MSE weights were reduced (0.2–0.4), Smooth L1 penalties were emphasized, and variance regularization was increased to discourage collapsed or overly homogeneous synthetic effects. Variable bounds were specified using empirical ranges from the observed data. Training convergence and robustness were assessed through validation-loss stabilization, preservation of distributional similarity, and consistency of the controlled causal quantities across independently generated synthetic datasets. These diagnostics informed the generator validation design described next. 
+
+4.4 CausalMix generator validation and synthetic data evaluation 
+
+We validated the C AUSAL MIX generator along three complementary dimensions: distributional fidelity, causal-structure fidelity, and record-level privacy. Our primary focus is on distributional and causal fidelity, while privacy is treated as a secondary diagnostic to ensure that increased realism and causal control do not induce excessive memorization. For each causal scenario described below, we additionally compared sampling from the proposed BGMM latent prior with a standard Gaussian prior, isolating the effect of latent multimodality on synthetic data quality. 
+
+Causal scenario design. We considered three progressively more challenging causal scenarios, each defined by explicit specification of a treatment-effect function τ (X), an unmeasured confounding function κ(X, T ), and an overlap function α(X).
+
+Scenario 1 (homogeneous effect, no confounding, perfect overlap). We specified a constant treatment effect τ (X) ≡ 0.1, no unmeasured confounding κ(X, T ) ≡ 0, and perfect overlap log α(X) ≡
+
+0 (equivalently, α(X) ≡ 1). This baseline setting serves as a sanity check for verifying that CAUSAL MIX recovers simple causal structure while preserving the empirical data distribution. 13 Scenario 2 (linear heterogeneous effect, mild confounding, constant moderate overlap). We intro-duced linear treatment effect heterogeneity driven by clinically relevant covariates (pre-existing cardiovascular disease, age, and Charlson comorbidity index), 
+
+τ (X) = 0 .05 + 0 .015 cvd + 0 .01 age + 0 .01 Charlson ,
+
+with constant unmeasured confounding κ(X, T ) ≡ 0.02 and moderate constant overlap log α(X) ≡
+
+1. This scenario evaluates recovery of low-dimensional heterogeneity under mild hidden bias. 
+
+Scenario 3 (nonlinear heterogeneous effect, covariate-dependent confounding and overlap). The most challenging setting introduced nonlinear treatment-effect heterogeneity, structured unmeasured confounding, and covariate-dependent overlap. The treatment effect was specified as a bounded nonlinear function, 
+
+τ (X) = 0 .02 + 0 .05 tanh  0.4 cvd + 0 .2 age + 0 .2 Charlson + 0 .4 dementia ,
+
+inducing heterogeneous effects with saturation. Unmeasured confounding depends jointly on covari-ates and treatment assignment, 
+
+κ(X, T ) = 0 .05 − 0.01 (2 T − 1) tanh  0.5 Charlson + 0 .6 cvd + 0 .2 age ,
+
+producing asymmetric hidden bias between treatment groups. Overlap is explicitly treatment-dependent and driven by prior exposure to abiraterone, 
+
+log α(X) = 2  2 Abiraterone_prev − 1,
+
+creating regions of strong and weak overlap aligned with a clinically meaningful covariate. This scenario stresses C AUSAL MIX ’s ability to jointly control nonlinear effect heterogeneity, selection bias, and treatment-dependent overlap. 
+
+Visualization of causal fidelity. Quantitative causal-fidelity metrics were complemented with diagnostic visualizations. Treatment-effect fidelity was examined by comparing target and learned CATE distributions, together with scatter and joint plots that reveal alignment and dispersion across units. Unmeasured confounding was assessed using analogous comparisons. Overlap was visualized via propensity-score distributions to illustrate preservation of common support. 
+
+Visualization of distributional fidelity. Distributional realism was assessed using visual diagnostics at multiple dependency scales. Marginal fidelity was examined via overlaid density plots for con-tinuous variables and bar plots for discrete variables. Pairwise fidelity was assessed using scatter or density plots for continuous–continuous pairs, contingency-table heatmaps for discrete–discrete pairs, and discretized conditional distributions for discrete–continuous pairs. Finally, joint fidelity was visualized using 2D joint embeddings of real and synthetic samples, providing a holistic view of global alignment and revealing discrepancies not captured by marginal or pairwise summaries. 
+
+Results. Across all scenarios, synthetic data quality was evaluated along three dimensions: distri-butional fidelity (Tables D.1–D.3), causal fidelity (Tables D.4–D.6) and privacy (Tables D.7–D.9). Diagnostic plots (Figure 3 and Figures D.1 to D.6) show that C AUSAL MIX achieved high distribu-tional and causal fidelity across all dimensions under both latent priors, with performance differences emerging primarily under increasing causal complexity. As illustrated by the 2D joint embeddings in Figure 2, BGMM-based sampling maintained closer alignment with the real data as causal complexity increases. In Scenario 3, which combined mul-timodal covariate distributions, nonlinear heterogeneity, and covariate-dependent confounding and overlap, the BGMM prior substantially outperformed the Gaussian prior across marginal, pairwise, conditional, and joint distributional metrics (Table D.3). In particular, BGMM yielded lower nor-malized Wasserstein distances for continuous marginals, higher similarity for discrete marginals and pairwise relationships, improved conditional alignment, and significantly better joint fidelity as measured by normalized energy distance and C2ST. Both priors recovered the imposed causal structure with high accuracy. However, BGMM exhibits greater robustness in challenging regimes: in Scenario 3, it achieved higher CATE correlation and substantially more accurate decoder-level overlap reconstruction, while maintaining comparable ATE error and confounding recovery (Table D.6). Privacy diagnostics indicate a controlled realism–privacy trade-off. The Gaussian prior consistently provided stronger record-level protection, with higher protection fractions and larger distance ratios. 14 40 20 0 20 40 
+
+> t-SNE dim 1
+> 40
+> 20
+> 0
+> 20
+> 40
+> t-SNE dim 2
+> Real (n=500)
+> Synthetic-BGMM (n=500)
+> Synthetic-Gaussian (n=500)
+
+(a) Scenario 1 40 20 0 20 40  
+
+> t-SNE dim 1
+> 40
+> 20
+> 0
+> 20
+> 40
+> t-SNE dim 2
+> Real (n=500)
+> Synthetic-BGMM (n=500)
+> Synthetic-Gaussian (n=500)
+
+(b) Scenario 2 40 20 0 20 40  
+
+> t-SNE dim 1
+> 40
+> 30
+> 20
+> 10
+> 0
+> 10
+> 20
+> 30
+> 40
+> t-SNE dim 2
+> Real (n=500)
+> Synthetic-BGMM (n=500)
+> Synthetic-Gaussian (n=500)
+
+(c) Scenario 3 
+
+Figure 2: 2D joint embedding of synthetic data under BGMM and Gaussian priors compared with the real mCRPC dataset across causal scenarios. Scenario 1: homogeneous effect, no confounding, perfect overlap; Scenario 2: linear heterogeneous effect, mild confounding, constant overlap; Scenario 3: nonlinear heterogeneity with covariate-dependent confounding and overlap 0.06 0.04 0.02 0.00 0.02 0.04 0.06 0.08  
+
+> Target (X)
+> 0.06
+> 0.04
+> 0.02
+> 0.00
+> 0.02
+> 0.04
+> 0.06
+> 0.08
+> Predicted  (X)
+
+CATE fidelity: scatter     
+
+> 0.00 0.02 0.04 0.06
+> Treatment effect value
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> Density
+> target = 0.0268
+> pred mean = 0.027
+> pred std = 0.018
+
+CATE distribution: target vs predicted 
+
+> Target
+> Predicted
+
+Figure 3: Comparison of generated and target treatment effects of the mcrpc dataset from CausalMix with a BGMM prior in Scenario 3. The BGMM prior shows moderately lower protection, most notably in Scenario 3, but maintained protection fractions well above 0.5 and median distance ratios exceeding one, indicating no systematic memorization. The reduction in protection under BGMM was concentrated in lower quantiles of the distance-ratio distribution, reflecting localized proximity rather than widespread disclosure risk (Tables D.7–D.9). Overall, these results demonstrate that C AUSAL MIX with a BGMM latent prior improves distribu-tional and causal fidelity in complex clinical settings while preserving stable record-level privacy, illustrating a manageable trade-off between distributional expressiveness and disclosure risk. 
+
+4.5 Application 1: Benchmarking CATE Estimators 
+
+Estimating CATEs from observational data is highly sensitive to the underlying DGP, including the degree of confounding, propensity-score overlap, outcome variability, functional form (linear versus nonlinear), and the magnitude and heterogeneity of treatment effects [3]. We use C AUSAL MIX as a controlled sandbox to benchmark CATE estimators under DGPs calibrated to match key empirical characteristics of the prostate cancer cohort. The goal is to identify estimators that are both accurate and computationally feasible for detecting heterogeneity in comparative treatment safety. 
+
+Design and target estimands. We focused on the second validated causal scenario from CAUSAL MIX , characterized by moderate overlap ( log α(X) = 1 ) and linear treatment-effect hetero-geneity, 
+
+τ (X) = 0 .05 + 0 .015 · cvd + 0 .01 · age + 0 .01 · Charlson .
+
+15 37.0 63.0 63.0 68.0 68.0 72.0 72.0 78.0 78.0 90.0 
+
+> Age group (quintiles)
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> Conditional average treatment effect estimates
+> Bayesian Causal Forest
+> Causal Forest
+> Standard Linear DML
+> Lasso DML
+> GBR DML
+> Standard Linear DR-Learner
+> Lasso DR-Learner
+> GBR DR-Learner
+> GBR X-Learner
+> Lasso X-Learner
+> True group mean
+
+Figure 4: Grouped CATE estimates by age quintile. For each age group, boxplots summarize individual-level CATE estimates from each estimator in the subgroup with Charlson = 0, no prior CVD, under a calibrated synthetic data-generating process without unmeasured confounding ( κ = 0 ). Black diamonds indicate the true group-level mean CATE. 5 10 20 40 80 
+
+> Minimum Node Size
+> 0.020
+> 0.025
+> 0.030
+> 0.035
+> 0.040
+> PEHE (CATE RMSE)
+> 0.775
+> 0.800
+> 0.825
+> 0.850
+> 0.875
+> CATE Coverage PEHE (CATE RMSE)
+> CATE Coverage
+
+Figure 5: PEHE vs. minimum leaf size for Causal Forests with 2,000 trees. Error bars indi-cate ±1 standard deviation across replications. 200 500 1000 2000 5000 
+
+> Sample Size (n)
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Power
+> 5
+> 10
+> 15
+> Mean CVD Rank
+> Power
+> Mean CVD Rank
+
+Figure 6: Power and mean CVD rank based on the variable importance calculated from causal forests for increasing sample sizes. The primary estimands are ATE = E[τ (X)] and CATE τ (X). Two settings were considered: (i) no unmeasured confounding ( κ(X, T ) = 0 ) and (ii) small unmeasured confounding ( κ(X, T ) = 0 .02 ). For each setting, we generated 50 independent synthetic datasets and retained the ground-truth average and individual treatment effects for evaluation. 
+
+Estimators. We compared ten CATE estimators spanning meta-learners, orthogonalization-based methods, and Bayesian regularization approaches. Specifically, we considered: • X-learners with gradient boosting regression (GBR) and lasso models for final-stage CATE estima-tion; • DML estimators with final-stage CATE models in {GBR , lasso , linear };• DR learners with final-stage CATE models in {GBR , lasso , linear };• Tree-based methods, including causal forests and BCF. For all non-tree estimators, gradient boosting trees were used to estimate nuisance functions (propen-sity scores and outcome regressions) to ensure comparability across methods. Cross-fitting was applied throughout. 
+
+Preprocessing. Because linear CATE models can suffer from multicollinearity under full one-hot encoding—leading to unstable covariance estimation and unreliable asymptotic inference—we constructed two feature representations for each dataset: dummy encoding for X-learner, DML, and DR variants, and full one-hot encoding for tree-based estimators (causal forest and BCF). Continuous covariates were standardized, and binary covariates were left unchanged. Preprocessing was performed once per dataset and reused across estimators. 16 Uncertainty quantification and replication. Asymptotic (analytic) inference was used for linear final-stage CATE models, while bootstrap inference with 100 resamples was used for lasso and non-parametric (GBR) final-stage models. Each scenario was evaluated over 50 independent replications. For computational efficiency comparisons, estimators were restricted to a single thread and wall-clock runtime was recorded. 
+
+Evaluation metrics. Let ˆτ (Xi) denote the estimated CATE and τ (Xi) the ground-truth individual treatment effect. Performance was first computed within each synthetic dataset and then summarized across replications. For ATE estimation, we reported the root mean squared error (RMSE) of the ATE bias across replications, the mean and standard deviation of the ATE bias, the average estimated standard error, and the empirical coverage probability of the ATE confidence interval. For CATE estimation, we reported the RMSE—also known as the precision in estimating heteroge-neous effects (PEHE) [46], PEHE =
+
+vuut 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+ ˆτ (Xi) − τ (Xi)2,
+
+computed within each replication and averaged across replications, along with the standard deviation of the PEHE and the mean coverage probability of pointwise CATE intervals. Finally, we reported the mean and standard deviation of wall-clock runtime to quantify computational efficiency. 
+
+Results. Both confounding settings share a small but nonzero true ATE of 0.056 (SD: 0.000), enabling direct comparison of estimator accuracy and uncertainty calibration across methods. 
+
+No unmeasured confounding. For ATE point estimation, most estimators achieved low bias (Fig-ure D.7). BCF, causal forest, and DML/DR learners attained ATE RMSEs of approximately 0.009– 0.010, whereas X-learner variants exhibited substantially larger error (ATE RMSE ≈ 0.024 ). Uncer-tainty calibration for ATE varied across methods: several estimators achieved near-nominal coverage (e.g., BCF, causal forest, linear DML), while others attained near-perfect coverage primarily by inflating standard errors (notably GBR-based DML/DR and the linear DR learner; Table D.10). Given the limited number of Monte Carlo replications, small deviations from nominal coverage should be interpreted cautiously. Differences across estimators were more pronounced for CATE inference than for ATE estimation. BCF and the standard linear DR learner achieved the highest mean CATE coverage (0.91–0.92), causal forest and GBR-based learners were moderately calibrated (0.81–0.87), and lasso-based DML/DR learners exhibited poor CATE coverage (0.37–0.40). This pattern indicates unreliable uncertainty quantification for heterogeneous effects despite competitive ATE RMSE (Table D.10) and PEHE (Figure D.8) for some methods. Figure 4 summarizes CATE estimates by age quintile within the CVD = 0 , Charlson = 0 subgroup. Bayesian causal forest was tightly concentrated and tracked the true group means across quintiles, whereas causal forest exhibited higher variability, especially in the oldest group. Lasso-based estimators oversmoothed and attenuated fine-scale heterogeneity, consistent with their weak coverage. In contrast, gradient-boosting variants showed markedly wider spreads and heavier tails, most pronounced at older ages. Runtime comparisons highlight practical trade-offs. Linear DML/DR learners run in approximately 2 seconds, causal forest in roughly 25 seconds, whereas BCF and boosted or lasso-based meta-learners typically require 100–270 seconds (Table D.10 in the appendix). 
+
+Small unmeasured confounding. Introducing unmeasured confounding induced systematic ATE bias across all estimators (Figure D.7), with an average shift of approximately 0.02 matching the injected confounding magnitude. ATE coverage deteriorated sharply for methods with tight standard errors. Patterns in CATE coverage largely persisted: BCF remained comparatively well calibrated, whereas lasso-based DML/DR learners continued to under-cover substantially (Table D.11 in the appendix). 
+
+Takeaway. Because the prostate cancer application targets heterogeneous safety effects across patient subgroups, estimator selection should prioritize both stable CATE point estimation and calibrated uncertainty. BCF emerges as a strong primary choice, combining accurate recovery of heterogeneous effects with high CATE coverage. DR- and DML-based approaches, particularly the standard linear 17 DR learner, provide fast, reasonably well-calibrated baselines suitable for sensitivity analyses. Lasso-based meta-learners can capture broad CATE trends but should be treated as exploratory for inference due to poor CATE coverage. Finally, because unmeasured confounding induces systematic bias across all estimators, estimator choice alone is insufficient for validity in the real-world prostate cancer setting and should be complemented with residual confounding adjustment and sensitivity analyses. 
+
+4.6 Application 2: Hyperparameter Optimization 
+
+Beyond method comparison, C AUSAL MIX provides a principled sandbox for hyperparameter opti-mization of causal estimators by enabling direct evaluation against known causal ground truth under empirically calibrated data-generating processes. In this application, we used C AUSAL MIX to tune hyperparameters of causal forests, targeting decision-relevant accuracy in both population-level and subgroup-specific treatment effect estimation. Synthetic datasets were generated from the same calibrated regime as in Section 4.5, assuming moderate overlap, linear treatment-effect heterogeneity, and no unmeasured confounding. 
+
+Objective. We treated the calibrated C AUSAL MIX generator bG from Application 1 (without residual confounding) as a surrogate ground-truth environment and tuned causal forest hyperparameters to optimize causal performance. Given the focus on personalized and subgroup decision-making, we restricted attention to two key hyperparameters governing smoothness and stability of causal forest estimation: the minimum leaf size ( min.node.size ) and the number of trees ( num.trees ). Hyperparameter configurations were evaluated using complementary measures of estimation accuracy and uncertainty quantification. 
+
+Experimental design. We considered a grid of hyperparameters defined by 
+
+min.node.size ∈ { 5, 10 , 20 , 40 , 80 },
+
+num.trees ∈ { 500 , 1000 , 2000 , 4000 }.
+
+For each configuration, we ran 50 independent replications. In each replication, a synthetic dataset was sampled from the C AUSAL MIX generator bG, which provided both the observed data and the corresponding ground-truth ATE and CATE. A causal forest was then fitted with the specified hyperparameters, and out-of-bag predictions were used to obtain unit-level CATE estimates. Performance was summarized at the replication level using ATE RMSE, CATE RMSE (PEHE), mean absolute CATE bias, mean CATE confidence interval width, and interval coverage for both ATE and CATE, and then averaged across replications. To characterize hyperparameter sensitivity, we jointly examined ATE accuracy and calibration alongside CATE point accuracy and uncertainty magnitude, assessing how these quantities varied across configurations. Consistent with the subgroup-oriented objective, hyperparameter selection prioritized minimizing PEHE while maintaining adequate CATE coverage, with ATE RMSE and coverage serving as population-level diagnostics. 
+
+Results. Across all configurations, ATE estimation was essentially insensitive to hyperparameter choice: ATE RMSE remained at 0.009 and ATE coverage stayed within a narrow range (0.92–0.94). In contrast, CATE performance was driven primarily by the minimum leaf size. Increasing the minimum leaf size improved CATE point accuracy, with PEHE decreasing from approximately 0.036–0.037 (leaf size 5) to approximately 0.023 (leaf size 80), but this improvement came at the cost of reduced CATE interval coverage, which dropped from approximately 0.87–0.91 to approximately 0.75–0.76 (see Figure 5). Consistent with this pattern, both the mean absolute CATE bias and the mean CATE confidence interval width decreased steadily as leaf size increased (Figure D.9), suggesting that smaller leaf sizes induce overfitting and excess variance in this synthetic setting. The number of trees had negligible impact on ATE and CATE accuracy or coverage once moderately large, but it dominated runtime, which increased roughly linearly (about 7 s at 500 trees, 11 s at 1,000 trees, 21 s at 2,000 trees, and 42 s at 4,000 trees). Based on this trade-off, we selected a causal forest configuration with 1,000 or 2,000 trees and a minimum leaf size of 20, which maintained strong ATE performance (ATE RMSE 0.009; ATE coverage 0.92) while balancing CATE accuracy and calibration (PEHE 0.027; mean CATE coverage 0.818) at modest runtime (approximately 11 s). 
+
+Takeaway. These results suggest that, when using causal forests for heterogeneous safety effect estimation, tuning the minimum leaf size is far more consequential than substantially increasing the 18 number of trees. Larger leaves yield smoother CATE estimates and lower PEHEs but can produce overly confident intervals with reduced coverage. For the mCRPC application, a practical choice is to use approximately 1,000–2,000 trees for stability and tune the minimum leaf size (e.g., 10–40) via sensitivity analyses, prioritizing settings that preserve clinically plausible heterogeneity while avoiding under-covering uncertainty when reporting subgroup risk differences. 
+
+4.7 Application 3: Power Analysis for Prospective Study Design 
+
+Detecting heterogeneous treatment effects in subgroup analyses is often limited by sample size, particularly when effect modification is modest and covariates are correlated [ 47 ]. Realistic study planning therefore requires assumptions not only about effect size, but also about the joint distribution of covariates, treatment assignment, and outcome variability. By calibrating C AUSAL MIX to the empirical prostate cancer cohort, we generate synthetic datasets that preserve these key distributional features, enabling principled and practically relevant power analysis. 
+
+Objective. In this application, we addressed a prospective study-design question: What minimum sample size is required to reliably detect effect modification in comparative treatment safety? Specifi-cally, we targeted detection of a nonzero subgroup CATE difference associated with a pre-specified binary effect modifier, 
+
+∆ := E[τ (X) | CVD = 1] − E[τ (X) | CVD = 0] ,
+
+where CVD denotes baseline cardiovascular disease history. For clarity of interpretation, we assumed no unmeasured confounding in this application. 
+
+Heterogeneity setting. Unless otherwise noted, we adopted the same calibrated data-generating regime as in Application 2, including moderate overlap and linear treatment-effect heterogeneity. When study assumptions warranted, heterogeneity could be varied by scaling the centered CATE component h(x) = τ (x) − E[τ (X)] via τη (x) = E[τ (X)] + η h (x). The parameter η rescales individual-level deviations from the ATE, allowing systematic variation of treatment-effect hetero-geneity while holding the ATE fixed. We report results for the default setting η = 1 .
+
+Effect-modifier detection via best linear projection. We assessed effect modification using the best linear projection (BLP) procedure implemented in grf . For each fitted causal forest, we regressed the estimated CATE on baseline covariates using doubly robust scores, ˆτ (Xi) ≈ β0 + X⊤ 
+
+> i,S
+
+β, yielding coefficient estimates and Wald-test p-values with heteroskedasticity-robust (HC3) standard errors. Inference focused on the coefficient corresponding to the pre-specified effect modifier CVD . Rejection of the null hypothesis of no effect modification was based on a two-sided test at level α = 0 .05 .
+
+Experimental design and power estimation. We considered candidate sample sizes N =
+
+{200 , 500 , 1000 , 2000 , 5000 }. For each n ∈ N , we generated R = 100 independent synthetic datasets from the calibrated C AUSAL MIX generator. In each replication, we fitted a causal forest using the hyperparameters selected in Application 2 and applied the BLP procedure to test for effect modification by CVD . The replication-level rejection indicator equaled one if the BLP p-value for CVD 
+
+was below α.Statistical power at sample size n was estimated as the empirical rejection frequency across replica-tions. We report the resulting power curve and identify the minimum sample size n⋆ achieving the target power level of 80%. In addition to hypothesis testing, we recorded causal forest variable-importance scores and the corresponding ranks of the pre-specified effect modifier ( CVD ) in each replication. These diagnostics provide complementary information on how reliably the forest identifies CVD as a driver of treatment-effect heterogeneity as sample size increases. 
+
+Results. For effect-modifier discovery, we fitted causal forests with 2,000 trees and a minimum node size of 80 to reduce CATE noise and stabilize heterogeneity signals, without targeting calibrated uncertainty. Figure 6 summarizes empirical power (detection probability) and the mean variable-importance rank of CVD across replications as functions of sample size. Power increased sharply with n: it was low at n = 200 (0.13), rose to moderate levels at n = 500 
+
+(0.54) and n = 1000 (0.67), and reached high power by n = 2000 (0.94), approaching 1.0 at 
+
+n = 5000 . The variable-importance diagnostic exhibited a consistent pattern. When n ≤ 1000 , CVD 
+
+was not reliably prioritized (mean rank 15), whereas at n = 2000 its mean rank improved to 8, and by n = 5000 it was consistently identified as the top modifier (mean rank 1). 19 Takeaway. Under the covariate structure and heterogeneity strength considered here, reliable detection of effect modification with causal forests required on the order of ∼2,000 patients to achieve at least 90% power. Stable prioritization of a key modifier, such as CVD being ranked among the top variables, required larger samples, closer to n = 5 ,000 . For the prostate cancer safety study, these results suggest that modifier findings from smaller cohorts should be treated as exploratory and complemented with sensitivity analyses or pooled-data strategies when robust subgroup discovery is the goal. 
+
+## 5 Discussion and Conclusion 
+
+Summary. This work advances synthetic data generation as a causal inference sandbox that jointly targets empirical realism and explicit causal control. We introduce C AUSAL MIX , a flexible generative framework with interpretable design-time controls for treatment effects, unmeasured confounding, and overlap, and show how mixture priors improve realism for complex, multimodal tabular data. Beyond the generator itself, we propose a unified evaluation suite spanning distributional fidelity, causal fidelity, and privacy diagnostics, and demonstrate how validated synthetic data can guide estimator benchmarking, hyperparameter tuning, and power analysis. 
+
+Methodological implications. Our results highlight a central message: causal synthetic data should be evaluated and tuned jointly for distributional realism and causal structure, with privacy risk explicitly audited. In challenging settings, BGMM-based latent sampling improves global and local distributional alignment while preserving causal fidelity. The evaluation suite provides a modular diagnostic lens—distributional metrics identify mismatches in marginals and dependence structure, causal-fidelity metrics assess realization of targeted causal quantities, and privacy metrics quantify record-level risk—making C AUSAL MIX a practical testbed for causal ML development and study planning. In practice, the framework requires limited task-specific tuning: architectural choices are fixed or inferred automatically, while only a small set of interpretable causal-control parameters define the target data-generating regime. 
+
+Insights from the case study. The mCRPC case study illustrates how controlled synthetic data translate generator validation into actionable methodological guidance. With known ground truth, heterogeneous-effect estimators differ along three dimensions that are often conflated in practice: ATE accuracy, uncertainty calibration, and computational cost. Notably, strong ATE accuracy does not imply reliable CATE inference—some estimators produce plausible point estimates yet substan-tially under-cover for CATE, limiting their suitability for subgroup-facing conclusions. Introducing unmeasured confounding induces systematic bias across all methods, reinforcing that estimator choice alone cannot ensure validity and should be complemented by unmeasured confounding diagnostics, such as negative control approaches, and sensitivity analyses. Hyperparameter and power analyses address complementary aspects of heterogeneous treatment-effect analysis. Hyperparameter tuning focuses on estimation quality: for causal forests, the minimum leaf size governs the bias–variance trade-off in CATE estimation, with larger leaves producing smoother and more stable effect estimates at the cost of local adaptivity (finer heterogeneity), while the number of trees primarily affects computational stability once sufficiently large. In contrast, power analysis targets effect-modifier identification and study design. Our results show that detecting the presence of treatment-effect heterogeneity requires substantially fewer samples than reliably identifying and prioritizing specific modifiers. While moderate sample sizes may suffice to reject homogeneity, robust subgroup discovery demands larger cohorts, highlighting the distinction between accurate estimation of heterogeneous effects and actionable identification of effect modifiers. Together, these components make C AUSAL MIX suitable both as a testbed for causal machine learning development and as a decision-support tool for observational studies where estimator choice and study design depend on heterogeneous effects. 
+
+Limitations and future work. As with any learned generator, C AUSAL MIX extrapolates according to the structural assumptions of its neural architecture in regions of the covariate space that are sparsely supported by data; as a result, strong performance on aggregate distributional and causal-fidelity metrics does not guarantee faithful reproduction of rare events, extreme covariate combinations, or high-order dependencies that are weakly represented in the empirical data. 20 Moreover, causal control relies on user-specified functional forms. While low-dimensional, inter-pretable specifications improve stability and transparency, they may fail to capture complex interaction structure when true treatment-effect heterogeneity is high-dimensional. This limitation reflects a broader tension between distributional realism and causal controllability: not all causal targets can be simultaneously enforced with high fidelity, particularly when they conflict with the empirical structure of the data. Developing principled strategies for specifying, validating, and stress-testing causal function therefore remains an important direction for future work. A practical limitation concerns training data requirements. As a flexible neural generator, CAUSAL MIX requires sufficient sample size to reliably capture multimodal covariate structure and heterogeneous treatment effects while stabilizing causal-control constraints. In smaller datasets, overfitting or instability may arise, particularly as dimensionality and effect complexity increase. A systematic characterization of data-size thresholds for stable causal synthetic generation remains an open direction for future work. Finally, C AUSAL MIX currently targets static treatment settings with complete covariate information. Extending the framework to dynamic treatment regimes and explicit missing-data mechanisms would improve realism for longitudinal healthcare data and enable stress-testing of causal estimators under more realistic data availability constraints. 
+
+## References 
+
+[1] Paul W Holland. Statistics and causal inference. Journal of the American statistical Association ,81(396):945–960, 1986. [2] P Richard Hahn, Vincent Dorie, and Jared S Murray. Atlantic causal inference conference (acic) data analysis challenge 2017. arXiv preprint arXiv:1905.09515 , 2019. [3] Divyat Mahajan, Ioannis Mitliagkas, Brady Neal, and Vasilis Syrgkanis. Empirical analysis of model selection for heterogeneous causal effect estimation. arXiv preprint arXiv:2211.01939 ,2022. [4] Vasileios C Pezoulas, Dimitrios I Zaridis, Eugenia Mylona, Christos Androutsos, Kosmas Apostolidis, Nikolaos S Tachos, and Dimitrios I Fotiadis. Synthetic data generation methods in healthcare: A review on open-source tools and methods. Computational and structural biotechnology journal , 23:2892–2910, 2024. [5] Sarah Friedrich and Tim Friede. On the role of benchmarking data sets and simulations in method comparison studies. Biometrical Journal , 66(1):2200212, 2024. [6] Juan L Gamella. Physical Testbeds for AI Methodology . PhD thesis, ETH Zurich, 2025. [7] Brady Neal, Chin-Wei Huang, and Sunand Raghupathi. Realcause: Realistic causal inference benchmarking. arXiv preprint arXiv:2011.15007 , 2020. [8] Susan Athey, Guido W Imbens, Jonas Metzger, and Evan Munro. Using wasserstein generative adversarial networks for the design of monte carlo simulations. Journal of Econometrics ,240(2):105076, 2024. [9] Harsh Parikh, Carlos Varjao, Louise Xu, and Eric Tchetgen Tchetgen. Validating causal inference methods. In International conference on machine learning , pages 17346–17358. PMLR, 2022. [10] Paul R Rosenbaum and Donald B Rubin. The central role of the propensity score in observational studies for causal effects. Biometrika , 70(1):41–55, 1983. [11] Yishai Shimoni, Chen Yanover, Ehud Karavani, and Yaara Goldschmnidt. Benchmarking frame-work for performance-evaluation of causal inference analysis. arXiv preprint arXiv:1802.05046 ,2018. [12] Vincent Dorie, Jennifer Hill, Uri Shalit, Marc Scott, and Dan Cervone. Automated versus do-it-yourself methods for causal inference: Lessons learned from a data analysis competition. 
+
+Statistical Science , 34(1):43–68, 2019. 21 [13] Alicia Curth and Mihaela van der Schaar. On inductive biases for heterogeneous treatment effect estimation. In M. Ranzato, A. Beygelzimer, Y. Dauphin, P.S. Liang, and J. Wortman Vaughan, editors, Advances in Neural Information Processing Systems , volume 34, pages 15883–15894. Curran Associates, Inc., 2021. [14] Alberto Abadie and Guido W Imbens. Bias-corrected matching estimators for average treatment effects. Journal of Business & Economic Statistics , 29(1):1–11, 2011. [15] Jessica M Franklin, Sebastian Schneeweiss, Jennifer M Polinski, and Jeremy A Rassen. Plas-mode simulation for the evaluation of pharmacoepidemiologic methods in complex healthcare databases. Computational statistics & data analysis , 72:219–226, 2014. [16] Shao-Hsien Liu, Stavroula A Chrysanthopoulou, Qiuzhi Chang, Jacob N Hunnicutt, and Kate L Lapane. Missing data in marginal structural models: a plasmode simulation study comparing multiple imputation and inverse probability weighting. Medical care , 57(3):237–243, 2019. [17] Vanessa Ress and Eva-Maria Wild. Comparing methods for estimating causal treatment effects of administrative health data: A plasmode simulation study. Health Economics , 33(12):2757– 2777, 2024. [18] Raymond B Cattell and Joseph Jaspers. A general plasmode (no. 30-10-5-2) for factor analytic exercises and research. Multivariate behavioral research monographs , 1967. [19] Gary L Gadbury, Qinfang Xiang, Lin Yang, Stephen Barnes, Grier P Page, and David B Allison. Evaluating statistical methods using plasmode data sets in the age of massive public databases: an illustration using false discovery rates. PLoS genetics , 4(6):e1000098, 2008. [20] Laura K Vaughan, Jasmin Divers, Miguel A Padilla, David T Redden, Hemant K Tiwari, Daniel Pomp, and David B Allison. The use of plasmodes as a supplement to simulations: a simple example evaluating individual admixture estimation methodologies. Computational statistics & data analysis , 53(5):1755–1766, 2009. [21] Pamela A Shaw, Susan Gruber, Brian D Williamson, Rishi Desai, Susan M Shortreed, Chloe Krakauer, Jennifer C Nelson, and Mark J van der Laan. A cautionary note for plasmode simulation studies in the setting of causal inference. arXiv preprint arXiv:2504.11740 , 2025. [22] Sandrine Boulet and Antoine Chambaz. Draw me a simulator: Using neural networks to build more realistic simulation schemes for causal analysis. Computo , 2025. [23] Martin Arjovsky, Soumith Chintala, and Léon Bottou. Wasserstein generative adversarial networks. In International conference on machine learning , pages 214–223. PMLR, 2017. [24] Linying Yang, Robin J Evans, and Xinwei Shen. Frugal, flexible, faithful: Causal data simulation via frengression. arXiv preprint arXiv:2508.01018 , 2025. [25] Anna Guo, David Benkeser, and Razieh Nabi. Flexible nonparametric inference for causal effects under the front-door model. arXiv preprint arXiv:2312.10234 , 2023. [26] Anna Guo and Razieh Nabi. Average causal effect estimation in dags with hidden variables: Beyond back-door and front-door criteria. arXiv preprint arXiv:2409.03962 , 2024. [27] Anna Guo, David Benkeser, and Razieh Nabi. Causal inference with the" napkin graph". arXiv preprint arXiv:2512.19861 , 2025. [28] Patricia A Apellániz, Juan Parras, and Santiago Zazo. An improved tabular data generator with vae-gmm integration. In 2024 32nd European Signal Processing Conference (EUSIPCO) , pages 1886–1890. IEEE, 2024. [29] Lei Yu and Huan Liu. Feature selection for high-dimensional data: A fast correlation-based filter solution. In Proceedings of the 20th international conference on machine learning (ICML-03) ,pages 856–863, 2003. [30] Alexander Kraskov, Harald Stögbauer, and Peter Grassberger. Estimating mutual information. 
+
+Physical Review E—Statistical, Nonlinear, and Soft Matter Physics , 69(6):066138, 2004. 22 [31] Arthur Gretton, Karsten M Borgwardt, Malte J Rasch, Bernhard Schölkopf, and Alexander Smola. A kernel two-sample test. The journal of machine learning research , 13(1):723–773, 2012. [32] Gábor J Székely and Maria L Rizzo. Energy statistics: A class of statistics based on distances. 
+
+Journal of statistical planning and inference , 143(8):1249–1272, 2013. [33] David Lopez-Paz and Maxime Oquab. Revisiting classifier two-sample tests. arXiv preprint arXiv:1610.06545 , 2016. [34] Henry F Inman and Edwin L Bradley Jr. The overlapping coefficient as a measure of agreement between probability distributions and point estimation of the overlap of two normal densities. 
+
+Communications in Statistics-theory and Methods , 18(10):3851–3874, 1989. [35] Theresa Stadler, Bristena Oprisanu, and Carmela Troncoso. Synthetic data–anonymisation groundhog day. In 31st USENIX Security Symposium (USENIX Security 22) , pages 1451–1468, 2022. [36] Amy Steier, Lipika Ramaswamy, Andre Manoel, and Alexa Haushalter. Synthetic data privacy metrics. arXiv preprint arXiv:2501.03941 , 2025. [37] Sören R Künzel, Jasjeet S Sekhon, Peter J Bickel, and Bin Yu. Metalearners for estimating heterogeneous treatment effects using machine learning. Proceedings of the national academy of sciences , 116(10):4156–4165, 2019. [38] Heejung Bang and James M Robins. Doubly robust estimation in missing data and causal inference models. Biometrics , 61(4):962–973, 2005. [39] Dylan J Foster and Vasilis Syrgkanis. Orthogonal statistical learning. The Annals of Statistics ,51(3):879–908, 2023. [40] Victor Chernozhukov, Denis Chetverikov, Mert Demirer, Esther Duflo, Christian Hansen, Whitney Newey, and James Robins. Double/debiased machine learning for treatment and structural parameters, 2018. [41] Susan Athey, Julie Tibshirani, and Stefan Wager. Generalized random forests. The Annals of Statistics , 47(2):1148 – 1178, 2019. [42] P Richard Hahn, Jared S Murray, and Carlos M Carvalho. Bayesian regression tree models for causal inference: Regularization, confounding, and heterogeneous effects (with discussion). 
+
+Bayesian Analysis , 15(3):965–1056, 2020. [43] Ivan Henriquez, Mack Roach III, Todd M Morgan, Alberto Bossi, Junior A Gomez, Oscar Abuchaibe, and Felipe Counago. Current and emerging therapies for metastatic castration-resistant prostate cancer (mcrpc). Biomedicines , 9(9):1247, 2021. [44] Martin W Schoen, Kenneth R Carson, Seth A Eisen, Charles L Bennett, Suhong Luo, Melissa A Reimers, Eric M Knoche, Alison L Whitmer, Yan Yan, Bettina F Drake, et al. Survival of veterans treated with enzalutamide and abiraterone for metastatic castrate resistant prostate cancer based on comorbid diseases. Prostate Cancer and Prostatic Diseases , 26(4):743–750, 2023. [45] Stephen J Freedland, Xuehua Ke, Marie-Hélène Lafeuille, Hela Romdhani, Frederic Kinkead, Patrick Lefebvre, Allison Petrilla, Zul Pulungan, Seung Kim, Denise M D’Andrea, et al. Identification of patients with metastatic castration-sensitive or metastatic castration-resistant prostate cancer using administrative health claims and laboratory data. Current Medical Research and Opinion , 37(4):609–622, 2021. [46] Jennifer L Hill. Bayesian nonparametric modeling for causal inference. Journal of Computa-tional and Graphical Statistics , 20(1):217–240, 2011. [47] Kosuke Imai and Marc Ratkovic. Estimating treatment effect heterogeneity in randomized program evaluation. The Annals of Applied Statistics , pages 443–470, 2013. 23 A Computation of Log-Density Ratios for Mixed Variable Types 
+
+This appendix provides the explicit formulas used to compute the conditional log-likelihoods 
+
+log pθ (X | T ′ = t), t ∈ { 0, 1},
+
+for mixed-type covariates in the pre-treatment generator. These terms are required for evaluating the induced overlap function 
+
+log αθ (X) = log pθ (X | T ′ = 1) − log pθ (X | T ′ = 0) ,
+
+which enters the overlap-matching penalty in the training objective. We assume a conditional independence structure within the decoder: 
+
+pθ (X | z, T ′ = t) = 
+
+> V
+
+Y
+
+> i=1
+
+pθ (Xi | z, T ′ = t),
+
+so that the total log-likelihood decomposes as 
+
+log pθ (X | z, T ′ = t) = 
+
+> V
+
+X
+
+> i=1
+
+log pθ (Xi | z, T ′ = t).
+
+The formulas below summarize the per-variable contribution for binary, categorical, and continuous covariates. 
+
+A.1 Binary Variables 
+
+For a binary variable Xi ∈ { 0, 1}, the decoder outputs a logit si, with 
+
+pi = σ(si) = 11 + e−si .
+
+The Bernoulli log-likelihood contribution is 
+
+log pθ (Xi | z, T ′ = t) = Xi log pi + (1 − Xi) log(1 − pi).
+
+This is equivalent to the negative of binary_cross_entropy_with_logits computed per-sample. 
+
+A.2 Categorical Variables 
+
+For a categorical variable Xi ∈ { 0, . . . , K − 1}, the decoder outputs logits si ∈ RK . The softmax probabilities are 
+
+pi,c = exp( si,c )
+
+PKk=1 exp( si,k ) .
+
+The log-likelihood contribution for the observed class Xi is 
+
+log pθ (Xi | z, T ′ = t) = log pi,X i = si,X i − log 
+
+> K
+
+X
+
+> k=1
+
+esi,k 
+
+!
+
+,
+
+which corresponds to the negative per-sample cross_entropy loss. 
+
+A.3 Continuous Variables 
+
+For a continuous variable Xi ∈ R, the decoder outputs a mean μi and a bounded log-variance log σ2 
+
+> i
+
+.The model assumes 
+
+Xi | z, T ′ = t ∼ N (μi, σ 2 
+
+> i
+
+),
+
+and thus the Gaussian log-density is 
+
+log pθ (Xi | z, T ′ = t) = − 12
+
+
+
+log(2 π) + log σ2 
+
+> i
+
++ (Xi − μi)2
+
+σ2
+
+> i
+
+
+
+.
+
+24 A.4 Log-Density Ratio Computation 
+
+Summing the feature-wise terms yields the conditional log-likelihoods 
+
+log pθ (X | T ′ = t) = 
+
+> V
+
+X
+
+> i=1
+
+log pθ (Xi | z, T ′ = t).
+
+The induced log-density ratio used in the overlap penalty is then 
+
+log αθ (X) = log pθ (X | T ′ = 1) − log pθ (X | T ′ = 0) .
+
+The overlap-control term in the main objective penalizes squared deviation from the user-specified target: 
+
+Lα(θ) = EX
+
+h  log αθ (X) − log α(X)2i
+
+.
+
+This mechanism enables fine-grained control over positivity and covariate overlap in the synthetic data distribution. 25 B Summary of Evaluation Metrics 
+
+Table B.1: Summary of evaluation metrics across three axes: distributional fidelity, causal-structure fidelity, and privacy. 
+
+Axis Category (Var Types) Metric Description / Formula Distributional Fidelity 
+
+Marginal (cont.) Normalized Wasserstein 
+
+W1
+
+ F (c)real , F (c)synth 
+
+
+
+sd (c)real + ε .Marginal (cont.) KSComplement (sdmetrics )
+
+1 − DKS .Marginal (disc.) TVComplement (sdmetrics )
+
+1 − 12
+
+P 
+
+> x
+
+preal (x) − psynth (x) .Pairwise (all vars) SU Similarity 1 − SU real (i, j ) − SU synth (i, j ) .Pairwise (cont.–cont.) CorrelationSimilarity (sdmetrics )Similarity of Pearson correlations over cont. pairs. Pairwise (disc.–disc.) ContingencySimilarity (sdmetrics )Similarity of disc. contingency structure via total variation. Conditional ( Z | C) Weighted / Normalized MMD 2
+
+Stratum-size weighted mixed-kernel 
+
+MMD 2(Z | C); normalized by within-real baseline. Joint (all vars) Energy Dist. Normalized energy distance. Joint (all vars) C2ST 1 − 2|AUC − 0.5|.
+
+Causal-Structure Fidelity 
+
+Treatment Effect ATE Error |ATE θ − ATE target |.Treatment Effect CATE MAE E |τθ (X′) − τ (X′)| .Treatment Effect CATE Correlation Pearson correlation ρ(τθ , τ ).Treatment Effect Wasserstein Dist. W1 between empirical distributions of 
+
+τθ (X′) and τ (X′).Confounding MAE (overall / by group) 
+
+E[|κθ (X′, T ′) − κ(X′, T ′)|]; by treatment arm. Confounding Wasserstein Dist. W1 between empirical confounding distributions. Overlap MSE E(log αθ (X′) − log α(X′)) 2.Overlap Overlap Coefficient R 10 min  p0(e), p 1(e) de .Overlap Propensity AUC AUC of logistic regression predicting 
+
+T ′ from X′.
+
+Privacy DCR Protection Fraction 1
+
+> n
+
+Pni=1 1{dsyn (i) > d real (i)}.DCR Distance Ratio ρi = dsyn (i)
+
+dreal (i) + ε .DCR DCRBaselineProtection (sdmetrics )
+
+min 
+
+
+
+1, edsynth / edrand 
+
+
+
+.
+
+Abbreviations and notation: cont. = continuous; disc. = discrete (binary or categorical); TE = treatment effect; dist. = distance; C = conditioning variable; Z = all variables except C. For continuous feature c:
+
+F (c)real , F (c)synth = empirical CDFs; W1 = 1-Wasserstein distance; DKS = Kolmogorov–Smirnov statistic. For discrete x: preal (x), p synth (x) = empirical PMFs. SU real (i, j ), SU synth (i, j ) = symmetric uncertainty (real vs. synthetic). MMD 2 = maximum mean discrepancy. (X′, T ′) = synthetic samples; ATE target = E[τ (X′)] ,
+
+ATE θ = E[τθ (X′)] . e = P(T ′ = 1 | X′); p0(e), p 1(e) = group-specific densities. DCR = distance to closest record (encoded space); dsyn (i), d real (i) = NN distances to synthetic and to another real record; edsynth , edrand 
+
+= median DCRs (synthetic, random). Metrics marked sdmetrics use the sdmetrics library. 
+
+26 C Privacy Evaluation 
+
+The distance-to-closest-record (DCR) is a nearest-neighbor–based criterion that quantifies how well synthetic data avoid reproducing or closely approximating real individuals [ 35 ; 36 ]. Let R = {ri}ni=1 
+
+and S = {sj }mj=1 denote the encoded real and synthetic datasets, respectively, after standardizing continuous variables and one-hot encoding discrete variables. For each real record ri, we compute two distances: 
+
+dsyn (i) = min   
+
+> sj∈S
+
+ri − sj , dreal (i) = min   
+
+> rk∈R
+> k̸=i
+
+ri − rk .
+
+The protection criterion for ri is defined as: 
+
+1protected (i) = 1{dsyn (i) > d real (i)} ,
+
+that is, a real record is considered protected if its closest synthetic neighbor is farther away than its closest other real neighbor. The DCR protection fraction is therefore 
+
+DCR Protection = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+1protected (i),
+
+with larger values indicating stronger privacy protection. To provide finer resolution, we compute the distance ratio: 
+
+ρ(i) = dsyn (i)
+
+dreal (i) + ε ,
+
+and report summary statistics including its mean, median, and selected quantiles (e.g., 5th, 50 th, 95 th percentiles). Ratios significantly greater than one suggest that the synthetic dataset is well separated from the real data in feature space. We additionally report the DCRBaselineProtection score from the sdmetrics library. It normal-ized median DCR of synthetic data by the median DCR of random data (clipped to [0 , 1] ), with values near 1 indicating privacy comparable to random noise. 
+
+DCRBaselineProtection = min 
+
+
+
+1, median x∈D synth d(x, Dreal )median r∈D rand d(r, Dreal )
+
+
+
+27 D Additional Results 
+
+Table D.1: Distributional fidelity using BGMM and standard Gaussian priors in Scenario 1. Category Metric Direction BGMM Gaussian Marginal (cont.) Normalized Wasserstein (mean) ↓ better 0.071 (0.001) 0.336 (0.010) Marginal (cont.) KSComplement (mean) ↑ better 0.939 (0.001) 0.853 (0.006) Marginal (disc.) TVComplement (mean) ↑ better 0.973 (0.001) 0.939 (0.001) Pairwise (cont–cont.) CorrelationSimilarity ↑ better 0.987 (0.002) 0.915 (0.005) Pairwise (all vars) SU similarity (mean) ↑ better 0.994 (0.002) 0.992 (0.000) Pairwise (disc–disc.) ContingencySimilarity (mean) ↑ better 0.953 (0.001) 0.899 (0.002) Conditional (all except C) a Weighted MMD 2 ↓ better 0.004 (0.001) 0.007 (0.002) Conditional (all except C) a Normalized MMD 2 ratio vs real ↓ better 1.533 (0.154) 2.531 (0.601) Joint (all vars) Normalized Energy Distance ↓ better 0.004 (0.001) 0.025 (0.001) Joint (all vars) C2ST (AUC complement) ↑ better 0.748 (0.009) 0.551 (0.013)  
+
+> aConditional variable (C) is exposure.
+
+Table D.2: Distributional fidelity using BGMM and standard Gaussian priors in Scenario 2. Category Metric Direction BGMM Gaussian Marginal (cont.) Normalized Wasserstein (mean) ↓ better 0.111 (0.004) 0.360 (0.011) Marginal (cont.) KSComplement (mean) ↑ better 0.957 (0.001) 0.858 (0.004) Marginal (disc.) TVComplement (mean) ↑ better 0.978 (0.001) 0.928 (0.002) Pairwise (cont–cont.) CorrelationSimilarity ↑ better 0.985 (0.004) 0.950 (0.007) Pairwise (all vars) SU similarity (mean) ↑ better 0.993 (0.002) 0.990 (0.000) Pairwise (disc–disc.) ContingencySimilarity (mean) ↑ better 0.956 (0.001) 0.881 (0.003) Conditional (all except C) a Weighted MMD 2 ↓ better 0.006 (0.001) 0.016 (0.001) Conditional (all except C) a Normalized MMD 2 ratio vs real ↓ better 2.244 (0.446) 5.981 (0.358) Joint (all vars) Normalized Energy Distance ↓ better 0.005 (0.000) 0.033 (0.002) Joint (all vars) C2ST (AUC complement) ↑ better 0.699 (0.016) 0.510 (0.016)  
+
+> aConditional variable (C) is exposure.
+
+Table D.3: Distributional fidelity using BGMM and standard Gaussian priors in Scenario 3. Category Metric Direction BGMM Gaussian Marginal (cont.) Normalized Wasserstein (mean) ↓ better 0.075 (0.001) 0.679 (0.008) Marginal (cont.) KSComplement (mean) ↑ better 0.954 (0.001) 0.720 (0.005) Marginal (disc.) TVComplement (mean) ↑ better 0.961 (0.001) 0.898 (0.002) Pairwise (cont–cont.) CorrelationSimilarity ↑ better 0.984 (0.002) 0.883 (0.009) Pairwise (all vars) SU similarity (mean) ↑ better 0.991 (0.002) 0.990 (0.000) Pairwise (disc–disc.) ContingencySimilarity (mean) ↑ better 0.928 (0.001) 0.841 (0.003) Conditional (all except C) a Weighted MMD 2 ↓ better 0.023 (0.002) 0.029 (0.002) Conditional (all except C) a Normalized MMD 2 ratio vs real ↓ better 8.563 (0.604) 10.863 (0.724) Joint (all vars) Normalized Energy Distance ↓ better 0.011 (0.000) 0.080 (0.002) Joint (all vars) C2ST (AUC complement) ↑ better 0.625 (0.008) 0.333 (0.010)  
+
+> aConditional variable (C) is exposure.
+
+28 0
+
+> 1
+
+exp 
+
+0.00 
+
+0.25 
+
+0.50 
+
+> Frequency
+> 0
+> 1
+
+hosp_ed_any 
+
+0.0 
+
+0.5 
+
+> Frequency
+> 0
+> 1
+
+race_cat 
+
+0.0 
+
+0.5 
+
+> Frequency
+
+40 60 80 
+
+age 
+
+0.000 
+
+0.025 
+
+0.050 
+
+> Density
+> Bone
+> Other
+> Visceral
+
+mets_site 
+
+0.00 
+
+0.25 
+
+0.50 
+
+> Frequency
+> 0
+> 1
+
+Enzalutamide_prev 
+
+0.0 
+
+0.5 
+
+> Frequency
+> 0
+> 1
+
+Abiraterone_prev 
+
+0.0 
+
+0.5 
+
+> Frequency
+> ADT_only
+> ARPI
+> Other
+> Taxane
+
+trt_prev 
+
+0.0 
+
+0.2 
+
+0.4 
+
+> Frequency
+> 0
+> 1
+
+dementia_pre 
+
+0.0 
+
+0.5 
+
+> Frequency
+> 0
+> 1
+
+any_infect_pre 
+
+0.0 
+
+0.5 
+
+> Frequency
+> 0
+> 1
+
+arf_renal_pre 
+
+0.0 
+
+0.5 
+
+> Frequency
+> 0
+> 1
+
+htn_pre 
+
+0.00 
+
+0.25 
+
+0.50 
+
+> Frequency
+> 0
+> 1
+
+dm_pre 
+
+0.0 
+
+0.5 
+
+> Frequency
+> 0
+> 1
+
+smoker_copd_pre 
+
+0.0 
+
+0.5 
+
+> Frequency
+> 0
+> 1
+
+cvd_pre 
+
+0.0 
+
+0.5 
+
+> Frequency
+
+0 5 10 
+
+Charlson 
+
+0.0 
+
+0.2 
+
+0.4 
+
+> Density
+> 0
+> 1
+
+anti_diab_pre 
+
+0.0 
+
+0.5 
+
+> Frequency
+> 0
+> 1
+
+anti_arr_pre 
+
+0.0 
+
+0.2 
+
+0.4 
+
+> Frequency
+> 0
+> 1
+
+bld_thinner_pre 
+
+0.0 
+
+0.5 
+
+> Frequency
+> 0
+> 1
+
+opiods_pre 
+
+0.0 
+
+0.2 
+
+0.4 
+
+> Frequency
+
+Real Synth_bgmm Synth_gauss Figure D.1: Marginal distributions of all variables in the synthetic data under BGMM and Gaussian priors compared with the real mCRPC dataset (Scenario 3). 0
+
+> 1
+
+exp 
+
+40 
+
+50 
+
+60 
+
+70 
+
+80 
+
+90 
+
+> age
+
+Real 
+
+Synthetic-BGMM 
+
+Synthetic-Gaussian 
+
+Figure D.2: Pairwise distributions of exposure and age in the synthetic data under BGMM and Gaussian priors compared with the real mCRPC dataset (Scenario 3). 29 0
+
+> 1
+> hosp_ed_any
+> 0
+> 1
+> exp
+> Real
+> 0
+> 1
+> hosp_ed_any
+> Synthetic-BGMM
+> 0
+> 1
+> hosp_ed_any
+> Synthetic-Gaussian
+> 0.00
+> 0.15
+> 0.30
+> 0.45
+> Joint probability
+
+Figure D.3: Pairwise distributions of exposure and outcome in the synthetic data under BGMM and Gaussian priors compared with the real mCRPC dataset (Scenario 3). ADT_only 
+
+> ARPI
+> Other
+> Taxane
+> trt_prev
+> 0
+> 1
+> exp
+> Real
+> ADT_only
+> ARPI
+> Other
+> Taxane
+> trt_prev
+> Synthetic-BGMM
+> ADT_only
+> ARPI
+> Other
+> Taxane
+> trt_prev
+> Synthetic-Gaussian
+> 0.00
+> 0.08
+> 0.16
+> 0.24
+> Joint probability
+
+Figure D.4: Pairwise distributions of exposure and treatment history in the synthetic data under BGMM and Gaussian priors compared with the real mCRPC dataset (Scenario 3). Table D.4: Causal-structure fidelity of synthetic data using BGMM and standard Gaussian priors in Scenario 1. Category Metric Direction BGMM Gaussian Treatment Effect CATE/ITE MAE ↓ better 0.003 (0.000) 0.004 (0.000) Treatment Effect CATE Correlation ↑ better NA NA Treatment Effect ATE Error ↓ better 0.000 (0.000) 0.002 (0.000) Treatment Effect TE Distribution Distance (W1) ↓ better 0.003 (0.000) 0.004 (0.000) Confounding Confounding MAE ↓ better 0.000 (0.000) 0.000 (0.000) Confounding Group-wise MAE (T=0) ↓ better 0.000 (0.000) 0.000 (0.000) Confounding Group-wise MAE (T=1) ↓ better 0.000 (0.000) 0.000 (0.000) Confounding Confounding Dist. (W1) ↓ better 0.000 (0.000) 0.000 (0.000) Overlap (decoder) MSE ↓ better 0.000 (0.000) 0.000 (0.000) Overlap (decoder) Fraction within tolerance ↑ better 1.000 (0.000) 1.000 (0.000) Overlap (propensity) Propensity AUC a NA 0.539 (0.007) 0.536 (0.008) Overlap (propensity) Histogram overlap coefficient ↑ better 0.940 (0.017) 0.947 (0.015) Overlap (propensity) Common support fraction ↑ better 1.000 (0.000) 1.000 (0.000) Overlap (propensity) Common support fraction (T=0) ↑ better 1.000 (0.000) 1.000 (0.000) Overlap (propensity) Common support fraction (T=1) ↑ better 1.000 (0.000) 1.000 (0.000)  
+
+> a
+
+AUC closer to 0.5 indicates stronger overlap. 
+
+30 Table D.5: Causal-structure fidelity of synthetic data using BGMM and standard Gaussian priors in Scenario 2. Category Metric Direction BGMM Gaussian Treatment Effect CATE/ITE MAE ↓ better 0.003 (0.000) 0.004 (0.000) Treatment Effect CATE Correlation ↑ better 0.971 (0.002) 0.915 (0.004) Treatment Effect ATE Error ↓ better 0.000 (0.000) 0.001 (0.000) Treatment Effect TE Distribution Distance (W1) ↓ better 0.001 (0.000) 0.001 (0.000) Confounding Confounding MAE ↓ better 0.002 (0.000) 0.002 (0.000) Confounding Group-wise MAE (T=0) ↓ better 0.002 (0.000) 0.002 (0.000) Confounding Group-wise MAE (T=1) ↓ better 0.002 (0.000) 0.002 (0.000) Confounding Confounding Dist. (W1) ↓ better 0.002 (0.000) 0.002 (0.000) Overlap (decoder) MSE ↓ better 0.004 (0.000) 0.005 (0.000) Overlap (decoder) Fraction within tolerance ↑ better 0.997 (0.001) 0.993 (0.001) Overlap (propensity) Propensity AUC a NA 0.561 (0.007) 0.563 (0.008) Overlap (propensity) Histogram overlap coefficient ↑ better 0.850 (0.021) 0.855 (0.015) Overlap (propensity) Common support fraction ↑ better 1.000 (0.000) 1.000 (0.000) Overlap (propensity) Common support fraction (T=0) ↑ better 1.000 (0.000) 1.000 (0.000) Overlap (propensity) Common support fraction (T=1) ↑ better 1.000 (0.000) 1.000 (0.000)  
+
+> a
+
+AUC closer to 0.5 indicates stronger overlap. 
+
+Table D.6: Causal-structure fidelity of synthetic data using BGMM and standard Gaussian priors in Scenario 3. Category Metric Direction BGMM Gaussian Treatment Effect CATE/ITE MAE ↓ better 0.004 (0.000) 0.004 (0.000) Treatment Effect CATE Correlation ↑ better 0.956 (0.003) 0.931 (0.005) Treatment Effect ATE Error ↓ better 0.001 (0.000) 0.002 (0.000) Treatment Effect TE Distribution Distance (W1) ↓ better 0.002 (0.000) 0.002 (0.000) Confounding Confounding MAE ↓ better 0.004 (0.000) 0.005 (0.000) Confounding Group-wise MAE (T=0) ↓ better 0.005 (0.000) 0.005 (0.000) Confounding Group-wise MAE (T=1) ↓ better 0.003 (0.000) 0.004 (0.000) Confounding Confounding Dist. (W1) ↓ better 0.002 (0.000) 0.002 (0.000) Overlap (decoder) MSE ↓ better 0.004 (0.000) 0.300 (0.091) Overlap (decoder) Fraction within tolerance ↑ better 0.996 (0.001) 0.934 (0.004) Overlap (propensity) Propensity AUC a NA 0.889 (0.006) 0.859 (0.005) Overlap (propensity) Histogram overlap coefficient ↑ better 0.243 (0.012) 0.309 (0.008) Overlap (propensity) Common support fraction ↑ better 0.998 (0.003) 1.000 (0.000) Overlap (propensity) Common support fraction (T=0) ↑ better 1.000 (0.000) 1.000 (0.000) Overlap (propensity) Common support fraction (T=1) ↑ better 0.996 (0.004) 1.000 (0.000)  
+
+> a
+
+AUC closer to 0.5 indicates stronger overlap. 0.00 0.02 0.04 0.06 0.08           
+
+> Target (X,T)
+> 0.00
+> 0.02
+> 0.04
+> 0.06
+> 0.08
+> Predicted  (X, T)
+> Confounding fidelity: scatter
+> 0.025 0.030 0.035 0.040 0.045 0.050 0.055 0.060
+> Confounding bias value
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> 120
+> Density
+> target = 0.04978
+> pred mean = 0.04767
+> pred std = 0.0057
+> Confounding distribution: target vs predicted
+> Target
+> Predicted
+
+Figure D.5: Comparison of generated and target unmeasured confounding of the mcrpc dataset from CausalMix with a BGMM prior in Scenario 3. 31 0.0 0.2 0.4 0.6 0.8 1.0 
+
+> e(x) = P(T=1 | X)
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> 12
+> 14
+> Density
+> T=0: density of e(x)
+> T=1: density of e(x)
+
+(a) Scenario 1 0.0 0.2 0.4 0.6 0.8 1.0  
+
+> e(x) = P(T=1 | X)
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> 12
+> 14
+> 16
+> Density
+> T=0: density of e(x)
+> T=1: density of e(x)
+
+(b) Scenario 2 0.0 0.2 0.4 0.6 0.8 1.0 
+
+> e(x) = P(T=1 | X)
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> 12
+> Density
+> T=0: density of e(x)
+> T=1: density of e(x)
+
+(c) Scenario 3 
+
+Figure D.6: Generated overlap of the mcrpc datasets from CausalMix with a BGMM prior across causal scenarios. Scenario 1: perfect overlap log α(X) = 0 ; Scenario 2: moderate constant overlap 
+
+log α(X) = 1 ; Scenario 3: covariate-dependent overlap log α(X) = 2  2 Abiraterone_prev − 1.Table D.7: Privacy of synthetic data using BGMM and standard Gaussian priors in Scenario 1. Metric Direction BGMM Gaussian Protection Fraction ↑ better 0.595 (0.009) 0.696 (0.008) Distance Ratio (mean) ↑ better 2.535 (0.083) 3.254 (0.163) Distance Ratio (p5) ↑ better 0.233 (0.028) 0.501 (0.003) Distance Ratio (p50) ↑ better 1.039 (0.006) 1.122 (0.006) Distance Ratio (p95) ↑ better 4.841 (0.263) 6.150 (0.304) Standardized Distance Ratio ↑ better 0.276 (0.003) 0.333 (0.003) 32 Table D.8: Privacy of synthetic data using BGMM and standard Gaussian priors in Scenario 2. Metric Direction BGMM Gaussian Protection Fraction ↑ better 0.607 (0.007) 0.747 (0.007) Distance Ratio (mean) ↑ better 2.787 (0.193) 3.723 (0.249) Distance Ratio (p5) ↑ better 0.255 (0.021) 0.624 (0.036) Distance Ratio (p50) ↑ better 1.057 (0.007) 1.195 (0.009) Distance Ratio (p95) ↑ better 4.623 (0.207) 7.681 (0.622) Standardized Distance Ratio ↑ better 0.282 (0.002) 0.373 (0.007) Table D.9: Privacy of synthetic data using BGMM and standard Gaussian priors in Scenario 3. Metric Direction BGMM Gaussian Protection Fraction ↑ better 0.720 (0.006) 0.839 (0.004) Distance Ratio (mean) ↑ better 3.298 (0.245) 4.287 (0.089) Distance Ratio (p5) ↑ better 0.396 (0.030) 0.788 (0.014) Distance Ratio (p50) ↑ better 1.169 (0.007) 1.337 (0.009) Distance Ratio (p95) ↑ better 6.046 (0.055) 11.740 (0.493) Standardized Distance Ratio ↑ better 0.297 (0.003) 0.559 (0.005) Table D.10: Accuracy and coverage of causal estimators under no unmeasured confounding Estimator Runtime (s , SD) ATE RMSE Mean ATE SE ATE Coverage Mean CATE Coverage Bayesian Causal Forest 258.7 (9.5) 0.010 0.010 0.90 0.91 Causal Forest 25.1 (1.7) 0.009 0.009 0.94 0.87 Standard Linear DML 2.2 (0.1) 0.009 0.009 0.96 0.90 Lasso DML 229.9 (10.1) 0.009 0.008 0.88 0.37 GBR DML 268.1 (10.7) 0.010 0.113 1.00 0.82 Standard Linear DR-Learner 2.3 (0.1) 0.010 0.046 1.00 0.92 Lasso DR-Learner 234.5 (10.6) 0.010 0.009 0.88 0.40 GBR DR-Learner 274.0 (10.8) 0.010 0.125 1.00 0.82 Lasso X-Learner 118.4 (4.1) 0.024 0.036 1.00 0.82 GBR X-Learner 160.4 (4.4) 0.024 0.085 1.00 0.82 Table D.11: Accuracy and coverage of causal estimators under small unmeasured confounding Estimator Runtime (s , SD) ATE RMSE Mean ATE SE ATE Coverage Mean CATE Coverage Bayesian Causal Forest 260.6 (9.6) 0.023 0.011 0.48 0.86 Causal Forest 25.3 (1.8) 0.027 0.009 0.18 0.80 Standard Linear DML 2.1 (0.1) 0.026 0.009 0.24 0.84 Lasso DML 225.0 (7.9) 0.025 0.010 0.28 0.26 GBR DML 262.8 (7.7) 0.026 0.125 1.00 0.83 Standard Linear DR-Learner 2.2 (0.1) 0.028 0.046 1.00 0.85 Lasso DR-Learner 230.5 (8.4) 0.028 0.008 0.14 0.25 GBR DR-Learner 269.7 (7.3) 0.028 0.132 1.00 0.81 Lasso X-Learner 116.4 (3.8) 0.008 0.035 1.00 0.86 GBR X-Learner 158.6 (4.3) 0.009 0.088 1.00 0.83 33 0.03 0.02 0.01 0.00 0.01 
+
+ATE Bias (mean ± SD) 
+
+Bayesian Causal Forest 
+
+Causal Forest 
+
+Standard Linear DML 
+
+Lasso DML 
+
+GBR DML 
+
+Standard Linear DR-Learner 
+
+Lasso DR-Learner 
+
+GBR DR-Learner 
+
+Lasso X-Learner 
+
+GBR X-Learner 
+
+(a) Without unmeasured confounding 
+
+0.01 0.00 0.01 0.02 0.03 0.04 
+
+ATE Bias (mean ± SD) 
+
+(b) With unmeasured confounding 
+
+Estimator Group 
+
+Tree-based 
+
+Standard Linear 
+
+Lasso 
+
+GBR Figure D.7: Comparison of ATE bias across estimators under no unmeasured confounding ( κ = 0 )and moderate unmeasured confounding ( κ = 0 .02 ). Points denote mean bias across 50 independent replications and error bars indicate one standard deviation. Estimator groups are defined based on the CATE model. 0.000 0.025 0.050 0.075 0.100 0.125 0.150 0.175 
+
+> PEHE(CATE RMSE)
+> Bayesian Causal Forest
+> Causal Forest
+> Standard Linear DML
+> Lasso DML
+> GBR DML
+> Standard Linear DR-Learner
+> Lasso DR-Learner
+> GBR DR-Learner
+> Lasso X-Learner
+> GBR X-Learner
+
+(a) Without unmeasured confounding        
+
+> 0.000 0.025 0.050 0.075 0.100 0.125 0.150 0.175
+> PEHE(CATE RMSE)
+
+(b) With unmeasured confounding 
+
+> Estimator Group
+> Tree-based
+> Standard Linear
+> Lasso
+> GBR
+
+Figure D.8: Comparison of PEHE across estimators under no unmeasured confounding ( κ = 0 ) and moderate unmeasured confounding ( κ = 0 .02 ). Points denote mean RMSE across 50 independent replications and error bars indicate one standard deviation. Estimator groups are defined based on the CATE model. 5 10 20 40 80 
+
+Minimum Node Size 
+
+0.018 
+
+0.020 
+
+0.022 
+
+0.024 
+
+0.026 
+
+0.028 
+
+> Mean |Bias| (CATE)
+
+0.05 
+
+0.06 
+
+0.07 
+
+0.08 
+
+0.09 
+
+0.10 
+
+0.11 
+
+0.12 
+
+> Mean CI Width (CATE)
+
+Mean |Bias| (CATE) 
+
+Mean CI Width (CATE) 
+
+Figure D.9: Sensitivity of CATE accuracy and uncertainty to the minimum leaf size in causal forests (2,000 trees). The solid curve shows mean absolute CATE bias and the dashed curve shows mean CATE confidence interval width, averaged over 50 replications. 34

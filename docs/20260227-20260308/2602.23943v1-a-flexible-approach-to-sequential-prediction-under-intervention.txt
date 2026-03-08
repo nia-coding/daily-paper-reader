@@ -1,0 +1,2374 @@
+Title: Supplementary data file 2 - results
+
+URL Source: https://arxiv.org/pdf/2602.23943v1
+
+Published Time: Mon, 02 Mar 2026 01:48:45 GMT
+
+Number of Pages: 36
+
+Markdown Content:
+# A flexible approach to sequential prediction under 
+
+# intervention 
+
+Matthew Sperrin 1, Bowen Jiang 1, Joyce Huang 1,2 , Niels Peek 3, Alexander Pate 1.
+
+1: Division of Informatics, Imaging and Data Science, Faculty of Biology, Medicine 
+
+and Health, University of Manchester, UK 
+
+2: Centre for Pharmacoepidemiology and Drug Safety, Division of Pharmacy and 
+
+Optometry, University of Manchester 
+
+3: THIS Institute, Department of Public Health and Primary Care, University of 
+
+Cambridge, UK. 
+
+Correspondence to: Matthew Sperrin, Vaughan House, University of Manchester, 
+
+Manchester, M13 9PL, matthew.sperrin@manchester.ac.uk, Abstract 
+
+Background : Prognostic clinical prediction models (CPMs) inform decisions about 
+
+interventions targeting modifiable risk factors, but do not respect causality. Proposed 
+
+solutions , such as fixing coefficients to causal values , lead to issues making multiple 
+
+predictions over time, and lack flexibility for multiple interventions. 
+
+Methods : We propose a causal -predictive framework for estimating risk under 
+
+preventative interventions. The Unexposed Mediator Model maintains mediators that 
+
+are also predictors at their unexposed level, removing double -counting of 
+
+intervention effects at follow -up visits. The Modifiable Risk Factor Model handles 
+
+multiple interven tions flexibly by modelling their effects via mediators that are also 
+
+predictors, assuming a known causal structure. The Two -Component Model 
+
+combines a predictive baseline model wi th an intervention model to improve 
+
+predictive performance. We illustrate the framework in primary prevention of 
+
+cardiovascular disease. 
+
+Results : Models were applied to 4 million individuals from the UK Clinical Practice 
+
+Research Datalink. For anti -hypertensive intervention, the Treatment Offset model 
+
+produced inconsistent risk estimates over time; the Unexposed Mediator Model 
+
+resolved this while ma intaining discrimination. The Modifiable Risk Factor Model 
+
+accommodated multiple interventions but exhibited calibration issues (integrated 
+
+calibration index 0.00 5), which were resolved by the Two -Component Model 
+
+(integrated calibration index 0.00 1). 
+
+Conclusion : The proposed models allow arbitrary interventions to be evaluated 
+
+within a prediction -under -intervention framework, with causally consistent risk 
+
+estimates across repeated visits . Limitations include reliance on predictor values 
+
+from a n arbitrary first visit, requirements for causal structur al knowledge, and a 
+
+consistency assumption — that interventions with identical effects on predictors have 
+
+identical effects on outcomes — which warrant further investigation. 
+
+Keywords : Causal Inference, Clinical prediction model, Counterfactual prediction, 
+
+Prediction under intervention s1. Introduction 
+
+Clinical prediction models (CPMs) estimate individual risk based on known 
+
+characteristics. They are usually developed using supervised learning techniques 
+
+such as regression , while u se of flexible AI approaches such as transformers is 
+
+beginning to show significant potential 1. A common application of such models , and 
+
+the focus of this work, is primary prevention . Here, interventions are proposed, 
+
+usually targeting modifiable risk factors, to reduce future risk in cardiovascular 
+
+disease (CVD) prevention . A well -known example is QRISK , which predicts 10 -year 
+
+risk of stroke or heart attack 2, and is used to help decide upon use of statins and 
+
+promotion of lifestyle interventions. 
+
+A limitation of such CPMs is that they do not contain the causal machinery required 
+
+to make ‘prediction under intervention’ (PUI). For example, “what is my risk if I take 
+
+statins” versus “what is my risk if I improve my lifestyle” versus “what is my risk if I 
+
+make no changes” 3,4 . This is important because these models are often used to 
+
+support such decisions and therefore availability of such outputs would be of clear 
+
+benefit to decision support . As such , there has been growing interest in methods for 
+
+PUI, a field at the intersection of causal inference and prediction , which allows us to 
+
+make accurate predictions under specific interventions. 
+
+Most approaches to PUI place predictor variables in two categories – intervention 
+
+and non -intervention variables. Intervention variables are then fixed to their causal 
+
+values in the model – the ‘offset’ approach (so -called because the fixed terms are 
+
+specified as offsets in statistical software) . Implementations of this include allowing 
+
+for heterogeneity in treatment effects, and estimating effects from the same 
+
+observational data used to fit the model versus acquiring them elsewhere – as 
+
+summarised by Lin et al 5.
+
+While these approaches are a step forward, there are several limitations and 
+
+challenges that remain to be addressed. We will use the setting of primary 
+
+prevention in CVD as an example . Attempting to utilise existing approaches to PUI in 
+
+such contexts leads to three important problems. First, people are evaluated 
+
+repeatedly by the same model. For example, in UK primary care, individuals should 
+
+undergo cardiovascular risk evaluation every five years. Therefore, not only must a 
+
+model estimate causal contrasts at a single point in time, they must do so across 
+
+time – i.e., allow for sequential prediction under intervention 6. Second , many 
+
+interventions are possible, including pharmaceutical (statins, anti -hypertensives, etc), 
+
+and non -pharmaceutical (stopping smoking, and an array of diet/exercise related 
+
+interventions). Under the current framework each of these would need to be 
+
+anticipated and explicitly coded into the model. We therefore require flexibility for 
+
+multiple interventions. Third, we would like the model to retain predictive accuracy. 
+
+As we will go on to show, existing approaches fail to address these problems. 
+
+In this paper we propose flexible approach es to PUI that address these concerns: 
+
+allow ing for sequential prediction under intervention and flexibility for multiple interventions, while retaining predictive accuracy . The paper is organised as follows. 
+
+In Section 2, we introduce notation and give more precise definitions of the three 
+
+targeted characteristics . Correspondingly we introduce a family of modelling 
+
+approaches that possess these characteristics . We have chosen to introduce a
+
+series of approaches both for simpler exposition, and because intermediate 
+
+approaches (that satisfy some but not all the targeted characteristics ) are useful 
+
+under certain circumstances. Section 3 contai ns a clinical example. The purpose of 
+
+the example is illustration of the approaches – a companion applied paper 7
+
+describes the development and internal validation of a PUI model for primary 
+
+prevention of CVD using the techniques described in this paper. Section 4 concludes 
+
+with a discussion and future directions. 
+
+## 2. Methods 
+
+2.1. Setting and targeted features for a PUI model 
+
+We begin by formally establishing the setting and outlining the set of targeted 
+
+characteristics that a PUI model should possess . To fix notation, suppose we are 
+
+concerned with a n outcome 𝑌 (which may be a survival outcome, or binary summary 
+
+such as 10 -year risk) , and have predictors 𝑿 and potential interventions 𝑨 . We 
+
+consider evaluating risk at time points 𝑡 !, 𝑡 ", 𝑡 #, … (which may be regular ly or 
+
+irregular ly spaced ), where 𝑡 ! is the time for the first vis it and 𝑡 ", 𝑡 #, … represent follow -
+
+up visits (this distinction will be critical later). D efine the time horizon in which we 
+
+evaluate 𝑌 relative to the prediction time, i.e., ℎ$ = 𝑡 $ + 𝑤 . Therefore , our model is of 
+
+the form 𝑓 (𝑌 %! , 𝑋 &! , 𝐴 &! ). In some circumstances it is necessary to separate predictors 
+
+𝑋 into modifiable risk factors 𝑀 and non -modifiable risk factors 𝑍 , i.e., 𝑋 = (𝑀 , 𝑍 ). A
+
+risk factor is considered modifiable if and only if it is caused by an intervention within 
+
+𝐴 . For clarity and simplicity, we will not consider the history of predictors or 
+
+interventions in this exposition . We will drop the subscripts ℎ$ and 𝑡 $ where this does 
+
+not lead to ambiguity. We will use potential outcome notation to denote causal 
+
+estimands, for example 𝑌 (𝐴 = 𝑎 ) or 𝑌 (𝑎 ) denotes the potential value of 𝑌 that would 
+
+be observed if we (potentially counterfactually) intervened to fix the value of 𝐴 to 𝑎 .
+
+See Luijken et al 6 for detailed exposition of estimands in the sequential PUI setting ,
+
+and Hern án and Robins 8 for a more general introduction to causal inference with 
+
+potential outcomes .
+
+In developing a PUI model we target the following characteristics :
+
+1. The model should target appropriate causal estimands for the interventions 𝐴 ,
+
+𝑓 (𝑌 , 𝑋 , 𝐴 = 𝑎 ) = 𝑔 (𝐸 [𝑌 (𝑎 )|𝑋 ]). (1)
+
+This means that contrasts in 𝑓 at different values of 𝐴 target conditional 
+
+average treatment effects (with transformation via an appropriate link function 
+
+𝑔 , if necessary) .2. The model should behave in a concordant way across predictions being made 
+
+by the same individual at multiple times : sequential prediction under 
+
+intervention . This means that a PUI made at an initial timepoint should agree 
+
+(in expectation) with the actual risk calculated at a subsequent timepoint, if the 
+
+individual followed that intervention and all else remained the same. 
+
+3. The model should allow flexibility for multiple interventions – 𝐴 should not 
+
+need to be pre -specified and dim (𝐴 ) is allowed to be large. 
+
+4. The model should reconcile the tension between predictive and causal 
+
+optimality , ensuring that intervention variables contribute to robust prediction 
+
+(maintaining low bias and high accuracy in this sense), while adhering to 
+
+characteristics 1 -3.
+
+2.2. Motivating Example and Simple Prediction Under Intervention (Characteristic 
+
+1) 
+
+We now illustrate some of the challenges involved in achieving these characteristics. 
+
+Consider a simple example in which we wish to predict 10 -year cardiovascular risk, 
+
+𝑌 , using only systolic blood pressure (SBP), 𝑋 , and use of anti -hypertensives, 𝐴 , as 
+
+predictors. We model the underlying time to cardiovascular event, 𝑇 , (i.e., 𝑌 = 1 if 
+
+𝑇 ≤ 10 ), as: 
+
+ℎ(𝑡 ) = ℎ!(𝑡 )exp{ 𝑘 (𝑋 , 𝐴 ; 𝛽 )} (2)
+
+where ℎ is the hazard function, ℎ! represents baseline hazard and 𝑘 is an arbitrary 
+
+function with parameters 𝛽 , for example 𝑘 (𝑋 , 𝐴 ; 𝛽 ) = 𝛽 ! + 𝛽 '𝑋 + 𝛽 (𝐴 . This model is 
+
+then transformed to generate the required output : logit (𝑃 [𝑌 = 1]) = 𝑓 (𝑌 , 𝑋 , 𝐴 ).
+
+In the standard prediction setting we would fit this model in an unconstrained 
+
+manner, which we will call the Non -Causal M odel .
+
+Suppose that we want the model to predict under anti -hypertensive interventions 
+
+(i.e., meet Characteristic 1) . The Non -Causal Model would not achieve this : in 
+
+practice we often observe the coefficient for anti -hypertensive s being in the opposite 
+
+direction of the causal effect for anti -hypertensives – see e.g., Pylypchuk et al 9. This 
+
+is fundamentally because we have not set out to build a causal model, in this case 
+
+over -adjustment for mediation via systolic blood pressure, and residual confounding 
+
+by indication. This is visualised in Figure 1 : when developing and implementing the 
+
+model , “SBP after treatment” is usually used rather than “SBP before treatment”. 
+
+Figure 1: A Causal Directed Acyclic Graph considering the relationship between 
+
+systolic blood pressure, antihypertensive treatment, and cardiovascular disease. The initial attempt to overcome this is to set the anti -hypertensives ’ coefficient equal 
+
+to an appropriate causal value, 𝛽 (
+
+> )*+,*-
+
+, that may be derived from appropriate existing 
+
+evidence (e.g ., a meta -analysis of randomised controlled trials) , or the same data 
+
+that will be used to develop the model 3. We call this the Treatment Offset Model ;
+
+this is a fairly common approach in the literature (summarised in Lin et al 5). 
+
+Furthermore, since estimands of interest often correspond to treatment remaining 
+
+constant during follow -up 3,4 , the model must adjust for changes in treatment during 
+
+follow -up in the development data . This can be achieved by an approach inspired by 
+
+Xu et al 10 . Interval censored data is derived for when an individual is considered “on” 
+
+or “off” treatment , and the cumulative hazard adjusted when the treatment changes .
+
+A precise definition , including how to do this for multiple treatments, is provided in 
+
+supplementary data file 1 . This would not be necessary in all situations (e.g., short -
+
+term binary outcomes). 
+
+This achieves Characteristic 1 (at least approximately, but see van Amsterdam et al 
+
+> 11
+
+), but fails to satisfy the other characteristics , as we will now explain .
+
+2.3. Sequential Prediction Under Intervention (Characteristic 2) 
+
+2.3.1. Outline of the issue 
+
+If the Treatment Offset Model is required to be used more than once in the same 
+
+individual , we desire predictions that are concordant over time . Consider the 
+
+following illustrative example. An individual has a prediction made at 𝑡 = 𝑡 $; they are 
+
+not on anti -hypertensives and their SBP is high at 140 mmHg (‘SBP before treatment’ 
+
+in Figure 1) . Suppose this individual commences anti -hypertensives , the n are re -
+
+evaluated at 𝑡 = 𝑡 $." and have successfully brought their SBP down to 130 mmHg 
+
+(‘SBP after treatment’ in Figure 1) . The new prediction will not be concordant with that at 𝑡 = 𝑡 $, because the benefit of the anti -hypertensives is being double -counted: 
+
+𝛽 ( 
+
+> )*+,*-
+
+is the total effect of anti -hypertensives, and we are calculating the risk based 
+
+on the new value of the mediator SBP. The standard model therefore sees both the 
+
+treatment and the lowered SBP, giving the effect of the risk reduction twice. 
+
+More generally, suppose that an intervention is applied at time 𝑡 $, 𝐴 &! = 𝑎 . At time 
+
+𝑡 $." suppose that the modifiable risk factors 𝑀 have responded to the intervention 
+
+only , and the baseline risk of 𝑌 is otherwise unchanged. Then, in the limit as 𝑡 $." −
+
+𝑡 $ → 0, the PUI under 𝐴 &! = 𝑎 evaluated at 𝑡 $ should match the factual risk evaluated 
+
+at 𝑡 $." using the updated risk factors: 
+
+lim 
+
+> &!"#/&!→!
+
+J𝑓 K𝑌 &! , 𝑋 &! , 𝐴 &! = 𝑎 L − 𝑓 K𝑌 &!"# K𝐴 &! = 𝑎 L, 𝑋 &!"# K𝐴 &! = 𝑎 L, 𝐴 &!"# = 𝑎 LM = 0,
+
+(3)
+
+where we use the potential outcome notation to make explicit that the observed 
+
+variables at time 𝑡 $." are responding to the intervention at time 𝑡 $.
+
+Ignore me if wrong, is it better to state: 
+
+lim 
+
+> &!"#/&!→!
+
+J𝑓 K𝑌 &! , 𝑀 &! , 𝑍 &! , 𝐴 &! = 𝑎 L − 𝑓 K𝑌 &!"# K𝐴 &! = 𝑎 L, 𝑀 &!"# K𝐴 &! = 𝑎 L, 𝑍 &!"# , 𝐴 &!"# = 𝑎 LM
+
+= 0
+
+Where :
+
+lim 
+
+> &!"#/&!→!
+
+{𝑍 &!"# − 𝑍 &! } = 0
+
+lim 
+
+> &!"#/&!→!
+
+{𝑀 &!"# K𝐴 &! = 𝑎 L − 𝑀 &! } ≠ 0
+
+Trying to get across that we only see a difference in predicted risk driven by changes 
+
+in Z, not when A modifies M. 
+
+Does introducing the limit confuse things? A simpler way to go would be to state :
+
+2.3.2. 𝑓 K𝑌 &! , 𝑀 &! , 𝑍 &! , 𝐴 &! = 𝑎 L = 𝑓 K𝑌 &!"# K𝐴 &! = 𝑎 L, 𝑀 &!"# K𝐴 &! = 𝑎 L, 𝑍 &! , 𝐴 &!"# =
+
+𝑎 LProposed solution 
+
+This issue c an be dealt with by modelling the mediators in an appropriate manner. In 
+
+the above example, rather than use SBP for prediction, our next approach is to use 
+
+‘SBP in absence of exposure to antihypertensives ’. At follow -up , th is pre -intervention 
+
+SBP of 140 is used again for the prediction model, resulting in a consistent estimate 
+
+of risk on and off antihypertensives. All other aspects of the model remain the same 
+
+as in the Treatment Offset Model. We call this the Unexposed Mediator Mode l.
+
+This issue could also be dealt with by not including the mediator (SBP) as a predictor 
+
+in the model ( and the issue would not occur if there were no mediators in the model 
+
+as predictors). However, this is likely to lead to an unacceptable drop in predictive 
+
+performance (Characteristic 4) .2.4. Flexibility for Multiple Interventions (Characteristic 3) 
+
+2.4.1. Outline of the issue 
+
+Specifying the model as in the Treatment Offset or Unexposed Mediator Models 
+
+limits flexibility to add additional intervention s. We could iteratively add them in to the 
+
+model, but this would become cumbersome. Moreover , data is required on whether 
+
+an individual is exposed or unexposed to each intervention. For medication (such as 
+
+statins and antihypertensives) this is realistic, but for lifestyle interventions (such as 
+
+changes to diet and exercise), such data is unavailable in most routinely collected 
+
+data sources. Further, robust effect estimates for these interventions are also not 
+
+generally available .
+
+2.4.2. Proposed solution 
+
+We devise a model that captures interventions through their effects on the modifiable 
+
+risk factors 𝑀 (i.e. , the modifiable risk factors are mediators for the interventions) . A 
+
+directed acyclic causal graph ( DAG ) is shown in Figure 2, with some example 
+
+interventions illustrated . When fitting the model, the effects of the modifiable risk 
+
+factors on the outcome 𝑌 are fixed to their causal values . As the se factors act as 
+
+potential mediators for each other, we use the causal direct effects where 
+
+appropriate with reference to the DAG .
+
+Figure 2: A Directed Acyclic Graph capturing proposed interventions and the 
+
+modifiable risk factors on which they act 
+
+For practical purposes we make the following assumption. Assumption - Consistency of indirect intervention effects : Consider any 
+
+two interventions, 𝐴 " and 𝐴 #, affecting a n outcome 𝑌 via a modifiable risk 
+
+factor (mediator) 𝑀 . If 𝐴 " and 𝐴 # have identical effects on the mediator 𝑀 ,
+
+then their indirect effect on the outcome 𝑌 via 𝑀 is also the same. 
+
+To understand this assumption , consider a patient who loses 5kg of weight. The 
+
+assumption states that the effect of the weight loss on CVD risk is the same, 
+
+regardless of how that weight loss came about . This allows us to estimate the effects 
+
+of interventions based on limited or incomplete information , as well as supporting 
+
+recovery of the causal effect of a change in a modifiable risk factor on the outcome 
+
+from incomplete information . Consider the following simplified example. S uppose we 
+
+know that the effe ct of an anti -hypertensive on CVD risk is a 20% relative risk 
+
+reduction , and it acts only via SBP ; we also know that the anti -hypertensive reduces 
+
+SBP by 10mmHg . Then , we can recover the causal effect of a 10mmHg change in 
+
+SBP on CVD risk , regardless of how that change in SBP came about . Building upon 
+
+this, we can resolve other effects through a series of simultaneous equations 
+
+constrained to meet the consistency of indirect effect assumption . Direct effects, 
+
+where an intervention affects the outcome via routes other than the measured 
+
+modifiable risk factors, can also be allowed, either where there is prior evidence for 
+
+them, or to maintain the validity of the indirect effect consistency assumption. 
+
+Using this approach , the predicted risk under any arbitrary intervention can be 
+
+obtained by estimating or assuming the effect of the intervention on each of the 
+
+modifiable risk factors. For example, the predicted risk under a weight loss program 
+
+resulting in a loss of 5kg, or a change in diet resulting in a reduction in non -HDL 
+
+cholesterol of 3 mmol/L and reduction in blood pressure of 10mmHg. If the 
+
+intervention is believed to affect CVD not through BMI, non -HDL cholesterol or SBP 
+
+(e.g. a reduction in card iovascular risk from stopping smoking), this can be 
+
+incorporated as a direct effect. Alternatively , the intervention itself can be left 
+
+unspecified, but rather the effect of changing the risk factors can be estimated (e.g., 
+
+revised CVD risk if you achieve a healthy weight and healthy blood pressure, 
+
+regardless of how you go about that). More details concerning the consistency of 
+
+indirect intervention effects, and resolution of effects under this assumption, are 
+
+provided in a supporting document 12 .
+
+For interventions where we can reasonably ascertain changes during follow -up (such 
+
+as use of statins and anti -hypertensives ), we again follow a similar approach to Xu et 
+
+al 10 to handle post -baseline changes in the development data – see supplementary 
+
+data file 1 for further description .
+
+We call this the Modifiable Risk Factor Model. 2.5. Predictive Accuracy (Characteristic 4)
+
+2.5.1. Outline of the issue 
+
+For the models described so far , there will be a loss in predictive performance and 
+
+accuracy (and hence discrimination and calibration) because one or more of the 
+
+coefficients are being fixed to a causal value, rather than being estimated in a 
+
+flexible manner. Therefore , the model is not optimised for prediction. For example ,
+
+when modelled flexibly it is common for the antihypertensive coefficient to be 
+
+estimated in the opposite direction to its causal value (as described above ). The loss 
+
+in performance will vary on a case -by -case basis and can be assessed during 
+
+internal validation. 
+
+2.5.2. Proposed solution 
+
+In scenarios where fixing coefficients to their causal values causes an unacceptable 
+
+drop in performance, we propose an approach compris ing two main components. 
+
+The first component is a baseline predictive model that provides a factual prediction 
+
+the first time an individual’s risk is calculated (i.e., the risk if all pre -baseline 
+
+interventions are maintained at their current level ), and provide s a reference point for 
+
+all other calculations. The second component is an intervention model that will be 
+
+used to handle all future changes in interventions, both potential (looking forward to 
+
+evaluate risk under different interventions), and actual (accounting for actual 
+
+changes in interventions since baseline) . We call this the Two -Component Model. 
+
+Baseline Component 
+
+The baseline component is a prediction model that we estimate in the usual way 13 ,
+
+except that post -baseline treatment changes are accounted for using the Xu et al 10 
+
+approach as described earlier. Any predictors are eligible for inclusion - including 
+
+non -modifiable risk factors 𝑍 and modifiable risk factors 𝑀 . It can also include the 
+
+interventions considered, in the sense that values of the interventions at baseline 
+
+can be used as predictor s (for example, whether a patient is initially taking anti -
+
+hypertensives the first time their risk is evaluated can act as a proxy for previously 
+
+unobserved but pertinent factors ). 
+
+We denote the baseline predictive model as 𝑏 (𝑋 ; 𝛽 baseline ) where 𝛽 baseline collects the 
+
+parameters required for this component. In time to event modelling, the initial 
+
+baseline model targets the hazard function, and is then transformed to represent the 
+
+(logit) predicted risk as described in Section 2.2. 
+
+Intervention Component 
+
+For the intervention component the derivation of the DAG is the same as in Section 
+
+2.4 , with an example DAG in Figure 2 . We denote the intervention model as 
+
+𝑖 (𝐴 , Δ𝑀 ; 𝛽 int ), where 𝛽 int denotes the parameters for this component, and Δ𝑀 denotes the change in modifiable risk factors compared with baseline. We will focus 
+
+on absolute differences, and the model evaluated at time 𝑡 $ has the form 
+
+𝑖 (𝑋 , 𝐴 , Δ𝑀 ; 𝛽 123 ) = 𝜙 (𝑋 ; 𝛽 45& )𝜓 K𝑚 &! − 𝑚 &# L, (4)
+
+for some functions 𝜙 and 𝜓 . For example, use of an average causal effect (on an 
+
+appropriate scale, the log -odds scale in this case) for a change in each risk factor 
+
+independently would be written simply as 
+
+𝑖 (𝑋 , 𝐴 , Δ𝑀 ; 𝛽 123 ) = 𝛽 45&  
+
+> 6
+
+K𝑚 &! − 𝑚 &# L. (5)
+
+Combination of baseline and intervention model 
+
+At the baseline visit, use of the baseline model alone estimates the factual risk – the 
+
+risk if no changes are made to current lifestyle or medication, denoted 
+
+𝑓 K𝑌 , 𝑋 &# = 𝑥 &# , 𝐴 = 𝜙 L = 𝑏 K𝑋 = 𝑥 &# L. (6)
+
+Combining the baseline and intervention model provides PUI . For example, a patient 
+
+not on anti -hypertensives can calculate their PUI of commencing anti -hypertensives. 
+
+In practice this would be modelled via the modifiable risk factors 𝑀 :
+
+𝑓 K𝑌 , 𝑋 = 𝑥 &# , 𝐴 = 𝑎 L = 𝑏 K𝑋 = 𝑥 &# L𝑖 K𝑋 = 𝑥 &# , 𝐴 = 𝑎 , Δ𝑀 = 𝑚 &# (𝑎 ) − 𝑚 &# L, (7)
+
+and a series of different potential interventions in 𝐴 could be evaluated and 
+
+compared to support decisions. 
+
+At follow -up visits, the factual risk calculation also requires use of the intervention 
+
+model and baseline model – where the intervention model is used to account for the 
+
+change in modifiable risk factors compared with the first visit . The baseline model 
+
+uses the modifiable risk factors from the first visit, but is updated with any revised 
+
+non -modifiable risk factors (such as age) :
+
+𝑓 K𝑌 , 𝑀 = 𝑚 &# , 𝑋 = 𝑥 &! , 𝐴 = 𝜙 L
+
+= 𝑏 K𝑀 = 𝑚 &# , 𝑍 = 𝑧 &! L𝑖 K𝑋 = 𝑥 &! , 𝐴 = 𝜙 , Δ𝑀 = 𝑚 &! − 𝑚 &# L. (8)
+
+PUIs are made at subsequent visits in a similar way: 
+
+𝑓 K𝑌 , 𝑀 = 𝑚 &# , 𝑋 = 𝑥 &! , 𝐴 = 𝑎 L
+
+= 𝑏 K𝑀 &# = 𝑚 &# , 𝑍 &! = 𝑧 &! L𝑖 K𝑋 = 𝑥 &! , 𝐴 = 𝑎 , 𝑀 &! = 𝑚 &! (𝑎 ) − 𝑚 &# L. (9)
+
+In the follow -up visits , the predicted risk explicitly depends on the modifiable risk 
+
+factors’ values from the first visit – i.e., the model must condition on these pre -
+
+intervention value s. For PUI , it is the difference between the modifiable risk factor 
+
+and its value at the first visit, rather than the follow -up visit, that is used in the 
+
+calculation. 3. Clinical example 
+
+3.1. Aims and objectives 
+
+We consider a scenario where the objective is prediction of 10 -year incident 
+
+cardiovascular risk under several potential interventions . We choose this setting 
+
+because c ardiovascular risk prediction models are used widely around the world 
+
+> 2,9,14,15
+
+, their use is often recommended i n clinical guidelines (e.g., National Institute 
+
+for Health and Care Excellence, 2023) , and methodology on prediction -under -
+
+intervention has to -date focused on cardiovascular risk prediction. Five models (as 
+
+described in the previous section) are developed. 
+
+As an illustrative example , throughout this section we consider a 65 -year old woman ,
+
+Jane, with type 2 diabetes, an SBP of 140 mmHg, a BMI of 30 and non -HDL 
+
+cholesterol of 5mmol/L. She attend s a clinical appointment which we refer to as visit 
+
+0, and we consider various interventions (statins, antihypertensives, and lifestyle 
+
+interventions expected to operate through the modification of SBP, BMI and non -
+
+HDL cholesterol ), and follow -up visits for Jane. 
+
+3.2. Data 
+
+We use data from the Clinical Practice Research Datalink Aurum linked with Hospital 
+
+Episode Statistics and Office for National Statistics death outcomes 17 . Cohort entry 
+
+date for each individual was defined as the maximum of: 1 Jan 2005; one year of up 
+
+to standard registration with a contributing pract ice; date of attaining age 18. Follow -
+
+up ended at the minimum of: 1 March 2020 (to avoid impacts of COVID -19) , date of 
+
+diagnosis of first CV D; death ; deregistration with practice ; last data upload from 
+
+practice or HES. The same set of predictors used in QR4 2 were extracted for each 
+
+individual at the cohort entry date (Table 1) , with the following exclusions : SBP 
+
+variability, non -high density lipoprotein (HDL) , and cholesterol replaced total 
+
+cholesterol/HDL ratio . SBP unexposed to antihypertensive treatment was additionally 
+
+extracted where possible (see supplementary data file 1 for details and justification 
+
+of these changes ). Details of the data extraction process , code lists, and operational 
+
+definitions of all variables are provided in supplementary data file 1 .
+
+Table 1: Baseline cohort characterisation Characteristic Male N = 2,000,000 Female N = 
+
+2,000,000 
+
+Age 
+
+Median (5% Centile, Q1, Q3, 95% 
+
+Centile) 
+
+35 (18, 25, 48, 69) 34 (18, 25, 49, 73) 
+
+N Missing (% Missing) 0 (0%) 0 (0%) 
+
+Ethnicity 
+
+Bangladeshi 14,506 (0.7%) 12,242 (0.6%) 
+
+Black African 48,277 (2.4%) 52,568 (2.6%) 
+
+Black Caribbean 20,937 (1.0%) 24,747 (1.2%) 
+
+Chinese 23,290 (1.2%) 33,083 (1.7%) 
+
+Indian 56,195 (2.8%) 53,243 (2.7%) 
+
+Other Asian 44,646 (2.2%) 43,692 (2.2%) 
+
+Other ethnic group 89,503 (4.5%) 98,187 (4.9%) 
+
+Pakistani 33,170 (1.7%) 28,497 (1.4%) 
+
+White 1,248,769 (62%) 1,417,417 (71%) 
+
+Missing 420,707 (21%) 236,324 (12%) 
+
+Hypertension 147,779 (7.4%) 170,527 (8.5%) 
+
+Rheumatoid arthritis 4,901 (0.2%) 11,942 (0.6%) 
+
+Atrial Fibrillation 12,894 (0.6%) 9,289 (0.5%) 
+
+Chronic kidney disease 10,475 (0.5%) 14,318 (0.7%) 
+
+Serious mental illness 27,844 (1.4%) 30,643 (1.5%) 
+
+Family history of CVD 111,733 (5.6%) 141,336 (7.1%) 
+
+Migraine 57,149 (2.9%) 141,607 (7.1%) 
+
+Systemic lupus erythematosus 310 (<0.1%) 2,408 (0.1%) 
+
+Diabetes 
+
+Absent 1,940,429 (97%) 1,952,605 (98%) 
+
+Type1 8,905 (0.4%) 6,633 (0.3%) 
+
+Type2 50,666 (2.5%) 40,762 (2.0%) 
+
+Impotence 79,738 (4.0%) 380 (<0.1%) 
+
+Oral c ortico steroid use 9,146 (0.5%) 14,543 (0.7%) 
+
+Atypical antipsy chotic use 9,950 (0.5%) 7,711 (0.4%) 
+
+Smoking 
+
+Non -smoker 843,901 (42%) 1,069,024 (53%) 
+
+Ex -smoker 365,350 (18%) 389,589 (19%) 
+
+Current 461,452 (23%) 375,534 (19%) 
+
+Missing 329,297 (16%) 165,853 (8.3%) 
+
+Statins 70,850 (3.5%) 64,600 (3.2%) 
+
+Antihypertensives 132,063 (6.6%) 159,859 (8.0%) 
+
+Chronic obstructive pulmonary disease 17,643 (0.9%) 16,179 (0.8%) Characteristic Male N = 2,000,000 Female N = 
+
+2,000,000 
+
+Intellectual dis ability 9,387 (0.5%) 6,186 (0.3%) 
+
+Downs syndrome 1,039 (<0.1%) 1,027 (<0.1%) 
+
+Oral cancer 1,248 (<0.1%) 679 (<0.1%) 
+
+Brain cancer 645 (<0.1%) 517 (<0.1%) 
+
+Lung cancer 810 (<0.1%) 743 (<0.1%) 
+
+Blood cancer 4,800 (0.2%) 3,961 (0.2%) 
+
+Pre eclampsia 4 (<0.1%) 5,597 (0.3%) 
+
+Postnatal depression 69 (<0.1%) 26,441 (1.3%) 
+
+Body mass index 
+
+Median (5% Centile, Q1, Q3, 95% 
+
+Centile) 
+
+25.4 (19.8, 22.8, 
+
+28.5, 34.5) 
+
+24.2 (19.1, 21.5, 
+
+28.3, 36.6) 
+
+N Missing (% Missing%) 940,543 (47%) 723,494 (36%) 
+
+Systolic blood pressure 
+
+Median (5% Centile, Q1, Q3, 95% 
+
+Centile) 
+
+130 (105, 120, 139, 
+
+155) 
+
+120 (99, 110, 131, 
+
+150) 
+
+N Missing (% Missing%) 834,775 (42%) 412,096 (21%) 
+
+Non -HDL cholesterol 
+
+Median (5% Centile, Q1, Q3, 95% 
+
+Centile) 
+
+3.79 (2.11, 3.05, 
+
+4.50, 5.70) 
+
+3.60 (2.10, 2.90, 
+
+4.40, 5.70) 
+
+N Missing (% Missing) 1,657,709 (83%) 1,658,295 (83%) 
+
+Index multiple deprivation (twentile) 
+
+Median (5% Centile, Q1, Q3, 95% 
+
+Centile) 
+
+11.0 (2.0, 6.0, 15.0, 
+
+19.0) 
+
+11.0 (2.0, 6.0, 15.0, 
+
+19.0) 
+
+N Missing (% Missing) 2,562 (0.1%) 2,467 (0.1%) 
+
+Systolic blood pressure , unexposed to 
+
+antihypertensives 
+
+Median (5% Centile, Q1, Q3, 95% 
+
+Centile) 
+
+129 (105, 120, 140, 
+
+160) 
+
+120 (99, 110, 130, 
+
+155) 
+
+N Missing (% Missing) 883,666 (44%) 479,215 (24%) 
+
+All analyses were run separately for female and male cohorts , using a random 
+
+sample of 2,000,000 females and 2,000,000 males , for computational reasons . The 
+
+data on these cohorts is presented in Table 1. Missing data on SBP , SBP unexposed 
+
+to antihypertensive treatment (required for the Unexposed Mediator Model ), BMI ,
+
+non -HDL cholesterol, smoking status, ethnicity and index of multiple deprivation 
+
+vigintiles was imputed using multiple imputation. We used one imputation chain with 
+
+20 iterations to result in one stochastically imputed dataset for both female and male 
+
+cohorts, which was then treated and analysed like a complete case dataset for clarity 
+
+of exposition (a model to be implemented should follow best practice for missing data handling, see e.g., Sisk et al 18 ). After imputation, the data was split in half at 
+
+random to create split sample data for development and model evaluation. We 
+
+present calibration plots for the female models throughout, with plots for the male 
+
+models provided in supplementary data file 2 .
+
+3.3. Non -Causal Model and Treatment Offset Model 
+
+For th e Treatment Offset Model we choose the single intervention of interest , 𝐴 , to 
+
+be antihypertensive treatment. We develop a Cox proportional hazards models with 
+
+spline terms for continuous variables, and all variables interacted with the linear term 
+
+for age. The anti -hypertensive coefficient for the baseline model, and post -baseline 
+
+adjustment is derived from Karmali et al 19 . More details on the derivation of all the 
+
+causal treatment effects used in this study are provided in a supporting document 12 .
+
+The Non -Causal Model is identical, except that the coefficient for anti -hypertensives 
+
+is unconstrained. 
+
+The calibration of th ese model s (along with other models that will be introduced in 
+
+sections 3.4 – 3.6) are given in Figure 3. The Integrated Calibration Index (ICI), E50 
+
+and E90 20 , and discriminations are provided in Table 2 . Calibration was assessed 
+
+using the proportional hazards approach 20 , and discrimination using Harrel’s C -
+
+index 21 . To evaluate performance of the Treatment Offset Model , counterfactual 
+
+survival times were derived that would have been observed under the treatment 
+
+strategy of “no antihypertensive use over the 10 -year period”. The Treatment Offset 
+
+Model has a very minor drop in performance when compared with the Non -Causal 
+
+Model .
+
+Figure 3: Calibration plots for models .Table 2: Calibration and discrimination of the models .
+
+Model ICI E50 E90 Discrimination 
+
+Non -Causal 0.001 (0.001, 
+
+0.001) 
+
+0.001 (0, 
+
+0.001) 
+
+0.001 (0.001, 
+
+0.002) 
+
+0.869 (0.869, 
+
+0.869) 
+
+Treatment 
+
+Offset 
+
+0.001 (0.001, 
+
+0.001) 
+
+0.001 (0, 
+
+0.001) 
+
+0.002 (0.001, 
+
+0.003) 
+
+0.880 (0.880, 
+
+0.880) 
+
+Unexposed 
+
+Mediator 
+
+0.001 (0.001, 
+
+0.001) 
+
+0.001 (0, 
+
+0.001) 
+
+0.002 (0.001, 
+
+0.003) 
+
+0.880 (0.880, 
+
+0.880) 
+
+Causal MFR 0.005 (0.005, 
+
+0.005) 
+
+0.001 (0.001, 
+
+0.001) 
+
+0.014 (0.012, 
+
+0.014) 
+
+0.868 (0.868, 
+
+0.868) 
+
+Two Component 0.001 (0.001, 
+
+0.001) 
+
+0.001 (0, 
+
+0.001) 
+
+0.002 (0.001, 
+
+0.003) 
+
+0.871 (0.871, 
+
+0.871) 
+
+Recall Jane, our 65 -year old woman with type 2 diabetes, an SBP of 140 mmHg, a 
+
+BMI of 30 and non -HDL cholesterol of 5mmol/L . Given her raised SBP, we may want 
+
+to estimate her risk under antihypertensive treatment, and contrast this with her risk 
+
+if she do es n’t receive antihypertensive treatment. 
+
+Jane’s estimated ris k from the non -causal model with antihypertensives set to “ yes ”
+
+is 17.68 %, and for antihypertensives set to “ no ” is 15.32 %. This reversal in the 
+
+expected effect of antihypertensives highlights why this cannot be used for 
+
+prediction -under -intervention .
+
+The risk from the treatment offset model under the intervention of antihypertensive 
+
+treatment for 10 -years is 1 2.79 %, and the risk under no antihypertensive treatment 
+
+for 10 -years is 1 7.25 %. As expected, the risks on and off treatment lie either side the 
+
+risk estimated from the non -causal model. However, suppose this individual decides 
+
+to initiate antihypertensive treatment based on their risk assessment . They return to 
+
+practice 3 months later (follow -up visit 1) having seen a reduction in their SBP to 
+
+120. If we again use the treatment offset model to predict risk under intervention 
+
+(with all predictors except SBP remaining the same) , we estimate a risk under 
+
+antihypertensive treatment for 10 -years of 11.05 %, and 14.96 % without. There is a 
+
+lack of consistency when using this model at multiple visits, highlight ing the double 
+
+counting of the effect of antihypertensives. 
+
+3.4. Unexposed Mediator Model 
+
+We developed the model in the same way as the treatment offset model , except that 
+
+the SBP variable was replaced with SBP unexposed to antihypertensive treatment. 
+
+The model is again well calibrated and discriminates w ell (Figure 3, Table 2), with 
+
+little drop in performance compared with the non -causal model. We estimate Jane’s risk under antihypertensive treatment for 10 -years as 13.01 %, 
+
+and 1 7.54 % without. We then hypothesise Jane initiating antihypertensive treatment 
+
+and returning at follow -up visit 1 after achieving a reduction in SBP to 120. The 
+
+inputs when making the prediction remain the same as we use the SBP value prior 
+
+to initiating antihypertensive treatment , and the risks on and off treatment therefore 
+
+also remain the same , thus satisfying consistency with sequential prediction under 
+
+intervention (Characteristic 2). 
+
+3.5. Modifiable Risk Factor Model 
+
+This model is designed to achieve Characteristic 3: Flexibility for multiple 
+
+interventions . We assume that the possible interventions of interest are 
+
+antihypertensive s or statin medication, and changes in lifestyle through diet and 
+
+exercise, all operate through three modifiable risk factors: SBP, BMI and non -HDL 
+
+cholesterol. Following the process outlined in section 2.4.2 , and based on effect 
+
+estimates reported in a variety of meta -analyses and systematic reviews, a DAG was 
+
+deve loped to estimate the direct effects of changes in each of these three modifiable 
+
+risk factors (Figure 2, and see supporting document 12 for further details of 
+
+derivations ).
+
+A Cox proportional hazards model was developed with a spline on continuous 
+
+variables, and all variables interacted with the linear term for age. This is with the 
+
+exception of SBP, BMI and non -HDL cholesterol . For these variables, we created 
+
+cut -offs at 120 (SBP), 25 (BMI) and 2.6 (non -HDL cholesterol) below which we 
+
+deemed further reduction would not achieve a reduction in risk of CVD. The 
+
+coefficients of these variables were then fixed to the ir direct causal effects estimated 
+
+from the DAG. To target the estimand of “risk under current intervention strategy”, 
+
+we adjust for changes in statin and antihypertensive use during follow -up using the 
+
+approach es detailed in supplementary data file 1 . The estimated risks under 
+
+intervention can then be obtained by altering the inputs for SBP, BMI and non -HDL 
+
+cholesterol. 
+
+Jane's baseline risk at visit 0 is 1 8.70 %. Under antihypertensive treatment reducing 
+
+SBP to 120, her estimated risk drops to 11.95 % (or 1 4.98 % if SBP only reaches 
+
+130). We can model other interventions: a diet -induced BMI reduction of 5 (to 
+
+BMI=25) would decrease non -HDL cholesterol by 0.522 mmol/L and SBP by 3.5 
+
+mmHg through knock -on effects, yielding 1 6.85 % risk. Optimistically, combining diet, 
+
+exercise, and medications to achieve healthy levels across all risk factors could 
+
+reduce risk to 6.9 2%. At follow -up visit 1, we can measure actual changes in risk 
+
+factors and update the model to provide factual rather than counterfactual risk 
+
+estimates .
+
+While this model is very flexible in its use , there is a large drop in performance, 
+
+particularly calibration (Figure 3, Table 2) . We now move onto our final proposed 
+
+model that address es this performance drop .3.6. Two -Component model 
+
+This model is designed to achieve Characteristic 4: Good predictive accuracy . The 
+
+Two -Component model used here is described in section 2. 5.2. For the initial risk 
+
+estimation component, a Cox proportional hazards model was developed with a 
+
+spline on all continuous variables (including SB P, BMI and non -HDL cholesterol ),
+
+and all variables interacted with the linear term for age. To target the estimand of 
+
+“risk under current intervention strategy”, we adjust for changes in statin and 
+
+antihypertensive use during follow -up using the approaches detailed in 
+
+supplementary data file 1. 
+
+Using the DAG (Figure 2), the effect of changes in the modifiable risk factors are 
+
+applied through the intervention component using odds ratios. Contrary to the 
+
+modifiable risk factor model , this model does not have a drop in calibration compared 
+
+with the other models (Figure 3, Table 2) .
+
+For the same individual and hypothetical scenarios described in section 3.5, the 
+
+baseline risk at visit 0 is estimated at 1 6.88 %. Antihypertensive intervention reducing 
+
+SBP to 120 mmHg would yield an estimated risk of 1 1.10 %, while reduction to 130 
+
+mmHg would result in 1 3.73 %. A dietary intervention producing a 5 -unit BMI 
+
+reduction, including associated knock -on effects, estimates risk at 1 5.3 2%. If 
+
+combined interventions successfully bring all modifiable risk factors to healthy levels, 
+
+the estimated risk i s 6.57 %. Suppose that because of this consultation, the individual 
+
+initiates a weight loss programme, with planned changes to both diet and exercise 
+
+regime. 
+
+We now consider the same individual returning for a check -up at follow -up visit 1 ,
+
+which is one year later. We can estimate a factual risk based on the achieved levels 
+
+of each of the modifiable risk factors. Suppose the individual achieved the reduction 
+
+in BMI of 5, and also achieved a reduction in non -HDL cholesterol of 1mmol/L, but 
+
+their SBP remained the same. Their estimated risk given the achieved level of their 
+
+modifiable risk factors is 13.73%. Further hypothetical interventions can then be 
+
+considered , for example, the risk under antihypertensive treatment is 11.09% if a 
+
+reduction in SBP to 130 mmHg is achieved, and 8.91% if a reduction to 120 mmHg 
+
+is achieved. 
+
+## 4. Discussion 
+
+4.1. Main findings 
+
+We present a collection of related methods for fitting prediction under intervention 
+
+(PUI) models that can be used sequentially in a decision support context. The 
+
+developed approaches deal flexibly with sparse data, target useful causal estimands, 
+
+and maintain good predictive performance. The Treatment Offset Model provides a simple and natural way to target causal 
+
+estimands, and is an adequate approach for PUI at a single timepoint, with a small 
+
+number of a -priori well -defined interventions . This approach is followed by existing 
+
+models including the PREDICT breast cancer model used to support treatment 
+
+decisions 22 . However, this approach is inadequate where risk is repeatedly 
+
+evaluated over time. 
+
+A first approach to address sequential PUI is provided by the Unexposed Mediator 
+
+Model . This is useful where risk is repeatedly evaluated in the presence of few 
+
+interventions whose causal pathways are via a small number of mediators that are 
+
+also used as predictors. This relies on being able to measure or impute the 
+
+mediators in absence of intervention; this may be plausible for simple applications of 
+
+PUI in primary prevention, where data is available on individuals before primary 
+
+prevention activity commen ced. 
+
+Where flexibility for multiple interventions is required, the Modifiable Risk Factor 
+
+Model can be used as this can model interventions abstractly via their effects on the 
+
+mediators that are also predictors. 
+
+In each of these three models, the fixing of model coefficients to their causal value 
+
+will inevitably lead to bias in the model from a purely predictive sense, as the 
+
+coefficients are no longer estimated to maximise the likelihood function. This may 
+
+lead to a drop in predictive performance . To avoid this, the Two -Component Model 
+
+can be used, where baseline risk at a first visit is calculated using a purely predictive 
+
+model. This ensures that predictive performance remains strong, but introduces 
+
+extra considerations around model implementation and model updating, as the 
+
+values from this first visit must be remembered at subsequent visits. Table 3 
+
+summarises recommendations on circumstances where each approach might be 
+
+most useful. 
+
+Table 3: Summary of recommendations 
+
+Number of interventions Need for sequential re -
+
+evaluation 
+
+Recommendation 
+
+Small, causal effects 
+
+known 
+
+No Treatment Offset Model 
+
+Small, causal effects 
+
+known 
+
+Yes Unexposed Mediator 
+
+Model 
+
+Large, causal effects not 
+
+always known 
+
+No/Yes Either Causal Modifiable 
+
+Risk Factor Model or 
+
+Two -Component Model .
+
+Prefer the Two -
+
+Component Model if 
+
+accuracy of absolute risk 
+
+is important to the 
+
+application, and 
+
+substantively superior 
+
+compared with the Causal Modifiable Risk Factor 
+
+Model. 
+
+4.2. Related Literature 
+
+Sequential PUI was described by Luijken et al 6, who propos e estimands for 
+
+scenarios where there are multiple timepoints where an intervention can be 
+
+considered. This work builds on that by providing explicit strategies for estimation, 
+
+and also extends it by allowing for arbitrarily many interventions. 
+
+The most similar existing approach is that proposed in the Million Hearts Study 23 .
+
+There , a standard baseline model is used at ‘first’ visit (the pooled cohort equations) 
+
+and they apply relative risk adjustments based on subsequent interventions and 
+
+changes in risk factors. This is therefore similar in spirit to the Two -Component 
+
+Model we have proposed. However, our approach has several key novelties . First, 
+
+rather than using a standard prediction model for the baseline prediction model, we 
+
+additionally account for treatment drop -in to ensure that baseline risk under current 
+
+treatment regime is well -defined 3,4,10 . Second, in the intervention component , rather 
+
+than using relative risk reductions, we propose building a DAG to explicitly capture 
+
+‘knock -on’ effects (such as weight loss leading to a reduction in SBP ). Third, we 
+
+allow for multiple arbitrary interventions building upon the consistency of indirect 
+
+intervention effects assumption. 
+
+4.3. Strengths and Limitations 
+
+The approaches described have several strengths. First, b ringing some causal 
+
+formality allows us to be more explicit about the targeted estimands and 
+
+assumptions than is usual in the prediction modelling field. Second, despite the 
+
+causal clarity the approach has a pragmatic flavour in that risks can be estimated 
+
+from limited data, such as is often encountered in healthcare , and notably in 
+
+electronic health records. Third, w e have provided several different model structures 
+
+that allow for different trade -off s to be made. For example, including the baseline 
+
+predictive model (following the Two Component Model approach) is expected to 
+
+substantively increase predictive performance, but comes at the price of making a 
+
+distinction between what happened with risk factors before the first recorded visit 
+
+(modelled in a flexible predictive way) and changes after this visit (modelled 
+
+causally). 
+
+The approach has several notable weaknesses – some of these represent 
+
+opportunities for further research while some are inevitable trade -offs. First, the 
+
+accuracy of developed models depends upon the quality of the causal estimates that 
+
+are used as input. The causal estimates are input as point estimates allowing no 
+
+propagation of their potential variance or bias. A fully Bayesian extension would 
+
+provide a natural way to incorporate this uncertainty, and this is an important future 
+
+direction for this work. Second, the price of flexibility to arbitrary interventions is the 
+
+requirement to make a consistency assumption , which also relates to research concerning ambiguous interventions 24 and the importance of well -defined 
+
+interventions 25 . Further investigations are required both to empirically investigate the 
+
+plausibility of the consistency assumption used in this context, and to connect with 
+
+active research concerning estimation for ambiguous interventions. 
+
+Third, the need to identify a ‘first visit’ before which risk factors are modelled non -
+
+causally, and after which subsequent changes are modelled causally, leads to 
+
+undesirable features and raises complex questions. Notably, the Two -Component 
+
+Model is anchored to this first visit. In many primary prevention settings, this first visit 
+
+is somewhat arbitrary, and this approach is affording it a special status that seems 
+
+undesirable, and also imposes a requirement to ‘remember’ the levels of risk factors 
+
+at this first visit. While this addresses performance at times close to this first visit, it is 
+
+likely that predictive performance will deteriorate for later visits. There may be other 
+
+ways to make this trade -off between causal consistency over several visits and 
+
+predictive performance to explore .
+
+Fourth, in our baseline models we addressed treatment drop -in (or post -baseline 
+
+treatment changes) for binary treatment variables including statin use, anti -
+
+hypertensive use, and smoking. However, it is less clear how this should be done for 
+
+interventions that are represented in non -binary variables. In particular, the ‘do 
+
+nothing’ risk that we wish to be able to calculate is not necessarily well defined: while 
+
+it is clear from the perspective of not initiating e.g., statins during follow -up, it is less 
+
+clear what it would mean, and indeed how to measure, the absence of lifestyle 
+
+interventions. 
+
+4.4. Conclusion 
+
+We offer pragmatic approaches for prediction under intervention in settings where 
+
+many interventions might be available, and risk is evaluated repeatedly over time. 
+
+While the four methods presented are a logical progression, in any given setting all 
+
+four a pproaches could be used. The modelling approaches presented here can be 
+
+used to build prediction under intervention models in practice, though careful 
+
+validation of assumptions and outputs is required. 
+
+## 5. Acknowledgements 
+
+This research was funded by The National Institute for Health Research (NIHR) 
+
+School for Primary Care Research (SPCR) (reference: NIHR SPCR -2021 -2026, 
+
+grant number 648) and Endeavour Health Charitable Trust. We acknowledge 
+
+support of the UKRI AI programme, and the Engineering and Physical Sciences 
+
+Research Council, for CHAI - Causality in Healthcare AI Hub [grant number 
+
+EP/Y028856/1]. The views expressed are those of the authors and not necessarily 
+
+those of the NIHR, the Department of Health and Social Care , or Endeavour Health. 6. Ethics 
+
+CPRD has ethics approval from the Health Research Authority to support research 
+
+using anonymised patient data. CHARIOT application (protocol 22_002333) was 
+
+reviewed via the CPRD Research Data Governance (RDG) Process to ensure that 
+
+the proposed research is of benefit to patients and public health. 
+
+## 7. Data and Code Sharing 
+
+Code for running all example s in the paper are provided on GitHub 
+
+(https://github.com/manchester -predictive -healthcare -group/CHI -
+
+CHARIOT/tree/main/project -1-pui -methods ). See Supplementary File 1 for further 
+
+information. 
+
+The data used in this study were obtained from the Clinical Practice Research 
+
+Datalink (CPRD). CPRD is a research service that provides anonymized primary 
+
+care data for public health research. Due to ethical and legal restrictions related to 
+
+the Data Prote ction Act and the terms of the license, the authors are not permitted to 
+
+share the raw data. 
+
+Researchers may apply for access to CPRD data by submitting a protocol for review 
+
+to the Research Data Governance (RDG) process. Details on how to apply for data 
+
+access and the costs involved can be found at www.cprd.com. 
+
+## 8. Competing Interests 
+
+No authors had conflicts of interest to declare. 
+
+## 9. References 
+
+1. Rao S, Li Y, Mamouei M, et al. Refined selection of individuals for preventive 
+
+cardiovascular disease treatment with a transformer -based risk model. Lancet 
+
+Digit Health . 2025;7(6). Accessed August 11, 2025. 
+
+https://www.thelancet.com/journals/landig/article/PIIS2589 -7500(25)00055 -
+
+X/fulltext 
+
+2. Hippisley -Cox J, Coupland CAC, Bafadhel M, et al. Development and validation 
+
+of a new algorithm for improved cardiovascular risk prediction. Nat Med .
+
+2024;30(5):1440 -1447. doi:10.1038/s41591 -024 -02905 -y3. Sperrin M, Martin GP, Pate A, Van Staa T, Peek N, Buchan I. Using marginal 
+
+structural models to adjust for treatment drop -in when developing clinical 
+
+prediction models. Stat Med . 2018;37(28):4142 -4154. doi:10.1002/sim.7913 
+
+4. van Geloven N, Swanson SA, Ramspek CL, et al. Prediction meets causal 
+
+inference: the role of treatment in clinical prediction models. Eur J Epidemiol .
+
+2020;35(7):619 -630. doi:10.1007/s10654 -020 -00636 -1
+
+5. Lin L, Sperrin M, Jenkins DA, Martin GP, Peek N. A scoping review of causal 
+
+methods enabling predictions under hypothetical interventions. Diagn Progn Res .
+
+2021;5(1):3. doi:10.1186/s41512 -021 -00092 -9
+
+6. Luijken K, Morzywo łek P, van Amsterdam W, et al. Risk -Based Decision Making: 
+
+Estimands for Sequential Prediction Under Interventions. Biom J .
+
+2024;66(8):e70011. doi:10.1002/bimj.70011 
+
+7. Pate A, Jiang B, Huang YT, et al. CHARIOT: Development and Internal 
+
+Validation of a Cardiovascular Health Assessment and Risk -based Intervention 
+
+Optimisation Tool. medRxiv . Preprint posted online September 19, 
+
+2025:2025.09.18.25336064. doi:10.1101/2025.09.18.25336064 
+
+8. Hernán MA, Robins JM. Causal Inference: What If . Boca Raton: Chapman & 
+
+Hall/CRC; 2020. 
+
+9. Pylypchuk R, Wells S, Kerr A, et al. Cardiovascular disease risk prediction 
+
+equations in 400 000 primary care patients in New Zealand: a derivation and 
+
+validation study. Lancet Lond Engl . 2018;391(10133):1897 -1907. 
+
+doi:10.1016/S0140 -6736(18)30664 -0
+
+10. Xu Z, Arnold M, Stevens D, et al. Prediction of Cardiovascular Disease Risk 
+
+Accounting for Future Initiation of Statin Treatment. Am J Epidemiol .
+
+2021;190(10):2000 -2014. doi:10.1093/aje/kwab031 
+
+11. Amsterdam WAC van, Ranganath R. Conditional average treatment effect 
+
+estimation with marginally constrained models. J Causal Inference .
+
+2023;11(1):20220027. doi:10.1515/jci -2022 -0027 
+
+12. Jiang B, Pate A, Huang YT, McMillan B, Sperrin M. Derivation of the DAG Used 
+
+to Drive the Intervention Component in the CHARIOT Project . Zenodo; 2026. 
+
+doi:10.5281/zenodo.18669606 
+
+13. Steyerberg EW. Clinical Prediction Models : A Practical Approach to 
+
+Development, Validation, and Updating . Springer; 2019. 
+
+14. Hajifathalian K, Ueda P, Lu Y, et al. A novel risk score to predict cardiovascular 
+
+disease risk in national populations (Globorisk): a pooled analysis of prospective 
+
+cohorts and health examination surveys. Lancet Diabetes Endocrinol .
+
+2015;3(5):339 -355. doi:10.1016/S2213 -8587(15)00081 -915. SCORE2 working group and ESC Cardiovascular risk collaboration. SCORE2 
+
+risk prediction algorithms: new models to estimate 10 -year risk of cardiovascular 
+
+disease in Europe. Eur Heart J . 2021;42(25):2439 -2454. 
+
+doi:10.1093/eurheartj/ehab309 
+
+16. National Institute for Health and Care Excellence. Cardiovascular disease: risk 
+
+assessment and reduction, including lipid modification. December 14, 2023. 
+
+Accessed September 26, 2025. https://www.nice.org.uk/guidance/ng238 
+
+17. Wolf A, Dedman D, Campbell J, et al. Data resource profile: clinical practice 
+
+research Datalink (CPRD) aurum. Int J Epidemiol . 2019;48(6):1740 -1740g. 
+
+18. Sisk R, Sperrin M, Peek N, van Smeden M, Martin GP. Imputation and missing 
+
+indicators for handling missing data in the development and deployment of 
+
+clinical prediction models: A simulation study. Stat Methods Med Res .
+
+2023;32(8):1461 -1477. doi:10.1177/09622802231165001 
+
+19. Karmali KN, Lloyd -Jones DM, Berendsen MA, et al. Drugs for Primary Prevention 
+
+of Atherosclerotic Cardiovascular Disease: An Overview of Systematic Reviews. 
+
+JAMA Cardiol . 2016;1(3):341 -349. doi:10.1001/jamacardio.2016.0218 
+
+20. Austin PC, Harrell FE, van Klaveren D. Graphical calibration curves and the 
+
+integrated calibration index (ICI) for survival models. Stat Med .
+
+2020;39(21):2714 -2742. doi:10.1002/sim.8570 
+
+21. Harrell F. Regression Modeling Strategies: With Applications to Linear Models, 
+
+Logistic and Ordinal Regression, and Survival Analysis . 2015. 
+
+22. Candido dos Reis FJ, Wishart GC, Dicks EM, et al. An updated PREDICT breast 
+
+cancer prognostication and treatment benefit prediction model with independent 
+
+validation. Breast Cancer Res . 2017;19(1):58. doi:10.1186/s13058 -017 -0852 -3
+
+23. Lloyd -Jones DM, Huffman MD, Karmali KN, et al. Estimating Longitudinal Risks 
+
+and Benefits From Cardiovascular Preventive Therapies Among Medicare 
+
+Patients: The Million Hearts Longitudinal ASCVD Risk Assessment Tool: A 
+
+Special Report From the American Hear t Association and American College of 
+
+Cardiology. Circulation . 2017;135(13):e793 -e813. 
+
+doi:10.1161/CIR.0000000000000467 
+
+24. Spirtes P, Scheines R. Causal Inference of Ambiguous Manipulations. Philos Sci .
+
+2004;71(5):833 -845. doi:10.1086/425058 
+
+25. Hernán MA, Taubman SL. Does obesity shorten life? The importance of well -
+
+defined interventions to answer causal questions. Int J Obes 2005 . 2008;32 
+
+Suppl 3:S8 -14. doi:10.1038/ijo.2008.82 Supplementary Data File 1 – technical 
+
+# appendix 
+
+Associated manuscript: A flexible approach to prediction under intervention 
+
+Authors: Matthew Sperrin, Bowen Jiang. Joyce Huang, Alexander Pate 
+
+Table of Contents 
+
+1. Code for CPRD Aurum data extraction ................................ ................................ ........... 27 
+
+1.1. Required directory structure ................................ ................................ ................. 27 
+
+1.2. List of programs and what they do ............................... Error! Bookmark not defined. 
+
+1.3. Operational definitions for each variable ..................... Error! Bookmark not defined. 
+
+1.4. Code lists ................................ ................................ .. Error! Bookmark not defined. 
+
+2. Code for running analyses ................................ ................................ ............................ 27 
+
+2.1. General overview ................................ ................................ ................................ . 27 
+
+2.2. Dictionary of files ................................ ................................ ................................ . 27 
+
+3. Choice of predictors in the model ................................ ................................ ................. 28 
+
+4. Modelling approach ................................ ................................ ................................ ...... 29 
+
+4.1. Summary ................................ ................................ ................................ ............. 29 
+
+4.2. Definitions and formulas ................................ ................................ ...................... 30 
+
+4.3. Formulas ................................ ................................ ................................ ............. 31 
+
+5. Methodology for estimation of counterfactual survival times ................................ .......... 32 
+
+6. References ................................ ................................ ................................ .................. 33 10. Code for CPRD Aurum data extraction 
+
+The code and supporting documentation for the CPRD Aurum data extraction is available on 
+
+GitHub (see folder generic -data -etraction). This includes operational definitions for each 
+
+variable extracted, the code lists used to define each variable, name and description of all code 
+
+used for data extraction, and info rmation on the structure of the code. The code used for data 
+
+extraction in this study formed the basis for development of an R package, rCPRD, 1 ‘to simplify 
+
+the extraction and processing of CPRD Aurum data, and creating analysis -ready datasets’. If you 
+
+are reading this data extraction document to better understand how to extract and work with 
+
+CPRD Aurum data, you are better o] looking at the pac kage documentation. Specifically, the 
+
+rCPRD package vignette: https://alexpate30.github.io/rcprd/articles/rcprd.html , is a step -by -
+
+step guide on how to use this package to work with CPRD AURUM data, and will be kept up to 
+
+date. The code and associated information used for the data extraction in this project is 
+
+available in the generic data extraction GitHub repo. 2
+
+# 11. Code for running analyses 
+
+11.1. General overview 
+
+All analyses were run in R version 4.4.2. The code for running the analysis is available on the 
+
+GitHub page for this manuscript. 17 All this information is also available on the GitHub repository. 
+
+In order to re -use the code, the working directory should be set to the folder containing the 
+
+‘code’ subfolder. This must be set using setwd() at the top of every .R file. Sadly, we could not 
+
+find a way to get the ‘here’ package working with the computatio nal facility and data storage 
+
+requirements we had. 
+
+In order to re -use the code, there should also be a ‘data’, ‘R, and ‘figures’ folders in the same 
+
+directory. 
+
+Inside ‘code’, there are then 2 subfolders, which we detail the contents of here: 
+
+p1_data_prep: data preparation and imputation. 
+
+p2_analyses : Run the analyses 
+
+Within each of these folders, .R files are all prefixed with ‘p1’, ‘p2’, …., and are designed to be run 
+
+in order. Often (but not always), subsequent .R files are dependent on objects created in 
+
+previous .R files. 
+
+Finally, the code has been written on the assumption that the CPRD Aurum data has already 
+
+been extracted, formatted and imputed into an analysis -ready dataset. The process for doing do 
+
+in detail in section 2 of this manuscript. 
+
+11.2. Dictionary of files 
+
+Programs p0_run_all.sh are batch scripts to submit all the R scripts in the right order, with the 
+
+correct command line inputs (i.e., p1_fit_model.R is used to fit all five models, with the model 
+
+and sex defined as command line inputs). 
+
+1. Program name 2. Utility 
+
+3. Directory location: code/p1_cohort_definition 
+
+4. P1_create_cohort.R 5. Create baseline cohort 
+
+6. P2_create_variables_objects.R 7. Create vectors of variables to be used in models, 
+
+imputation, etc. 8. P3_impute_cohort.R 9. Multiple imputation (1 chain) 
+
+10. P4_create_split_sample.R 11. Create a split sample out of the data 
+
+12. P5_assess_imputations.R 13. Assess imputation procedure 
+
+14. P6.1_extract_prescriptions.R 15. Extract prescription data from SQLite database 
+
+16. P6.2_extract_medication_statu 
+
+s.R 
+
+17. Create interval censored data for models 1 and 2, with 
+
+respect to statin and antihypertensive use. 
+
+18. P6.3_layer_medication_status. 
+
+R
+
+19. Combine the intervals from program 6.2. 
+
+20. P7.1_augment_medication_sta 
+
+tus.R 
+
+21. Augment the interval censored data, so the 
+
+statin/antihypertensive status is defined relative to value 
+
+at baseline, required for models 3 and 4. 
+
+22. P7.2_layer_augmented_medic 
+
+ation_status.R 
+
+23. Combine the intervals from program 7.2. 
+
+24. P8_calculate_treatment_o]set 
+
+s.R 
+
+25. Define causal e]ects for modelling. 
+
+26. Directory location: code/p2_cohort_baseline 
+
+27. P1_fit_model.R 28. Fit models 
+
+29. P2_calculate_cf_surv_times.R 30. Calculate the counterfactual survival times required for 
+
+model evaluation 
+
+31. P3_calibration_ph.R 32. Model evaluation – calibration 
+
+33. P4_discrimination.R 34. Model evaluation – discrimination 
+
+35. P5_worked_example.Rmd 36. Worked example for manuscript 
+
+37. Directory location: R 
+
+38. Note, these functions have been superseded by the functions in the rCPRD package: 
+
+https://alexpate30.github.io/rCPRD/index.html .
+
+39. Db_query.R 40. A function to be used for querying sqlite database 
+
+41. Functions.R 42. All functions used through the program scripts. 
+
+# 12. Choice of predictors in the model 
+
+Three changes were made from the predictors included in QRISK4, which is the basis for the 
+
+predictors included in the initial risk estimation layer. Non -HDL cholesterol was chosen rather 
+
+than total cholesterol/HDL ratio because this is a variable which we plan to intervene on, but 
+
+there is a lack of evidence in the literature about the e]ect of intervening on total 
+
+cholesterol/HDL ratio on cardiovascular risk. Furthermore, there is a lack of evidence on the 
+
+e]ect of our interventions (such as statins and antihypertensives) on total cholesterol/HDL 
+
+ratio. There was evidence around the e]ect of non -HDL cholesterol on cardiovascular risk, and 
+
+its e]ects with respect to the other modifiable risk factors, and therefore we chose to include 
+
+this. For the same r easons, systolic blood pressure variability was excluded as a predictor. This 
+
+is a variable we would have been intervening on, but there was a lack of evidence about the 
+
+e]ect reducing systolic blood pressure variability on cardiovascular risk. It would t herefore not 
+
+possible to include these in the intervention layer and the DAG. Finally, calendar time was 
+
+included as a predictor due to the secular trend in cardiovascular disease observed in the data 
+
+(see supplementary data file 2). When implementing the model in practice, we would 
+
+recommend making all predicts at the maximum follow -up time date, which was 01/03/2020. 
+
+The numeric value for this is 5537 (number of days from 01/01/2005). 13. Modelling approach 
+
+13.1. Summary 
+
+We start by introducing each model broadly. We then define some variables and present the 
+
+modelling formula. 
+
+The Non -causal model is a cox proportional hazards regression model with no o]set terms. 
+
+Antihypertensive use at baseline is included as a covariate. 
+
+The treatment oPset model uses the approach of Xu et al., 18 with some adjustments to this 
+
+setting. In the referenced study, they create a time -varying variable which is split after an 
+
+individual initiates statin treatment, and fix the coe]icient of this variable to be the e]ect of 
+
+initiating statins. In this stu dy, we have a scenario where individuals may be on or o] 
+
+antihypertensive treatment at baseline, and may move on and o] treatment multiple times. A 
+
+time -varying variable is therefore created to represent this process. The estimand of this model 
+
+is the “r isk under the treatment strategy of no antihypertensive”, or “risk under the treatment 
+
+strategy of antihypertensive treatment”. 
+
+The unexposed mediator model uses the same approach as the treatment o]set model, 
+
+except that systolic blood pressure is defined di]erently, only extracting values which were not 
+
+recorded after antihypertensive treatment, otherwise systolic blood pressure is treated as 
+
+missing. No new time -varying variables need to be defined. The estimand remains the same. 
+
+The modifiable risk factor model uses a slightly di]erent approach. This model is introduced 
+
+because we want to deal with multiple interventions (in this example statins, antihypertensives, 
+
+or changes to diet and exercise) which may impact any of the modifiable risk factors (in this 
+
+exa mple SBP, BMI or Non -HDL cholesterol). We fix the coe]icient for each of the modifiable risk 
+
+factors at baseline to their direct causal e]ect, and adjust for any changes to intervention status 
+
+during follow -up (note, this is possible for interventions like statin and anithpyertensive use, but 
+
+not for changes in diet and exercise during follow -up). This means when defining our time -
+
+varying variables to adjust for treatment drop -in, they are defined relative to each individu als 
+
+intervention status at baseline. 
+
+The reason for this is to avoid double counting the e]ect of interventions. Suppose we kept 
+
+statin and antihypertensive use as time -varying variables which are simply “on” or “o]” 
+
+treatment, like in the treatment o]set model. Now consider two identical individuals (A and B) 
+
+with SBP of 140, where individual B has received antihypertensives to reduce this SBP value to 
+
+120. The e]ect of the antihypertensives is modelled using the o]set term on SBP at baseline. 
+
+We do not want to also apply the o]set term for the fact individual B is on antihypertensives at 
+
+baseline, and individual A is not. We therefore only adjust for changes in treatment use during 
+
+follow -up. 
+
+Importantly, this means the Estimand of this model is the risk of staying on the current 
+
+intervention strategy (i.e. individuals intervention status remains unchanged), rather than the 
+
+risk under the treatment strategy of not receiving (or receiving) the i ntervention. 
+
+Finally, the two -component model . We ignore the intervention layer of the two -component 
+
+model here, focusing on the initial risk estimation layer, which involves the modelling. The 
+
+approach is similar to the modifiable risk factor model, in that we adjust for changes in 
+
+intervention stat us during follow -up, not di]erences in intervention status at baseline. This 
+
+means the Estimand of this model is again the risk of staying on the current intervention strategy. The key di]erence from the modifiable risk factor model is that the modifiable risk 
+
+factors at baseline are modelled freely with splines (like in the Non -causal model) 
+
+13.2. Definitions and formulas 
+
+13.2.1. Time -varying intervention o3sets 
+
+We define two variables. Statin use at baseline ( 𝐴 !"#" = 0/1). Antihypertensive use at baseline 
+
+(𝐴 #$ = 0/1). 
+
+We then define two -time varying variables, which are the individuals treatment status during 
+
+follow -up. Statin use at time 𝑡 (𝐴 !"#" (𝑡 ) = 0/1). Antihypertensive use at time 𝑡 (𝐴 #$(𝑡 ) = 0/1). 
+
+We then define two more time -varying variables, which are the individual’s treatment status 
+
+during follow -up, relative to their baseline value (the R in the variable name AR represents 
+
+“relative”). 
+
+𝐴𝑅 !"#" (𝑡 ) = 𝐴 !"#" (𝑡 ) − 𝐴 !"#" 
+
+𝐴𝑅 #$(𝑡 ) = 𝐴 #$(𝑡 ) − 𝐴 #$
+
+Finally, we define four new time -varying variables, which are the four intervention status 
+
+variables defined above, multiplied by the log of the total e]ect of that intervention ( 𝐵 ), in the 
+
+form of a log -hazard ratio. 
+
+𝐵 !"#" (𝑡 ) = 𝐴 !"#" (𝑡 ) ∗ 𝐵 !"#" 
+
+𝐵 #$(𝑡 ) = 𝐴 #$(𝑡 ) ∗ 𝐵 #$
+
+𝐵𝑅 !"#" (𝑡 ) = 𝐴𝑅 !"#" (𝑡 ) ∗ 𝐵 !"#" 
+
+𝐵𝑅 #$(𝑡 ) = 𝐴𝑅 #$(𝑡 ) ∗ 𝐵 #$
+
+Where 𝐵 !"#" = −0.3102413 , 𝐵 #$ = −0.3245535 .
+
+The variables 𝐵 !"#" (𝑡 ) and 𝐵 #$(𝑡 ) are used as o]sets in the treatment oPset and unexposed 
+
+mediator models . The variables 𝐵𝑅 !"#" (𝑡 ) and 𝐵𝑅 #$(𝑡 ) are used as o]sets in the modifiable 
+
+risk factor and two -component models. 
+
+13.2.2. Modifiable risk factor o3set terms 
+
+In the modifiable risk factor model, we also need to include o]set terms for the modifiable risk 
+
+factors. These are defined relative to some target values, 𝑆𝐵𝑃 "#%&'" = 120 , 𝐵𝑀𝐼 "#%&'" = 25 ,
+
+𝑁𝑜𝑛𝐻𝐷𝐿 "#%&'" = 2.6, below which no benefit is gained. 
+
+We then define: 
+
+𝑠𝑏𝑝 #() = max (0, 𝑠𝑏𝑝 − 𝑠𝑏𝑝 "#%&'" )
+
+𝑏𝑚𝑖 #() = max (0, 𝑏𝑚𝑖 − 𝑏𝑚𝑖 "#%&'" )
+
+𝑛𝑜𝑛 ℎ𝑑𝑙 = max (0, 𝑛𝑜𝑛 ℎ𝑑𝑙 − 𝑛𝑜𝑛 ℎ𝑑𝑙 "#%&'" )
+
+And 
+
+𝐵 !* +!"# = 𝑠𝑏𝑝 #() ∗ 𝐵 !*+ 
+
+𝐵 *, -!"# = 𝑏𝑚𝑖 #() ∗ 𝐵 *,-𝐵 ./. $(0!"# = 𝑛𝑜𝑛 ℎ𝑑𝑙 #() ∗ 𝐵 ./. $(0 
+
+Where 𝐵 !*+ = 0.02433163 , 𝐵 *,- = 0.02173449 and 𝐵 ./. $(0 = 0.1936187 are the log -hazard 
+
+ratios of the direct e]ects of each of SBP, BMI and NonHDL on CVD, as calculated in the 
+
+referenced document. 19 
+
+13.3. Formulas 
+
+Let 𝑍 be the set of non -modifiable risk factors, excluding antihypertensive use (either at 
+
+baseline or time -varying), statin use (either at baseline or time -varying), systolic blood pressure, 
+
+body mass index or non -HDL cholesterol. IMD (which takes integer valu es between 1 and 20) is 
+
+modelled as a continuous variable using restricted cubic splines with knots at 1, 10 and 20. All 
+
+variables are interacted with age. 𝑠𝑏𝑝 1.'2+/!'( is systolic blood pressure values extracted with 
+
+no antihypertensive treatment in the preceding 6 months. 
+
+Non -causal model 
+
+𝑓 (𝑋 ; 𝛽 ) = 𝑎𝑔𝑒 + 𝑍 + 𝑟𝑐𝑠 (𝑠𝑏𝑝 , 4) + 𝑟𝑐𝑠 (𝑏𝑚𝑖 , 4) + 𝑟𝑐𝑠 (𝑛𝑜𝑛 ℎ𝑑𝑙 , 4) +
+
+𝑎𝑔𝑒 ∗ (𝑍 + 𝑟𝑐𝑠 (𝑠𝑏𝑝 , 4) + 𝑟𝑐𝑠 (𝑏𝑚𝑖 , 4) + 𝑟𝑐𝑠 (𝑛𝑜𝑛 ℎ𝑑𝑙 , 4))
+
+Treatment o]set model 
+
+𝑓 (𝑋 , 𝐴 ; 𝛽 ) = 𝑎𝑔𝑒 + 𝑍 + 𝑟𝑐𝑠 (𝑠𝑏𝑝 , 4) + 𝑟𝑐𝑠 (𝑏𝑚𝑖 , 4) + 𝑟𝑐𝑠 (𝑛𝑜𝑛 ℎ𝑑𝑙 , 4) +
+
+𝑎𝑔𝑒 ∗ (𝑍 + 𝑟𝑐𝑠 (𝑠𝑏𝑝 , 4) + 𝑟𝑐𝑠 (𝑏𝑚𝑖 , 4) + 𝑟𝑐𝑠 (𝑛𝑜𝑛 ℎ𝑑𝑙 , 4)) +
+
+𝑜𝑓𝑓𝑠𝑒𝑡 (𝐵 #$(𝑡 ))
+
+Unexposed mediator model 
+
+𝑓 (𝑋 , 𝐴 ; 𝛽 ) = 𝑎𝑔𝑒 + 𝑍 + 𝑟𝑐𝑠 X𝑠𝑏𝑝 1.'2+/!'( , 4Y + 𝑟𝑐𝑠 (𝑏𝑚𝑖 , 4) + 𝑟𝑐𝑠 (𝑛𝑜𝑛 ℎ𝑑𝑙 , 4) +
+
+𝑎𝑔𝑒 ∗ X𝑍 + 𝑟𝑐𝑠 (𝑠𝑏𝑝 1.'2+/!'( , 4) + 𝑟𝑐𝑠 (𝑏𝑚𝑖 , 4) + 𝑟𝑐𝑠 (𝑛𝑜𝑛 ℎ𝑑𝑙 , 4)Y +
+
+𝑜𝑓𝑓𝑠𝑒𝑡 (𝐵 #$(𝑡 ))
+
+Modifiable risk factor model 
+
+𝑓 (𝑋 , 𝐴 ; 𝛽 ) = 𝑎𝑔𝑒 + 𝑍 + 𝑎𝑔𝑒 ∗ 𝑍 +
+
+𝑜𝑓𝑓𝑠𝑒𝑡 Z𝐵 !* +!"# [ + 𝑜𝑓𝑓𝑠𝑒𝑡 Z𝐵 *,-!"# [ + 𝑜𝑓𝑓𝑠𝑒𝑡 Z𝐵 ./. $(0 !"# [ +
+
+𝑜𝑓𝑓𝑠𝑒𝑡 (𝐵𝑅 #$(𝑡 )) + 𝑜𝑓𝑓𝑠𝑒𝑡 (𝐵𝑅 !"#" (𝑡 ))
+
+Two -component model; baseline component: 
+
+𝑓 (𝑋 , 𝐴 ; 𝛽 ) = 𝑎𝑔𝑒 + 𝑍 + 𝑟𝑐𝑠 (𝑠𝑏𝑝 , 4) + 𝑟𝑐𝑠 (𝑏𝑚𝑖 , 4) + 𝑟𝑐𝑠 (𝑛𝑜𝑛 ℎ𝑑𝑙 , 4) +
+
+𝑎𝑔𝑒 ∗ (𝑋 + 𝑟𝑐𝑠 (𝑠𝑏𝑝 , 4) + 𝑟𝑐𝑠 (𝑏𝑚𝑖 , 4) + 𝑟𝑐𝑠 (𝑛𝑜𝑛 ℎ𝑑𝑙 , 4)) +
+
+𝑜𝑓𝑓𝑠𝑒𝑡 (𝐵𝑅 #$(𝑡 )) + 𝑜𝑓𝑓𝑠𝑒𝑡 (𝐵𝑅 !"#" (𝑡 ))14. Methodology for estimation of counterfactual survival times 
+
+We use a similar process to that proposed by Xu et al. 18 In the referenced study, they obtain 
+
+treatment naive counter factual survival times by adjusting the cumulative baseline hazard 
+
+dependent after an individual initiates statin treatment, to get the cumulative hazard that would 
+
+have been observed if the ind ividual had not initiated statins. A new counterfactual survival 
+
+times is then estimated based o] this augmented cumulative baseline hazard. 
+
+In this study, we have a scenario where individuals may be on or o] treatment at baseline, and 
+
+may move on and o] multiple treatments more than once. There is also a di]erent estimand for 
+
+models 1 and 2, compared to models 3 and 4, which will alter how the counterfactual survival 
+
+times are estimated. The estimand of models 1 and 2 is the risk under the treatment strategy of 
+
+“no statins or antihypertensives over the prediction period”. The estimand of models 3 and 4 is 
+
+the risk under the treatment strateg y of “continue on whatever treatment strategy you are 
+
+currently on over the prediction period”, which could involve remaining on statins or 
+
+antihypertensives. staying on the current intervention strategy (with respect to statins, 
+
+antihypertensives and an i ndividual’s smoking status). The process to augment the process of 
+
+Xu et al., into this setting is as follows. We re -use some of the notation introduced in section 
+
+5.2. 
+
+Let 𝑡 -, 𝑖 ∈ {1,2, … , 𝑛 } be all the times at which an individual changes status with respect to statin 
+
+or antihypertensive use. Let 𝑡 '3'." be the time at which an individual either has a cardiovascular 
+
+outcome event or is censored. The cumulative hazard is calculated at each time point 𝑡 -: 𝐻 4(𝑡 -).
+
+For models 1 and 2, the counterfactual cumulative hazard at time 𝑡 is then estimated as: 
+
+𝐻 56 (𝑡 ) = 𝐻 (𝑡 7) + ` exp X𝐵 !"#" (𝑡 -) + 𝐵 #$(𝑡 -)Y ∗ 𝐻 (𝑡 -87) − exp X𝐵 !"#" (𝑡 -) + 𝐵 #$(𝑡 -)Y ∗ 𝐻 (𝑡 -)
+
+> .
+> -97
+
+For models 3 and 4, the counterfactual cumulative hazard at time 𝑡 is estimated as: 
+
+𝐻 56 (𝑡 ) = 𝐻 (𝑡 7) + ` exp X𝐵𝑅 !"#" (𝑡 - ) + 𝐵𝑅 #$(𝑡 -)Y ∗ 𝐻 (𝑡 -87) − exp X𝐵𝑅 !"#" (𝑡 -) + 𝐵𝑅 #$ (𝑡 - )Y
+
+> .
+> -97
+
+∗ 𝐻 (𝑡 -)
+
+Where 𝑡 .87 = 𝑡 '3'." is the time at individual is either censored or has a cardiovascular outcome 
+
+event. In Plain English Terms, the cumulative hazard is broken up into intervals, defined by when 
+
+an individual changes treatment status. 
+
+For models 1 and 2, if an individual is on statins or antihypertensives during an interval, the 
+
+amount of cumulative hazard in that interval is adjusted to the amount of cumulative hazard 
+
+that would have been observed if the individual had not been on stat ins or antihypertensives. 
+
+For models 3 and 4, if the treatment status during an interval is di]erent from what it was at 
+
+zero, the amount of cumulative hazard in that interval is adjusted to the amount of hazard if the 
+
+treatment status had been the same as at baseline. 
+
+Note, the values of time -varying variables at the times 𝑡 -, 𝐵 !"#" (𝑡 - ), 𝐵 #$(𝑡 - ), 𝐵𝑅 !"#" (𝑡 - ) and 
+
+𝐵𝑅 #$(𝑡 -) are the value they take for the upcoming interval [𝑡 -, 𝑡 -87).
+
+The counterfactual survival time, 𝑡 56 , is then estimated in the same way as Xu et al., 18 by finding 
+
+the minimum time point at which 𝐻 (𝑡 ) = 𝐻 56 (𝑡 '3'." ). For individuals where 𝑡 56 is bigger than the maximum follow -up, we set 𝑡 56 to be the value at maximum follow -up. The event indicator 
+
+remains the same. 
+
+# 15. References 
+
+1. Pate A. rcprd, h/ps://github.com/alexpate30/rcprd (2024). 
+
+2. Pate A. GitHub repository. Manchester PredicFve Healthcare Group. CHI -CHARIOT -generic -
+
+data -extracFon., h/ps://github.com/manchester -predicFve -healthcare -group/CHI -
+
+CHARIOT/tree/main/generic -data -extracFon (2025, accessed 10 July 2025). 
+
+3. NaFonal InsFtute for Health and Care Excellence. NICE: BNF: Treatment summaries: Stroke, 
+
+h/ps://bnf.nice.org.uk/treatment -summaries/stroke/ (accessed 16 July 2024). 
+
+4. BriFsh NaFonal Formulary. NICE: BNF: Drugs: AtorvastaFn, 
+
+h/ps://bnf.nice.org.uk/drugs/atorvastaFn/#indicaFons -and -dose (2024, accessed 16 July 
+
+2024). 
+
+5. Endeavour Health. Endeavour Health Knowledge Base, 
+
+h/ps://wiki.endeavourhealth.org/index.php?Ftle=QRISK3 (2024, accessed 12 February 2024). 
+
+6. AusFn PC, van Buuren S. The effect of high prevalence of missing data on esFmaFon of the 
+
+coefficients of a logisFc regression model when using mulFple imputaFon. BMC Med Res 
+
+Methodol 2022; 22: 1 –14. 
+
+7. Madley -Dowd P, Hughes R, Tilling K, et al. The proporFon of missing data should not be used 
+
+to guide decisions on mulFple imputaFon. J Clin Epidemiol 2019; 110: 63 –73. 
+
+8. Endeavour Health. Endeavour Health InformaFon Manager, h/ps://dev.endhealth.co.uk/#/ 
+
+(2024, accessed 12 February 2024). 
+
+9. Hippisley -Cox J, Coupland C, Brindle P. Development and validaFon of QRISK3 risk predicFon 
+
+algorithms to esFmate future risk of cardiovascular disease: prospecFve cohort study. BMJ ;
+
+357. 
+
+10. QResearch. QResearch: QCode Group Library, h/ps://www.qresearch.org/data/qcode -group -
+
+library/ (2024, accessed 12 February 2024). 
+
+11. Head A. GitHub: Annalhead/CPRD_mulFmorbidity_codelists, 
+
+h/ps://github.com/annalhead/CPRD_mulFmorbidity_codelists (accessed 26 November 
+
+2021). 
+
+12. Head A, Fleming K, Kypridemos C, et al. InequaliFes in incident and prevalent mulFmorbidity 
+
+in England, 2004 –19: a populaFon -based, descripFve study. Lancet Heal Longev 2021; 2: 
+
+e489 –e497. 
+
+13. Muzambi R, Bhaskaran K, Strongman H, et al. Trends and inequaliFes in staFn use for the 
+
+primary and secondary prevenFon of cardiovascular disease between 2009 and 2021 in 
+
+England Authors: Rutendo Muzambi. medRxiv . Epub ahead of print 2024. DOI: 
+
+10.1101/2024.11.22.24317782. 
+
+14. Greater Manchester Integrated Digital Care Record. Greater Manchester Integrated Digital 
+
+Care Record: Clinical Code Sets, h/ps://github.com/rw251/gm -
+
+idcr/tree/master/shared/clinical -code -sets/condiFons. 
+
+15. London School of Hygiene & Tropical Medicine. LSHTM Data Compass. Codelists for: ‘Effect of 
+
+cardiovascular risk profile on severe outcomes of COVID -19 in England in 2020: a populaFon -based cohort study’, h/ps://datacompass.lshtm.ac.uk/id/eprint/2762/ (2024, accessed 1 
+
+February 2024). 
+
+16. Warren -Gash C, Davidson JA, Strongman H, et al. Severe COVID -19 outcomes by 
+
+cardiovascular risk profile in England in 2020: a populaFon -based cohort study. Lancet Reg 
+
+Heal - Eur 2023; 27: 100604. 
+
+17. Pate A. GitHub repository. Manchester PredicFve Healthcare Group. CHI -CHARIOT -project1 -
+
+pui -methods., h/ps://github.com/manchester -predicFve -healthcare -group/CHI -
+
+CHARIOT/tree/main/project -1-pui -methods (2026). 
+
+18. Xu Z, Arnold M, Stevens D, et al. PredicFon of Cardiovascular Disease Risk AccounFng for 
+
+Future IniFaFon of StaFn Treatment. Am J Epidemiol 2021; 190: 2000 –2014. 
+
+19. Jiang B, Pate A, Yun -Ting H, et al. DerivaFon of the DAG used to drive the intervenFon 
+
+component in the CHARIOT project. Zenodo . Epub ahead of print 2026. DOI: 
+
+h/ps://doi.org/10.5281/zenodo.18467161. Supplementary data file 2 - results 
+
+2025-05-14 
+
+1 Prelim 2 Calibration 2.1 Female 2.2 Male 3 Discrimination 3.1 Female 3.2 Male 
+
+# 1 Prelim 
+
+This document presents results for both the female and male cohorts, as well as modifiable risk factor models where we fixed the effect the modifiable risk factors to their causal value one at a time. The models are aws follows: * Model 0 = Non-causal model * Model 1 = Treatment offset model * Model 2 = Unexposed mediator model * Model 3 = Modifiable risk factor model * Model 4 = Two-component model * Model 5 = Modifiable risk factor model (fix effect for SBP only) * Model 6 = Modifiable risk factor model (fix effect for BMI only) * Model 7 = Modifiable risk factor model (fix effect for Non-HDL cholesterol only) 
+
+# 2 Calibration 
+
+# 2.1 Female 
+
+model ICI E50 E90 
+
+0 0.001 (0.001, 0.001) 0.001 (0, 0.001) 0.001 (0.001, 0.002) 1 0.001 (0.001, 0.001) 0.001 (0, 0.001) 0.002 (0.001, 0.003) 2 0.001 (0.001, 0.001) 0.001 (0, 0.001) 0.002 (0.001, 0.003) 3 0.005 (0.005, 0.005) 0.001 (0.001, 0.001) 0.014 (0.012, 0.014) 4 0.001 (0.001, 0.001) 0.001 (0, 0.001) 0.002 (0.001, 0.003) 5 0.004 (0.004, 0.004) 0.001 (0.001, 0.001) 0.011 (0.009, 0.011) 6 0.001 (0.001, 0.001) 0.001 (0, 0.001) 0.003 (0.001, 0.004) 7 0.002 (0.001, 0.002) 0.001 (0.001, 0.001) 0.004 (0.003, 0.005) 
+
+# 2.2 Male 
+
+model ICI E50 E90 
+
+0 0.001 (0.001, 0.001) 0.001 (0, 0.001) 0.001 (0.001, 0.003) 1 0.001 (0.001, 0.002) 0.001 (0, 0.001) 0.001 (0.001, 0.003) 2 0.001 (0.001, 0.002) 0.001 (0, 0.001) 0.001 (0.001, 0.003) 3 0.006 (0.005, 0.006) 0.001 (0.001, 0.002) 0.015 (0.012, 0.015) 4 0.001 (0.001, 0.001) 0.001 (0, 0.001) 0.002 (0.001, 0.004) 5 0.005 (0.004, 0.005) 0.001 (0.001, 0.002) 0.012 (0.01, 0.012) 6 0.001 (0.001, 0.002) 0.001 (0.001, 0.001) 0.003 (0.002, 0.005) 7 0.002 (0.001, 0.002) 0.001 (0.001, 0.001) 0.004 (0.003, 0.005) 
+
+# 3 Discrimination 
+
+# 3.1 Female 
+
+model index index_lower index_upper 
+
+0 0.869 0.869 0.869 1 0.880 0.880 0.880 2 0.880 0.880 0.880 3 0.868 0.868 0.868 4 0.871 0.871 0.871 5 0.869 0.869 0.869 6 0.871 0.871 0.871 7 0.871 0.871 0.871 
+
+# 3.2 Male 
+
+model index index_lower index_upper 
+
+0 0.851 0.851 0.851 1 0.861 0.861 0.861 2 0.861 0.861 0.861 3 0.851 0.851 0.851 4 0.854 0.854 0.854 5 0.852 0.852 0.852 6 0.854 0.854 0.854 7 0.854 0.854 0.854

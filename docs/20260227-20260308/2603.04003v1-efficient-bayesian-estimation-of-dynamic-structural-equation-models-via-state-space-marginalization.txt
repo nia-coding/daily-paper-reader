@@ -1,0 +1,1666 @@
+Title: Efficient Bayesian Estimation of Dynamic Structural Equation Models via State Space Marginalization
+
+URL Source: https://arxiv.org/pdf/2603.04003v1
+
+Published Time: Thu, 05 Mar 2026 02:14:03 GMT
+
+Number of Pages: 56
+
+Markdown Content:
+# Efficient Bayesian Estimation of Dynamic Structural Equation Models via State Space Marginalization 
+
+Øystein Sørensen 1
+
+> 1
+
+Department of Psychology, University of Oslo, Oslo, Norway 
+
+Abstract 
+
+Dynamic structural equation models (DSEMs) combine time-series modeling of within-person processes with hierarchical modeling of between-person differences and differences between time-points, and have become very popular for the analysis of intensive longitudinal data in the social sciences. An important computational bottleneck has, however, still not been resolved: whenever the underlying process is assumed to be latent and measured by one or more indicators per timepoint, currently published algorithms rely on inefficient brute-force Markov chain Monte Carlo sampling which scales poorly as the number of timepoints and participants increases and results in highly correlated samples. The main result of this paper shows that the within-level part of any DSEM can be reformulated as a linear Gaussian state space model. Consequently, the latent states can be analytically marginalized using a Kalman filter, allowing for highly efficient estimation via Hamil-tonian Monte Carlo. This makes estimation of DSEMs computationally tractable for much larger datasets—both in terms of timepoints and participants—than what has been previously possible. We demonstrate the proposed algorithm in several simulation experiments, showing it can be orders of magnitude more efficient than standard Metropolis-within-Gibbs approaches. 
+
+Keywords: Bayesian Estimation, Dynamic Structural Equation Modeling, Hamiltonian Monte Carlo, Kalman Filter, State Space Models 
+
+# 1 Introduction 
+
+Intensive longitudinal data, characterized by a large number of observations per participant observed over a relatively short time span (Hamaker et al., 2018), have become very common in the social sciences over the last decade. In a seminal paper, Asparouhov et al. (2018) introduced dynamic structural equation modeling (DSEM), a comprehensive framework for analyzing intensive longitudinal data which combines multilevel modeling, time-series modeling, structural equation modeling (SEM), and time-varying effects modeling. Asparouhov et al. (2018) also proposed a Metropolis-within-Gibbs algorithm, which is implemented in the proprietary Mplus software (Muthén & Muthén, 2017). Most applications of DSEM published to date use sum scores or raw observations, leaving the SEM part of DSEM underutilized despite the well-known advantages of working with latent variable formulations (McNeish & Wolf, 2020). Two exceptions we are aware of are McNeish et al. (2021), who created a measurement model for the latent trait perseverance based on binge eating data, and Oh and Jahng (2023), who discuss how to account for measurement error using a single or multiple indicators. One reason for this might be that the Markov chain Monte Carlo (MCMC) algorithm of Asparouhov et al. (2018) suffers from a computational bottleneck when latent traits are included. This computational 1
+
+> arXiv:2603.04003v1 [stat.ME] 4 Mar 2026
+
+challenge is a well-known problem in the field. For example, in the context of psychometric network estimation, Epskamp (2020, p. 212) states that hierarchical modeling of multivariate latent traits from time series data is “computationally very expensive”, and authors have even suggested abandoning Bayesian methods altogether and instead rely on maximum likelihood estimation (Sakalauskas et al., 2024). Letting 𝑁 denote the total number of participants and 𝑇 the total number of timepoints, the number of parameters to sample in a single iteration of Asparouhov et al. (2018)’s MCMC algorithm is proportional to 𝑁 · 𝑇 in the presence of latent traits but only 𝑁 + 𝑇 in the absence of latent traits. Asparouhov et al. (2018, p. 386) state that latent traits in the within-level model “cannot be generated simultaneously in an efficient manner”, i.e., that the latent trait for each participant at each timepoint needs to be sampled independently. However, as we show, the need to sample these latent traits can be bypassed entirely by using a Kalman filter (Kalman, 1960) to integrate them out analytically, replacing stochastic sampling with routine linear algebra. While the algorithm proposed by Asparouhov et al. (2018) could potentially be adapted to generate the latent trajectories simultaneously via forward-filtering backward-sampling (Carter & Kohn, 1994; Frühwirth-Schnatter, 1994), embedding this in a Gibbs sampler suffers from severe autocorrelation between the trajectories and the hierarchical participant-specific and timepoint-specific parameters. Alternatively, integrating the traits out to create a collapsed Gibbs sampler (Liu, 1994) avoids this autocorrelation, but it would require re-running the Kalman filter each time a parameter is sampled, and hence scale terribly. The same computational concern applies to classical Metropolis-Hastings algorithms. Hamiltonian Monte Carlo (Neal, 2011), and particularly the No-U-Turn Sampler (NUTS) (Hoffman & Gelman, 2014), is however ideally suited to marginalizing over latent variables using a Kalman filter. Since NUTS ensures high acceptance ratios even when proposing thousands of parameters in a single accept-reject step, the Kalman filter only needs to be run a single time for each full iteration. This reduces the number of parameters to be sampled in each iteration to the order of 𝑁 + 𝑇 , also in the presence of latent traits. A similar computational algorithm using the Kalman-Bucy filter (Kalman & Bucy, 1961) has been proposed in the context of continuous-time structural equation modeling (Driver & Voelkle, 2018). The dynr package (Ou et al., 2019) also uses the Kalman filter for estimating linear and nonlinear dynamic models, but without hierarchical modeling. We note that Kalman filters seem to be part of the Mplus implementation for handling missing data (McNeish & Hamaker, 2020), and this feature is naturally a part of our proposed framework as well. The paper proceeds as follows. In Section 2, we first give necessary background on DSEM, and then on linear Gaussian state space models (LG-SSMs) and the Kalman filter. In Section 3, we present our theorem which shows that the within-level part of a DSEM can be equivalently formulated as an LG-SSM and then show how this can be used to perform efficient Bayesian estimation using marginalization. In Section 4, we present the results of simulation experiments for a wide range DSEMs, which demonstrate that the proposed algorithm in some cases is orders of magnitude more efficient than Metropolis-within-Gibbs and in other cases is comparable. We discuss the results in Section 5. 
+
+# 2 Background 
+
+2.1 Dynamic Structural Equation Models 
+
+A 𝑈 -dimensional response vector 𝒚 𝑖𝑡 is assumed measured in 𝑁 participants ( 𝑖 = 1, 2, . . . , 𝑁 ) at 
+
+𝑇 timepoints ( 𝑡 = 1, 2, . . . , 𝑇 ). Unequally spaced timepoints or an unequal number of timepoints per participant can be dealt with by introducing missing observations. Each observation is assumed decomposable into a part 𝒚 3,𝑡 which captures systematic variation between timepoints, a part 𝒚 2,𝑖 
+
+which captures systematic variation between participants, and a part 𝒚 1,𝑖𝑡 which captures all remaining 2variability. Consequently, we can write 
+
+𝒚 𝑖𝑡 = 𝒚 1,𝑖𝑡 + 𝒚 2,𝑖 + 𝒚 3,𝑡 . (2.1) Next, we assume that each term on the right-hand side of (2.1) is an indirect reflective measurement of some latent variable. We use the term indirect because all terms on the right-hand side of (2.1) are latent variables; only 𝒚 𝑖𝑡 is directly observed. The 𝑉 3-dimensional latent variables 𝜼 3,𝑡 vary between timepoints and are related to 𝒚 3,𝑡 through the between-timepoints model 
+
+𝒚 3,𝑡 = 𝝂 3 + 𝚲 3𝜼 3,𝑡 + 𝑲 3 𝑿 3,𝑡 + 𝝐 3,𝑡 
+
+𝜼 3,𝑡 = 𝜶 3 + 𝑩 3𝜼 3,𝑡 + 𝚪 3 𝑿 3,𝑡 + 𝝃 3,𝑡 . (2.2) In (2.2), 𝝂 3 and 𝜶 3 are intercept terms, 𝚲 3 is a loading matrix, 𝑩 3 is a strictly lower triangular matrix for regression between latent variables, 𝑿 3,𝑡 is a vector of covariates varying between timepoints, and 
+
+𝑲 3 and 𝚪 3 are matrices with regression coefficients. The vector of residuals 𝝐 3,𝑡 is assumed normally distributed around zero with covariance matrix 𝚺 3, 𝝐 3,𝑡 ∼ N ( 0, 𝚺 3). The vector of disturbances 𝝃 3,𝑡 
+
+is also normally distributed around zero, 𝝃 3,𝑡 ∼ N ( 0, 𝚿 3). The assumption that 𝑩 3 is strictly lower triangular ensures that relationships among latent variables are recursive (see also Asparouhov et al. (2018, p. 385)). 1 The same rationale applies when we assume below that 𝑩 2 in (2.3) and 𝑩 1,0𝑖𝑡 and 
+
+𝑹 0𝑖𝑡 in (2.4) are strictly lower triangular. Next, the 𝑉 2-dimensional latent variables 𝜼 2,𝑖 vary between participants and are related to 𝒚 2,𝑖 
+
+through the between-participants model 
+
+𝒚 2,𝑖 = 𝝂 2 + 𝚲 2𝜼 2,𝑖 + 𝑲 2 𝑿 2,𝑖 + 𝝐 2,𝑖 
+
+𝜼 2,𝑖 = 𝜶 2 + 𝑩 2𝜼 2,𝑖 + 𝚪 2 𝑿 2,𝑖 + 𝝃 2,𝑖 , (2.3) where the components have similar interpretations as in (2.2) except that the covariates 𝑿 2,𝑖 and noise terms 𝝐 2,𝑖 ∼ N ( 0, 𝚺 2) and 𝝃 2,𝑖 ∼ N ( 0, 𝚿 2) now vary between individuals and not between timepoints. Before presenting the within-level model, we need two definitions: 
+
+Definition 1 (Lag Operator) . The lag operator 𝐿 is such that 𝐿 𝑘 𝒙 𝑡 = 𝒙 𝑡 −𝑘 (Kilian & Lütkepohl, 2017). 
+
+Definition 2 (Polynomial Matrices) . For any collection of matrices 𝑴 0, 𝑴 1, . . . , 𝑴 𝐿 , let 𝑴 (𝐿 ) =Í𝐿 𝑙 =0 𝑴 𝑙 𝐿 𝑙 (Kilian & Lütkepohl, 2017). The within-level model relates the 𝑉 1-dimensional latent variables 𝜼 1,𝑖𝑡 varying both between participants and timepoints to 𝒚 1,𝑖𝑡 through a timeseries model with lag 𝐿 ≥ 0,
+
+𝒚 1,𝑖𝑡 = 𝝂 1,𝑖𝑡 + 𝚲 1,𝑖𝑡 (𝐿 )𝜼 1,𝑖𝑡 + 𝑹 𝑖𝑡 (𝐿 ) 𝒚 1,𝑖𝑡 + 𝑲 1,𝑖𝑡 𝑿 1,𝑖𝑡 + 𝝐 1,𝑖𝑡 
+
+𝜼 1,𝑖𝑡 = 𝜶 1,𝑖𝑡 + 𝑩 1,𝑖𝑡 (𝐿 )𝜼 1,𝑖𝑡 + 𝑸 𝑖𝑡 (𝐿 ) 𝒚 1,𝑖𝑡 + 𝚪 1,𝑖𝑡 𝑿 1,𝑖𝑡 + 𝝃 1,𝑖𝑡 , (2.4) where 𝑿 1,𝑖𝑡 is a vector of covariates varying between timepoints and individuals, and 𝑲 1,𝑖𝑡 and 𝚪 1,𝑖𝑡 
+
+are the corresponding matrices with regression coefficients, and 𝝂 1,𝑖𝑡 and 𝜶 1,𝑖𝑡 are intercepts. Using Definition 2 we write 
+
+𝚲 1,𝑖𝑡 (𝐿 ) =
+
+> 𝐿
+
+∑︁ 
+
+> 𝑙 =0
+
+𝚲 1,𝑙𝑖𝑡 𝐿 𝑙 , 𝑹 𝑖𝑡 (𝐿 ) =
+
+> 𝐿
+
+∑︁ 
+
+> 𝑙 =0
+
+𝑹 𝑙𝑖𝑡 𝐿 𝑙 , 𝑩 1,𝑖𝑡 (𝐿 ) =
+
+> 𝐿
+
+∑︁ 
+
+> 𝑙 =0
+
+𝑩 1,𝑙𝑖𝑡 𝐿 𝑙 , 𝑸 𝑖𝑡 (𝐿 ) =
+
+> 𝐿
+
+∑︁ 
+
+> 𝑙 =0
+
+𝑸 𝑙𝑖𝑡 𝐿 𝑙 .
+
+Inside these definitions, 𝚲 1,𝑙𝑖𝑡 is the factor loading matrix relating the lag-𝑙 latent variables to measure-ments, 𝑹 𝑙𝑖𝑡 and 𝑩 1,𝑙𝑖𝑡 for 𝑙 > 0 are autoregression matrices, 𝑹 0𝑖𝑡 and 𝑩 1,0𝑖𝑡 are strictly lower triangular     
+
+> 1Strictly speaking, we only assume that the indices of the elements of 𝜼 3,𝑡 can be permuted such that 𝑩 3becomes strictly lower triangular, and that such a permutation has been applied.
+
+3matrices for regression between components of 𝒚 1,𝑖𝑡 and 𝜼 1,𝑖𝑡 , respectively, and the matrix 𝑸 1,𝑙𝑖𝑡 relates the lag-𝑙 latent variables to the measurements. We assume that the measurement noise 𝝐 1,𝑖𝑡 and process noise 𝝃 1,𝑖𝑡 are normally distributed, 𝝐 1,𝑖𝑡 ∼ N ( 0, 𝚺 1,𝑖𝑡 ) and 𝝃 1,𝑖𝑡 ∼ N ( 0, 𝚿 1,𝑖𝑡 ). Note that Asparouhov et al. (2018, p. 361) use lagged terms also for 𝑿 1,𝑖𝑡 , but as they point out their model can equivalently be written as in (2.4). As the notation in (2.4) suggests, the parameters 𝝂 1,𝑖𝑡 , 𝚲 1,𝑖𝑡 (𝐿 ), 𝑹 𝑖𝑡 (𝐿 ), 𝑲 1,𝑖𝑡 , 𝜶 1,𝑖𝑡 , 𝑩 1,𝑖𝑡 (𝐿 ),
+
+𝑸 𝑖𝑡 (𝐿 ), and 𝚪 1,𝑖𝑡 , as well as the covariance matrices 𝚺 1,𝑖𝑡 and 𝚿 1,𝑖𝑡 , are allowed to vary both between timepoints and participants. These parameters are additively composed from the elements of 𝜼 2,𝑖 and 
+
+𝜼 3,𝑡 , and potentially transformed by some function 𝑓 (·) . For example, if the parameter 𝑠 is the square root of an element on the diagonal of 𝚺 1,𝑖𝑡 , i.e., an individual-specific residual standard deviation, it could be represented as 𝑠 = exp (𝜂 2,𝑖𝑞 + 𝜂 3,𝑡𝑟 ), where 𝜂 2,𝑖𝑞 and 𝜂 3,𝑡𝑟 are the 𝑞 th and 𝑟 th elements of 
+
+𝜼 2,𝑖 and 𝜼 3,𝑡 , respectively, for some indices 𝑞 and 𝑟 , and the exponential transformation ensures that the standard deviation is positive. Due to the flexibility of our proposed algorithm, we do not make any assumptions about prior distributions at this point, as the choice of priors should ideally be made in the context of a specific research problem (Schad et al., 2020). For the full DSEM framework, to the best of our knowledge no alternatives to Metropolis-within-Gibbs have been proposed. For example, Li et al. (2022) compare 
+
+Stan , JAGS (Plummer, 2003), and Mplus implementations for DSEM, the first of which uses NUTS (Hoffman & Gelman, 2014), but they allow only manifest variables 𝒚 1,𝑖𝑡 and no latent traits 𝜼 1,𝑖𝑡 in the within-level model. 
+
+2.2 State Space Models and Kalman Filters 
+
+Rather than using (2.4), we could formulate the within-level model as an LG-SSM (Durbin & Koopman, 2012) where for each individual 𝑖 ,
+
+𝒚 1,𝑖𝑡 = 𝒁 𝑖𝑡 ˜𝜼 1,𝑖𝑡 + 𝒅 𝑖𝑡 + 𝒗 𝑖𝑡 , 𝒗 𝑖𝑡 ∼ N ( 0, 𝑯 𝑖𝑡 )
+
+˜𝜼 1,𝑖,𝑡 +1 = 𝑻 𝑖𝑡 ˜𝜼 1,𝑖𝑡 + 𝒄 𝑖𝑡 + 𝒘 𝑖𝑡 , 𝒘 𝑖𝑡 ∼ N ( 0, 𝑾 𝑖𝑡 ) , 𝑡 = 1, 2, . . . , 𝑇 
+
+˜𝜼 1,𝑖 1 = 𝝃 𝑖 , 𝝃 𝑖 ∼ N ( 𝒂 𝑖 1, 𝑷 𝑖 1) ,
+
+(2.5) where ˜𝜼 1,𝑖𝑡 is a state vector, 𝒂 𝑖 1 and 𝑷 𝑖 1 are the mean vector and covariance matrix in the Gaussian prior for the initial state, 𝒁 𝑖𝑡 , 𝑯 𝑖𝑡 , 𝑻 𝑖𝑡 , and 𝑾 𝑖𝑡 are matrices, 𝒅 𝑖𝑡 and 𝒄 𝑖𝑡 are mean vectors, and 𝒗 𝑖𝑡 and 𝒘 𝑖𝑡 are noise terms. An advantage of the state space formulation is that the state dynamics is Markovian; whatever value the lag 𝐿 takes, ˜𝜼 1,𝑖,𝑡 +1 only depends on ˜𝜼 1,𝑖𝑡 and 𝒚 1,𝑖𝑡 only depends on ˜𝜼 1,𝑖𝑡 . This lets us use the Kalman filter (Kalman, 1960) to compute the exact posterior distribution of the state variables. For each timepoint 𝑡 = 2, 3, . . . , 𝑇 we have the recursion 
+
+𝒂 𝑖,𝑡 |𝑡 −1 = 𝑻 𝑖,𝑡 −1 𝒂 𝑖,𝑡 −1|𝑡 −1 + 𝒄 𝑖,𝑡 −1
+
+𝑷 𝑖,𝑡 |𝑡 −1 = 𝑻 𝑖,𝑡 −1 𝑷 𝑖,𝑡 −1|𝑡 −1𝑻 𝑇 𝑖,𝑡 −1 + 𝑾 𝑖,𝑡 −1
+
+𝒗 𝑖𝑡 = 𝒚 1,𝑖𝑡 − 𝒁 𝑖𝑡 𝒂 𝑖,𝑡 |𝑡 −1 − 𝒅 𝑖𝑡 
+
+𝑭 𝑖𝑡 = 𝒁 𝑖𝑡 𝑷 𝑖,𝑡 |𝑡 −1 𝒁 𝑇 𝑖𝑡 + 𝑯 𝑖𝑡 
+
+𝒂 𝑖,𝑡 |𝑡 = 𝒂 𝑖,𝑡 |𝑡 −1 + 𝑷 𝑖,𝑡 |𝑡 −1 𝒁 𝑇 𝑖𝑡 𝑭 −1 
+
+> 𝑖𝑡
+
+𝒗 𝑖𝑡 
+
+𝑷 𝑖,𝑡 |𝑡 = 𝑷 𝑖,𝑡 |𝑡 −1 − 𝑷 𝑖,𝑡 |𝑡 −1 𝒁 𝑇 𝑖𝑡 𝑭 −1 
+
+> 𝑖𝑡
+
+𝒁 𝑖𝑡 𝑷 𝑖,𝑡 |𝑡 −1,
+
+(2.6) where for some 𝑠 ≤ 𝑡 we have 𝑃 ( ˜𝜼 1,𝑖𝑡 |𝒚 1,𝑖𝑠 ) = N ( 𝒂 𝑖,𝑡 |𝑠 , 𝑷 𝑖,𝑡 |𝑠 ), i.e., 𝒂 𝑖,𝑡 |𝑠 is the posterior mean of the latent state at time 𝑡 after observing data up to time 𝑠 and 𝑷 𝑖,𝑡 |𝑠 is the posterior covariance. For timepoint 
+
+𝑡 = 1 we use the prior initialization 𝒂 𝑖, 1|0 = 𝒂 𝑖 1 and 𝑷 𝑖, 1|0 = 𝑷 𝑖 1 and perform only the last four updates 4in (2.6), to obtain 𝒗 𝑖 1, 𝑭 𝑖 1, 𝒂 𝑖, 1| , and 𝑷 𝑖, 1|1. The marginal likelihood, integrating over ˜𝜼 1,𝑖𝑡 , is now given analytically by 2
+
+L = −𝑈𝑁𝑇 
+
+2 log 2 𝜋 −
+
+> 𝑁
+
+∑︁ 
+
+> 𝑖 =1
+> 𝑇
+
+∑︁ 
+
+> 𝑡 =1
+
+ 12 log |𝑭 𝑖𝑡 | + 12
+
+ 𝒚 1,𝑖𝑡 − ˆ𝒚 1,𝑖𝑡 
+
+𝑇 𝑭 −1
+
+> 𝑖𝑡
+
+ 𝒚 1,𝑖𝑡 − ˆ𝒚 1,𝑖𝑡 
+
+
+
+, (2.7) where ˆ𝒚 1,𝑖𝑡 = 𝒁 𝑖𝑡 𝒂 𝑖,𝑡 |𝑡 −1 + 𝒅 𝑖𝑡 .
+
+# 3 A State Space Formulation of DSEM 
+
+In this section we show how the within-level model (2.4) of the DSEM can be reformulated as a state space model on the form (2.5). This lets us replace sampling of the within-level latent variables with the Kalman filter (2.6) and plug the log likelihood (2.7) directly into the accept-reject step of the NUTS algorithm. 
+
+3.1 Augmented State Space Formulation 
+
+We start with a necessary definition: 
+
+Definition 3 (Coefficient Extraction) . Any time-varying polynomial operator 𝚽 𝑖𝑡 (𝐿 ) can be uniquely written in the left-canonical form 𝚽 𝑖𝑡 (𝐿 ) = Í𝑘 𝑫 𝑘,𝑖𝑡 𝐿 𝑘 . We define the extraction operator [·] 𝑘 such that [𝚽 𝑖𝑡 (𝐿 )] 𝑘 ≡ 𝑫 𝑘,𝑖𝑡 .We can now state our main result. 
+
+Theorem 1. For maximum lag 𝐿 ≥ 1, the within-level model (2.4) is exactly equivalent to the state space model 
+
+𝒚 1,𝑖𝑡 = 𝒁 𝑖𝑡 ˜𝜼 1,𝑖𝑡 
+
+˜𝜼 1,𝑖,𝑡 +1 = 𝑻 𝑖𝑡 ˜𝜼 1,𝑖𝑡 + 𝒄 𝑖𝑡 + 𝒘 𝑖𝑡 , 𝒘 𝑖𝑡 ∼ N ( 0, 𝑾 𝑖𝑡 ) , (3.1) where the augmented state vector is ˜𝜼 1,𝑖𝑡 = [𝜼 𝑇  
+
+> 1,𝑖,𝑡
+
+, . . . , 𝜼 1,𝑖,𝑡 −𝐿 +1, 𝒚 1,𝑖,𝑡 , . . . , 𝒚 1,𝑖,𝑡 −𝐿 +1]𝑇 and the mea-surement matrix extracts the contemporaneous observation, 𝒁 𝑖𝑡 = [0𝑈 ×𝐿𝑉 1 𝑰 𝑈 ×𝑈 0𝑈 × ( 𝐿 −1)𝑈 ]. The transition matrix is 
+
+𝑻 𝑖𝑡 =
+
+
+
+𝑻 (1,1) 
+
+> 𝑖𝑡
+
+𝑻 (1,2)
+
+> 𝑖𝑡
+
+𝑰 (𝐿 −1)𝑉 1 0(𝐿 −1)𝑉 1 ×𝑉 1
+
+ 0
+
+𝑻 (3,1) 
+
+> 𝑖𝑡
+
+𝑻 (3,2)
+
+> 𝑖𝑡
+
+0 𝑰 (𝐿 −1)𝑈 0(𝐿 −1)𝑈 ×𝑈 
+
+
+
+,
+
+where the block-columns for 𝑘 = 1, . . . , 𝐿 are defined by 
+
+{𝑻 (1,1) 
+
+> 𝑖𝑡
+
+}𝑘 = 𝑴 1,𝑖,𝑡 +1 [P𝜂 𝑖,𝑡 +1 (𝐿 )] 𝑘 , {𝑻 (1,2) 
+
+> 𝑖𝑡
+
+}𝑘 = 𝑴 1,𝑖,𝑡 +1 [P𝑦 𝑖,𝑡 +1 (𝐿 )] 𝑘 
+
+{𝑻 (3,1) 
+
+> 𝑖𝑡
+
+}𝑘 = 𝑵 1,𝑖,𝑡 +1 [Q𝜂 𝑖,𝑡 +1 (𝐿 )] 𝑘 , {𝑻 (3,2) 
+
+> 𝑖𝑡
+
+}𝑘 = 𝑵 1,𝑖,𝑡 +1 [Q𝑦 𝑖,𝑡 +1 (𝐿 )] 𝑘 .
+
+The matrices 𝑴 1,𝑖,𝑡 +1 and 𝑵 1,𝑖,𝑡 +1 are defined in (A.5) and (A.6), the composite polynomials P𝜂 𝑖,𝑡 +1 (𝐿 ),
+
+P𝑦 𝑖,𝑡 +1 (𝐿 ), Q𝜂 𝑖,𝑡 +1 (𝐿 ), and Q𝑦 𝑖,𝑡 +1 (𝐿 ) are defined in (A.7) and (A.8), and the intercept vector 𝒄 𝑖𝑡 and covariance matrix 𝑾 𝑖𝑡 are defined in (A.9) and (A.12). 
+
+Proof. A proof is given in Appendix A. □
+
+> 2
+
+With missing data 𝑈 𝑁 𝑇 in the first term is replaced by Í𝑁 𝑖 =1
+
+Í𝑇 𝑡 =1 𝑈 𝑖𝑡 , where 𝑈 𝑖𝑡 ≥ 0 is the number of observed indicators from participant 𝑖 at timepoint 𝑡 .
+
+53.2 Bayesian Estimation via Marginalization 
+
+The state space formulation derived in Theorem 1 allows for a fundamental change in the estimation strategy compared to the standard implementation (Asparouhov et al., 2018). By utilizing the Kalman filter, we can analytically integrate out the latent states ˜𝜼 1,𝑖𝑡 . Let 𝚯 denote the set of all static model parameters. The marginal likelihood of the data given 𝚯 , 𝜼 2 = {𝜼 2,𝑖 }𝑁 𝑖 =1 and 𝜼 3 = {𝜼 3,𝑡 }𝑇 𝑡 =1,
+
+𝑃 (𝒚 |𝚯 , 𝜼 2, 𝜼 3), is computed exactly via the recursive update equations (2.6) and the summation in (2.7). Targeting the marginal posterior 
+
+𝑃 (𝚯 , 𝜼 2, 𝜼 3 |𝒚 ) ∝ 𝑃 (𝒚 |𝚯 , 𝜼 2, 𝜼 3)𝑃 (𝚯 , 𝜼 2, 𝜼 3), (3.2) where 𝒚 denotes the complete vector of all observations, reduces the dimension of the sampling problem from O( 𝑁 ·𝑇 ·𝑉 1 + 𝑁 ·𝑉 2 +𝑇 ·𝑉 3 + | 𝚯 |) with standard MCMC to O( 𝑁 ·𝑉 2 +𝑇 ·𝑉 3 + | 𝚯 |) . However, neither Asparouhov et al. (2018)’s Metropolis-within-Gibbs sampler nor a random walk Metropolis algorithm would be able to utilize this. In the former, parameters are sampled in blocks conditionally on all other parameters, and the Kalman filter and marginal likelihood calculation would have to be repeated for each new parameter block, i.e., a large number of times per iteration. Random walk Metropolis, on the other hand, allows updating all parameters targeted by (3.2) in a single accept-reject step. However, due to the high dimensionality of the problem the acceptance rate would approach zero, rendering the algorithm useless. Hamiltonian Monte Carlo (Neal, 2011), on the other hand, circumvents both of these problems by utilizing the exact gradient of the marginalized log posterior, the logarithm of (3.2). By simulating Hamiltonian dynamics it proposes distant states that theoretically conserve Hamiltonian energy, yielding an acceptance probability of 1. While discrete-time leapfrog integration introduces minor numerical errors, NUTS (Hoffman & Gelman, 2014) adaptively tunes its step size to bound this error, maintaining high acceptance rates regardless of dimensionality. This gradient-guided exploration makes joint updating of all static parameters and between-level latent variables highly efficient. The general algorithmic scheme is as follows: 1. Initialization: Initialize parameters 𝚯 (0) , 𝜼 (0) 
+
+> 2
+
+, and 𝜼 (0) 
+
+> 3
+
+.2. Transition: At iteration 𝑘 , propose a new set of parameters {𝚯 ∗, 𝜼 ∗
+
+> 2
+
+, 𝜼 ∗ 
+
+> 3
+
+} using the NUTS proposal mechanism. 3. Likelihood Computation: Conditional on {𝚯 ∗, 𝜼 ∗
+
+> 2
+
+, 𝜼 ∗ 
+
+> 3
+
+}, run the Kalman filter recursion (2.6) over 𝑖 = 1, . . . , 𝑁 and 𝑡 = 1, . . . , 𝑇 to compute the marginal log-likelihood using (2.7). 4. Acceptance: Accept or reject {𝚯 ∗, 𝜼 ∗
+
+> 2
+
+, 𝜼 ∗ 
+
+> 3
+
+} based on the Metropolis ratio, which involves the likelihood computed in Step 3 and the prior 𝑃 (𝚯 , 𝜼 2, 𝜼 3).5. Repeat: Repeat steps 2-4 until convergence. Posterior estimates of the latent states ˜𝜼 1,𝑖𝑡 can be recovered post hoc by running the Kalman smoother using the posterior samples of 𝚯 , 𝜼 2, and 𝜼 3, without affecting the efficiency of the parameter estimation. If some 𝒚 1,𝑖𝑡 is missing, steps 3–6 of the Kalman filter are skipped and the mean and covariance of the latent state are carried forward, i.e., 𝒂 𝑖,𝑡 |𝑡 = 𝒂 𝑖,𝑡 |𝑡 −1 and 𝑷 𝑖,𝑡 |𝑡 = 𝑷 𝑖,𝑡 |𝑡 −1. This analytically marginalizes over the missing data without needing to sample it as a parameter as in standard MCMC. To ensure efficient exploration of the posterior a non-centered parameterization for the between-level latent variables may be useful (Papaspiliopoulos et al., 2007), and we have implemented this in all examples of the next section. However, whether a centered or non-centered parametrization should be preferred depends on the geometry of the particular problem (Betancourt & Girolami, 2015). 64 Simulation Experiments 
+
+We present simulation experiments comparing the proposed algorithm—hereafter denoted “NUTS-Kalman”—with a Metropolis-within-Gibbs 3 sampler which closely resembles that described in As-parouhov et al. (2018). As we do not have an Mplus license we have implemented this sampler in 
+
+JAGS using the R (R Core Team, 2025) packages rjags (Plummer, 2025) and jagsUI (Kellner, 2026). NUTS-Kalman was implemented in Stan using the rstan package (Stan Development Team, 2025). In order to separate the effect of using the Kalman filter from potential effects of using NUTS and Stan ,in the first simulation experiment, reported in Section 4.1, we also implemented a “brute-force” NUTS algorithm which samples over all latent states, which we denote “NUTS-Joint”. For all simulation experiments, note that both Metropolis-within-Gibbs and NUTS target the correct posterior. That is, when run for a sufficient number of iterations they will all get arbitrarily close to the true posterior distributions. The important practical question is whether a sufficiently good approximation can be obtained in reasonable time. Parameter values sampled by MCMC are in general auto-correlated, and the effective sample size (ESS) measures how many independent samples they correspond to. Hence, in order to obtain a sufficiently low Monte Carlo error to accurately estimate a posterior quantity of interest, the ESS needs to be sufficiently high (Zitzmann & Hecht, 2019). Similar to other papers on Bayesian estimation (Bierkens et al., 2019; Prangle, 2016) we thus compare algorithms in terms of their efficiency as measured by ESS per time unit. An important point is that the ESS output by the jagsUI package is based on estimating ESS independently in each chain by fitting an autoregressive model using the coda package (Plummer et al., 2006) and then summing over all chains. This approach can be overoptimistic, e.g., if the posterior is bimodal and one chain gets stuck in each mode (Vehtari et al., 2021). Stan uses a more sophisticated approach based on the estimators proposed by Vehtari et al. (2021), and we computed this also for the JAGS output using the posterior package (Bürkner et al., 2025). This both ensures that we use state-of-the-art estimators for ESS and that comparisons are based on standardized quantities. Following Vehtari et al. (2021) we distinguish between bulk-ESS for diagnosing the sampling efficiency in the bulk of the posterior (e.g., for estimating posterior means) and the tail-ESS defined as the minimum ESS for 5% and 95% percentiles for diagnosing the sampling efficiency in the tails of the posterior (e.g., for estimating posterior intervals). The potential scale reduction factor ˆ𝑅 was also computed using the method proposed by Vehtari et al. (2021) for all algorithms. While Gelman et al. (2003, p. 297) suggested that maximum values of ˆ𝑅 over all parameters below 1.10 are acceptable, Vats and Knudson (2021, p. 518) have argued that “a cutoff of ˆ𝑅 ≤ 1.1 is much too high to yield reasonable estimates of target quantities”, and an ˆ𝑅 ≤ 1.01 threshold has instead been suggested (Vehtari et al., 2021). All simulations were run with R version 4.4.2 on the Fox computing cluster hosted by the University of Oslo. All simulation results can be reproduced using code openly available in our OSF repository: https://osf.io/p754m. The code used for these simulation experiments was developed with the assistance of Google’s Gemini 3.1 Pro and Gemini Deep Think. All AI-assisted code was thoroughly reviewed, modified, and independently verified by the author prior to execution. Supplementary simulation results are provided in Online Resource 1. In particular, Figures S5 and S7–S15 of Online Resource 1 show that our Stan and JAGS implementations yield highly similar posterior means, suggesting that they target the same posterior distributions. Further details about prior distributions, data-generating parameter values, and algorithmic implementations, are provided in Online Resource 2. 
+
+4.1 Multilevel Scalar Latent AR(1) Model 
+
+We start by considering a univariate latent AR(1) model, with parameters varying between participants but not between timepoints. The decomposition (2.1) becomes 𝑦 𝑖𝑡 = 𝑦 1,𝑖𝑡 + 𝑦 2,𝑖 , there is no between-
+
+> 3For brevity, this sampler is denoted “Gibbs” in the figure legends.
+
+7timepoint model (2.2) and the between-participant model (2.3) is 
+
+𝑦 2,𝑖 = 𝜂 2,𝑖 1
+
+𝜼 2,𝑖 = 𝜶 2 + 𝝃 2,𝑖 , 𝝃 2,𝑖 ∼ N ( 0, 𝚿 2),
+
+where 𝜂 2,𝑖 1 is the first component of 𝜼 2,𝑖 and 𝚿 2 = diag (𝜏 2 
+
+> 𝜈
+
+, 𝜏 2 
+
+> 𝜙
+
+, 𝜏 2log 𝜎 , 𝜏 2log 𝜓 ). The within-level model (2.4) is 
+
+𝑦 1,𝑖𝑡 = 𝜂 1,𝑖𝑡 + 𝜖 1,𝑖𝑡 , 𝜖 1,𝑖𝑡 ∼ N ( 0, 𝜎 22,𝑖 )
+
+𝜂 1,𝑖𝑡 = 𝜙 2,𝑖 𝜂 1,𝑖,𝑡 −1 + 𝜉 1,𝑖𝑡 , 𝜉 1,𝑖𝑡 ∼ N ( 0, 𝜓 22,𝑖 ),
+
+which is what Asparouhov et al. (2018) call the measurement error AR(1) model. The autoregressive parameter 𝜙 2,𝑖 and the standard deviations 𝜎 2,𝑖 and 𝜓 2,𝑖 in the within-level model are related to the between-level latent variable 𝜼 2,𝑖 through the transformations 𝜙 2,𝑖 = tanh (𝜂 2𝑖, 2), 𝜎 2,𝑖 = exp (𝜂 2𝑖, 3), and 
+
+𝜓 2,𝑖 = exp (𝜂 2𝑖, 4). The latter two ensure that the standard deviations are positive, and the first ensures stationarity by constraining the autoregressive coefficients to lie between −1 and 1.We generated 100 random datasets from the model for each of six data dimension settings, with 
+
+𝑁 = 50 , 100 and 𝑇 = 50 , 100 , 200 . For each generated dataset we ran both NUTS-Kalman and NUTS-Joint for 3,000 iterations in each of four parallel chains, discarding the first 1,000 from each chain as warm-up 4, yielding a total of 8,000 posterior samples. The target average acceptance probability during warm-up was set to 0.95 and the maximum treedepth to 15. These parameters were set higher than the defaults ( 0.80 and 10 ) to make the sampler more robust against Monte Carlo samples with particularly challenging geometry. The Metropolis-within-Gibbs sampler was run for 15,000 iterations in each of four parallel chains after an adaptation phase of 2,000 iterations. The first 5,000 iterations were discarded as burn-in, yielding a total of 40,000 posterior samples. For the largest data setting ( 𝑁 = 100 
+
+and 𝑇 = 200 ), the median wall time for the two NUTS implementations was around 40 minutes while for Metropolis-within-Gibbs it was around 50 minutes. The eight population level parameters in 𝜶 2 and 𝚿 2 were considered the parameters of interest, and for each run of an algorithm bulk-ESS and tail-ESS were computed as the minimum over these, whereas 
+
+ˆ𝑅 was computed as the maximum. According to the ˆ𝑅 < 1.01 threshold, NUTS-Kalman succeeded for almost 100% of the samples, whereas NUTS-Joint and Metropolis-within-Gibbs failed in almost all samples. Loosening the threshold to ˆ𝑅 < 1.05 , Metropolis-within-Gibbs succeeded in about 80% of the samples. Details are given in Figure S2 of Online Resource 1. Figure 1 shows the efficiency of the three algorithms, measured in terms of bulk-ESS per minute. In all six cases considered, NUTS-Kalman was between 8 and 19 times more efficient than Metropolis-within-Gibbs. NUTS-Kalman was also between 10 and 18 times more efficient than NUTS-Joint, confirming that the efficiency gain was not due to Stan or NUTS in and of itself, but rather the use of the Kalman filter to marginalize over the within-level latent variables. The corresponding plot for efficiency in terms of tail-ESS is almost identical and is shown in Figure S1 of Online Resource 1. Figures S3 and S4 of Online Resource 1 show histograms of bulk-ESS and tail-ESS, respectively, for all eight parameters of interest. They reveal that all three algorithms had comparable efficiency for estimating the population-level intercept term, the first element of 𝜶 2, whereas the order-of-magnitude advantage of NUTS-Kalman shown in Figure 1 stems from Metropolis-within-Gibbs and NUTS-Joint being inefficient for the remaining three elements of 𝜶 2, i.e., the mean of the autoregressive coefficient and of the log standard deviations of the measurement noise and process noise. NUTS-Kalman was also more efficient for the variance parameters in 𝚿 2.For a practitioner doing Bayesian data analysis, an ESS of around 400 is typically considered a sensible threshold for computing summaries like posterior means (Veenman et al., 2024), around 1,000     
+
+> 4To be consistent with Stan terminology, we use the term warm-up rather than burn-in when referring to Stan implementations, while we use the term burn-in for JAGS implementations.
+
+8Figure 1: Box plots of efficiency for the three algorithms compared for the multilevel scalar latent AR(1) model Table 1: Median time (minutes) to reach target bulk-ESS for 𝑁 = 100 and 𝑇 = 200 
+
+Method Target=400 Target=1,000 Target=10,000 Gibbs 160 401 4011 NUTS-Joint 253 633 6339 NUTS-Kalman 21 53 534 may be required to obtain reliable posterior intervals (Zitzmann & Hecht, 2019), while 10,000 has been suggested as a threshold for high-precision inference (Kruschke, 2015). Table 1 shows the projected time required to reach these targets for the three algorithms, for the larger data setting with 100 participants and 200 timepoints. 
+
+4.2 Multilevel One-Factor Multi-Indicator AR(1) Model 
+
+We next simulated a model for which the observation 𝒚 𝑖𝑡 was a vector of size 𝑈 = 3, while the underlying latent trait was still scalar. Equation (2.1) is now 𝒚 𝑖𝑡 = 𝒚 1,𝑖𝑡 + 𝒚 2,𝑖 , there is no between-timepoint model (2.2), and the between-participant model (2.3) is 
+
+𝒚 2,𝑖 = 𝜂 2,𝑖 1 𝜂 2,𝑖 2 𝜂 2,𝑖 3
+
+𝑇 
+
+𝜼 2,𝑖 = 𝜶 2 + 𝝃 2,𝑖 , 𝝃 2,𝑖 ∼ N ( 0, 𝚿 2),
+
+9where 𝚿 2 = diag (𝜏 2 
+
+> 𝜈
+
+, 𝜏 2 
+
+> 𝜈
+
+, 𝜏 2 
+
+> 𝜈
+
+, 𝜏 2 
+
+> 𝜙
+
+, 𝜏 2log 𝜎 , 𝜏 2log 𝜓 ). The within-level model (2.4) is 
+
+𝒚 1,𝑖𝑡 = 1 𝜆 1 𝜆 2
+
+𝑇 𝜂 1,𝑖𝑡 + 𝝐 1,𝑖𝑡 , 𝝐 1,𝑖𝑡 ∼ N ( 0, 𝚺 2,𝑖 )
+
+𝜂 1,𝑖𝑡 = 𝜙 2,𝑖 𝜂 1,𝑖,𝑡 −1 + 𝜉 1,𝑖𝑡 𝜉 1,𝑖𝑡 ∼ N ( 0, 𝜓 22,𝑖 ),
+
+where 𝚺 2,𝑖 = diag (𝜎 22,𝑖 , 𝜎 22,𝑖 , 𝜎 22,𝑖 ). The first three elements of 𝜶 2 are now population means for each of the three measured indicators, while the remaining three elements are related to 𝜙 2,𝑖 , 𝜎 2,𝑖 , and 𝜓 2,𝑖 
+
+through tanh (·) and exp (·) transformations exactly as in the previous section. The factor loadings 𝜆 1
+
+and 𝜆 2 are population-level parameters. We ran the simulations for two data dimensions: one with twice as many participants as there were timepoints per participant, 𝑁 = 100 and 𝑇 = 50 , and one with the opposite, 𝑁 = 50 and 𝑇 = 100 .NUTS-Kalman had maximum treedepth 12 and target acceptance 0.95 and was run for 5,000 iterations in each of four chains, discarding the first 2,500 as warm-up, yielding 10,000 posterior samples. Metropolis-within-Gibbs was run exactly as in Section 4.1. Both algorithms had ˆ𝑅 < 1.01 for all parameters of interest and median wall times per Monte Carlo sample between 20 and 30 minutes. Figure 2 shows the efficiency as measured by bulk-ESS per minute for all 12 parameters of interest. We see that the algorithms are comparable for many of the parameters, and that there are small differences between data dimensions. However, NUTS-Kalman outperforms Metropolis-within-Gibbs in particular for the population mean of the log -transformed standard deviation of the process noise ( 𝛼 2,6) and the two factor loadings 𝜆 1 and 𝜆 2. In terms of median worst-case bulk-ESS per minute, NUTS-Kalman was 1.13 times more efficient for 𝑁 = 100 and 𝑇 = 50 and 1.28 times more efficient for 𝑁 = 50 and 𝑇 = 100 . Interestingly, Metropolis-within-Gibbs was slight better than NUTS-Kalman in terms of tail-efficiency, as shown in Figure S6 of Online Resource 1. 
+
+4.3 Multilevel Trivariate VAR(1) Model 
+
+We next extended the model further to include a three-dimensional latent state vector ( 𝑉 1 = 3), with each latent trait being measured by either one indicator ( 𝑈 = 3), two indicators ( 𝑈 = 6), or three indicators (𝑈 = 9). Equation (2.1) is still 𝒚 𝑖𝑡 = 𝒚 1,𝑖𝑡 + 𝒚 2,𝑖 , there is no between-timepoint model (2.2), and the between-participant model (2.3) is 
+
+𝒚 2,𝑖 = 𝜂 2,𝑖 1 𝜂 2,𝑖 2 . . . 𝜂 2,𝑖𝑈 
+
+𝑇 
+
+𝜼 2,𝑖 = 𝜶 2 + 𝝃 2,𝑖 , 𝝃 2,𝑖 ∼ N ( 0, 𝚿 2).
+
+The within-level model is 
+
+𝒚 1,𝑖𝑡 = 𝚲 2𝜼 1,𝑖𝑡 + 𝝐 1,𝑖𝑡 , 𝝐 1,𝑖𝑡 ∼ N ( 0, 𝚺 2,𝑖 )
+
+𝜼 1,𝑖𝑡 = 𝚽 2,𝑖 𝜼 1,𝑖,𝑡 −1 + 𝝃 1,𝑖𝑡 , 𝝃 1,𝑖𝑡 ∼ N ( 0, 𝚿 2,𝑖 ),
+
+where 𝚲 2 was such that we had an independent cluster model, with each item reflecting only a single latent variable. We ensured stationarity of the simulated datasets by rejecting any 𝚽 2,𝑖 with maximum modulus of its eigenvalues larger than 0.95 . We assumed for simplicity that the 𝑈 × 𝑈 matrix 𝚺 2,𝑖 
+
+had identical values 𝜎 22,𝑖 along the diagonal and similarly that the 3 × 3 matrix 𝚿 2,𝑖 has identical values 𝜓 22,𝑖 along the diagonal. The vector 𝜶 2 is now of size 𝑈 + 11 and contains the means of the 𝑈 
+
+measured items, the 9 arctanh-transformed elements of 𝚽 2,𝑖 , and the means of log 𝜎 2,𝑖 and log 𝜓 2,𝑖 .The (𝑈 + 11 ) × ( 𝑈 + 11 ) covariance matrix 𝚿 2 contains the corresponding variances along its diagonal, and has zero off-diagonal entries. We ran NUTS-Kalman for 3,000 iterations in four parallel chains, discarding the first 1,000 as warm-up, yielding 8,000 posterior samples. We targeted an acceptance rate of 95% in the warm-up 10 Figure 2: Histograms of efficiency for each parameter of interest across 100 Monte Carlo simulations in the multilevel one-factor three-indicator latent AR(1) model 11 Figure 3: The left box plot shows efficiency plotted against indicators per latent variable and the right plot shows ˆ𝑅 plotted against indicators per latent variable for the trivariate VAR(1) model phase and set the maximum treedepth to 12. For Metropolis-within-Gibbs we ran an adaptation phase of 2,000 iterations, followed by 50,000 iterations on each of four chains, discarding the first 5,000 as burn-in, yielding 180,000 post-burn-in samples. By default, rstan initializes parameters by drawing from a uniform distribution over [− 2, 2] on the unconstrained parameter space. This led to divergence into non-stationary regions during the warm-up phase, and for this reason we explicitly initialized the population means of the autoregressive coefficients to 0 and the log-standard deviations to 0.05 .In contrast, JAGS initializes parameters by drawing from the prior distributions, and since we used somewhat informative priors, this turned out to be sufficient to ensure convergence during burn-in. Details of the initialization are provided in Section S3.2 of Online Resource 2. In our implementation, we projected the 𝑈 observed indicators onto a 𝑉 1 = 3 dimensional com-pressed state space prior to running the Kalman filter, following Jungbacker and Koopman (2015). Due to this, we only had to do a 3 × 3 matrix inversion in every step rather than 𝑈 × 𝑈 , which in the worst case would be 9 × 9. Details are provided in Section S3.3 of Online Resource 2. Figure 3 shows the efficiency (left) and maximum ˆ𝑅 for each number of indicator variables (right), over 100 Monte Carlo samples. It is clear from the plot that NUTS-Kalman outperforms Metropolis-within-Gibbs in the low-information setting with only one indicator per latent variable. In contrast, with two or more indicators per latent variable Metropolis-within-Gibbs is more efficient than NUTS-Kalman. In the single-indicator setting, Metropolis-within-Gibbs also has poor ˆ𝑅 values, indicating problems with convergence. In contrast, in the two other settings, its ˆ𝑅 values are very close to 1 in all simulations, and better than NUTS-Kalman. 12 Figure 4: The left box plot shows efficiency plotted against lag, and the right plot shows ˆ𝑅 plotted against lag for the AR(p) model 
+
+4.4 Multilevel Latent AR(p) Model 
+
+In the next simulation, we extended the model from Section 4.1 to an AR( 𝑝 ) model, with the lag 𝑝 
+
+taking values 𝑝 = 1, 2, 3, 4. The within-level model is now 
+
+𝑦 1,𝑖𝑡 = 𝜂 1,𝑖𝑡 + 𝜖 1,𝑖𝑡 , 𝜖 1,𝑖𝑡 ∼ N ( 0, 𝜎 22,𝑖 )
+
+𝜂 1,𝑖𝑡 =
+
+> 𝑝
+
+∑︁ 
+
+> 𝑙 =1
+
+𝜙 2,𝑙𝑖 𝜂 1,𝑖,𝑡 −𝑙 + 𝜉 1,𝑖𝑡 , 𝜉 1,𝑖𝑡 ∼ N ( 0, 𝜓 22,𝑖 ),
+
+while the remaining components as well as all other aspects related to the simulations were identical to Section 4.1 except for the data-generating parameter values of the autoregression coefficients, which had means 0.4, 0.2, 0.1, and 0.05 for lags 1, 2, 3, 4, respectively, and standard deviations 𝜏 𝜙 = 0.05 .During data generation, we rejected any individual-level coefficients |𝜙 2,𝑙𝑖 | > 0.95 . Compared to Section 4.1 we also increased the total number of iterations of Metropolis-within-Gibbs to 50,000 per chain, yielding 180,000 post-burn-in iterations. We simulated 100 Monte Carlo samples for each of four settings, with maximum lags 𝐿 equal to 1, 2, 3, 4. The number of participants 𝑁 = 40 and number of timepoints 𝑇 = 50 were fixed. In the most challenging lag-4 setting, the median wall time for Metropolis-within-Gibbs was 22 minutes and for NUTS-Kalman 31 minutes. The left plot in Figure 4 shows how the efficiency, measured by bulk-ESS per minute, depends on the lag. While NUTS-Kalman remains far more efficient than Metropolis-within-Gibbs across all conditions, its relative advantage decreases as the lag increases, with median bulk-ESS multipliers of 
+
+18 , 11 , 6, and 4 for 𝐿 = 1, 2, 3, and 4, respectively. The right plot in Figure 4 shows box plots of the maximum ˆ𝑅 across the parameters of interest. Table 2 shows diagnostics based on the maximum ˆ𝑅 over the parameters of interest. Only between 39 and 59% of the Metropolis-within-Gibbs algorithms had ˆ𝑅 values below the 1.01 threshold. However, the more lenient 1.05 threshold was almost always satisfied. As can also be seen from Table 2, NUTS-Kalman had excellent ˆ𝑅 values. 13 Table 2: Percentage of Converged Chains ( ˆ𝑅 Thresholds) Lag Threshold Gibbs (%) NUTS-Kalman (%) 1.01 52 98 1 1.05 99 100 1.01 39 99 2 1.05 98 100 1.01 41 100 3 1.05 96 100 1.01 59 100 4 1.05 100 100 
+
+4.5 Cross-Classified VAR(1) Model 
+
+We finally considered a model inspired by the one proposed by McNeish et al. (2021) for assessing measurement invariance in DSEM. The measurement 𝒚 𝑖𝑡 was four-dimensional. The first three elements of 𝒚 𝑖𝑡 are items measuring a latent trait, and the fourth element is a manifest variable. The response decomposition (2.1) is 𝒚 𝑖𝑡 = 𝒚 1,𝑖𝑡 + 𝒚 2,𝑖 + 𝒚 3,𝑡 and the between-timepoints model (2.2) is 
+
+𝒚 3,𝑡 = 𝜂 3,𝑡 1 𝜂 3,𝑡 2 𝜂 3,𝑡 3 0𝑇 
+
+𝜼 3,𝑡 = 𝝃 3,𝑡 , 𝝃 3,𝑡 ∼ N ( 0, 𝚿 3), (4.1) where 𝜼 3,𝑡 has size 𝑉 3 = 7. The first four element of 𝜼 3,𝑡 are related to the means of the measurements and the last three elements are related to the factor loadings in (4.3) below. The covariance matrix is 𝚿 3 = diag (𝜓 3,1, 𝜓 3,2, 𝜓 3,3, 0, 𝜓 3,5, 𝜓 3,6, 𝜓 3,7), where the zero in the middle, along with the zero in the first line of (4.1), implies that the intercept of restraint does not vary between timepoints. The between-participants model (2.3) is 
+
+𝒚 2,𝑖 = 𝜂 2,𝑖 1 𝜂 2,𝑖 2 𝜂 2,𝑖 3 𝜂 2,𝑖 4
+
+𝑇 
+
+𝜼 2,𝑖 = 𝜶 2 + 𝝃 2,𝑖 , 𝝃 2,𝑖 ∼ N ( 0, 𝚿 2), (4.2) where 𝜼 2,𝑖 has size 𝑉 2 = 13 . The first four elements of 𝜼 2,𝑖 are related to the intercepts of the measured items. Note that this implies that the intercept of restraint is allowed to vary between participants. The covariance matrix is 𝚿 2 = diag (𝜓 2,1, . . . , 𝜓 2,13 ). The within-level model is 
+
+𝒚 1,𝑖𝑡 =
+
+
+
+𝜆 1,𝑖𝑡 0
+
+𝜆 2,𝑖𝑡 0
+
+𝜆 3,𝑖𝑡 00 1
+
+
+
+𝜼 1,𝑖𝑡 + 𝝐 1,𝑖𝑡 , 𝝐 1,𝑖𝑡 ∼ N ( 0, 𝚺 1,𝑖 )
+
+𝜼 1,𝑖𝑡 = 𝚽 1,𝑖 𝜼 1,𝑖,𝑡 −1 + 𝝃 1,𝑖𝑡 , 𝝃 1,𝑖𝑡 ∼ N ( 0, 𝚿 1,𝑖 ),
+
+(4.3) where 𝚺 1,𝑖 = diag (𝜎 21,𝑖 , 𝜎 21,𝑖 , 𝜎 21,𝑖 , 0), 𝚿 1,𝑖 = diag (1, 𝜓 21,𝑖 ), and the autoregression matrix 𝚽 1,𝑖 is allowed to vary between participants. The factor loadings in (4.3) are given by 𝜆 1,𝑖𝑡 = 𝜂 3,𝑡 5 + 𝜂 2,𝑖 5,
+
+𝜆 2,𝑖𝑡 = 𝜂 3,𝑡 6 + 𝜂 2,𝑖 6, and 𝜆 3,𝑖𝑡 = 𝜂 3,𝑡 7 + 𝜂 2,𝑖 7. To avoid sign indeterminacy, we constrained the elements of 𝜶 2 in (4.2) corresponding to the population means of the factor loadings to be non-negative. In this model, measurement invariance would imply that 𝜓 3,5 = 𝜓 3,6 = 𝜓 3,7 = 0. Note that the underlying assumption in the case of non-invariance is that the factor loadings for two adjacent 14 Figure 5: Efficiency measured in bulk-ESS per minute (left) and tail-ESS per minute (right) for the cross-classified VAR(1) model timepoints 𝑡 and 𝑡 + 1 are no more similar than the factor loadings for two distant measurements, e.g., 
+
+𝑡 = 1 and 𝑡 = 𝑇 . If there is reason to suspect that the loadings have a time trend, a more realistic model could include a covariate 𝑡 in the second line of (4.1). However, since our goal in this paper is to compare algorithmic efficiency, we chose to use the approach which seems to be standard for cross-classified DSEM (Asparouhov et al., 2018; McNeish et al., 2021). We simulated 100 Monte Carlo samples with 𝑁 = 40 and 𝑇 = 150 . For each of these, we ran NUTS-Kalman for 4,000 iterations on each of four parallel chains, discarding the first 1,000 iterations as warm-up, yielding 12,000 post-warm-up samples. The target acceptance probability during warm-up was 95% and the maximum treedepth was 12. We implemented a Kalman filter processing one element of 𝒚 1,𝑖𝑡 at a time (Koopman & Durbin, 2000). Metropolis-within-Gibbs was run for 50,000 iterations in each of four chains after an adaptation phase of 2,000 iterations. The first 5,000 iterations were discarded as burn-in, yielding 180,000 post-burn-in samples. The median wall time was 5.3 hours for NUTS-Kalman and 6.1 hours for Metropolis-within-Gibbs. As in Section 4.3 we provided NUTS-Kalman with reasonable initial values to avoid divergence during warm-up, whereas Metropolis-within-Gibbs was started by sampling from the priors. Details are provided in Section S5.2 of Online Resource 2. Both algorithms had maximum ˆ𝑅 values below 1.01 in the majority of samples. Figure 5 plots the efficiency of the two algorithms against each other for each simulated dataset. The solid diagonal line represents equal efficiency; the fact that most points fall above this line demonstrates that NUTS-Kalman dominates Metropolis-within-Gibbs at the individual dataset level, being 1.50 times more bulk-efficient and 1.62 times more tail-efficient. While the performance gap between the algorithms was smaller compared to simpler models, the efficiency gain is still practically significant given the demanding baseline estimation times. 
+
+4.6 Sensitivity Analyses 
+
+Appropriately setting the burn-in for Metropolis-within-Gibbs is challenging in large-scale simulation experiments, as one cannot manually inspect trace plots. In all simulations, we set the burn-in relatively low to avoid giving this algorithm a disadvantage, given that the burn-in period is part of the wall 15 time, but only post-burn-in samples contribute to ESS. However, if the burn-in is set too low and the chain has not converged when we start collecting samples, it is possible for the ESS to increase with burn-in for a fixed total number of iterations. To rule out this source of confounding, we also ran Metropolis-within-Gibbs for the four models in Section 4.1–4.4 with the total number of iterations per chain set to 100,000, discarding the first 50,000 as burn-in, yielding a total of 200,000 post-burn-in samples. We did not include the cross classified model in Section 4.5 because of its long compute time. In Figures S16–S19 of Online Resource 1, the efficiency in these large burn-in settings is compared to the efficiency for the settings reported above. The overall results were that the efficiency with a large burn-in combined with a large total number of iterations was either comparable or worse than the results reported above. This suggests that our conclusions were not highly dependent on our particular choices of burn-in and total number of iterations. 
+
+# 5 Discussion 
+
+In this paper, we have shown that the within-level model of a DSEM can be reformulated as a state space model, and proposed the NUTS-Kalman algorithm which utilizes this reformulation to replace sampling of within-level latent variables with matrix computation using the Kalman filter. With this algorithm, the number of parameters to be sampled per MCMC iteration is reduced from O( 𝑁 · 𝑇 ) to 
+
+O( 𝑁 + 𝑇 ). The simulation experiments for five different model scenarios confirmed that the theoretical benefits of NUTS-Kalman also translate to improved efficiency in practice. NUTS-Kalman is particularly useful when the observed indicators are relatively noisy measurements of the underlying latent variables. We can see this in Figure 3, which shows the results for the trivariate VAR(1) model considered in Section 4.3. There, Metropolis-within-Gibbs performed poorly with a single indicator per latent variable, whereas it outperformed NUTS-Kalman with two or more indicators. Similarly, in the model considered in Section 4.1 with a single latent variable measured by a single indicator the relative advantage of NUTS-Kalman was much more pronounced than in the model of Section 4.2 with three indicators measuring a single latent variable. A statistical interpretation of this is as follows: when the indicators precisely measure the latent variables, their conditional autocorrelation given the data is relatively low, making Gibbs sampling more efficient. In contrast, when the indicators yield imprecise information about the latent variables, conditioning on the data does not reduce autocorrelation much. This geometry is challenging for the Gibbs sampler (Park & Lee, 2022), and is the prototypical example in which Hamiltonian Monte Carlo, and hence NUTS-Kalman, excels (Hoffman & Gelman, 2014). We have only focused on normally distributed responses, but categorical variables can also be handled with a latent response formulation (Albert & Chib, 1993). However, the latent responses cannot be integrated out by the Kalman filter, leaving the number of parameters to be sampled back at 
+
+O( 𝑁 · 𝑇 ). With a non-identity link function (e.g., probit, logit), the within-level model (2.4) becomes non-linear. By reformulating it as a non-linear state space model, approximate filtering methods (Durbin & Koopman, 2012, Ch. 10) could be used to analytically integrate over all latent variables. Such an algorithm would not target the true posterior, however. Particle filters, on the other hand, are widely used for sampling from non-linear state space models (Naesseth et al., 2019), but cannot be combined with Hamiltonian Monte Carlo due to their stochastic nature (Chen et al., 2014). Pseudo-marginal Hamiltonian Monte Carlo (Alenlöv et al., 2021) might be an alternative. We leave this as an interesting problem for further study. Another problem of high practical relevance is to scale DSEM to larger data. For example, Judd and Klingberg (2021) analyzed data from a mathematical learning app in which 17,048 children had completed on average 5,077 trials each. In these cases, approximate methods like Pathfinder (Zhang et al., 2022) and automatic differentiation variational inference (Kucukelbir et al., 2017) will likely be necessary to handle the high-dimensional parameter space. However, the efficiency of these ap-16 proximations still depends on the underlying Kalman filter evaluation. For large 𝑁 , frameworks that utilize just-in-time (JIT) compiled vectorization (e.g., NumPyro (Phan et al., 2019)) can broadcast the filter across participants simultaneously. For large 𝑇 , parallel Kalman filter algorithms (Särkkä & García-Fernández, 2021) that scale logarithmically with the number of timepoints by utilizing graphical processing units offer a promising path to making models of this magnitude computationally feasible. Finally, the NUTS-Kalman algorithm is not limited to a single software environment; NUTS (Hoffman & Gelman, 2014) is now the standard in major probabilistic programming frameworks beyond 
+
+Stan , including PyMC (Abril-Pla et al., 2023), NumPyro , and Turing.jl (Fjelde et al., 2025). This ensures that our proposed method can be implemented within the ecosystem that best suits a researcher’s needs. 
+
+# References 
+
+Abril-Pla, O., Andreani, V., Carroll, C., Dong, L., Fonnesbeck, C. J., Kochurov, M., Kumar, R., Lao, J., Luhmann, C. C., Martin, O. A., Osthege, M., Vieira, R., Wiecki, T., & Zinkov, R. (2023). PyMC: A modern, and comprehensive probabilistic programming framework in Python. PeerJ Computer Science , 9, e1516. https://doi.org/10.7717/peerj-cs.1516 Albert, J. H., & Chib, S. (1993). Bayesian Analysis of Binary and Polychotomous Response Data [_eprint: https://www.tandfonline.com/doi/pdf/10.1080/01621459.1993.10476321]. Journal of the American Statistical Association , 88 (422), 669–679. https://doi.org/10.1080/01621459. 1993.10476321 Alenlöv, J., Doucet, A., & Lindsten, F. (2021). Pseudo-Marginal Hamiltonian Monte Carlo. Journal of Machine Learning Research , 22 (141), 1–45. Retrieved February 27, 2026, from http://jmlr. org/papers/v22/19-486.html Asparouhov, T., Hamaker, E. L., & Muthén, B. (2018). Dynamic Structural Equation Models [Pub-lisher: Routledge _eprint: https://doi.org/10.1080/10705511.2017.1406803]. Structural Equa-tion Modeling: A Multidisciplinary Journal , 25 (3), 359–388. https : / / doi . org / 10 . 1080 / 10705511.2017.1406803 Betancourt, M., & Girolami, M. (2015). Hamiltonian Monte Carlo for Hierarchical Models [Num Pages: 24]. In Current Trends in Bayesian Methodology with Applications . Chapman; Hall/CRC. Bierkens, J., Fearnhead, P., & Roberts, G. (2019). The Zig-Zag process and super-efficient sampling for Bayesian analysis of big data. The Annals of Statistics , 47 (3), 1288–1320. https://doi.org/10. 1214/18-AOS1715 Bürkner, P.-C., Gabry, J., Kay, M., & Vehtari, A. (2025). Posterior: Tools for working with posterior distributions (manual). https://mc-stan.org/posterior/ Carter, C. K., & Kohn, R. (1994). On Gibbs sampling for state space models. Biometrika , 81 (3), 541– 553. https://doi.org/10.1093/biomet/81.3.541 Chen, T., Fox, E., & Guestrin, C. (2014). Stochastic Gradient Hamiltonian Monte Carlo. Proceedings of the 31st International Conference on Machine Learning , 1683–1691. Retrieved February 27, 2026, from https://proceedings.mlr.press/v32/cheni14.html Driver, C. C., & Voelkle, M. C. (2018). Hierarchical Bayesian continuous time dynamic modeling. 
+
+Psychological Methods , 23 (4), 774–799. https://doi.org/10.1037/met0000168 Durbin, J., & Koopman, S. J. (2012, May). Time series analysis by state space methods . Oxford University Press. https://doi.org/10.1093/acprof:oso/9780199641178.001.0001 Epskamp, S. (2020). Psychometric Network Models from Time-Series and Panel Data. Psychometrika ,
+
+85 (1), 206–231. https://doi.org/10.1007/s11336-020-09697-3 Fjelde, T. E., Xu, K., Widmann, D., Tarek, M., Pfiffer, C., Trapp, M., Axen, S. D., Sun, X., Hauru, M., Yong, P., Tebbutt, W., Ghahramani, Z., & Ge, H. (2025). Turing.jl: A General-Purpose 17 Probabilistic Programming Language. ACM Trans. Probab. Mach. Learn. , 1(3), 14:1–14:48. https://doi.org/10.1145/3711897 Frühwirth-Schnatter, S. (1994). Data Augmentation and Dynamic Linear Models [_eprint: https://onlinelibrary.wiley.com/doi/pdf/1 9892.1994.tb00184.x]. Journal of Time Series Analysis , 15 (2), 183–202. https://doi.org/10. 1111/j.1467-9892.1994.tb00184.x Gelman, A., Carlin, J. B., Stern, H. S., & Rubin, D. B. (2003). Bayesian data analysis (2nd ed.). Chapman; Hall/CRC. https://doi.org/10.1201/9780429258480 Hamaker, E. L., Asparouhov, T., Brose, A., Schmiedek, F., & Muthén, B. (2018). At the Frontiers of Mod-eling Intensive Longitudinal Data: Dynamic Structural Equation Models for the Affective Mea-surements from the COGITO Study [_eprint: https://doi.org/10.1080/00273171.2018.1446819]. 
+
+Multivariate Behavioral Research , 53 (6), 820–841. https://doi.org/10.1080/00273171.2018. 1446819 Hoffman, M. D., & Gelman, A. (2014). The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo. Journal of Machine Learning Research , 15 (47), 1593–1623. Judd, N., & Klingberg, T. (2021). Training spatial cognition enhances mathematical learning in a randomized study of 17,000 children. Nature Human Behaviour , 5(11), 1548–1554. https : //doi.org/10.1038/s41562-021-01118-4 Jungbacker, B., & Koopman, S. J. (2015). Likelihood-based dynamic factor analysis for measurement and forecasting. The Econometrics Journal , 18 (2), C1–C21. https://doi.org/10.1111/ectj.12029 Kalman, R. E. (1960). A New Approach to Linear Filtering and Prediction Problems. Journal of Basic Engineering , 82 (1), 35–45. https://doi.org/10.1115/1.3662552 Kalman, R. E., & Bucy, R. S. (1961). New Results in Linear Filtering and Prediction Theory. Journal of Basic Engineering , 83 (1), 95–108. https://doi.org/10.1115/1.3658902 Kellner, K. (2026). jagsUI: A wrapper around ’rjags’ to streamline ’JAGS’ analyses (manual). https: //doi.org/10.32614/CRAN.package.jagsUI Kilian, L., & Lütkepohl, H. (2017). Structural Vector Autoregressive Analysis . Cambridge University Press. https://doi.org/10.1017/9781108164818 Koopman, S. J., & Durbin, J. (2000). Fast Filtering and Smoothing for Multivariate State Space Models. 
+
+Journal of Time Series Analysis , 21 (3), 281–296. https://doi.org/10.1111/1467-9892.00186 Kruschke, J. (2015). Doing Bayesian Data Analysis: A Tutorial with R, JAGS, and Stan (2nd). Academic Press. Kucukelbir, A., Tran, D., Ranganath, R., Gelman, A., & Blei, D. M. (2017). Automatic Differentia-tion Variational Inference. Journal of Machine Learning Research , 18 (14), 1–45. Retrieved February 26, 2026, from http://jmlr.org/papers/v18/16-107.html Li, Y., Wood, J., Ji, L., Chow, S.-M., & Oravecz, Z. (2022). Fitting Multilevel Vector Autoregressive Models in Stan, JAGS, and Mplus [Publisher: Routledge]. Structural Equation Modeling: A Multidisciplinary Journal , 29 (3), 452–475. https://doi.org/10.1080/10705511.2021.1911657 Liu, J. S. (1994). The Collapsed Gibbs Sampler in Bayesian Computations with Applications to a Gene Regulation Problem [_eprint: https://doi.org/10.1080/01621459.1994.10476829]. Journal of the American Statistical Association , 89 (427), 958–966. https://doi.org/10.1080/01621459. 1994.10476829 McNeish, D., & Hamaker, E. L. (2020). A primer on two-level dynamic structural equation mod-els for intensive longitudinal data in Mplus [Place: US Publisher: American Psychological Association]. Psychological Methods , 25 (5), 610–635. https://doi.org/10.1037/met0000250 McNeish, D., Mackinnon, D. P., Marsch, L. A., & Poldrack, R. A. (2021). Measurement in Intensive Lon-gitudinal Data [Publisher: Routledge _eprint: https://doi.org/10.1080/10705511.2021.1915788]. 
+
+Structural Equation Modeling: A Multidisciplinary Journal , 28 (5), 807–822. https://doi.org/ 10.1080/10705511.2021.1915788 18 McNeish, D., & Wolf, M. G. (2020). Thinking twice about sum scores. Behavior Research Methods ,
+
+52 (6), 2287–2305. https://doi.org/10.3758/s13428-020-01398-0 Muthén, L. K., & Muthén, B. O. (2017). Mplus User’s Guide (Eighth). Los Angeles, CA, Muthén & Muthén. Naesseth, C. A., Lindsten, F., & Schön, T. B. (2019). Elements of Sequential Monte Carlo. Foundations and Trends ® in Machine Learning , 12 (3), 307–392. https://doi.org/c Neal, R. M. (2011). MCMC using hamiltonian dynamics. In S. Brooks, A. Gelman, G. Jones, & X.-L. Meng (Eds.), Handbook of markov chain monte carlo (pp. 113–162). Chapman; Hall/CRC. https://doi.org/10.1201/b10905-6 Oh, H., & Jahng, S. (2023). Incorporating Measurement Error in the Dynamic Structural Equation Modeling Using a Single Indicator or Multiple Indicators [Publisher: Routledge _eprint: https://doi.org/10.1080/10705511.2022.2103703]. Structural Equation Modeling: A Multidis-ciplinary Journal , 30 (3), 501–514. https://doi.org/10.1080/10705511.2022.2103703 Ou, L., Hunter, M. D., & Chow, S.-M. (2019). What’s for dynr: A Package for Linear and Nonlinear Dynamic Modeling in R. The R Journal , 11 (1), 91–111. https://doi.org/10.32614/RJ-2019-012 Papaspiliopoulos, O., Roberts, G. O., & Sköld, M. (2007). A General Framework for the Parametrization of Hierarchical Models. Statistical Science , 22 (1), 59–73. Retrieved February 13, 2026, from https://www.jstor.org/stable/27645805 Park, T., & Lee, S. (2022). Improving the Gibbs sampler [_eprint: https://wires.onlinelibrary.wiley.com/doi/pdf/10.1002/wics.1546] 
+
+WIREs Computational Statistics , 14 (2), e1546. https://doi.org/10.1002/wics.1546 Phan, D., Pradhan, N., & Jankowiak, M. (2019, December). Composable Effects for Flexible and Accelerated Probabilistic Programming in NumPyro. https://doi.org/10.48550/arXiv.1912. 11554 Plummer, M. (2003). JAGS: A program for analysis of Bayesian graphical models using Gibbs sampling [Number: 125.10]. Proceedings of the 3rd international workshop on distributed statistical computing , 124 , 1–10. Plummer, M. (2025). Rjags: Bayesian graphical models using MCMC (manual). https://doi.org/10. 32614/CRAN.package.rjags Plummer, M., Best, N., Cowles, K., & Vines, K. (2006). CODA: Convergence diagnosis and output analysis for MCMC. R News , 6(1), 7–11. https://journal.r-project.org/archive/ Prangle, D. (2016). Lazy ABC. Statistics and Computing , 26 (1), 171–185. https://doi.org/10.1007/ s11222-014-9544-3 R Core Team. (2025). R: A language and environment for statistical computing (manual). R Foundation for Statistical Computing. Vienna, Austria. https://www.R-project.org/ Sakalauskas, L., Dulskis, V., & Plikynas, D. (2024). A Technique for Efficient Estimation of Dynamic Structural Equation Models: A Case Study [_eprint: https://doi.org/10.1080/10705511.2023.2282378]. 
+
+Structural Equation Modeling: A Multidisciplinary Journal , 31 (4), 635–650. https://doi.org/ 10.1080/10705511.2023.2282378 Särkkä, S., & García-Fernández, Á. F. (2021). Temporal Parallelization of Bayesian Smoothers. IEEE Transactions on Automatic Control , 66 (1), 299–306. https: // doi .org/ 10 .1109/ TAC.2020 . 2976316 Schad, D. J., Betancourt, M., & Vasishth, S. (2020). Toward a principled Bayesian workflow in cognitive science [Place: US]. Psychological Methods , No Pagination Specified–No Pagination Specified. https://doi.org/10.1037/met0000275 Stan Development Team. (2025). RStan: The R interface to Stan. https://mc-stan.org/ Vats, D., & Knudson, C. (2021). Revisiting the Gelman–Rubin Diagnostic. Statistical Science , 36 (4), 518–529. Retrieved February 20, 2026, from https://www.jstor.org/stable/27286459 19 Veenman, M., Stefan, A. M., & Haaf, J. M. (2024). Bayesian hierarchical modeling: An introduction and reassessment. Behavior Research Methods , 56 (5), 4600–4631. https://doi.org/10.3758/s13428-023-02204-3 Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., & Bürkner, P.-C. (2021). Rank-Normalization, Folding, and Localization: An Improved R^ for Assessing Convergence of MCMC (with Discussion). Bayesian Analysis , 16 (2), 667–718. https://doi.org/10.1214/20-BA1221 Zhang, L., Carpenter, B., Gelman, A., & Vehtari, A. (2022). Pathfinder: Parallel quasi-Newton varia-tional inference. Journal of Machine Learning Research , 23 (306), 1–49. Retrieved August 4, 2025, from http://jmlr.org/papers/v23/21-0889.html Zitzmann, S., & Hecht, M. (2019). Going Beyond Convergence in Bayesian Estimation: Why Precision Matters Too and How to Assess It [_eprint: https://doi.org/10.1080/10705511.2018.1545232]. 
+
+Structural Equation Modeling: A Multidisciplinary Journal , 26 (4), 646–661. https://doi.org/ 10.1080/10705511.2018.1545232 
+
+# A Proof of Theorem 1 
+
+Definition 4 (Strictly Lagged Polynomial Matrices) . For any polynomial matrix 𝑷 (𝐿 ) = Í𝐿 𝑙 =0 𝑷 𝑙 𝐿 𝑙 ,we define the strictly lagged polynomial matrix 𝑷 ∗ (𝐿 ) as the polynomial obtained by removing the contemporaneous (zero-lag) coefficient 𝑷 0:
+
+𝑷 ∗ (𝐿 ) = 𝑷 (𝐿 ) − 𝑷 0 =
+
+> 𝐿
+
+∑︁ 
+
+> 𝑙 =1
+
+𝑷 𝑙 𝐿 𝑙 . (A.1) 
+
+A.1 Reformulating the Within-Level Model 
+
+Isolating the lag-0 components on the left-hand side, the coupled within-level model (2.4) can be rewritten as 
+
+(𝑰 − 𝑹 0𝑖𝑡 ) 𝒚 1,𝑖𝑡 − 𝚲 1,0𝑖𝑡 𝜼 1,𝑖𝑡 = 𝝂 1,𝑖𝑡 + 𝑲 1,𝑖𝑡 𝑿 1,𝑖𝑡 + 𝚲 ∗ 
+
+> 1,𝑖𝑡
+
+(𝐿 )𝜼 1,𝑖𝑡 + 𝑹 ∗ 
+
+> 𝑖𝑡
+
+(𝐿 ) 𝒚 1,𝑖𝑡 + 𝝐 1,𝑖𝑡 (A.2) 
+
+ 𝑰 − 𝑩 1,0𝑖𝑡 
+
+ 𝜼 1,𝑖𝑡 − 𝑸 0𝑖𝑡 𝒚 1,𝑖𝑡 = 𝜶 1,𝑖𝑡 + 𝚪 1,𝑖𝑡 𝑿 1,𝑖𝑡 + 𝑩 ∗ 
+
+> 1,𝑖𝑡
+
+(𝐿 )𝜼 1,𝑖𝑡 + 𝑸 ∗ 
+
+> 𝑖𝑡
+
+(𝐿 ) 𝒚 1,𝑖𝑡 + 𝝃 1,𝑖𝑡 . (A.3) Let 𝑨 0𝑖𝑡 = (𝑰 − 𝑹 0𝑖𝑡 )−1 and 𝚵 0𝑖𝑡 = (𝑰 − 𝑩 1,0𝑖𝑡 )−1, and note that these matrix inverses exist because we have assumed that 𝑹 0𝑖𝑡 and 𝑩 1,0𝑖𝑡 are strictly lower triangular. We assemble the left-hand sides of (A.2) and (A.3) into a 2 × 2 block matrix structure and compute its inverse to explicitly isolate the contemporaneous states, 𝜼 1,𝑖𝑡 
+
+𝒚 1,𝑖𝑡 
+
+
+
+=
+
+ 𝚵 −10𝑖𝑡 −𝑸 0𝑖𝑡 
+
+−𝚲 1,0𝑖𝑡 𝑨 −10𝑖𝑡 
+
+ −1 RHS 𝜂,𝑖𝑡 
+
+RHS 𝑦,𝑖𝑡 
+
+
+
+, (A.4) where RHS 𝜂,𝑖𝑡 and RHS 𝑦,𝑖𝑡 represent the respective right-hand sides of (A.3) and (A.2). Block-matrix inversion via the Schur complement yields 
+
+ 𝚵 −10𝑖𝑡 −𝑸 0𝑖𝑡 
+
+−𝚲 1,0𝑖𝑡 𝑨 −10𝑖𝑡 
+
+ −1
+
+=
+
+ 𝑴 1,𝑖𝑡 𝑴 1,𝑖𝑡 𝑸 0𝑖𝑡 𝑨 0𝑖𝑡 
+
+𝑵 1,𝑖𝑡 𝚲 1,0𝑖𝑡 𝚵 0𝑖𝑡 𝑵 1,𝑖𝑡 
+
+
+
+,
+
+where 
+
+𝑴 1,𝑖𝑡 = 𝑰 − 𝚵 0𝑖𝑡 𝑸 0𝑖𝑡 𝑨 0𝑖𝑡 𝚲 1,0𝑖𝑡  
+
+> −1
+
+𝚵 0𝑖𝑡 (A.5) 
+
+𝑵 1,𝑖𝑡 = 𝑰 − 𝑨 0𝑖𝑡 𝚲 1,0𝑖𝑡 𝚵 0𝑖𝑡 𝑸 0𝑖𝑡  
+
+> −1
+
+𝑨 0𝑖𝑡 . (A.6) 20 A.2 Finding Terms in State Space Representation 
+
+The state-space transition (3.1) maps variables at 𝑡 to 𝑡 + 1. By advancing the indices of our decoupled system (A.4) to 𝑡 + 1, we obtain the exact definitions for the transition parameters. First, distributing the block-inverse across the historical states in the right-hand side directly yields the composite polynomials. For the structural update equation ( 𝜼 1,𝑖,𝑡 +1), we identify 
+
+P𝜂 𝑖,𝑡 +1 (𝐿 ) = 𝑩 ∗ 
+
+> 1,𝑖,𝑡 +1
+
+(𝐿 ) + 𝑸 0,𝑖,𝑡 +1 𝑨 0,𝑖,𝑡 +1𝚲 1,𝑖,𝑡 +1 (𝐿 )
+
+P𝑦 𝑖,𝑡 +1 (𝐿 ) = 𝑸 𝑖,𝑡 +1 (𝐿 ) + 𝑸 0,𝑖,𝑡 +1 𝑨 0,𝑖,𝑡 +1 𝑹 ∗ 
+
+> 𝑖,𝑡 +1
+
+(𝐿 ). (A.7) For the measurement update equation ( 𝒚 1,𝑖,𝑡 +1), grouping the lagged state elements identifies 
+
+Q𝜂 𝑖,𝑡 +1 (𝐿 ) = 𝚲 ∗ 
+
+> 1,𝑖,𝑡 +1
+
+(𝐿 ) + 𝚲 1,0,𝑖,𝑡 +1𝚵 0,𝑖,𝑡 +1 𝑩 1,𝑖,𝑡 +1 (𝐿 )
+
+Q𝑦 𝑖,𝑡 +1 (𝐿 ) = 𝑹 𝑖,𝑡 +1 (𝐿 ) + 𝚲 1,0,𝑖,𝑡 +1𝚵 0,𝑖,𝑡 +1𝑸 ∗ 
+
+> 𝑖,𝑡 +1
+
+(𝐿 ). (A.8) Extracting the 𝑘 -th order coefficients generates the transition sub-blocks 𝑻 (1,1) 
+
+> 𝑖𝑡
+
+, 𝑻 (1,2) 
+
+> 𝑖𝑡
+
+, 𝑻 (3,1) 
+
+> 𝑖𝑡
+
+, and 𝑻 (3,2) 
+
+> 𝑖𝑡
+
+.Next, distributing the block-inverse matrices across the exogenous deterministic variables yields the intercepts 
+
+𝒄 (1) 
+
+> 𝑖𝑡
+
+= 𝑴 1,𝑖,𝑡 +1
+
+𝜶 1,𝑖,𝑡 +1 + 𝚪 1,𝑖,𝑡 +1 𝑿 1,𝑖,𝑡 +1 + 𝑸 0,𝑖,𝑡 +1 𝑨 0,𝑖,𝑡 +1
+
+ 𝝂 1,𝑖,𝑡 +1 + 𝑲 1,𝑖,𝑡 +1 𝑿 1,𝑖,𝑡 +1
+
+
+
+𝒄 (3) 
+
+> 𝑖𝑡
+
+= 𝑵 1,𝑖,𝑡 +1
+
+𝝂 1,𝑖,𝑡 +1 + 𝑲 1,𝑖,𝑡 +1 𝑿 1,𝑖,𝑡 +1 + 𝚲 1,0,𝑖,𝑡 +1𝚵 0,𝑖,𝑡 +1
+
+ 𝜶 1,𝑖,𝑡 +1 + 𝚪 1,𝑖,𝑡 +1 𝑿 1,𝑖,𝑡 +1
+
+ ,
+
+yielding the full augmented intercept vector 
+
+𝒄 𝑖𝑡 =
+
+h
+
+𝒄 (1)  
+
+> 𝑖𝑡 𝑇
+
+0(𝐿 −1)𝑉 1 
+
+> 𝑇
+
+𝒄 (3)  
+
+> 𝑖𝑡 𝑇
+
+0(𝐿 −1)𝑈 𝑇 
+
+i𝑇 
+
+. (A.9) Finally, distributing the inverse matrices over the stochastic errors isolates the serially independent process noise components 
+
+𝒘 (1) 
+
+> 𝑖𝑡
+
+= 𝑴 1,𝑖,𝑡 +1
+
+ 𝝃 1,𝑖,𝑡 +1 + 𝑸 0,𝑖,𝑡 +1 𝑨 0,𝑖,𝑡 +1𝝐 1,𝑖,𝑡 +1
+
+ (A.10) 
+
+𝒘 (3) 
+
+> 𝑖𝑡
+
+= 𝑵 1,𝑖,𝑡 +1
+
+ 𝝐 1,𝑖,𝑡 +1 + 𝚲 1,0,𝑖,𝑡 +1𝚵 0,𝑖,𝑡 +1𝝃 1,𝑖,𝑡 +1
+
+ . (A.11) By standard assumptions, 𝝃 1,𝑖𝑡 ∼ N ( 0, 𝚿 1,𝑖𝑡 ) and 𝝐 1,𝑖𝑡 ∼ N ( 0, 𝚺 1,𝑖𝑡 ) are mutually independent. Taking the variances and cross-covariances of (A.10) and (A.11) generates the exact covariance components 
+
+𝑾 (1,1) 
+
+> 𝑖𝑡
+
+= 𝑴 1,𝑖,𝑡 +1
+
+
+
+𝚿 1,𝑖,𝑡 +1 + 𝑸 0,𝑖,𝑡 +1 𝑨 0,𝑖,𝑡 +1𝚺 1,𝑖,𝑡 +1 𝑨 𝑇 
+
+> 0,𝑖,𝑡 +1
+
+𝑸 𝑇 
+
+> 0,𝑖,𝑡 +1
+
+
+
+𝑴 𝑇 
+
+> 1,𝑖,𝑡 +1
+
+𝑾 (3,3) 
+
+> 𝑖𝑡
+
+= 𝑵 1,𝑖,𝑡 +1
+
+
+
+𝚺 1,𝑖,𝑡 +1 + 𝚲 1,0,𝑖,𝑡 +1𝚵 0,𝑖,𝑡 +1𝚿 1,𝑖,𝑡 +1𝚵 𝑇 
+
+> 0,𝑖,𝑡 +1
+
+𝚲 𝑇 
+
+> 1,0,𝑖,𝑡 +1
+
+
+
+𝑵 𝑇 
+
+> 1,𝑖,𝑡 +1
+
+𝑾 (1,3) 
+
+> 𝑖𝑡
+
+= 𝑴 1,𝑖,𝑡 +1
+
+
+
+𝚿 1,𝑖,𝑡 +1𝚵 𝑇 
+
+> 0,𝑖,𝑡 +1
+
+𝚲 𝑇  
+
+> 1,0,𝑖,𝑡 +1
+
++ 𝑸 0,𝑖,𝑡 +1 𝑨 0,𝑖,𝑡 +1𝚺 1,𝑖,𝑡 +1
+
+
+
+𝑵 𝑇 
+
+> 1,𝑖,𝑡 +1
+
+,
+
+with 𝑾 (3,1) 
+
+> 𝑖𝑡
+
+=
+
+
+
+𝑾 (1,3)
+
+> 𝑖𝑡
+
+𝑇 
+
+.Because the strict state lag elements transition deterministically, they contain no process variance. This enforces a sparse, block-diagonal covariance mapping corresponding to our 𝐿 -lag augmented state vector space 
+
+𝑾 𝑖𝑡 =
+
+
+
+𝑾 (1,1) 
+
+> 𝑖𝑡
+
+0 𝑾 (1,3) 
+
+> 𝑖𝑡
+
+00 0 0 0
+
+𝑾 (3,1) 
+
+> 𝑖𝑡
+
+0 𝑾 (3,3) 
+
+> 𝑖𝑡
+
+00 0 0 0
+
+
+
+. (A.12) This explicit formulation proves exact equivalence with the state space dynamics specified in Theorem 1. □
+
+21 Online Resource 1 for: 
+
+## Efficient Bayesian Estimation of Dynamic Structural Equation Models via State Space Marginalization 
+
+This document contains additional simulation results. 
+
+# S1 Multilevel Scalar Latent AR(1) Model 
+
+Figure S1 shows efficiency measured in tail-ESS per minute. Figure S2 shows the proportion of converged simulations for three different ˆR thresholds. Fig-ures S3 and S4 show histograms of bulk efficiency and tail efficiency for all parameters. Figure S5 shows the absolute bias of the posterior means across 100 Monte Carlo simulations, confirming that all three algorithms target the same posterior. 
+
+# S2 Multilevel One-Factor Multi-Indicator AR(1) Model 
+
+Figure S6 shows efficiency measured in tail-ESS per minute. Figure S7 shows the absolute bias of the posterior means across 100 Monte Carlo simulations, confirming that all three algorithms target the same posterior. 
+
+# S3 Multilevel Trivariate VAR(1) Model 
+
+Figures S8, S9, and S10 show the absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel trivariate VAR(1) model with one, two, and three indicators per latent variable, respectively. 
+
+# S4 Multilevel Latent AR(p) Model 
+
+Figures S11, S12, S13, and S14 show the absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel latent AR(p) model with lag 1, 2, 3, and 4, respectively. 1Figure S1: Box plots of efficiency for the three algorithms compared for the multilevel scalar latent AR(1) model. 
+
+# S5 Cross-Classified VAR(1) Model 
+
+Figure S15 shows the absolute bias of the posterior means across 100 Monte Carlo simulations for the cross-classified VAR(1) model. 
+
+# S6 Sensitivity Analyses 
+
+Figures S16, S17, S18, and S19 show efficiency for the original JAGS run and for a large-burn-in large-iteration setting, for the multilevel univariate latent AR(1) model, the three-indicator AR(1) model, the trivariate VAR(1) model, and the latent AR(p) model, respectively. 2Figure S2: Proportions of simulations converged as the ˆR threshold is varied. 3Figure S3: Histograms of efficiency measured in bulk-ESS per minute for each parameter, over 6 · 100 = 600 Monte Carlo simulations. 4Figure S4: Histograms of efficiency measured in tail-ESS per minute for each parameter, over 6 · 100 = 600 Monte Carlo simulations. 5Figure S5: Absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel scalar latent AR(1) model. 6Figure S6: Histograms of efficiency for each parameter of interest across 100 Monte Carlo simulations in the multilevel one-factor three-indicator latent AR(1) model. 7Figure S7: Absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel one-factor three-indicator latent AR(1) model. 8Figure S8: Absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel trivariate VAR(1) model with one indicator per latent variable. 9Figure S9: Absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel trivariate VAR(1) model with two indicators per latent variable. 10 Figure S10: Absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel trivariate VAR(1) model with three indicators per latent variable. 11 Figure S11: Absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel latent AR(p) model with lag 1. 12 Figure S12: Absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel latent AR(p) model with lag 2. 13 Figure S13: Absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel latent AR(p) model with lag 3. 14 Figure S14: Absolute bias of the posterior means across 100 Monte Carlo simulations for the multilevel latent AR(p) model with lag 4. 15 Figure S15: Absolute bias of the posterior means across 100 Monte Carlo simulations for the cross-classified VAR(1) model. 
+
+Figure S16: Efficiency for the original JAGS run and for a large-burn-in large-iteration setting, for the multilevel univariate latent AR(1) model. 16 Figure S17: Efficiency for the original JAGS run and for a large-burn-in large-iteration setting, for the three-indicator AR(1) model. 
+
+Figure S18: Efficiency for the original JAGS run and for a large-burn-in large-iteration setting, for the multilevel trivariate VAR(1) model. 17 Figure S19: Efficiency for the original JAGS run and for a large-burn-in large-iteration setting, for the latent AR(p) model. 18 Online Resource 2 for: 
+
+## Efficient Bayesian Estimation of Dynamic Structural Equation Models via State Space Marginalization 
+
+This document contains details regarding the algorithms implemented for each simulation experiment. 
+
+# S1 Multilevel Scalar Latent AR(1) Model 
+
+Table S1 shows the true population parameters for the multilevel scalar latent AR(1) model. Table S1: True Population Parameters for the Multilevel Scalar Latent AR(1) Model. 
+
+Parameter Description True Value 
+
+α2,ν Mean of the participant-specific intercept 2.0 
+
+τν Standard deviation of the participant-specific intercept 0.5 
+
+α2,ϕ Mean of the unconstrained AR(1) effect (arctanh scale) 0.6 
+
+τϕ Standard deviation of the AR(1) effect 0.1 
+
+α2,log σ Mean of the log measurement noise standard deviation 0.8 
+
+τlog σ Standard deviation of the log measurement noise 0.1 
+
+α2,log ψ Mean of the log process noise standard deviation 0.5 
+
+τlog ψ Standard deviation of the log process noise 0.1 
+
+## S1.1 Priors 
+
+For this and all other models, we employed a non-centered parameterization for all participant-specific parameters. For a generic participant-level param-eter θi, we model it as θi = αθ + τθzθ,i , where zθ,i ∼ N (0 , 1) . Based on this 1formulation, the population-level priors are 
+
+α2,ν ∼ N (0 , 52)
+
+α2,ϕ , α 2,log σ, α 2,log ψ ∼ N (0 , 12)
+
+τν ∼ Half-Cauchy (0 , 2) 
+
+τϕ ∼ Half-Cauchy (0 , 1) 
+
+τlog σ, τ log ψ ∼ Half-Cauchy (0 , 1) .
+
+The participant-specific AR(1) coefficients are constrained to stationarity via the hyperbolic tangent transformation: ϕi = tanh( α2,ϕ + τϕzϕ,i ).
+
+## S1.2 Kalman Filter Implementation 
+
+Our Kalman filter implementation utilizes the scalar nature of this particular model. The initial condition was ai, 1|0 = 0 and Pi, 1|0 = 1 . The recursion is 
+
+ai,t |t−1 = ϕ2,i ai,t −1|t−1
+
+Pi,t |t−1 = ϕ22,i Pi,t −1|t−1 + ψ22,i 
+
+vit = yit − (ν2,i + ai,t |t−1)
+
+Fit = Pi,t |t−1 + σ22,i 
+
+ai,t |t = ai,t |t−1 + Pi,t |t−1F −1 
+
+> it
+
+vit 
+
+Pi,t |t = Pi,t |t−1 − P 2
+
+> i,t |t−1
+
+F −1 
+
+> it
+
+,
+
+and the log likelihood is computed with 
+
+L = −N T 
+
+2 log(2 π) − 12
+
+> N
+
+∑
+
+> i=1
+> T
+
+∑
+
+> t=1
+
+{
+
+log Fit + v2
+
+> it
+
+Fit 
+
+}
+
+.
+
+# S2 Multilevel One-Factor Multi-Indicator AR(1) Model 
+
+Table S2 shows the true population parameters for the multilevel one-factor multi-indicator AR(1) model. 2Table S2: True Population Parameters for the One-Factor Three-Indicator AR(1) Model. 
+
+Parameter Description True Value 
+
+α2,ν [1] Mean of the participant-specific intercept (Indicator 1) 2.0 
+
+α2,ν [2] Mean of the participant-specific intercept (Indicator 2) 0.6 
+
+α2,ν [3] Mean of the participant-specific intercept (Indicator 3) 0.8 
+
+τν Standard deviation of the participant-specific intercepts 0.5 
+
+α2,ϕ Mean of the unconstrained AR(1) effect (arctanh scale) 0.6 
+
+τϕ Standard deviation of the AR(1) effect 0.1 
+
+α2,log σ Mean of the log measurement noise standard deviation 0.8 
+
+τlog σ Standard deviation of the log measurement noise 0.1 
+
+α2,log ψ Mean of the log process noise standard deviation 0.5 
+
+τlog ψ Standard deviation of the log process noise 0.1 
+
+λ1 Factor loading for Indicator 1 (fixed marker) 1.0 
+
+λ2 Factor loading for Indicator 2 1.2 
+
+λ3 Factor loading for Indicator 3 0.9 
+
+## S2.1 Priors 
+
+The population-level priors are 
+
+α2,ν [1] ∼ N (0 , 52)
+
+α2,ν [2] , α 2,ν [3] ∼ N (0 , 12)
+
+α2,ϕ , α 2,log σ, α 2,log ψ ∼ N (0 , 12)
+
+τν ∼ Half-Cauchy (0 , 2) 
+
+τϕ ∼ Half-Cauchy (0 , 1) 
+
+τlog σ, τ log ψ ∼ Half-N (0 , 12)
+
+λ2, λ 3 ∼ N (1 , 22) truncated at 0.
+
+The AR(1) coefficients are constrained to the stationary region via ϕi =tanh( α2,ϕ + τϕzϕ,i ). The factor loading for the first indicator ( λ1) is fixed to 1.0 for model identification. 
+
+## S2.2 Kalman Filter Implementation 
+
+Because the U = 3 indicators measure a single scalar latent trait, inversion of the 3 × 3 innovation covariance matrix Fit required by the Kalman filter 3can be avoided. We follow Jungbacker and Koopman (2015) and project the observation onto a single scalar statistic. In particular, before running the filter the following static sums over the U = 3 indicators are computed for all timepoints, 
+
+ci = σ−22,i (1 + λ22 + λ23)˜qit = σ−22,i [( yit, 1 − ν2,i, 1) + λ2(yit, 2 − ν2,i, 2) + λ3(yit, 3 − ν2,i, 3)] ˜rit = σ−22,i 
+
+[(yit, 1 − ν2,i, 1)2 + ( yit, 2 − ν2,i, 2)2 + ( yit, 3 − ν2,i, 3)2] ,
+
+where ν2,i, 1, ν2,i, 2, and ν2,i, 3 are the participant-specific intercepts of the three indicators, i.e., the first three elements of η2,i .Next, in the Kalman filter step, the matrix determinant and inversion are collapsed into the scalar F ∗
+
+> it
+
+,
+
+ai,t |t−1 = ϕ2,i ai,t −1|t−1
+
+Pi,t |t−1 = ϕ22,i Pi,t −1|t−1 + ψ22,i 
+
+qit = ˜ qit − ciai,t |t−1
+
+rit = ˜ rit − 2ai,t |t−1 ˜qit + cia2
+
+> i,t |t−1
+
+F ∗ 
+
+> it
+
+= 1 + Pi,t |t−1ci
+
+Pi,t |t = Pi,t |t−1(F ∗
+
+> it
+
+)−1
+
+ai,t |t = ai,t |t−1 + Pi,t |tqit .
+
+The filter was initialized at ai, 1|0 = 0 and Pi, 1|0 = 1 .The log likelihood is computed with 
+
+L = −12
+
+> N
+
+∑
+
+> i=1
+
+{
+
+3T log(2 π) + 6 T log σ2,i +
+
+> T
+
+∑
+
+> t=1
+
+[log F ∗ 
+
+> it
+
++ rit − Pi,t |tq2
+
+> it
+
+]}
+
+.
+
+# S3 Multilevel Trivariate VAR(1) Model 
+
+Table S3 shows the true population parameters for the multilevel trivariate VAR(1) model. 4Table S3: True Population Parameters for the Trivariate VAR(1) Model. 
+
+Parameter Description True Value 
+
+α2,ν [1 −3] Means of the participant-specific intercepts (2.0, 0.6, 0.8) 
+
+τν[1 −3] Standard deviations of the participant-specific intercepts (0.5, 0.5, 0.5) 
+
+α2,log σ Mean of the log measurement noise standard deviation 0.8 
+
+τlog σ Standard deviation of the log measurement noise 0.1 
+
+α2,log ψ Mean of the log process noise standard deviation 0.5 
+
+τlog ψ Standard deviation of the log process noise 0.1 
+
+α2,ϕ Mean of the unconstrained VAR(1) matrix (arctanh scale) 
+
+
+
+0.30 0.10 0.05 0.10 0.30 0.10 0.05 0.10 0.30 
+
+
+
+τϕ Standard deviation of the VAR(1) matrix elements 
+
+
+
+0.05 0.05 0.05 0.05 0.05 0.05 0.05 0.05 0.05 
+
+
+
+λ1, λ 3, λ 5 Factor loadings for the second indicators of Factors 1, 2, and 3 (1.2, 0.9, 1.3) 
+
+λ2, λ 4, λ 6 Factor loadings for the third indicators of Factors 1, 2, and 3 (0.8, 1.3, 0.85) 
+
+> 5
+
+## S3.1 Priors 
+
+The priors for the population-level parameters are 
+
+α2,ν [1] , α 2,ν [4] , α 2,ν [7] ∼ N (0 , 52)
+
+α2,ν [u] ∼ N (0 , 12) for all other indicators uα2,ϕ [j,k ], α 2,log σ, α 2,log ψ ∼ N (0 , 12)
+
+τν[u] ∼ Half-Cauchy (0 , 2) 
+
+τϕ[j,k ] ∼ Half-Cauchy (0 , 1) 
+
+τlog σ, τ log ψ ∼ Half-N (0 , 12).
+
+If multiple indicators per factor are used ( K > 1), the freely estimated factor loadings λ are assigned N (1 , 22) priors truncated at zero. Elements of the VAR(1) matrix are mapped to the interval (−1, 1) using the hyperbolic tangent function to restrict the parameter space. 
+
+## S3.2 Sampler Initialization 
+
+By default, the rstan package initializes parameters by drawing randomly from a uniform distribution between −2 and 2 on the unconstrained pa-rameter space. To ensure stable sampling during the initial warm-up phase and prevent the Hamiltonian Monte Carlo sampler from diverging into ex-plosive, non-stationary regions of the high-dimensional VAR(1) parameter space, we provided explicit initial values for the NUTS-Kalman algorithm. Specifically, to prevent the explosive VAR pathology early in the chains, the standard deviations for the VAR(1) matrix elements ( τϕ) were initialized to a small value of 0.05 . The standard deviations for the intercepts and noise parameters ( τν , τ log σ, τ log ψ) were similarly initialized to 0.1. The population means for the autoregressive coefficients ( α2,ϕ ), intercepts ( α2,ν ), and noise parameters ( α2,log σ, α 2,log ψ), as well as all non-centered standard normal la-tent variables ( z), were initialized exactly at 0. For models with multiple indicators ( K > 1), the freely estimated factor loadings ( λ) were initialized to 1.0.In contrast, no custom initialization function was provided for the Metropolis-within-Gibbs sampler. Instead, we relied on the default automated initializa-tion in JAGS , which draws starting values directly from the specified prior distributions. 
+
+## S3.3 Kalman Filter Implementation 
+
+Our Kalman filter implementation presented here is based on Jungbacker and Koopman (2015). We show it for the case of K = 3 indicators per factor, 6U = 9 . The K = 2 case can be obtained by setting λ2 = λ4 = λ6 = 0 and the K = 1 case by also setting λ1 = λ3 = λ5 = 0 .Note first that the within-level model written out fully is 
+
+y1,it =
+
+
+
+1 0 0
+
+λ1 0 0
+
+λ2 0 00 1 00 λ3 00 λ4 00 0 10 0 λ5
+
+0 0 λ6
+
+
+
+η1,it + ϵ1,it , ϵ1,it ∼ N (0, Σ2,i )
+
+η1,it =
+
+
+
+ϕ2,i, 11 ϕ2,i, 12 ϕ2,i, 13 
+
+ϕ2,i, 21 ϕ2,i, 22 ϕ2,i, 23 
+
+ϕ2,i, 31 ϕ2,i, 32 ϕ2,i, 33 
+
+ η1,i,t −1 + ξ1,it , ξ1,it ∼ N (0, Ψ2,i ).
+
+Before iterating over timepoints, we pre-compute the constant terms that define the effective precision for the three latent factors for each participant 
+
+i,
+
+ci, 1 = 1 + λ21 + λ22
+
+ci, 2 = 1 + λ23 + λ24
+
+ci, 3 = 1 + λ25 + λ26
+
+Reff ,i = σ22,i 
+
+[c−1 
+
+> i, 1
+
+c−1 
+
+> i, 2
+
+c−1
+
+> i, 3
+
+]T .
+
+Next, for every timepoint t, we compute the raw prediction errors ( yit −
+
+ν2,i ), where 
+
+ν2,i = [η2,i 1 η2,i 2 . . . η2,iU 
+
+]T ,
+
+and project them onto the three-dimensional factor space to create the com-pressed observation vectors qit with elements 
+
+qit, 1 = ( yit, 1 − ν2,i, 1) + λ2 (yit, 2 − ν2,i, 2) + λ3 (yit, 3 − ν2,i, 3)
+
+qit, 2 = ( yit, 4 − ν2,i, 4) + λ3 (yit, 5 − ν2,i, 5) + λ4 (yit, 6 − ν2,i, 6)
+
+qit, 3 = ( yit, 7 − ν2,i, 7) + λ5 (yit, 8 − ν2,i, 8) + λ6 (yit, 9 − ν2,i, 9) .
+
+Following Jungbacker and Koopman (2015, Lemma 2.2), we pre-compute the part of the log-likelihood of the original U -dimensional system that is lost during the 3K → 3 dimension reduction, Orth i =
+
+> T
+
+∑
+
+> t=1
+
+(
+
+∥yit − ν2,i ∥2 −
+
+> 3
+
+∑
+
+> j=1
+
+q2 
+
+> it,j
+
+c−1
+
+> i,j
+
+)
+
+.
+
+7Next, we standardize the projected data by defining ˜yit = qit ⊙c−1 
+
+> i
+
+, where 
+
+⊙ denotes element-wise multiplication. This transforms the measurement equation such that the factor loading matrix becomes the identity matrix I3
+
+and the measurement error variance becomes diag (Reff ,i ). The Kalman filter on the compressed space is now given by 
+
+ai,t |t−1 = Φ2,i ai,t −1|t−1
+
+Pi,t |t−1 = Φ2,i Pi,t −1|t−1ΦT 
+
+> 2,i
+
++ ψ22,i I3
+
+uit = qit − ci ⊙ ai,t |t−1
+
+˜yit = uit ⊙ c−1
+
+> i
+
+Wit = Pi,t |t−1 + diag (Reff ,i )
+
+Pi,t |t = diag (Reff ,i ) − diag (Reff ,i )W −1 
+
+> it
+
+diag (Reff ,i )
+
+ai,t |t = ai,t |t−1 + ˜ yit − Reff ,i ⊙ (W −1 
+
+> it
+
+˜yit ),
+
+where the matrix to be inverted is now the 3×3 innovation covariance matrix 
+
+Wit , instead of the U × U matrix Fit .The marginalized log-likelihood across all N participants and T time-points is constructed by accumulating the determinants of the 3 × 3 innova-tion covariance matrices Wit and the Mahalanobis distances, while adding back the orthogonal residual variance computed earlier, yielding 
+
+L =
+
+> N
+
+∑
+
+> i=1
+
+{
+
+T · Const i − 12
+
+> T
+
+∑
+
+> t=1
+
+[log |Wit | + ˜ yTit W −1 
+
+> it
+
+˜yit 
+
+] − 12σ22,i 
+
+Orth i
+
+}
+
+,
+
+The scaling constant Const i is a sum of the contribution from the determinant ratio in Jungbacker and Koopman (2015, eq. 2.17), 
+
+−12 log (|σ22,i IU | · | diag (Reff ,i )|) = −12 log (σ2U −62,i · ci, 1 · ci, 2 · ci, 3
+
+)
+
+= −12
+
+(
+
+(2 U − 6) log σ2,i −
+
+> 3
+
+∑
+
+> j=1
+
+log ci,j 
+
+)
+
+,
+
+a part due to the scaling ˜yit = qit ⊙ c−1 
+
+> i
+
+, which has measurement error variance diag (Reff ,i ) and hence 
+
+log |diag (Reff ,i )| = 6 log σ2,i −
+
+> 3
+
+∑
+
+> j=1
+
+log( ci,j ),
+
+and the constant term −U 
+
+> 2
+
+log(2 π) corresponding to c in Jungbacker and Koopman (2015, eq. 2.17). Adding the three terms together yields Const i = −U
+
+2 log(2 π) − (U − 3) log σ2,i − 12
+
+> 3
+
+∑
+
+> j=1
+
+log ci,j .
+
+8S4 Multilevel Latent AR(p) Model 
+
+Table S4 shows the true population parameters for the multilevel latent AR(p) model. 9Table S4: True Population Parameters for the Latent AR(p) Model. 
+
+Parameter Description True Value 
+
+α2,ν Mean of the participant-specific intercept 2.0 
+
+τν Standard deviation of the participant-specific intercept 0.5 
+
+α2,log σ Mean of the log measurement noise standard deviation 0.8 
+
+τlog σ Standard deviation of the log measurement noise 0.1 
+
+α2,log ψ Mean of the log process noise standard deviation 0.5 
+
+τlog ψ Standard deviation of the log process noise 0.1 
+
+α2,ϕ [1 −4] Means of the AR coefficients for lags 1, 2, 3, and 4 (0.4, 0.2, 0.1, 0.05) 
+
+τϕ[1 −4] Standard deviations of the AR coefficients (0.05, 0.05, 0.05, 0.05) 
+
+> 10
+
+## S4.1 Priors 
+
+The population-level priors are 
+
+α2,ν ∼ N (0 , 52)
+
+α2,ϕ [p], α 2,log σ, α 2,log ψ ∼ N (0 , 12)
+
+τν ∼ Half-Cauchy (0 , 2) 
+
+τϕ[p] ∼ Half-Cauchy (0 , 1) 
+
+τlog σ, τ log ψ ∼ Half-Cauchy (0 , 1) .
+
+The autoregressive coefficients ϕi,p are sampled on the unconstrained scale. Furthermore, the first P latent states for each participant are assigned independent standard normal priors, η1,it ∼ N (0 , 1) for t = 1 , . . . , P . In a standard state space formulation of a stationary AR( p) process, the initial state covariance matrix is typically defined as the exact unconditional steady-state covariance, obtained by solving the Yule-Walker equations (Hamilton, 1994). However, to avoid the computational burden of analytically solving these equations for every participant at every MCMC iteration, we utilized this initialization, which is asymptotically equivalent to the exact likelihood as T → ∞ , and was applied identically in both the NUTS-Kalman and Metropolis-within-Gibbs implementations to ensure both algorithms targeted the exact same posterior distribution. 
+
+## S4.2 State Space Formulation 
+
+To accommodate the P -th order autoregressive process, the latent state is expanded into a P -dimensional vector ait . For each participant i, we define the P × P transition matrix Ti, the P × P process noise covariance Wi, and the 1 × P observation vector Z:
+
+Ti =
+
+
+
+ϕi, 1 ϕi, 2 · · · ϕi,P 
+
+1 0 · · · 00 1 · · · 0
+
+... ... . . . ...
+
+0 · · · 1 0
+
+
+
+, Wi =
+
+
+
+ψ22,i 0 · · · 00 0 · · · 0
+
+... ... . . . ...
+
+0 0 · · · 0
+
+ , Z = [1 0 · · · 0] .
+
+## S4.3 Kalman Filter Implementation 
+
+The Kalman filter leverages the sparsity of Z and Wi. Because Z only extracts the first element, the scalar innovation variance Fit depends solely on the first diagonal element of the prior covariance matrix, denoted as P (1 ,1) 
+
+> i,t |t−1
+
+.11 The Kalman gain Kit simplifies to the first column of Pi,t |t−1 scaled by F −1 
+
+> it
+
+,and the Kalman filter recursion becomes 
+
+ai,t |t−1 = Tiai,t −1|t−1
+
+Pi,t |t−1 = TiPi,t −1|t−1T Ti + Wi
+
+vit = yit − (ν2,i + a(1) 
+
+> i,t |t−1
+
+)
+
+Fit = P (1 ,1)  
+
+> i,t |t−1
+
++ σ22,i 
+
+Kit = Pi,t |t−1ZT F −1
+
+> it
+
+ai,t |t = ai,t |t−1 + Kit vit 
+
+Pi,t |t = Pi,t |t−1 − Kit ZP i,t |t−1.
+
+In the software implementation, the filtering equations for P ∈ { 1, 2, 3, 4}
+
+are algebraically unrolled (i.e. hard-coded) to bypass dynamic matrix alloca-tions and reduce the depth of the automatic differentiation tree (Carpenter et al., 2015). The marginal log-likelihood is 
+
+L = −12
+
+> N
+
+∑
+
+> i=1
+> T
+
+∑
+
+> t=1
+
+{
+
+log(2 π) + log Fit + v2
+
+> it
+
+Fit 
+
+}
+
+.
+
+# S5 Cross-Classified VAR(1) Model 
+
+Table S5 shows the true population parameters for the cross-classified VAR(1) model. 12 Table S5: True Population Parameters for the Cross-Classified Model. 
+
+Parameter Description True Value 
+
+α2,[1 −3] Global means for time-varying perseverance items 1–3 (3.0, 3.2, 2.8) 
+
+α2,4 Global mean for restraint item 4 2.5 
+
+α2,[5 −7] Global means for factor loadings 1–3 (1.0, 0.9, 1.1) 
+
+α2,[8 −11] Mean autoregressive effect matrix (unconstrained arctanh scale) arctanh 
+
+(
+
+0.75 0.10 0.10 0.50 
+
+)
+
+α2,12 Mean of the log measurement noise standard deviation log(1 .5) 
+
+α2,13 Mean of the log process noise standard deviation log(0 .2) 
+
+τ3 Standard deviations for between-timepoint effects (intercepts 1–3, loadings) (0.4, 0.4, 0.4, 0.2, 0.2, 0.2) 
+
+τ2,[1 −4] Standard deviations for person-specific intercepts (0.5, 0.5, 0.5, 0.5) 
+
+τ2,[5 −7] Standard deviations for person-specific factor loadings (0.2, 0.2, 0.2) 
+
+τ2,[8 −11] Standard deviations for person-specific VAR(1) matrix elements (0.05, 0.05, 0.05, 0.05) 
+
+τ2,[12 −13] Standard deviations for person-specific noise parameters ( σ, ψ) (0.2, 0.2) 
+
+> 13
+
+## S5.1 Priors 
+
+The population-level priors are 
+
+α2,[1 −4] ∼ N (0 , 52)
+
+α2,[5 −7] ∼ N (1 , 22) truncated at 0
+
+α2,[8 −13] ∼ N (0 , 12)
+
+τ2, τ 3 ∼ Half-N (0 , 12).
+
+The autoregressive parameters are mapped to the interval (−1, 1) via the hyperbolic tangent function to restrict the parameter space and prevent ex-treme values, although we note that this element-wise mapping does not strictly guarantee stationarity for the 2 × 2 VAR(1) system. 
+
+## S5.2 Sampler Initialization 
+
+By default, the rstan package initializes parameters by drawing randomly from a uniform distribution between −2 and 2 on the unconstrained param-eter space. However, the multilevel cross-classified model features a highly complex, high-dimensional geometry due to the intersection of both time-varying and person-varying random effects. In a typical applied data analysis, a researcher analyzing a single dataset has the flexibility to manually adjust initial values or simply restart the sampler with a different random seed if a chain happens to start in a poor location. In contrast, large-scale simula-tion experiments require automated robustness across hundreds of chains. To guard against the occasional pathological initial value in a specific chain, and to ensure stable sampling for simulated datasets that happen to possess par-ticularly challenging posterior geometries, we provided explicit initial values for the NUTS-Kalman algorithm instead of relying on the default. Specifically, to safely start the sampler near the high-density region of the posterior, the population means for the global intercepts ( α2,[1 −4] ) and the noise parameters ( α2,[12 −13] ) were initialized at their true data-generating values with a small amount of Gaussian noise, drawn from N (0 , 0.12). The global means for the factor loadings ( α2,[5 −7] ) were initialized near their true values with a small uniform offset drawn from U(0 , 0.1) . The unconstrained mean autoregressive effect matrix elements ( α2,[8 −11] ) were initialized near their true values with noise drawn from N (0 , 0.05 2).To prevent pathological behavior in the hierarchical variance structures early in the chains, the standard deviations for all person-specific ( τ2) and time-specific ( τ3) random effects were initialized with small positive values drawn from U(0 .05 , 0.15) . Finally, all non-centered standard normal latent 14 variables for both persons ( z2) and timepoints ( z3) were initialized very close to zero using N (0 , 0.01 2).In contrast, no custom initialization function was provided for the Metropolis-within-Gibbs sampler. Instead, we relied on the default automated initializa-tion in JAGS , which draws starting values directly from the specified prior distributions. 
+
+## S5.3 Kalman Filter Implementation 
+
+Our Kalman filter implementation treats one element of the observation vec-tor at a time, following the approach of Koopman and Durbin (2000). For a given participant i and timepoint t, the dynamic intercepts dit,j and factor loadings zit,j are constructed by combining the between-participant and between-timepoint effects: 
+
+dit,j = η3,t,j + η2,i,j for j ∈ { 1, 2, 3}
+
+dit, 4 = η2,i, 4
+
+zit,j = η3,t,j +3 + η2,i,j +4 for j ∈ { 1, 2, 3}.
+
+Note that while the main text conceptually defines η3,t as a 7-dimensional vec-tor with a fixed zero at index 4, the software implementation and equations above compress this into a 6-dimensional vector to optimize computation, which shifts the time-varying factor loading indices down by one. Let the 2-dimensional latent state be denoted by a = [ a1, a 2]T and its covariance by P . The filter is initialized at t = 1 with ai, 1|0 = [0 , 0] T and 
+
+Pi, 1|0 = diag (1 , ψ 22,i ). At each timepoint t, the algorithm sequentially updates the state using the four observed items. We use the assignment operator ( ←)to denote sequential programmatic assignments, rather than mathematical equality. Variables on the right side of the operator are evaluated using their current values in memory at that exact step. For the first three items, which measure the first latent state with mea-15 surement error variance σ22,i , we have 
+
+vj ← yit,j − (zit,j a1 + dit,j )
+
+Fj ← z2 
+
+> it,j
+
+P11 + σ22,i 
+
+K1j ← P11 zit,j /F j
+
+K2j ← P12 zit,j /F j
+
+a1 ← a1 + K1j vj
+
+a2 ← a2 + K2j vj
+
+P11 ← P11 − K1j zit,j P11 
+
+P12 ← P12 − K1j zit,j P12 
+
+P22 ← P22 − K2j zit,j P12 .
+
+The fourth item measures the second latent state directly without mea-surement error. Because the algorithm executes sequentially, the concep-tual Kalman gain for the second state evaluates to exactly 1.0 (i.e., K24 =
+
+P22 /F 4 = P22 /P 22 = 1 .0), which is algebraically simplified out of the state up-date code. The posterior uncertainty of the second state perfectly collapses, and the covariance elements are overwritten with 0,
+
+v4 ← yit, 4 − (a2 + dit, 4)
+
+F4 ← P22 
+
+K14 ← P12 /F 4
+
+a1 ← a1 + K14 v4
+
+a2 ← a2 + v4
+
+P11 ← P11 − K14 P12 
+
+P12 ← 0
+
+P22 ← 0.
+
+Because P12 and P22 perfectly collapse to zero after processing the fourth item, the general transition equation Pt+1 |t = ΦiPt|tΦTi + Q simplifies into a set of scalar operations. The process noise variance is fixed to 1.0 for the first state and freely estimated as ψ22,i for the second. Let ϕ1,i,xy denote the 
+
+(x, y )th element of the 2 × 2 matrix Φ1,i ,
+
+ai,t +1 |t, 1 = ϕ1,i, 11 a1 + ϕ1,i, 12 a2
+
+ai,t +1 |t, 2 = ϕ1,i, 21 a1 + ϕ1,i, 22 a2
+
+Pi,t +1 |t, 11 = ϕ21,i, 11 P11 + 1 .0
+
+Pi,t +1 |t, 12 = ϕ1,i, 11 ϕ1,i, 21 P11 
+
+Pi,t +1 |t, 22 = ϕ21,i, 21 P11 + ψ22,i .
+
+16 Let vit,j and Fit,j denote the values of the scalar prediction errors vj and their variances Fj , respectively, exactly as they are evaluated during the 
+
+jth step of the sequential update for participant i at time t. Because the multivariate update has been factored into independent univariate updates, the overall marginalized log-likelihood is simply obtained by accumulating these scalar components across all items and timepoints: 
+
+L = −12
+
+> N
+
+∑
+
+> i=1
+> T
+
+∑
+
+> t=1 4
+
+∑
+
+> j=1
+
+{
+
+log(2 π) + log Fit,j + v2
+
+> it,j
+
+Fit,j 
+
+}
+
+.
+
+# References 
+
+Carpenter, B., Hoffman, M. D., Brubaker, M., Lee, D., Li, P., & Betancourt, M. (2015, September). The Stan Math Library: Reverse-Mode Auto-matic Differentiation in C++. https://doi.org/10.48550/arXiv.1509. 07164 Hamilton, J. D. (1994). Time series analysis . Princeton University Press. Jungbacker, B., & Koopman, S. J. (2015). Likelihood-based dynamic factor analysis for measurement and forecasting. The Econometrics Journal ,
+
+18 (2), C1–C21. https://doi.org/10.1111/ectj.12029 Koopman, S. J., & Durbin, J. (2000). Fast Filtering and Smoothing for Mul-tivariate State Space Models. Journal of Time Series Analysis , 21 (3), 281–296. https://doi.org/10.1111/1467-9892.00186 17

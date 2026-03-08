@@ -1,0 +1,784 @@
+Title: Operationalizing Longitudinal Causal Discovery Under Real-World Workflow Constraints
+
+URL Source: https://arxiv.org/pdf/2602.23800v1
+
+Published Time: Mon, 02 Mar 2026 01:38:23 GMT
+
+Number of Pages: 24
+
+Markdown Content:
+# Operationalizing Longitudinal Causal Discovery Under Real-World Workflow Constraints 
+
+Tadahisa Okuda 1 Shohei Shimizu 2,3,4 Thong Pham 3 Tatsuyoshi Ikenoue 5 Shingo Fukuma 1,6      
+
+> 1Kyoto University Graduate School of Medicine, Kyoto, Japan
+> 2SANKEN, The University of Osaka, Osaka, Japan
+> 3Faculty of Data Science, Shiga University, Shiga, Japan
+> 4AIP, RIKEN, Tokyo, Japan
+> 5Faculty of Medicine, University of Miyazaki, Miyazaki, Japan
+> 6Hiroshima University Graduate School of Biomedical and Health Sciences, Hiroshima, Japan
+
+Abstract 
+
+Causal discovery has achieved substantial theo-retical progress, yet its deployment in large-scale longitudinal systems remains limited. A key ob-stacle is that operational data are generated under institutional workflows whose induced partial or-ders are rarely formalized, enlarging the admissible graph space in ways inconsistent with the record-ing process. We characterize a workflow-induced constraint class for longitudinal causal discovery that restricts the admissible directed acyclic graph space through protocol-derived structural masks and timeline-aligned indexing. Rather than intro-ducing a new optimization algorithm, we show that explicitly encoding workflow-consistent par-tial orders reduces structural ambiguity, especially in mixed discrete–continuous panels where within-time orientation is weakly identified. The frame-work combines workflow-derived admissible-edge constraints, measurement-aligned time indexing and block structure, bootstrap-based uncertainty quantification for lagged total effects, and a dynamic representation supporting intervention queries. In a nationwide annual health screening co-hort in Japan with 107,261 individuals and 429,044 person-years, workflow-constrained longitudinal LiNGAM yields temporally consistent within-time substructures and interpretable lagged total effects with explicit uncertainty. Sensitivity analyses using alternative exposure and body-composition defi-nitions preserve the main qualitative patterns. We argue that formalizing workflow-derived constraint classes improves structural interpretability without relying on domain-specific edge specification, pro-viding a reproducible bridge between operational workflows and longitudinal causal discovery under standard identifiability assumptions. 
+
+1 INTRODUCTION: THE DEPLOYMENT GAP IN CAUSAL DISCOVERY 
+
+Causal discovery has achieved substantial theoretical progress over the past two decades [Spirtes et al., 2001, Peters et al., 2017, Glymour et al., 2019]. Under identifiable assumptions, structure-learning algorithms recover directed acyclic graphs (DAGs) that support causal interpretation and effect estimation. In longitudinal settings, extensions of LiNGAM [Shimizu et al., 2006, Shimizu, 2022] and related methods exploit temporal ordering and non-Gaussianity to separate within-time and cross-time relations. Despite these advances, a gap remains between identifi-able theory and large-scale operational deployment [Kotoku et al., 2020, Uchida et al., 2022, Fujita et al., 2023]. In many real-world panel systems, data are not generated under ab-stract time indices but under institutional workflows. These workflows determine when variables are recorded, how ex-posures are assigned, what quantities summarize intervals, and how evaluation occurs. When such workflow-induced partial orders are not formalized, the admissible DAG space implicitly includes structures inconsistent with the recording process, enlarging the search space and introducing avoid-able structural ambiguity. This issue is particularly pronounced in mixed discrete– continuous longitudinal panels. Within-time orientation is often weakly identified, and minor preprocessing or index-ing decisions can alter the set of Markov-equivalent orien-tations compatible with the data. Standard forward-in-time constraints alone do not resolve this ambiguity, because “time” in recorded data may not coincide with “causal time” in the institutional process. In this paper, we characterize a class of workflow-induced structural constraints for longitudinal causal discovery. Rather than proposing a new optimization algorithm, we formalize how protocol-derived admissible-edge masks and timeline-aligned indexing restrict the effective search space of longitudinal DAGs. Let Gunconstrained denote the 
+
+> arXiv:2602.23800v1 [stat.ME] 27 Feb 2026
+
+set of DAGs admissible under standard forward-time con-straints, and let Gworkflow denote the subset further restricted by workflow-consistent partial orders. By construction, 
+
+Gworkflow ⊂ G unconstrained . This restriction reduces structural ambiguity without imposing domain-specific medical di-rectional assumptions, thereby modifying the set of graph structures that are identifiable in longitudinal causal discov-ery. The proposed design layer rests on four principles: 1. Workflow-derived admissible-edge constraints. In-stitutional ordering and recording properties are en-coded as structural masks that restrict admissible edges independently of substantive domain claims. 2. Timeline-aligned indexing and block structure. 
+
+Modeled time points are aligned with evaluation sched-ules, and ordered within-time blocks reflect recording resolution, reducing orientation instability in mixed-type panels. 3. Uncertainty quantification for lagged total effects. 
+
+Subject-level bootstrap resampling provides uncer-tainty summaries directly tied to decision-relevant total effects in the constrained graph space. 4. Dynamic representation of the learned structure. 
+
+The estimated longitudinal system is represented as a linear dynamic model supporting forward and inverse intervention queries. Importantly, our contribution lies at the level of the admissi-ble DAG class rather than the estimation algorithm: we do not alter the estimation routine of longitudinal LiNGAM, but instead redefine the graph class over which identifia-bility is assessed. By aligning structural assumptions with workflow-induced partial orders, the framework reduces ori-entation non-identifiability arising from calendar–workflow mismatches while preserving standard LiNGAM assump-tions (linearity, non-Gaussianity, and acyclicity within time). As a population-scale stress test, we apply the framework to a nationwide annual health screening cohort in Japan (107 ,261 individuals; 429 ,044 person-years; 15 variables over four years). Under workflow-constrained longitudinal LiNGAM, the learned structures exhibit temporally consis-tent within-time subgraphs and interpretable lagged total effects with quantified uncertainty. Sensitivity analyses us-ing alternative exposure and body-composition definitions preserve qualitative conclusions. More broadly, longitudinal causal discovery in operational systems requires explicit separation between algorithmic foundations and constraint design. When institutional work-flows induce partial orders over variables and time, formal-izing these constraint classes provides a reproducible mech-anism for restricting the admissible DAG space, thereby improving structural interpretability under standard identifi-ability assumptions. 
+
+2 RELATED WORK 
+
+This work builds on longitudinal causal discovery and fo-cuses on the design layer required to translate structure learn-ing into deployable decision-support systems. We review prior work along four axes: longitudinal causal discovery, prior-knowledge constraints, uncertainty quantification, and decision-oriented use of learned causal models. 
+
+Longitudinal causal discovery. Causal discovery un-der identifiable assumptions has been extensively studied [Spirtes et al., 2001, Peters et al., 2017]. LiNGAM and its variants, including DirectLiNGAM [Shimizu et al., 2006, 2011, Shimizu, 2022], recover causal orderings under non-Gaussianity assumptions. Longitudinal extensions [Hyväri-nen et al., 2010, Kadowaki et al., 2013] separate within-time and cross-time relations and typically restrict links to for-ward directions. However, these approaches assume abstract time indexing and do not formalize workflow-induced par-tial orders or block-level admissibility constraints. Our work follows longitudinal LiNGAM but introduces an explicit workflow-grounded restriction of the admissible DAG space for deployment settings. 
+
+Prior knowledge constraints. Many frameworks allow partial constraints to restrict the search space [Spirtes et al., 2001, Peters et al., 2017], such as temporal precedence or prohibited edges. We differ in formalizing constraints de-rived from recording protocols rather than domain-specific expert assumptions. These protocol-level constraints encode when variables are measured and how interventions are as-signed, preserving auditability and transferability. 
+
+Uncertainty quantification. Resampling and sensitivity analyses have been used to assess uncertainty in learned structures and effects [Komatsu et al., 2010]. In deployment contexts, however, decision-relevant effect stability is cen-tral. We therefore report bootstrap-based uncertainty for lagged total effects as primary outputs. 
+
+From graphs to decision systems. Causal models support counterfactual reasoning and policy analysis [Pearl, 2000], but causal discovery studies often stop at graph estimation. We represent the learned longitudinal model as a dynamic intervention system enabling forward simulation and goal-oriented queries, and summarize stable within-time relations via recurring within-time subgraph patterns for operational monitoring. 
+
+Application context. Prior large-scale evaluations of the national health guidance program used eligibility thresh-olds to identify local effects via regression discontinuity design [Fukuma et al., 2020]. In contrast, we provide a workflow-grounded causal discovery pipeline that estimates longitudinal structure and system-level lagged effects with quantified uncertainty. 3 DESIGN PRINCIPLES FOR DEPLOYABLE LONGITUDINAL CAUSAL DISCOVERY 
+
+Deploying longitudinal causal discovery in operational sys-tems requires more than selecting a structure-learning al-gorithm. Real-world panel data are generated under fixed workflows, mix discrete and continuous variables, and are used to support decisions under uncertainty [Krogsbøll et al., 2019]. We therefore distinguish the causal discovery method from a preceding design layer: explicit choices that translate workflow-generated data into algorithm-compatible inputs and decision-relevant outputs. This section presents four principles that operationalize longitudinal causal discovery while preserving auditability and transferability. An illus-trative theoretical note on the resulting restriction of the admissible graph class is provided in Appendix C.1. 
+
+3.1 WORKFLOW-DERIVED STRUCTURAL CONSTRAINTS 
+
+In operational longitudinal systems, the recording work-flow fixes the order in which variables are observed and interventions are assigned. In annual health screening pro-grams, measurements are recorded, eligibility for guidance is determined, and downstream outcomes are observed at subsequent visits [MHLW, 2010, 2024]. We encode these institutional orderings as workflow-derived structural con-straints that restrict the admissible directed edges. The prior knowledge used here is derived from (i) self-evident real-world information (e.g., age and sex are not modified by health guidance within the study window) and (ii) recording-protocol properties (what each variable rep-resents, when it is recorded, and over what interval it sum-marizes). We deliberately avoid expert-driven medical edge selection to reduce subjectivity and improve transferability. Formally, let X(t) denote the recorded variables at time t. A prior-knowledge mask marks edges as allowed, forbidden, or unknown, and causal discovery is performed only within the resulting restricted graph class. The mask enforces: (a) no time reversal, (b) forward cross-time links restricted to 
+
+t−1 → t, and (c) within-time admissibility consistent with the workflow. Full details are given in Appendix B. 
+
+3.2 TIMELINE-ALIGNED BLOCK DESIGN FOR MIXED-TYPE PANELS 
+
+Real-world panels mix discrete indicators (e.g., interven-tion, medication, lifestyle) with continuous outcomes [Curry et al., 2018, Nishizawa and Shimomura, 2019]. Applying structure learning directly to such panels can yield unsta-ble within-time orientations. To mitigate this, we adopt workflow-aligned time indexing and block structure. 
+
+Time-point alignment. In annual screening systems, health guidance determined in year y affects outcomes mea-sured in year y +1 . We therefore define the modeled time point t so that guidance corresponds to yt −1 and outcomes to yt. This alignment respects the recording workflow and avoids introducing artificial cross-time links. 
+
+Block structure. Within each time point, variables are grouped into ordered blocks reflecting recording and mea-surement characteristics. Guidance precedes questionnaire-based discrete variables, which precede continuous out-comes. Directed relations are permitted only in directions consistent with this block order, while outcome-to-outcome relations remain unconstrained. This block design reduces orientation ambiguity in mixed-type panels while preserving flexibility among outcomes. 
+
+Medication and lifestyle variables. We exclude within-time directed edges between medication status and lifestyle habits. This exclusion is not a substantive medical claim, but a recording-based decision: both variables summarize behav-ior over the same interval, and the data do not identify their within-visit ordering. Dependence is instead represented through cross-time links from t−1 to t.
+
+3.3 BOOTSTRAP UNCERTAINTY FOR LAGGED TOTAL EFFECTS 
+
+Deployment requires uncertainty summaries tied to decision questions. We quantify uncertainty in lagged total causal effects using subject-level bootstrap resampling. For each replicate ( B = 1000 ), individuals are resampled, the con-strained model is refit, and total effects are computed for lags ℓ ∈ { 0, 1, 2}. Uncertainty is summarized via empirical distributions and percentile confidence intervals. These sum-maries align reported uncertainty with the quantities used in interpretation and planning. 
+
+3.4 LEARNED MODEL AS A DECISION-RELEVANT REPRESENTATION 
+
+For deployment, the learned structure must be more than a static graph. We recast the estimated longitudinal DAG and structural coefficients as a dynamic intervention model. Let B(t,t ) denote within-time coefficients and B(t,t −1) 
+
+cross-time coefficients (restricted by prior knowledge). To-gether with workflow-aligned indexing, these define a linear dynamic system mapping current states to future states un-der hypothetical interventions. This representation enables (i) forward simulation (what-if analysis) and (ii) inverse target-setting queries that compute the upstream changes required to achieve specified down-stream targets. Binary variables are treated as switchable settings, while continuous outcomes remain primary targets. Workflow-derived constraints, timeline alignment, bootstrap uncertainty, and decision-relevant representation together form a reusable procedure for deploying longitudinal causal discovery in workflow-generated panel data. 
+
+4 FRAMEWORK: WORKFLOW-CONSTRAINED LONGITUDINAL CAUSAL DISCOVERY 
+
+4.1 DATA AND PROBLEM SETUP 
+
+We analyze a longitudinal panel constructed from annual health screening records over four consecutive years. The fi-nal analytic cohort comprises 107,261 individuals (429,044 person-years). At each time point, we define a 15-variable set consisting of: (i) a binary indicator of program partici-pation ( Health-guidance ), (ii) five continuous health screening outcomes (body mass index, BMI ; systolic blood pressure, SBP ; diastolic blood pressure, DBP ; hemoglobin A1c, HbA1c ; low-density lipoprotein cholesterol, LDL ), (iii) three medication indicators (antihypertensive, Drug-HT ;antidiabetic, Drug-DM ; lipid-lowering, Drug-LDL ), (iv) three lifestyle indicators (smoking status, Smoke ; exercise, 
+
+Exercise ; alcohol, Alcohol ), (v) age ( Age ) and sex (Sex ), and (vi) a categorical variable, Check_num. , rep-resenting the number of health screening attendances during the three years preceding the first measurement year in the panel (2017–2019). We use a 15-variable set that matches the routinely recorded fields available at every annual visit in this operational sys-tem. This choice preserves comparability with the prior population-scale evaluation of the program [Fukuma et al., 2020] and keeps the stress test grounded in recording struc-ture and data availability. The variable set is treated as a fixed design input rather than a contribution of this paper; the proposed framework applies without change when the set is expanded or modified, provided that the recording protocol and time alignment are specified. The health guidance variable is defined as follows: “partici-pation” denotes individuals who received health guidance and completed the program through the final evaluation; “non-participation” denotes all others (see Appendix A.2). Separately, an assignment indicator can be defined from the program’s institutional eligibility rule, which uses waist circumference thresholds together with additional cardiometabolic risk-factor criteria and excludes individ-uals under pharmacologic treatment for relevant conditions [MHLW, 2024]. As shown in Appendix A.3, this assign-ment mechanism corresponds to a rule-based (conditional) intervention determined by observable eligibility criteria. In this sense, assignment represents an institutional interven-tion rule, whereas participation reflects realized exposure. The assignment indicator is used in a sensitivity analysis (see Section 4.4). To apply longitudinal causal discovery, the data are or-ganized as a three-dimensional array ( subjects ×
+
+variables × time points ), and we adopt workflow-aligned time indexing reflecting one-year institutional or-dering (i.e., participation is determined after screening and evaluated against outcomes at the subsequent annual visit). Appendix A.1 summarizes the variable definitions and time-point construction. 
+
+4.2 WORKFLOW-CONSTRAINED LONGITUDINAL LINGAM 
+
+We apply LiNGAM [Shimizu et al., 2006], which assumes linear structural equations, non-Gaussian independent er-rors, acyclicity within each time point, and no hidden com-mon causes among the modeled endogenous variables. The model permits directed cross-time links, thereby capturing lagged causal effects across consecutive time points. In our implementation, variables at time point 0 are treated as observed initial conditions (no within-time causal discov-ery) and serve as exogenous inputs for estimating relations at later time points (Figure B.1). Accordingly, the no-hidden-confounding assumption applies to the structural relations among the remaining endogenous variables, conditional on these observed exogenous factors. Let x(t) denote the p-dimensional vector of endogenous vari-ables at time point t. We use v(t) for the scalar intervention indicator, z(t) for observed inputs (medications, lifestyle habits, and demographics), w(0) for the scalar baseline co-variate used for adjustment, and e(t) for error terms. In our application, x(t) collects the five continuous health screen-ing outcomes ( BMI , SBP , DBP , HbA1c , LDL ) and v(t) de-notes Health-guidance . We let z(t) collect medication and lifestyle indicators together with demographics, and 
+
+w(0) be the baseline-only covariate ( Check_num. ). We adopt a first-order longitudinal formulation for t = 1 , 2, 3
+
+as 
+
+x(t) = α(t,t )v(t) + B(t,t )x(t) + B(t,t −1) x(t−1) 
+
++ C(t,t )z(t) + C(t,t −1) z(t−1) 
+
++ I{t = 1 } δ(1 ,0) w(0) + e(t),
+
+(1) where α(t,t ) and δ(1 ,0) are p-dimensional coefficient vec-tors; B(t,t ) and C(t,t ) are coefficient matrices for within-time directed relations; and B(t,t −1) and C(t,t −1) are coef-ficient matrices for one-year lagged relations. Here I{t =1} = 1 if t = 1 and 0 otherwise. As illustrated in Figure B.1, direct links with longer delays (e.g., t−2 → t) are constrained to zero to align with the an-nual workflow and control model complexity. Longer-term influences are therefore represented through multi-step paths and summarized via total effects. Time point 0 variables are treated as observed initial conditions and are not subject to within-time structure learning. A baseline-only covariate (Check_num. ) enters only through I{t = 1 } δ(1 ,0) w(0) .We further impose workflow-derived prior knowledge, re-stricting structure learning to the endogenous variables in 
+
+x(t). Variables in z(t) and w(0) are not subject to causal discovery; rather, they are incorporated as observed exoge-nous inputs and serve as adjustment variables to control for confounding when estimating within-year causal relations among variables in x(t) via DirectLiNGAM [Shimizu et al., 2011]. The search space is restricted by workflow-derived prior knowledge based on the recording protocol (timing and nature of each variable) and basic data-structural facts, rather than medical edge selection. Appendix B details how these constraints are incorporated into estimation. 
+
+4.3 ESTIMATION AND UNCERTAINTY QUANTIFICATION 
+
+Estimation follows a DirectLiNGAM-style iterative proce-dure under the workflow-derived constraints, alternating regression and independence assessment to infer a causal or-dering and estimate coefficients. Uncertainty in lagged total effects is quantified via subject-level bootstrap resampling with B = 1000 replicates. For each replicate, individuals are resampled with replacement, the constrained model is refit, and the propagating influences are computed to to-tal effects through the fitted linear system. Uncertainty is summarized using empirical bootstrap distributions and per-centile confidence intervals, aligning reported variability with decision-relevant quantities. A compact pseudo-code summary of the full workflow-constrained causal discovery procedure (including bootstrap uncertainty and total-effect computation) is provided in Appendix C.2. 
+
+4.4 SENSITIVITY SPECIFICATIONS 
+
+We conduct two sensitivity analyses. First, we replace BMI with alternative body-composition measures (waist circum-ference or body weight) and rerun the full pipeline without modifying other components. Second, we replace the pro-gram participation indicator with the assignment indicator and rerun the pipeline under the same workflow-derived constraints and estimation procedure. These analyses assess robustness to (i) alternative body-composition measures [Helajärvi et al., 2014, Vatcheva et al., 2016, Tsushita et al., 2018] and (ii) alternative exposure definitions (program par-ticipation versus rule-based assignment). 
+
+5 POPULATION-SCALE STRESS TEST 
+
+We report results from a population-scale application of the proposed workflow-constrained longitudinal causal discov-ery procedure to annual health screening data. We focus on (i) lagged total effects of health guidance with boot-strap uncertainty summaries and (ii) consistent within-time subgraph structures among health screening outcomes that support compact interpretation under workflow-derived con-straints. 
+
+5.1 LAGGED TOTAL EFFECTS OF HEALTH GUIDANCE 
+
+Table 1 reports lagged total effects of health guidance (2020) on subsequent health screening outcomes (2021–2023), together with 95% percentile confidence intervals from subject-level bootstrap resampling ( B = 1000 ). The total effect on BMI is negative at lag 0 and remains negative at lag 1, with a smaller magnitude at longer lags. For SBP, the lag 0 total effect is negative with an interval excluding zero, whereas uncertainty increases at longer lags. For DBP, the lag 0 interval includes zero, while positive effects appear at lag 1 and lag 2. For HbA1c and LDL, intervals include zero across the reported lags. These summaries reflect combined direct and indirect path-ways in the fitted longitudinal model under the workflow-derived constraints. Because exposure is defined by program participation, the reported effects capture the influence of receiving and completing health guidance within the ob-served operational process. DBP estimates tend to become more positive at later lags, which can reflect propagation through mediated cross-time pathways in the constrained linear dynamic system, although this tendency is less stable across sensitivity specifications (see Appendix D). 
+
+5.2 BOOTSTRAP DISTRIBUTIONS AND UNCERTAINTY PATTERNS 
+
+Figure 1 visualizes bootstrap distributions of total effects from Health-guidance (2020) to outcomes measured in 2021–2023. Beyond the 95% interval endpoints, the his-tograms show how uncertainty differs by outcome and by horizon through changes in spread and tail behavior. Consis-tent with Table 1, BMI and SBP exhibit tighter distributions in the first post-guidance year with negative centers, whereas several outcomes at later years show wider distributions with substantial mass near zero. DBP shows a tendency toward more positive draws at later years. 
+
+5.3 RECURRING WITHIN-TIME GRAPH SUBSTRUCTURES 
+
+The learned longitudinal graphs are large, yet they show recurring within-time adjacency patterns across time points. Figure 2 summarizes this pattern as a compact motif over the five continuous health screening outcomes. Directed edges indicate directions that are consistent across time points, Table 1: Total effects of Health-guidance (2020) on subsequent annual health screening outcomes measured in 2021– 2023 (model lags 0–2; the first to third post-guidance annual visits). Each entry reports the point estimate and the 95% percentile confidence interval (in parentheses) from subject-level bootstrap resampling ( B = 1000 ) under the workflow-derived prior-knowledge constraints. Total effects aggregate all directed paths in the fitted longitudinal system. Outcome 2021 (lag 0) 2022 (lag 1) 2023 (lag 2) BMI −0.129 [−0.165 , −0.094 ] −0.067 [−0.109 , −0.029 ] −0.031 [−0.076 , 0.014 ]SBP −0.737 [−1.112 , −0.358 ] −0.117 [−0.543 , 0.290 ] 0.203 [−0.250 , 0.630 ]DBP −0.185 [−0.450 , 0.080 ] 0.305 [0.011 , 0.591 ] 0.531 [0.207 , 0.837 ]HbA1c −0.005 [−0.014 , 0.005 ] −0.007 [−0.017 , 0.005 ] 0.002 [−0.010 , 0.015 ]LDL −0.258 [−0.928 , 0.439 ] 0.086 [−0.683 , 0.845 ] 0.348 [−0.472 , 1.175 ]                 
+
+> Notes. BMI: body mass index; SBP/DBP: systolic/diastolic blood pressure; HbA1c: hemoglobin A1c; LDL: low-density lipoprotein cholesterol. 0
+> 50
+> 100
+> 150
+> BMI SBP DBP HbA1c
+> 2021
+> (lag 0)
+> LDL
+> 0
+> 50
+> 100
+> 150
+> 2022
+> (lag 1)
+> 0.2 0.1 0.0
+> 0
+> 50
+> 100
+> 150
+> 100.5 0.0 0.5 1.0 0.02 0.00 0.02 101
+> 2023
+> (lag 2)
+> Total effect
+> Frequency
+
+Figure 1: Bootstrap distributions of lagged total effects from health guidance in 2020 to outcomes measured in 2021–2023 (lags 0–2), under the workflow-derived constraints ( B = 1000 ). Panels are arranged in a 3 × 5 grid: rows correspond to lag and columns to outcomes (BMI, SBP, DBP, HbA1c, LDL). Dashed vertical lines indicate the 95% bootstrap percentile interval, and solid vertical lines mark zero.  
+
+> Notes. BMI: body mass index; SBP/DBP: systolic/diastolic blood pressure; HbA1c: hemoglobin A1c; LDL: low-density lipoprotein cholesterol.
+
+whereas the undirected SBP–DBP connection denotes a recurring adjacency with time-varying direction. We use the motif as an interpretable summary of multivariate within-time dependencies, while maintaining quantitative emphasis on lagged total effects (Table 1) and their bootstrap uncertainty (Figure 1). The motif is a descriptive abstraction rather than a complete representation of the full longitudinal DAG. 
+
+5.4 SENSITIVITY RESULTS 
+
+We stress-test the main total-effect conclusions under three alternative specifications: (i) replacing the program partic-ipation indicator with the rule-based assignment indicator, (ii) replacing BMI with waist circumference, and (iii) replac-ing BMI with body weight. Across these variants, adiposity-related measures (e.g., BMI, waist circumference, and body weight) show the most stable short-horizon reductions at the first post-guidance annual visit. For SBP, a short-horizon reduction is apparent under the participation-based exposure and body-composition variants, whereas assignment-based estimates are less pronounced and more uncertain. At longer horizons, effects generally attenuate and uncertainty widens. Full results are reported in Appendix D.3 and Appendix D.4. 
+
+6 GENERALIZATION BEYOND HEALTHCARE 
+
+Although demonstrated in a healthcare setting, the proposed design layer relies on workflow-level properties rather than domain-specific medical assumptions. More generally, the framework applies to longitudinal systems in which (i) insti-tutional workflows induce partial orders over variables and time, (ii) heterogeneous variable types coexist within time slices, and (iii) structure-learning outputs are required to support repeated operational use. We do not claim empirical validation beyond healthcare; the point is that the required inputs are recording- and workflow-level features that recur across deployed longitudinal settings. BMI 
+
+## DBP 
+
+## LDL 
+
+## HbA1c SBP Figure 2: Compact recurring subgraph (motif) summariz-ing within-time relations among the five continuous health screening outcomes. Directed edges indicate directions that are consistent across time points 1–3 under the workflow-derived constraints. The undirected SBP–DBP link indicates a recurring adjacency whose direction varies across time points. The motif is a descriptive summary of recurrent within-time structure, not the full longitudinal graph.  
+
+> Notes. BMI: body mass index; SBP/DBP: systolic/diastolic blood pressure; HbA1c: hemoglobin A1c; LDL: low-density lipoprotein cholesterol.
+
+7 DISCUSSION: FROM ALGORITHMS TO INFRASTRUCTURE 
+
+This paper narrows the deployment gap in longitudinal causal discovery by specifying an explicit design layer that enables existing methods to operate under real-world work-flow constraints. Across a nationwide longitudinal health screening cohort, the combination of workflow-derived structural constraints, timeline-aligned block design, and bootstrap-based uncertainty summaries yielded interpretable system-level results (lagged total effects with empirical in-tervals) together with a compact summary of consistent within-time graph substructures. 
+
+7.1 WHY THE DESIGN LAYER IS NECESSARY 
+
+Longitudinal causal discovery in operational settings differs from benchmark settings in one central respect: the data are generated by institutional workflows. In our study setting, measurements are recorded, program participation occurs (or not), and subsequent measurements are obtained accord-ing to a fixed annual schedule. When workflow-induced ordering is ignored, mixed-type observational data are likely to admit multiple Markov-equivalent orientations; restrict-ing the admissible space reduces avoidable ambiguity. The results illustrate the practical value of this approach. First, the lagged total effects provide decision-relevant sum-maries that integrate direct and indirect pathways without privileging individual edges. The strongest and most reliable signal appears at lag 0 for BMI (and, under the participation-based exposure, SBP), with attenuation at longer lags, while uncertainty broadens for several outcomes as lag increases (Table 1). Second, the learned graphs exhibit recurring within-time graph substructures across time points. We summarize this recurring pattern as a compact motif over the five continu-ous outcomes (Figure 2): directed edges indicate directions that are consistent across time points, whereas the undi-rected SBP–DBP connection denotes a recurring adjacency with time-varying direction. This motif is not presented as a definitive mechanistic claim; rather, it provides an inter-pretable abstraction of recurrent multivariate substructures that supports (i) communication to non-technical stakehold-ers and (ii) downstream uses such as monitoring structural drift and performing simulator-based queries for forward prediction and inverse target-setting. From a program-evaluation perspective, the most stable sig-nal in our system-level summaries is concentrated in body-weight-related measures. In Table 1, the lag-0 total effect on BMI is negative with a confidence interval excluding zero, whereas later lags show attenuation with broader uncer-tainty (see also Figure 1). This pattern is consistent with the program’s operational intent—guidance primarily targets behaviors and weight control first, with downstream changes propagating through the broader longitudinal system—while we avoid attributing the result to any single directed edge. Importantly, the same qualitative message persists under our sensitivity specifications that replace BMI with alternative adiposity measures and that use the eligibility-based assign-ment indicator in place of observed participation (see Ap-pendix D). In that limited sense, the short-term reduction and later attenuation we observe are also broadly aligned with the time profile reported in assignment-based evaluations by Fukuma et al. [2020]. Our contribution complements that line of work by adding a workflow-grounded design layer and interpretable system-level summaries (graphs, motifs, and simulator queries) rather than focusing on a single local causal contrast. Historically, as cohort studies made population risk factors measurable, regression models became part of the standard analytic infrastructure [Mahmood et al., 2014]. Analogously, as operational systems demand causal conclusions while limiting reliance on subjective edge specification, workflow-grounded causal discovery can serve as infrastructure for deployment-ready longitudinal analysis. 
+
+7.2 LIMITATIONS 
+
+This study has several limitations. Longitudinal LiNGAM relies on linearity, non-Gaussian independent errors, acyclic-ity within time points, and the absence of hidden common causes among endogenous variables conditional on observed baseline covariates. As in most observational settings, these assumptions are not fully testable, and unmeasured con-founding cannot be excluded. We therefore interpret the recovered structure and lagged total effects as workflow-grounded, assumption-dependent summaries useful for gen-erating transparent hypotheses and decision-relevant sensi-tivity checks rather than definitive causal truth. Future work could replace longitudinal LiNGAM with ex-tensions that relax the no-hidden-confounding assumption, such as methods that allow more flexible structural forms [Maeda and Shimizu, 2020, Salehkaleybar et al., 2020, Pham et al.]. The proposed design layer is compatible with such extensions, and incorporating them would strengthen robustness to unmeasured confounding while preserving workflow-derived constraints. Second, mixed discrete and continuous variables are mod-eled within a primarily linear framework. The block design reduces orientation instability but does not eliminate possi-ble model misspecification. Third, the primary exposure is defined as program partic-ipation (completion of health guidance). Although opera-tionally meaningful, this definition may introduce selection effects related to adherence and follow-up. To mitigate in-terpretation risk, we also analyze the rule-based assignment indicator while keeping the remainder of the pipeline fixed; the main qualitative patterns are preserved, although some endpoints (e.g., SBP) become less pronounced and more uncertain. Fourth, bootstrap resampling captures sampling variability within the specified modeling pipeline but does not reflect all uncertainty sources, including systematic measurement error, violations of modeling assumptions, or temporal shifts in the underlying population. Finally, the panel is annual, and cross-time links are re-stricted to one-year lags. Because measurements are an-nual, causal changes occurring within a year cannot be re-solved, and direct multi-year delays cannot be distinguished from cumulative one-year effects. Extending the analysis to longer horizons would additionally require modeling po-tential structural changes over time, such as policy shifts or changes in measurement procedures. 
+
+7.3 DEPLOYMENT CONSIDERATIONS 
+
+A central aim of this work is to make causal discovery out-puts usable in practice. First, outputs must remain stable under routine re-training as new cohorts accumulate. Re-porting lagged total effects with bootstrap intervals together with a compact recurring subgraph facilitates monitoring for structural drift more effectively than relying on a single dense graph. Second, the learned model is represented as a decision-relevant dynamic system. Given a selected current variable and a counterfactual value, forward simulation yields pre-dicted future outcomes. Conversely, inverse target-setting computes the upstream change required to achieve a speci-fied downstream outcome at a chosen horizon. Binary vari-ables, including program participation, are treated as switch-able inputs, while continuous health outcomes remain pri-mary targets. The design layer supports deployment by (i) defining admis-sible relations under workflow constraints, (ii) stabilizing estimation under mixed types, and (iii) aligning uncertainty reporting with decision-relevant quantities. Full deployment additionally requires user interfaces, governance structures, and monitoring for dataset shift. We have implemented a practitioner-facing prototype supporting forward and inverse queries, and pilot stakeholder evaluation is underway. De-tailed information is provided in Appendix F. 
+
+8 CONCLUSION 
+
+We presented a framework that makes explicit the de-sign layer required for longitudinal causal discovery un-der workflow-generated panel data. Rather than modifying the optimization procedure itself, our contribution lies in formally characterizing how workflow-induced structural constraints restrict the admissible DAG class and thereby alter the effective search space over which identifiability is assessed. By encoding institutional partial orders and recording-resolution properties as admissible-edge masks, we induce a strict subset of the unconstrained longitudinal graph space. This restriction reduces structural ambiguity that arises when calendar time is misaligned with workflow time, par-ticularly in mixed discrete–continuous panels where within-time orientation is weakly identified. In this sense, the con-tribution lies at the level of the admissible graph space rather than the estimation algorithm, modifying the set of candi-date causal structures in a reproducible and auditable man-ner without relying on domain-specific edge specification. In a population-scale longitudinal cohort, the proposed constraint formalization yielded (i) temporally consistent within-time substructures and (ii) interpretable lagged total effects with bootstrap uncertainty summaries. These outputs arise not from additional modeling complexity, but from aligning structural assumptions with the data-generating workflow. More broadly, longitudinal causal discovery in operational systems benefits from explicitly separating algorithmic foun-dations (identifiability theory and estimation procedures) from constraint design. When institutional workflows in-duce partial orders over variables and time, making those constraints explicit can improve structural interpretability while preserving identifiability under standard assumptions. We argue that formalizing workflow-derived constraint classes constitutes a necessary step toward reproducible and deployment-ready longitudinal causal discovery. References 
+
+Susan J Curry, Alex H Krist, Douglas K Owens, Michael J Barry, Aaron B Caughey, Karina W Davidson, Chyke A Doubeni, John W Epling, Jr, David C Grossman, Alex R Kemper, Martha Kubik, C Seth Landefeld, Carol M Man-gione, Maureen G Phipps, Michael Silverstein, Melissa A Simon, Chien-Wen Tseng, John B Wong, and (US Pre-ventive Services Task Force). Behavioral weight loss interventions to prevent obesity-related morbidity and mortality in adults: US preventive services task force recommendation statement: US preventive services task force recommendation statement. JAMA , 320:1163–1171, 2018. Satoki Fujita, Yuki Yoshida, and Yoshitake Kitanishi. Con-sideration of applicability of causal discovery methods to health checkup data. In The 37th Annual Conference of the Japanese Society for Artificial Intelligence, 2023 . The Japanese Society for Artificial Intelligence, 2023. Shingo Fukuma, Toshiaki Iizuka, Tatsuyoshi Ikenoue, and Yusuke Tsugawa. Association of the national health guid-ance intervention for obesity and cardiovascular risks with health outcomes among japanese men. JAMA Inter-nal Medicine , 180:1630–1637, 2020. Clark Glymour, Kun Zhang, and Peter Spirtes. Review of causal discovery methods based on graphical models. 
+
+Frontiers in Genetics , 10:524, 2019. Harri Helajärvi, Tom Rosenström, Katja Pahkala, Mika Kähönen, Terho Lehtimäki, Olli J Heinonen, Mervi Oiko-nen, Tuija Tammelin, Jorma S A Viikari, and Olli T Raitakari. Exploring causality between TV viewing and weight change in young and middle-aged adults. the car-diovascular risk in young finns study. PLoS One , 9: e101860, 2014. Aapo Hyvärinen, Kun Zhang, Shohei Shimizu, and Patrik O. Hoyer. Estimation of a structural vector autoregressive model using non-Gaussianity. Journal of Machine Learn-ing Research , 11:1709–1731, 2010. Kento Kadowaki, Shohei Shimizu, and Takashi Washio. Estimation of causal structures in longitudinal data us-ing non-Gaussianity. In Proc. 23rd IEEE International Workshop on Machine Learning for Signal Processing (MLSP2013) , pages 1–6, 2013. Yusuke Komatsu, Shohei Shimizu, and Hidetoshi Shi-modaira. Assessing statistical reliability of LiNGAM via multiscale bootstrap. In Proceedings of 20th International Confereznce on Artificial Neural Networks (ICANN2010) ,pages 309–314. Springer, 2010. Jun’ichi Kotoku, Asuka Oyama, Kanako Kitazumi, Hiroshi Toki, Akihiro Haga, Ryohei Yamamoto, Maki Shinzawa, Miyae Yamakawa, Sakiko Fukui, Keiichi Yamamoto, and Toshiki Moriyama. Causal relations of health indices inferred statistically using the DirectLiNGAM algorithm from big data of osaka prefecture health checkups. PLoS One , 15:e0243229, 2020. Lasse T Krogsbøll, Karsten Juhl Jørgensen, and Peter C Gøtzsche. General health checks in adults for reduc-ing morbidity and mortality from disease. Cochrane Database of Systematic Reviews , 1:CD009009, 2019. Takashi Nicholas Maeda and Shohei Shimizu. RCD: Repet-itive causal discovery of linear non-Gaussian acyclic models with latent confounders. In Proc. 23rd Interna-tional Conference on Artificial Intelligence and Statistics (AISTATS2020) , volume 108 of Proceedings of Machine Learning Research , pages 735–745. PMLR, 26–28 Aug 2020. Syed S Mahmood, Daniel Levy, Ramachandran S Vasan, and Thomas J Wang. The framingham heart study and the epidemiology of cardiovascular disease: a historical perspective. Lancet , 383:999–1008, 2014. Japanese Ministry of Health, Labour and Welfare; MHLW. Annual health, labour and welfare report 2008-2009, 2010. Japanese Ministry of Health, Labour and Welfare; MHLW. Standard health checkup and health guidance program (2024 edition), 2024. Hitoshi Nishizawa and Iichiro Shimomura. Population approaches targeting metabolic syndrome focusing on japanese trials. Nutrients , 11:1430, 2019. Judea Pearl. Causality: Models, Reasoning, and Inference .Cambridge University Press, 2000. Jonas Peters, Dominik Janzing, and Bernhard Schölkopf. 
+
+Elements of causal inference: foundations and learning algorithms . The MIT Press, 2017. Thong Pham, Takashi Nicholas Maeda, and Shohei Shimizu. Causal additive models with unobserved causal paths and backdoor paths. In Proceedings of the International Con-ference on Artificial Intelligence and Statistics (AISTATS) ,Proceedings of Machine Learning Research. Saber Salehkaleybar, AmirEmad Ghassami, Negar Kiyavash, and Kun Zhang. Learning linear non-Gaussian causal models in the presence of latent variables. Journal of Machine Learning Research , 21:39–1, 2020. Shohei Shimizu. Statistical Causal Discovery: LiNGAM Approach . Springer, Tokyo, 2022. Shohei Shimizu, Patrik O. Hoyer, Aapo Hyvärinen, and Antti Kerminen. A linear non-Gaussian acyclic model for causal discovery. Journal of Machine Learning Research ,7:2003–2030, 2006. Shohei Shimizu, Takanori Inazumi, Yasuhiro Sogawa, Aapo Hyvärinen, Yoshinobu Kawahara, Takashi Washio, Pa-trik O Hoyer, and Kenneth Bollen. DirectLiNGAM: A di-rect method for learning a linear non-Gaussian structural equation model. Journal of Machine Learning Research ,12:1225–1248, 2011. Peter Spirtes, Clark Glymour, and Richard Scheines. Cau-sation, Prediction, and Search . MIT Press, 2001. 2nd edition. Kazuyo Tsushita, Akiko S Hosler, Katsuyuki Miura, Yukiko Ito, Takashi Fukuda, Akihiko Kitamura, and Kozo Tatara. Rationale and descriptive analysis of specific health guidance: The nationwide lifestyle intervention program targeting metabolic syndrome in japan. Journal of Atherosclerosis and Thrombosis , 25:308–322, 2018. Tsuyoshi Uchida, Koichi Fujiwara, Kenichi Nishioji, Masao Kobayashi, Manabu Kano, Yuya Seko, Kanji Yamaguchi, Yoshito Itoh, and Hiroshi Kadotani. Medical checkup data analysis method based on LiNGAM and its application to nonalcoholic fatty liver disease. Artificial Intelligence in Medicine , 128:102310, 2022. Kristina P Vatcheva, Minjae Lee, Joseph B McCormick, and Mohammad H Rahbar. Multicollinearity in regression analyses conducted in epidemiologic studies. Epidemiol-ogy: Open Access , 6, 2016. Operationalizing Longitudinal Causal Discovery Under Real-World Workflow Constraints (Supplementary Material) 
+
+Tadahisa Okuda 1 Shohei Shimizu 2,3,4 Thong Pham 3 Tatsuyoshi Ikenoue 5 Shingo Fukuma 1,6      
+
+> 1Kyoto University Graduate School of Medicine, Kyoto, Japan
+> 2SANKEN, The University of Osaka, Osaka, Japan
+> 3Faculty of Data Science, Shiga University, Shiga, Japan
+> 4AIP, RIKEN, Tokyo, Japan
+> 5Faculty of Medicine, University of Miyazaki, Miyazaki, Japan
+> 6Hiroshima University Graduate School of Biomedical and Health Sciences, Hiroshima, Japan
+
+A DATA, VARIABLES, AND OPERATIONAL DEFINITIONS 
+
+A.1 VARIABLE SET AND PANEL LAYOUT 
+
+We analyze a longitudinal panel constructed from annual health screening records over four consecutive years. The final analytic cohort comprises 107,261 individuals (429,044 person-years). At each time point, we define a 15-variable set consisting of: • A binary indicator of intervention: Health-guidance .• Five continuous health screening outcomes: body mass index, BMI ; systolic blood pressure, SBP ; diastolic blood pressure, DBP ; hemoglobin A1c, HbA1c ; low-density lipoprotein cholesterol, LDL .• Three medication indicators: antihypertensive, Drug-HT ; antidiabetic, Drug-DM ; lipid-lowering, Drug-LDL .• Three lifestyle indicators: smoking status, Smoke ; exercise habits, Exercise ; alcohol use, Alcohol .• Demographics: age, Age ; sex, Sex .• A categorical attendance-history variable: Check_num. , representing the number of health screening attendances during the three years preceding the measurement year (2017–2019). Figure A.1 summarizes the variables and their alignment across time points. Entries marked with † are shown for layout illustration only and are excluded from model fitting and effect reporting. Accordingly, Health-guidance (2019) at time point 0 is displayed only to illustrate the fixed tensor layout across time points. Likewise, Check_num. is a baseline-only covariate used only for adjustment; it is displayed at later time points in the figure solely to illustrate the fixed tensor layout. 
+
+A.2 HEALTH GUIDANCE INDICATOR (INTERVENTION DEFINITION) 
+
+The primary exposure is an intervention indicator derived from administrative program records. We define 
+
+Health-guidance =1 for individuals who received health guidance and completed the program through the final evaluation, and Health-guidance =0 for all others. 
+
+A.3 ASSIGNMENT INDICATOR (SENSITIVITY-ANALYSIS EXPOSURE) 
+
+Separately, an assignment indicator can be defined from the program’s selection rule. The rule includes an initial screening step based on waist circumference, followed by assessment of risk factor status. It excludes individuals receiving pharmaco-logic treatment for blood pressure, glycemia, or lipids from eligibility. Figure A.2 provides a schematic summary of this selection logic. This assignment indicator is used only in sensitivity analysis; other components of the pipeline remain unchanged. Time Point 0  Time Point 1  Time Point 2  Time Point 3  
+
+> 1
+
+Intervention  Health -guidance(2019) † Health -guidance(2020)  Health -guidance(2021)  Health -guidance(2022)  
+
+> 2
+
+Health Outcome  BMI(2020)  BMI(2021)  BMI(2022)  BMI(2023)  
+
+> 3
+
+Health Outcome  SBP(2020)  SBP(2021)  SBP(2022)  SBP(2023)  
+
+> 4
+
+Health Outcome  DBP(2020)  DBP(2021)  DBP(2022)  DBP(2023)  
+
+> 5
+
+Health Outcome  HbA1c(2020)  HbA1c(2021)  HbA1c(2022)  HbA1c(2023)  
+
+> 6
+
+Health Outcome  LDL(2020)  LDL(2021)  LDL(2022)  LDL(2023)  
+
+> 7
+
+Medication  Drug -HT(2020)  Drug -HT(2021)  Drug -HT(2022)  Drug -HT(2023)  
+
+> 8
+
+Medication  Drug -DM(2020)  Drug -DM(2021)  Drug -DM(2022)  Drug -DM(2023)  
+
+> 9
+
+Medication  Drug -LDL(2020)  Drug -LDL(2021)  Drug -LDL(2022)  Drug -LDL(2023)  
+
+> 10
+
+Lifestyle Habit  Smoke(2020)  Smoke(2021)  Smoke(2022)  Smoke(2023)  
+
+> 11
+
+Lifestyle Habit  Exercise(2020)  Exercise(2021)  Exercise(2022)  Exercise(2023)  
+
+> 12
+
+Lifestyle Habit  Alcohol(2020)  Alcohol(2021)  Alcohol(2022)  Alcohol(2023)  
+
+> 13
+
+Background Factor  Age(2020)  Age(2021)  Age(2022)  Age(2023)  
+
+> 14
+
+Background Factor  Sex(2020)  Sex(2021)  Sex(2022)  Sex(2023)  
+
+> 15
+
+Background Factor  Check_num . Check_num .† Check_num .† Check_num .† 
+
+> †
+
+shown for tensor layout only; excluded from model fitting. Figure A.1: Variable set and time-point alignment used in this study. Each time point contains 15 variables: health guidance, five continuous health screening outcomes (BMI, SBP, DBP, HbA1c, LDL), three medication indicators, three lifestyle indicators, demographics (Age, Sex), and Check_num. (attendance history in the three years preceding the measurement year). Cells marked with † are shown only to illustrate the fixed tensor layout across time points and are excluded from model fitting. Increased waist circumference        
+
+> (≥85 cm in male and
+> ≥90 cm in female ) Number of risk factors
+> A: ≥2 for increased waist
+> ≥3 for overweight BMI
+> B: 1 for increased waist
+> 1-2 for overweight BMI
+> Health guidance
+> AIntensive support
+> BModerate support
+> Summary report
+> (No health guidance)
+> Overweight body mass index (BMI)
+> ( BMI ≥25 kg/m 2)
+
+Yes 
+
+Yes 
+
+No 
+
+No 
+
+A
+
+B
+
+No 
+
+Figure A.2: Schematic of the health guidance assignment logic used to construct the assignment indicator for sensitivity analysis. The selection proceeds from waist circumference screening to assessment of risk factor status, with medication-treated individuals excluded from eligibility (details are simplified for exposition). B PRIOR KNOWLEDGE AND BLOCK-STRUCTURED DESIGN 
+
+B.1 MAPPING BETWEEN RECORDED VARIABLES AND MODEL NOTATION 
+
+Table B.1 maps the recorded variables to the notation used in Equation 1. Only x(t) is subject to within-time structure learning; variables at time point 0 are treated as baseline covariates (adjustment only) and are not used for within-time causal discovery. Table B.1: Role mapping between recorded variables and the notation in Equation 1. Symbol Contents in this study Subject to causal discovery?                       
+
+> v(t)Health-guidance (t)No (observed input)
+> x(t)BMI ,SBP ,DBP ,HbA1c ,LDL (t)Yes (within-time among outcomes)
+> z(t)Drug-HT ,Drug-DM ,Drug-LDL ,Smoke ,Exercise ,Alcohol ,Age ,Sex (t)No (observed inputs)
+> w(0) Check_num. (baseline-only) No (adjustment only)
+
+B.2 WHAT THE PRIOR KNOWLEDGE REPRESENTS 
+
+We incorporate prior knowledge as a structural mask that constrains the admissible edge set before performing longitudinal causal discovery. The purpose is to encode operationally determined ordering and data-structural constraints so that the learned graphs remain consistent with the way the records are generated. The prior knowledge in this work is derived from two sources: 1. Generic invariances and bookkeeping constraints that hold irrespective of medical theory, e.g., Sex is time-invariant and Age evolves deterministically over time and is not affected by other recorded variables. 2. Recording-protocol constraints implied by the annual health screening workflow, including the fact that measurements and questionnaire items are recorded at each annual visit and that health guidance status is recorded based on administrative program information. We do not encode medical causal claims (e.g., physiology-driven directions among biomarkers) as prior knowledge; within the admissible space, those relations are learned from data. 
+
+B.3 PRIOR-KNOWLEDGE MASK SPECIFICATION 
+
+The prior-knowledge mask is implemented as a time- and lag-indexed constraint tensor. For within-time relations ( lag = 0 ), entries take values in {− 1, 0, 1} to indicate unknown, forbidden, or allowed directions, following the convention used in DirectLiNGAM-style prior-knowledge masks. For cross-time relations ( lag > 0), entries are binary {0, 1} indicating whether an edge from time t − lag to time t is allowed. Cross-time links are restricted to one-year lag ( t−1 → t), and direct links with longer delays ( t−2 → t, t−3 → t) are set to zero to control complexity and to align with the annual workflow. Under the measurement-year indexing, Health-guidance 
+
+at time point t summarizes health guidance delivered in the interval since the previous annual visit and is aligned with measurements recorded at the current visit. Therefore, a within-time edge from Health-guidance (t) to a measurement at time point t already represents the one-interval influence on that measurement. To avoid encoding the same one-interval exposure window twice, we set direct cross-time edges from Health-guidance (t−1) to measurements at time point t
+
+to zero and represent delayed influence through intermediate variables. 
+
+B.4 BLOCK-STRUCTURED WITHIN-TIME ORDERING 
+
+As described in Section 3 and Figure A.1, time points are indexed by the measurement year. Under this indexing, 
+
+Health-guidance at time point t represents guidance delivered in the interval after the previous annual visit and before the current visit, so within-time links from Health-guidance to measurements at t correspond to one-year influence. Within each time point, we use a block-structured ordering that is consistent with how variables are recorded and used in the workflow. In brief, the within-time block design allows the following dependencies at time point t.• Health-guidance (t) has no instantaneous parents. • Medication indicators and lifestyle indicators at t may depend on Health-guidance (t) and background factors (e.g., Age (t), Sex ). • Each health screening outcome at t may depend on Health-guidance (t), background factors, and the medica-tion/lifestyle indicators at t.• Within-time directions among the five continuous outcomes are left to be learned (subject to acyclicity and the mask). We treat the within-time component as describing dependencies among variables that are observed with the same temporal support at an annual visit. The five health screening outcomes (BMI, SBP, DBP, HbA1c, LDL) are point measurements taken at the visit and therefore share a common time anchor, so within-time relations among them serve as an interpretable abstraction of contemporaneous physiological mechanisms at the visit. In contrast, medication and lifestyle indicators are recorded as questionnaire/record summaries over the interval since the previous annual visit; the data do not resolve the within-interval ordering of changes between medication use and lifestyle habits within the same year. Allowing within-time directed links between these two domains would therefore impose an artificial temporal ordering that the records do not support. Accordingly, dependence between medication and lifestyle is modeled at the annual resolution through cross-time links from t−1 to t. Within-time links from medication and lifestyle to the health screening outcomes remain admissible under the prior knowledge. The separation follows recording resolution and does not encode a medical assumption that medication and lifestyle do not interact. 
+
+B.5 BASELINE-ONLY VARIABLE 
+
+The attendance-history variable Check_num. is defined using the three years preceding the first measurement year and is treated as a baseline-only variable. Accordingly, it is allowed to affect variables at the first modeled time point via t−1 → t
+
+links (from baseline to the first annual visit), and it is isolated thereafter (i.e., it has no parents and is not used as a parent at later time points). 
+
+B.6 PRIOR-KNOWLEDGE CONCEPT DIAGRAM 
+
+Figure B.1 summarizes the workflow-derived prior knowledge used in this study, including the time-point alignment, admissible edge directions, and the within-time block ordering. 
+
+C SUPPLEMENTARY THEORETICAL NOTE AND ALGORITHMIC SUMMARY 
+
+C.1 ILLUSTRATION OF WORKFLOW-INDUCED CONSTRAINT CLASSES 
+
+By construction, Gworkflow ⊂ G unconstrained . This inclusion can rule out orientations that are Markov-equivalent from conditional independences alone but violate the workflow-induced partial order. In mixed discrete–continuous panels, where within-time orientation is often weakly identified, restricting the admissible edge space decreases structural ambiguity without imposing domain-specific medical directionality. The contribution of the design layer lies at the level of the admissible graph space rather than the estimation algorithm: it modifies the effective candidate space over which identifiability is assessed in practice. 
+
+C.2 ALGORITHMIC SUMMARY OF THE WORKFLOW-CONSTRAINED PIPELINE 
+
+Algorithm 1 summarizes the end-to-end pipeline used in this study, from applying the workflow-derived prior-knowledge mask (Appendix B) to fitting the constrained longitudinal model and reporting bootstrap uncertainty for lag-specific total effects. The purpose of this summary is to make the procedure reproducible at the level of inputs and steps; implementation details are provided in the main text and Appendix B (mask design) and Appendix D (additional results). 2021  2022  2023 
+
+Time point  0 Time point  1 Time point  2 Time point  3      
+
+> Background Factors
+> ・Age(2021) ・Sex
+> Background Factors
+> ・Age(2023) ・Sex
+
+2020                                                               
+
+> Health Outcome s
+> ・BMI( 2020 )・HbA 1c( 2020 )
+> ・SBP (2020 )・DBP (2020 )
+> ・LDL( 2020 )
+> Health Outcome s
+> ・BMI( 2021 )・HbA 1c( 2021 )
+> ・SBP (2021 )・DBP (2021 )
+> ・LDL( 2021 )
+> Health Outcome s
+> ・BMI( 2023 )・HbA 1c( 2023 )
+> ・SBP (2023 )・DBP (2023 )
+> ・LDL( 2023 )
+> Health Outcome s
+> ・BMI( 2022 )・HbA 1c( 2022 )
+> ・SBP (2022 )・DBP (2022 )
+> ・LDL( 2022 )
+> Intervention
+> ・Health -guidance( 2021 )
+> Lifestyle Habits
+> ・Smoke (2020)
+> ・Exercise(2020)
+> ・Alcohol(2020)
+> Medications
+> ・Drug -HT(2020)
+> ・Drug -DM (2020)
+> ・Drug -LDL(2020)
+> Background Factors
+> ・Age( 2020 )・Sex
+> ・Check num .
+> Lifestyle Habits
+> ・Smoke (2021 )
+> ・Exercise( 2021 )
+> ・Alcohol( 2021 )
+> Medications
+> ・Drug -HT( 2021 )
+> ・Drug -DM (2021 )
+> ・Drug -LDL( 2021 )
+> Lifestyle Habits
+> ・Smoke (2022 )
+> ・Exercise( 2022 )
+> ・Alcohol( 2022 )
+> Medications
+> ・Drug -HT( 2022 )
+> ・Drug -DM (2022 )
+> ・Drug -LDL( 2022 )
+> Lifestyle Habits
+> ・Smoke (2023 )
+> ・Exercise( 2023 )
+> ・Alcohol( 2023 )
+> Medications
+> ・Drug -HT(2023)
+> ・Drug -DM (2023)
+> ・Drug -LDL(2023)
+> Intervention
+> ・Health -guidance(2020)
+> Intervention
+> ・Health -guidance( 2022 )
+> Background Factors
+> ・Age( 2022 )・Sex
+
+Baseline covariates (adjustment 
+
+only; no within -time discovery) Figure B.1: Conceptual diagram of the workflow-derived prior knowledge. The prior knowledge encodes (i) time ordering across annual visits, (ii) within-time block ordering consistent with the recording protocol, and (iii) admissible cross-time links restricted to one-year lag ( t−1 → t). The prior knowledge is derived from generic invariances and recording-protocol constraints, not from medical causal assumptions. 
+
+Notes. Bidirectional links at time point 0 indicate baseline covariates used for adjustment only and not subject to within-time structure learning. 
+
+Algorithm 1 Workflow-constrained longitudinal causal discovery with bootstrap total effects 
+
+Require: Annual panel tensor X; workflow-derived prior-knowledge mask PK (Appendix B); bootstrap size B
+
+Ensure: Coefficient blocks; lag-specific total effects with percentile intervals; within-time motif summary 
+
+1: Align time points by measurement year and define within-time blocks consistent with the recording protocol 
+
+2: Apply the workflow-derived mask PK to restrict within-time and one-year cross-time links 
+
+3: Fit workflow-constrained longitudinal LiNGAM to obtain within-time and one-year cross-time coefficient blocks 
+
+4: Compute lag-specific total effects from the fitted longitudinal system for an anchor year and subsequent measurement years 
+
+5: for b = 1 , . . . , B do 
+
+6: Resample subjects with replacement and reconstruct the full panel 
+
+7: Refit the constrained longitudinal model under the same mask PK 
+
+8: Recompute lag-specific total effects and store bootstrap draws 
+
+9: end for 
+
+10: Report percentile confidence intervals from bootstrap distributions 
+
+11: Summarize recurring within-time structure among continuous outcomes as a motif (Figure 2); see Appendix E.2 for extraction rules D ADDITIONAL TOTAL-EFFECT RESULTS AND SENSITIVITY ANALYSES 
+
+Notation and abbreviations. Throughout this appendix, HG denotes health guidance; BMI, body mass index; Weight, body weight; Waist, waist circumference; SBP/DBP, systolic/diastolic blood pressure; HbA1c, hemoglobin A1c; LDL, low-density lipoprotein cholesterol. 
+
+D.1 BOOTSTRAP UNCERTAINTY QUANTIFICATION 
+
+Uncertainty is quantified by subject-level bootstrap resampling with B = 1000 replicates. In each replicate, we resample individuals with replacement, reconstruct the full four-year panel for the resampled cohort, refit the workflow-constrained longitudinal model under the same prior-knowledge mask, and recompute the reported total effects. We report 95% confidence intervals based on the empirical bootstrap distribution (percentile intervals). 
+
+D.2 LAG-0 TOTAL EFFECTS BY MEASUREMENT YEAR 
+
+Table D.1 reports lag-0 (within-time under the prior knowledge) total effects by measurement year. Time points are indexed by the measurement year, and Health-guidance recorded at time point t represents guidance delivered during the interval between the previous and current annual visits. Accordingly, lag 0 corresponds to the first post-guidance annual visit under this indexing (i.e., outcomes measured at year t after guidance delivered in the preceding interval). Each entry reports the point estimate and the 95% percentile confidence interval (in parentheses) from subject-level bootstrap resampling (B = 1000 ) under the workflow-derived prior-knowledge constraints. Table D.1: Model-lag-0 total effects by measurement year. Under the measurement-year indexing, Health-guidance at time point t summarizes guidance delivered during the interval preceding the visit, so model lag 0 corresponds to effects observed at the next annual visit. Each entry reports the point estimate and the 95% percentile confidence interval (in parentheses) from subject-level bootstrap resampling ( B = 1000 ) under the workflow-derived prior-knowledge constraints. Outcome HG 2020 
+
+→ 2021 HG 2021 
+
+→ 2022 HG 2022 
+
+→ 2023 BMI −0.129 [−0.165 , −0.094 ] −0.082 [−0.114 , −0.051 ] −0.077 [−0.107 , −0.046 ]SBP −0.737 [−1.112 , −0.358 ] −0.038 [−0.367 , 0.306 ] −0.246 [−0.602 , 0.109 ]DBP −0.185 [−0.450 , 0.080 ] 0.364 [0.127 , 0.611 ] 0.290 [0.053 , 0.530 ]HbA1c −0.005 [−0.014 , 0.005 ] −0.011 [−0.019 , −0.002 ] −0.004 [−0.012 , 0.004 ]LDL −0.258 [−0.928 , 0.439 ] −0.391 [−1.035 , 0.270 ] 0.420 [−0.217 , 1.052 ]
+
+D.3 LAG-SPECIFIC TOTAL EFFECTS ANCHORED AT GUIDANCE YEAR 2020 
+
+Tables D.2–D.4 report lag-specific total effects anchored at Health-guidance (2020) under the primary specification and sensitivity settings. Under measurement-year indexing, outcomes measured in 2021, 2022, and 2023 correspond to model lags 0, 1, and 2, respectively (i.e., the first, second, and third post-guidance annual visits for guidance year 2020). Total effects aggregate all directed paths in the fitted longitudinal system. Negative values correspond to reductions in the outcome scale (e.g., lower BMI, blood pressure, HbA1c, or LDL). The assignment indicator is constructed from the program’s selection rule, summarized in Appendix A.3 (Figure A.2). 
+
+D.4 BOOTSTRAP DISTRIBUTIONS UNDER SENSITIVITY SETTINGS 
+
+Figures D.1–D.3 visualize the bootstrap distributions of lag-specific total effects under the sensitivity settings. Rows correspond to outcome measurement years 2021–2023 (lags 0–2 under measurement-year indexing), and columns correspond to the five continuous health screening outcomes. These plots complement the tables by showing the shape and dispersion of uncertainty beyond percentile summaries. Table D.2: Sensitivity analysis: total effects of the assignment indicator (eligibility-based) in 2020 on subsequent annual health screening outcomes (2021–2023; assignment defined by Figure A.2). Each entry reports the point estimate and the 95% percentile confidence interval (in parentheses) from subject-level bootstrap resampling ( B = 1000 ) under the workflow-derived prior-knowledge constraints. Total effects aggregate all directed paths in the fitted longitudinal system. Outcome 2021 (lag 0) 2022 (lag 1) 2023 (lag 2) BMI −0.050 [−0.067 , −0.031 ] −0.069 [−0.091 , −0.046 ] −0.059 [−0.084 , −0.035 ]SBP 0.064 [−0.131 , 0.267 ] 0.116 [−0.083 , 0.321 ] 0.055 [−0.163 , 0.269 ]DBP 0.638 [0.502 , 0.783 ] 0.737 [0.582 , 0.876 ] 0.655 [0.496 , 0.814 ]HbA1c −0.003 [−0.010 , 0.004 ] −0.006 [−0.013 , 0.002 ] 0.002 [−0.006 , 0.010 ]LDL 0.416 [0.031 , 0.777 ] −0.101 [−0.505 , 0.291 ] −0.166 [−0.594 , 0.243 ]Table D.3: Sensitivity analysis: total effects of Health-guidance (2020) on subsequent annual health screening outcomes (2021–2023) when replacing BMI with waist circumference . Each entry reports the point estimate and the 95% percentile confidence interval (in parentheses) from subject-level bootstrap resampling ( B = 1000 ) under the workflow-derived prior-knowledge constraints. Total effects aggregate all directed paths in the fitted longitudinal system. Outcome 2021 (lag 0) 2022 (lag 1) 2023 (lag 2) Waist −0.325 [−0.460 , −0.199 ] −0.181 [−0.333 , −0.042 ] −0.025 [−0.194 , 0.124 ]SBP −0.668 [−1.042 , −0.279 ] −0.069 [−0.490 , 0.344 ] 0.268 [−0.178 , 0.694 ]DBP −0.164 [−0.431 , 0.102 ] 0.330 [0.037 , 0.614 ] 0.555 [0.235 , 0.854 ]HbA1c −0.004 [−0.013 , 0.006 ] −0.004 [−0.016 , 0.007 ] 0.004 [−0.008 , 0.017 ]LDL −0.218 [−0.890 , 0.496 ] 0.127 [−0.653 , 0.889 ] 0.370 [−0.466 , 1.182 ]Table D.4: Sensitivity analysis: total effects of Health-guidance (2020) on subsequent annual health screening outcomes (2021–2023) when replacing BMI with body weight . Each entry reports the point estimate and the 95% percentile confidence interval (in parentheses) from subject-level bootstrap resampling ( B = 1000 ) under the workflow-derived prior-knowledge constraints. Total effects aggregate all directed paths in the fitted longitudinal system. Outcome 2021 (lag 0) 2022 (lag 1) 2023 (lag 2) Weight −0.403 [−0.505 , −0.300 ] −0.212 [−0.337 , −0.102 ] −0.111 [−0.247 , 0.019 ]SBP −0.629 [−1.004 , −0.248 ] −0.017 [−0.426 , 0.386 ] 0.329 [−0.119 , 0.756 ]DBP −0.170 [−0.434 , 0.097 ] 0.326 [0.035 , 0.613 ] 0.554 [0.236 , 0.861 ]HbA1c −0.003 [−0.013 , 0.007 ] −0.004 [−0.015 , 0.008 ] 0.005 [−0.007 , 0.018 ]LDL −0.189 [−0.859 , 0.502 ] 0.165 [−0.607 , 0.917 ] 0.405 [−0.426 , 1.204 ]0                  
+
+> 50
+> 100 0
+> BMI SBP
+> 0
+> DBP HbA1c
+> 2021
+> (lag 0)
+> LDL
+> 0
+> 50
+> 100
+> 0
+> 0
+> 2022
+> (lag 1)
+> 0.100 0.075 0.050 0.025
+> 0
+> 50
+> 100 0
+> 0.2 0.0 0.2 0.4 0.6 0.8
+> 0
+> 0.01 0.00 0.01 0.5 0.0 0.5 1.0
+> 2023
+> (lag 2)
+> Total effect
+> Frequency
+
+Figure D.1: Sensitivity analysis (assignment indicator): bootstrap distributions of lag-specific total effects anchored at 2020. Rows correspond to outcome measurement years 2021–2023 (lags 0–2), and columns correspond to outcomes (BMI, SBP, DBP, HbA1c, LDL). Dashed vertical lines indicate the 95% bootstrap percentile interval; the solid vertical lines mark zero when it lies within the plotted range (otherwise zero is indicated by an arrow). Distributions are computed by subject-level bootstrap resampling ( B = 1000 ) under the workflow-derived prior-knowledge constraints. 0                 
+
+> 50
+> 100
+> 150
+> Waist SBP DBP HbA1c
+> 2021
+> (lag 0)
+> LDL
+> 0
+> 50
+> 100
+> 150
+> 2022
+> (lag 1)
+> 0.50 0.25 0.00
+> 0
+> 50
+> 100
+> 150
+> 1010.5 0.0 0.5 1.0 0.02 0.00 0.02 101
+> 2023
+> (lag 2)
+> Total effect
+> Frequency
+
+Figure D.2: Sensitivity analysis (waist circumference): bootstrap distributions of lag-specific total effects anchored at 2020 when replacing BMI with waist circumference. Rows correspond to outcome measurement years 2021–2023 (lags 0–2), and columns correspond to outcomes (Waist, SBP, DBP, HbA1c, LDL). Dashed vertical lines indicate the 95% bootstrap percentile interval, and solid vertical lines mark zero. Distributions are computed by subject-level bootstrap resampling (B = 1000 ) under the workflow-derived prior-knowledge constraints. 0                  
+
+> 50
+> 100
+> 150
+> Weight SBP DBP HbA1c
+> 2021
+> (lag 0)
+> LDL
+> 0
+> 50
+> 100
+> 150
+> 2022
+> (lag 1)
+> 0.6 0.4 0.2 0.0
+> 0
+> 50
+> 100
+> 150
+> 1010.5 0.0 0.5 1.0 0.02 0.00 0.02 101
+> 2023
+> (lag 2)
+> Total effect
+> Frequency
+
+Figure D.3: Sensitivity analysis (body weight): bootstrap distributions of lag-specific total effects anchored at 2020 when replacing BMI with body weight. Rows correspond to outcome measurement years 2021–2023 (lags 0–2), and columns correspond to outcomes (Weight, SBP, DBP, HbA1c, LDL). Dashed vertical lines indicate the 95% bootstrap percentile interval, and solid vertical lines mark zero. Distributions are computed by subject-level bootstrap resampling ( B = 1000 )under the workflow-derived prior-knowledge constraints. 
+
+D.5 NOTES ON ENDPOINT- AND HORIZON-DEPENDENT VARIABILITY 
+
+Across outcomes, uncertainty generally increases at longer horizons, and some endpoints are more sensitive to alternative operational proxies than others. In our sensitivity specifications (Appendix D), adiposity-related measures (i.e., Waist, Weight) and SBP show similar short-horizon patterns, whereas DBP exhibits more horizon-dependent variability, including shifts in sign at later horizons. We report this as an empirical feature of the workflow-constrained longitudinal system under alternative exposure and measurement definitions, rather than as a standalone mechanistic or clinical claim. 
+
+E COMPLETE LEARNED GRAPH AND MOTIF EXTRACTION 
+
+E.1 FULL LEARNED LONGITUDINAL GRAPH 
+
+Figure E.1–E.4 present the full longitudinal directed graph learned under the primary specification (workflow-derived prior-knowledge mask, measurement-year indexing, and one-year cross-time links). Nodes are arranged by time point and grouped by variable type (background, health guidance, medications, lifestyle indicators, and continuous outcomes). Edges include within-time links and one-year cross-time links ( t−1 → t) that are admissible under the prior knowledge. 
+
+E.2 MOTIF EXTRACTION RULE AND RELATION TO THE FULL LONGITUDINAL GRAPH 
+
+The motif in Figure 2 summarizes within-time relations among the five continuous health screening outcomes that recur across all three time points under the workflow-derived prior knowledge. Directed edges are included only when the corresponding within-time relation appears with a consistent direction across time points 1–3. In addition, when an adjacency recurs across time points but its direction differs at each time point, we treat it as an undirected connection (SBP–DBP in our setting). The motif is used as an interpretability device: it provides a compact summary of recurring local structure without presenting the full longitudinal graph or treating any single edge as a mechanistic claim. 
+
+F DEPLOYMENT PROTOTYPE: PRACTITIONER-FACING SIMULATOR 
+
+F.1 ROLE AND INTENDED USE 
+
+The learned longitudinal system is packaged into a practitioner-facing “what-if” simulator intended for operational use in preventive health guidance workflows. The prototype is designed for scenario exploration and communication with Health-guidance(2022) BMI(2023) DBP(2023) 
+
+> Drug-HT(2023)
+> SBP(2023)  HbA1c(2023) LDL(2023)
+> Drug-DM(2023) Drug-LDL(2023)  Smoke(2023)  Exercise(2023) Alcohol(2023) Age(2023) Sex(2023)
+> Health-guidance(2021) BMI(2022) DBP(2022)
+> Exercise(2022)
+> SBP(2022) HbA1c(2022) LDL(2022)
+> Drug-HT(2022)  Drug-DM(2022) Drug-LDL(2022)  Smoke(2022) Alcohol(2022) Age(2022) Sex(2022)
+> Health-guidance(2020) BMI(2021) SBP(2021) DBP(2021) HbA1c(2021) LDL(2021)
+> Drug-HT(2021)  Drug-DM(2021) Drug-LDL(2021)  Smoke(2021) Exercise(2021)  Alcohol(2021) Age(2021) Sex(2021) BMI(2020) SBP(2020) DBP(2020)  HbA1c(2020) LDL(2020)  Drug-HT(2020) Drug-DM(2020)  Drug-LDL(2020) Smoke(2020) Exercise(2020)  Alcohol(2020) Age(2020)  Sex(2020) Check_num. Figure E.1: Full learned longitudinal directed graph (point estimate) under the primary specification. The graph is estimated using workflow-constrained longitudinal causal discovery with the prior-knowledge mask described in Appendix B. Time points follow measurement-year indexing, and cross-time links are restricted to one-year lag ( t−1 → t). The figure shows the full structure from which the compact motif summary in the main text is extracted. Edges with  | ˆβ| < 0.01  are omitted by the package’s default visualization.
+> Notes.  BMI : body mass index;  SBP /DBP : systolic/diastolic blood pressure;  HbA1c : hemoglobin A1c;  LDL : low-density lipoprotein cholesterol;  Drug-HT : antihypertensive;  Drug-DM : antidiabetic;  Drug-LDL :lipid-lowering;  Smoke : smoking status;  Exercise : exercise habit;  Alcohol : alcohol use;  Age : age;  Sex : sex;  Check_num. : representing the number of health screening attendances during the three years preceding the measurement year (2017–2019).
+
+DBP(2022) 
+
+SBP(2022) LDL(2022) 
+
+> Drug-LDL(2022) Age(2022)
+
+Health-guidance(2020) BMI(2021) SBP(2021) DBP(2021) HbA1c(2021) LDL(2021)        
+
+> Drug-HT(2021) Drug-DM(2021) Drug-LDL(2021) Exercise(2021) Alcohol(2021) Age(2021) BMI(2020) HbA1c(2020) Drug-HT(2020) Drug-DM(2020) Drug-LDL(2020) Smoke(2020) Exercise(2020) Alcohol(2020) Sex(2020)
+
+Figure E.2: Zoomed view (crop) of Figure E.1 for the first block ( Health-guidance (2020) and outcomes measured in 2021). SBP(2023) 
+
+Health-guidance(2021) BMI(2022) DBP(2022) 
+
+SBP(2022) HbA1c(2022) LDL(2022) 
+
+Drug-LDL(2022) Age(2022) 
+
+HbA1c(2021) 
+
+Drug-HT(2021) Drug-DM(2021) Smoke(2021) Exercise(2021) Alcohol(2021) Age(2021) Sex(2021) HbA1c(2020) ex(2020) 
+
+Figure E.3: Zoomed view (crop) of Figure E.1 for the second block ( Health-guidance (2021) and outcomes measured in 2022). Health-guidance(2022) BMI(2023) DBP(2023) 
+
+Drug-HT(2023) 
+
+SBP(2023) HbA1c(2023) LDL(2023) 
+
+Drug-DM(2023) Drug-LDL(2023) Age(2023) 
+
+BMI(2022) 
+
+Exercise(2022) 
+
+HbA1c(2022) 
+
+Drug-HT(2022) Drug-DM(2022) Smoke(2022) Alcohol(2022) 
+
+Sex(2021) 
+
+Figure E.4: Zoomed view (crop) of Figure E.1 for the third block ( Health-guidance (2022) and outcomes measured in 2023). practitioners, rather than for automated decision-making. Outputs are computed from the fitted population-level model and are intended to support human judgment (human-in-the-loop; HITL) when evaluating plausible changes to modifiable factors and their downstream implications. 
+
+F.2 USER-FACING FUNCTIONS 
+
+The interface provides two core functions. 
+
+Forward prediction (what-if). A user selects (i) a current-year variable to intervene on and (ii) a future-year target variable of interest, then inputs a hypothetical changed value for the selected current variable. The simulator returns the model-implied expected value of the selected future target at a user-chosen horizon (one or two annual visits ahead), conditional on the baseline profile. 
+
+Goal seeking (target setting). A user selects (i) a future-year target variable and its desired value, then selects a current-year variable to adjust. The simulator returns the model-implied value of the current variable required to achieve the desired future target (when a unique or stable solution exists under the fitted system). Both functions support continuous and binary variables (e.g., medication and lifestyle indicators), and the displayed message template adapts to the selected variable types. 
+
+F.3 INPUTS AND VARIABLE MAPPING 
+
+Users first enter baseline inputs corresponding to the current annual visit. Inputs align with the study variable set (continuous health screening outcomes, medication indicators, lifestyle indicators, and guidance status) and use the same coding as in model fitting. The simulator restricts interactions to variables available in routine records, consistent with the paper’s design-layer principle of operational availability. 
+
+F.4 COMPUTATION FROM THE FITTED LONGITUDINAL SYSTEM 
+
+The simulator evaluates queries using the fitted longitudinal structural model under the workflow-derived prior-knowledge constraints. Forward prediction propagates the hypothetical current-year change through the system to obtain the implied expected value of the chosen future target. Goal seeking solves the inverse problem for a selected pair of (current variable, future target) using the fitted equations. When the inverse is ill-posed or unstable, the interface reports that the query is not supported under the current configuration. 
+
+Lightweight deployment via precomputed block matrices. To ensure low-latency response in routine use, the prototype stores four precomputed block matrices covering all variable pairs and lag-specific blocks under a common specification: (i) point estimates of total effects, (ii) lower confidence bounds, (iii) upper confidence bounds, and (iv) a binary uncertainty indicator used for guardrail messaging. At runtime, the Excel/VBA layer performs only lookup operations (row–column crosspoints) and basic arithmetic for formatting, avoiding expensive computations on the client side. This separation between offline estimation and online lookup improves responsiveness and reduces operational fragility. 
+
+F.5 DECISION MESSAGING AND UNCERTAINTY GUARDRAILS 
+
+The prototype includes conservative messaging rules to avoid overconfident or misleading outputs. 
+
+Uncertainty-aware “no detectable effect” messaging. For a given query, when the 95% bootstrap confidence interval of the corresponding total effect includes zero, the interface suppresses a numerical recommendation and instead displays a “no statistically detectable effect” message. This rule matches the bootstrap uncertainty quantification used throughout the paper and is intended to reduce misinterpretation by end users. 
+
+Input validation and plausibility checks. The interface applies basic validation to prevent obvious data-entry errors (e.g., physiologically implausible values). More formal out-of-support checks (e.g., thresholds based on empirical quantiles or other criteria) are under active development. They are treated as a conservative safeguard rather than as a definitive clinical judgment. 
+
+HITL positioning. These guardrails are designed to complement, not replace, practitioner expertise: the simulator provides model-based scenario summaries while leaving final interpretation and action to human users. 
+
+F.6 SCREENSHOTS WITH ENGLISH CALLOUTS 
+
+The operational prototype targets Japanese practitioners and is implemented with a Japanese user interface. For readability in this paper, figures overlay concise English callouts directly on the screenshots (the L ATEX source contains no non-ASCII user interface text). A) 
+
+B) 
+
+C) 
+
+D) 
+
+E) 
+
+E) 
+
+A) Baseline state (current visit) 
+
+Enter the examinee’s current measurements and status indicators. 
+
+B) Mode selector 
+
+Choose either Forward prediction or Goal -seeking .
+
+C) Forward prediction (What -if) 
+
+“If baseline variable 𝑋 changes now, what is the expected 𝑌 after 𝑘 years?”  
+
+> D) Goal -seeking (Target setting)
+
+“To achieve 𝑌 = 𝑦 ∗ after 𝑘 years, what value of 𝑋 is required now?” 
+
+E) Reset controls 
+
+Clear the current scenario or all inputs. 
+
+Figure F.1: Overview of the practitioner-facing simulator (user interface in Japanese; English callouts added for the paper). A) Select the variable to change ( 𝑿 )
+
+> Choose one baseline variable to perturb.
+
+B) Specify the counterfactual change 
+
+Enter an absolute change (increase/decrease) or a new value. 
+
+C) Choose prediction horizon ( 𝒌 )
+
+Select how many years ahead to predict. 
+
+D) Choose the outcome to predict ( 𝒀 )
+
+Select the target health screening outcome. 
+
+E) Predicted value 
+
+Displays the expected value of 𝑌 after 𝑘 years under the fitted system.    
+
+> F) Uncertainty guardrail
+> If the 95% bootstrap CI includes 0for the relevant total effect, the
+
+prototype suppresses recommendations. 
+
+A)  B) 
+
+C)  D)  F) E) 
+
+Figure F.2: Forward prediction (What-if): changing a baseline variable X and predicting outcome Y after k years under the fitted longitudinal system. A) Choose target horizon and outcome ( 𝒌 , 𝒀 )
+
+Select 𝑘 and the outcome 𝑌 you want to control. 
+
+B) Set the target value ( 𝒚 ∗)
+
+Enter the desired value of 𝑌 .
+
+C) Choose the controllable baseline variable ( 𝑿 )
+
+Select which baseline variable to adjust. 
+
+D) Required baseline value 
+
+Shows the value of 𝑋 required to reach 𝑌 = 𝑦 ∗ after 𝑘 years. 
+
+E) Guardrail messaging 
+
+When the estimated effect is uncertain, the prototype avoids issuing a 
+
+numeric recommendation. 
+
+A)  B) 
+
+C)  D)  E) Figure F.3: Goal-seeking (Target setting): specifying a desired outcome value and solving for the required baseline value under the fitted system. ◼ Example: no statistically significant effect 
+
+The prototype reports “No statistically significant effect detected.” 
+
+◼ Trigger condition 
+
+Displayed when the bootstrap 95% CI for the relevant total effect 
+
+includes (or crosses) 0.
+
+◼ HITL intent 
+
+Avoids over -confident recommendations when evidence is insufficient. 
+
+Figure F.4: Decision messaging (guardrail): suppressing recommendations when the bootstrap 95% CI includes 0.

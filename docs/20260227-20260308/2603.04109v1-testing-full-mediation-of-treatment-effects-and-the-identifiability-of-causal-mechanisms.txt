@@ -1,0 +1,861 @@
+Title: Testing Full Mediation of Treatment Effects and the Identifiability of Causal Mechanisms
+
+URL Source: https://arxiv.org/pdf/2603.04109v1
+
+Published Time: Thu, 05 Mar 2026 02:16:38 GMT
+
+Number of Pages: 38
+
+Markdown Content:
+# Testing Full Mediation of Treatment Effects and the Identifiability of Causal Mechanisms 
+
+Martin Huber*, Kevin Kloiber+, Luk´ aˇ s Laff´ ers** 
+
+*Department of Economics, University of Fribourg, Fribourg, Switzerland +Department of Economics, University of Munich, Munich, Germany **Department of Mathematics, Matej Bel University, Bansk´ a Bystrica, Slovakia **Department of Economics, Norwegian School of Economics, Bergen, Norway 
+
+Abstract 
+
+In causal analysis, understanding the causal mechanisms through which an intervention or treatment affects an outcome is often of central interest. We propose a test to evaluate (i) whether the causal effect of a treatment that is randomly assigned conditional on covariates is fully mediated by, or operates exclu-sively through, observed intermediate outcomes (referred to as mediators or surrogate outcomes), and (ii) whether the various causal mechanisms operating through different mediators are identifiable conditional on covariates. We demonstrate that if both full mediation and identification of causal mechanisms hold, then the conditionally random treatment is conditionally independent of the outcome given the mediators and covariates. Furthermore, we extend our framework to settings with non-randomly assigned treatments. We show that, in this case, full mediation remains testable, while identification of causal mechanisms is no longer guaranteed. We propose a double machine learning framework for implementing the test that can incorporate high-dimensional covariates and is root-n consistent and asymptotically normal under specific regularity conditions. We also present a simulation study demonstrating good finite-sample performance of our method, along with two empirical applications revisiting randomized experiments on maternal mental health and social norms. 
+
+JEL Classification: C12, C21 Keywords: mediation, causal mechanisms, double machine learning, conditional independence, treatment effects, hypothesis test. 
+
+Addresses for correspondence: Martin Huber, University of Fribourg, Bd. de P´ erolles 90, 1700 Fribourg, Switzerland; mar-tin.huber@unifr.ch. Kevin Kloiber, University of Munich, Ludwigstrasse 33, 80539 Munich, Germany, and ifo Institute, Poschinger-strasse 5, 81679 Munich, Germany; kevin.kloiber@econ.lmu.de. Luk´ aˇ s Laff´ ers, Department of Mathematics, Matej Bel University, Tajovsk´ eho 40, 974 01 Bansk´ a Bystrica, Slovakia; Department of Economics, Norwegian School of Economics, Helleveien 30, 5045 Bergen, Norway; lukas.laffers@gmail.com. Laff´ ers acknowledges support provided by the Slovak Research and Development Agency under contracts VEGA 1/0645/26 and APVV-21-0360. 
+
+> arXiv:2603.04109v1 [econ.EM] 4 Mar 2026
+
+# 1 Introduction 
+
+In many causal studies, interest extends beyond estimating the total effect of an intervention or treatment (such as education) on an outcome (such as health) to understanding the causal mechanisms through which the effect operates, such as hypothesized peer effects in schools or potential education-induced changes in health behavior. Causal mediation analysis aims to disentangle the indirect effect of a treatment, mediated by one or more intermediate variables (mediators), from the direct effect of the treatment on the outcome that does not operate through these mediators. In particular, researchers may be interested in determining whether a direct effect exists at all after accounting for observed mediators. The absence of a direct effect implies that the treatment effect is fully mediated. A common approach in empirical studies to test for the absence of a direct effect is to estimate an outcome regression on the treatment and assess whether the treatment coefficient becomes approxi-mately zero (and statistically insignificant) once the mediators are included as explanatory variables. However, this test is generally invalid when mediators are endogenous - that is, when unobserved confounders jointly affect both the mediator and the outcome. In such cases, controlling for me-diators can introduce spurious associations between the treatment and the outcome due to collider bias or post-treatment selection bias, as for instance discussed in Robins and Greenland (1992). This problem arises even when the treatment is randomly assigned and leads to biased estimation of the direct effect. As also noted by Acharya, Blackwell, and Sen (2016), naively controlling for endogenous mediators does not permit valid inference about the presence or absence of direct effects unless both the treatment and the mediators are exogenous, at least conditional on observed covariates. While testing whether the treatment effect is zero after including mediators cannot be used to establish full mediation based on the treatment effect alone, this paper demonstrates that it can be used to jointly test for full mediation and specific exogeneity conditions. More precisely, we consider a causal model with a treatment that is randomly assigned, at least conditional on observed covariates. We show that tests of the conditional independence between treatment and outcome, conditional on the mediators and possibly additional covariates to control for mediator-outcome confounding, permit the joint testing of two conditions: (i) the absence of a direct treatment effect on the outcome (i.e., full mediation), and (ii) the identifiability of the indirect effects operating through the mediators. In a second step, we extend the framework to non-randomly assigned treatments. We demonstrate that, in this case, our conditional independence test still permits verification of full mediation. However, it 1no longer permits testing the identifiability of causal mechanisms. The reason is that while our test is informative about mediator-outcome confounding, it is not informative about treatment-mediator confounding (conditional on covariates). The latter must be ruled out by assumption (and can be ruled out by design under treatment randomization) for the identification of causal mechanisms. We also link our results to two identification strategies in observational studies for assessing causal effects: (i) the back-door (BD), or selection-on-observables, strategy, see for instance the survey by Imbens (2004), which assumes the absence of treatment-outcome confounders conditional on covari-ates; and (ii) the front-door (FD) approach, see e.g. Pearl (2000) and Fulcher, Shpitser, Marealle, and Tchetgen Tchetgen (2019), which assumes full mediation as well as the absence of treatment-mediator and mediator-outcome confounders conditional on covariates. We show that satisfaction of our testable condition - conditional independence between the treatment and the outcome given the mediators and covariates - implies that BD and FD approaches targeting features of the potential out-come distributions conditional on covariates, such as the conditional average treatment effect (CATE), yield identical parameters. We also provide a sufficient condition under which the converse implica-tion holds, namely a separability assumption. The latter assumes that the conditional probability of the outcome given treatment, mediator, and covariates can be modeled by two additive functions: one that depends on the treatment and covariates, and another that depends on the mediator and covariates. This strong parametric condition, however, is unlikely to be satisfied in many empirically relevant settings, as it rules out treatment-mediator interaction effects on the outcome conditional on covariates and thus severely restricts effect heterogeneity (Robins and Greenland, 1992; Robins, 2003). Therefore, considering our testable implication appears more attractive than running a BD-FD comparison, which, in the absence of separability, may yield equivalence even if full mediation (or other identifying assumptions) fails. For the practical implementation of the test of conditional independence of the treatment and out-come, we rely on double machine learning (DML) methods as proposed in Chernozhukov, Chetverikov, Demirer, Duflo, Hansen, Newey, and Robins (2018). These methods employ doubly robust (DR) score functions for causal parameter estimation and enable flexible adjustment for high-dimensional covari-ates using machine learning, while maintaining root-n consistency under suitable regularity conditions. A key property of DR scores is Neyman (1959) orthogonality, which makes DR estimation relatively insensitive to biases in the estimation of nuisance components such as outcome, treatment, or medi-ator models, such as regularization bias common in machine learning methods. More specifically, we 2build on Apfel, Hatamyar, Huber, and Kueck (2023), who consider a closely related testing problem of jointly verifying instrument validity and treatment exogeneity given observed covariates, and propose a DR score for a joint conditional independence test across all values of the (possibly high-dimensional) conditioning set. In the same vein (and even if practically less attractive due to the required separa-bility condition), we also propose a DML test comparing BD and FD methods, where the test statistic is based on the mean difference of the DR score functions for conditional mean potential outcomes under each approach. See Robins, Rotnitzky, and Zhao (1994) and Robins and Rotnitzky (1995) for BD-based DR score functions under the selection-on-observables assumption, and Fulcher, Shpitser, Marealle, and Tchetgen Tchetgen (2019) for analogous DR scores based on the FD criterion. We investigate the finite-sample performance of our conditional independence test in a simulation study and find it to perform well for sample sizes of a few thousand observations. As an empirical illustration, we apply our method to two randomized experiments: a cognitive-behavioral therapy intervention for maternal depression in Pakistan (Baranov, Bhalotra, Biroli, and Maselko, 2020) and an information intervention on social norms regarding women’s employment in Saudi Arabia (Bursztyn, Gonzalez, and Yanagizawa-Drott, 2020). In both cases, we reject the joint null of full mediation and mediator exogeneity. Our paper is related to a large literature on causal mediation analysis that assesses direct and indirect effects based on selection-on-observables assumptions imposing the conditional exogeneity of the treatment and the mediator given observed covariates, see for instance Flores and Flores-Lagunes (2009), Imai, Keele, and Yamamoto (2010), Hong (2010), Tchetgen Tchetgen and Shpitser (2012), and Huber (2014), among many others. It is specifically related to studies aiming at testing the absence of a direct effect or full mediation when (implicitly or explicitly) imposing such selection-on-observables assumptions. In contrast to this literature, we do not impose selection-on-observables assumptions a priori, but propose a method that jointly tests this assumption together with full mediation under specific conditions. Our work is also closely related to de Luna and Johansson (2014) and Huber and Kueck (2022), who develop tests for the conditional independence of an instrumental variable given treatment and covariates. Under certain conditions, this implies that the selection-on-observables assumption holds for the treatment and the instrument, and that the instrument does not directly affect the outcome. In our setting, the treatment plays the role of the instrument, and the mediators take the role of the treatment in the context of their tests. As noted above, we make use of a DR approach proposed 3in Apfel, Hatamyar, Huber, and Kueck (2023), which yields an asymptotically normal test statistic under suitable regularity conditions. Our paper is also related to Kwon and Roth (2024), who test for full mediation alone, without simultaneously verifying the identifiability of the indirect effects based on the selection-on-observables assumption. In the absence of the latter, they adopt a partial identification approach akin to the literature on testing instrumental variable (IV) assumptions; see, for example, Kitagawa (2015), Huber and Mellace (2015), Mourifi´ e and Wan (2017), and Farbmacher, Guber, and Klaassen (2022). Our paper is also related to the literature on causal analysis based on so-called surrogate outcomes, as discussed in Frangakis and Rubin (2002) and Athey, Chetty, Imbens, and Kang (2020). This framework is particularly useful when the primary outcome of interest is not observed in the dataset in which the treatment is measured. Instead, researchers may observe one or more surrogate outcomes, through which the treatment effect on the primary outcome is assumed to operate entirely - that is, under the assumption of full mediation via the surrogate outcomes, which then function as mediators. Prentice (1989) notes that, under full mediation, the treatment and the (unobserved) primary outcome are conditionally independent given the surrogate outcome. However, as we formalize in our paper using the potential outcomes framework, this also requires that the surrogate outcome is conditionally exogenous and that the treatment is randomly assigned (at least conditional on covariates). The remainder of this paper is organized as follows. Section 2 introduces the causal effects of inter-est and the identifying assumptions under a randomized treatment (at least conditional on covariates), which allow for testing full mediation and the identifiability of the indirect effects. It also outlines the testable conditional independence condition. Section 3 discusses the identifying assumptions when the treatment is not (conditionally) randomized, demonstrating that the conditional independence condition can then only be used to test for full mediation, but not for the identifiability of the in-direct effects. Section 4 relates our testable implication to the testing power implied by comparing parameters obtained from the BD and FD criteria. Section 5 describes the empirical implementation of our tests based on DML using DR score functions. Section 6 presents a simulation study evalu-ating the finite-sample performance of the proposed tests. Section 7 applies our methodology to the experimental studies of Baranov, Bhalotra, Biroli, and Maselko (2020) and Bursztyn, Gonzalez, and Yanagizawa-Drott (2020). Section 8 concludes. 42 Causal framework for (conditionally) random treatments 
+
+Causal mediation analysis seeks to decompose the overall causal effect of a treatment variable, denoted by D, on an outcome variable, Y , into distinct causal mechanisms. Specifically, the effect of D on Y
+
+may be mediated through one or more observed mediators, denoted by M , while a direct effect of D
+
+on Y may also exist through other (potentially unobserved) pathways. Throughout this discussion, we denote random variables in capital letters and their realized values in lowercase letters. To for-malize causal mechanisms, we adopt the potential outcomes framework, as, for example, considered in Neyman (1923) and Rubin (1974). Let M (d) represent the potential mediator under treatment level d ∈ D , where D is the support of D. Similarly, let Y (d, m ) denote the potential outcome under treatment d and mediator value m ∈ M , where M is the support of M . For each individual, we define Y (d, m ) and M (d) as functions of their assigned treatment D = d and mediator value M = m,assuming: (i) an individual’s potential outcomes are unaffected by the treatment or mediator status of others, and (ii) there are no multiple versions of any treatment or mediator level across individ-uals. These conditions constitute the Stable Unit Treatment Value Assumption (SUTVA), see e.g. Cox (1958) and Rubin (1980). Additionally, we denote observed pre-treatment covariates as X, with support X . We denote the support of Y by Y.We start by defining causal effects that are of interest in the context of treatment evaluation and mediation analysis. For simplicity, we focus on a binary treatment and on average effects (which are the primary focus in applied work) in the subsequent discussion. However, the assumptions and testable implications we present further below more generally refer to the distribution of potential outcomes and also apply to non-binary treatments. A first parameter of interest is the average treatment effect (ATE), denoted by ∆, which comprises both direct and indirect effects of the treatment: ∆ = E[Y (1 , M (1)) − Y (0 , M (0))] . (2.1) Causal mediation analysis aims to disentangle the causal mechanisms underlying the ATE; see, e.g., Robins (2003) and Pearl (2001). By varying the treatment while holding the mediator fixed at some value M = m, we obtain the average controlled direct effect (CDE), denoted by θ(m): 
+
+θ(m) = E[Y (1 , m ) − Y (0 , m )] , m ∈ M . (2.2) 5By varying the treatment while holding the mediator fixed at its potential value under treatment 
+
+D = d, we obtain the average natural direct effect (NDE), denoted by θ(M (d)): 
+
+θ(M (d)) = E[Y (1 , M (d)) − Y (0 , M (d))] , d ∈ { 0, 1}. (2.3) Conversely, by varying the mediator between its potential values under treatment and nontreatment while keeping the treatment fixed at D = d, we obtain the average natural indirect effect (NIE): 
+
+δ(d) = E[Y (d, M (1)) − Y (d, M (0))] , d ∈ { 0, 1}. (2.4) Notably, the ATE can be decomposed into the sum of the NDE and NIE evaluated at opposite treatment states: ∆ = θ(1) + δ(0) = θ(0) + δ(1) . (2.5) Furthermore, if the ATE of D on Y is fully mediated by M such that the mean potential outcome depends only on the mediator, i.e., E[Y (d, m )] = E[Y (m)], then any direct effect like the CDE or NDE is zero, implying θ(m) = θ(M (d)) = 0. Under this condition, equation (2.5) simplifies to: ∆ = δ(0) = δ(1) = δ = E[Y (M (1)) − Y (M (0))] . (2.6) Thus, the ATE corresponds entirely to the indirect effect. Assuming that treatment is randomly assigned, at least when controlling for covariates X, we propose a joint test for (i) the absence of a direct effect and (ii) the exogeneity of the mediator M . If both assumptions hold, we can identify the effects of different mediator values, 
+
+E[Y (m) − Y (m′)] , for m̸ = m′ and m, m ′ ∈ M , (2.7) in addition to the ATE (or NIE) related to a treatment-induced shift in the mediator provided in equation (2.6). If the test rejects asymptotically, then either M is not exogenous, D has a direct effect on Y (i.e., θ(m)̸ = 0 for some m ∈ M ), or both. While we have so far considered a binary treatment for expository purposes, our test also applies to nonbinary treatments. In this case, the ATE and the 6indirect effect, if it fully explains the ATE for two distinct treatment levels d, d ′ is given by: ∆d,d ′ = E[Y (M (d)) − Y (M (d′))] . (2.8) After defining the causal effects, we subsequently discuss several identifying assumptions required for testing. Our first assumption establishes a specific causal structure between variables within our framework, positing that only certain variables exert a causal influence on others. We formalize this causal structure using the previously mentioned potential outcome notation, by applying it to variables beyond the outcome and the mediator. Let A(b) and A(b, c, . . . ) denote the potential value of variable 
+
+A when variable B is set to b, or when variables B, C, etc., are set to b, c, and so on. Furthermore, we assert that if a causal relationship exists between two variables (potentially conditional on other variables), then a statistical dependence must exist between them, consistent with the principle of causal faithfulness. 
+
+Assumption 1 (Causal structure and faithfulness) .
+
+M (y) = M, D(m, y ) = D, X(d, m, y ) = X, 
+
+∀d ∈ D , m ∈ M , y ∈ Y ,
+
+only variables that are d-separated in any causal model are statistically independent. 
+
+The first line of Assumption 1 excludes any reverse causal effect of outcome Y on D, X, or M .Additionally, the treatment D must not causally affect X, and the mediator M must not causally affect X or D, which holds if X represents pre-treatment covariates. Assumption 1 also establishes causal faithfulness, which ensures that only variables that are d-separated, i.e., not linked via any causal paths, are statistically independent or conditionally independent (see, e.g., (Pearl, 2000)). To be more precise, we employ the d-separation criterion of Pearl (1988), which relies on blocking causal paths between variables. A path between two sets of variables, A and B, is blocked when conditioning on a set of control variables, C, if: 1. the path between A and B is a causal chain, implying that A → M → B or A ← M ← B, or a confounding association, implying that A ← M → B, and variable (set) M is among control variables C (i.e., controlled for), 72. the path between A and B contains a collider, implying that A → S ← B, and variable (set) S
+
+or any variable (set) causally affected by S is not among control variables C (i.e., not controlled for). According to the d-separation criterion, A and B are d-separated when conditioning on a set of control variables C if, and only if, C blocks every path between A and B. D-separation is sufficient for the (conditional) independence of two variables, providing a crucial component for the proof of our theorems. Causal faithfulness further imposes that d-separation is also a necessary condition, such that two variables are statistically independent if and only if d-separation holds. A scenario in which faithfulness fails occurs when one variable affects another via multiple causal paths (or mechanisms) that exactly cancel out, such that the variables appear independent despite an underlying causal relationship (see, e.g., the discussion in Spirtes, Glymour, Scheines, and Heckerman (2000)). Next, we introduce a common support assumption that is required for nonparametric testing. To this end, let f (A = a | B = b) denote the conditional density of variable A given B at values A = a
+
+and B = b. If A is discrete rather than continuous, then f (A = a | B = b) represents a conditional probability rather than a density. 
+
+Assumption 2 (Common support) .
+
+f (D = d, M = m | X = x) > 0 ∀d ∈ D , m ∈ M , and x ∈ X .
+
+Assumption 2 requires that, conditional on M and X, observations exist for all values of D that occur in the total population. If this condition is violated, total mediation and the identifiability of effects of m can only be tested over a subset of the support of X, D, and/or M . Assumption 2 further implies both f (D = d | M = m, X = x) > 0 and f (M = m | D = d, X = x) > 0. Satisfaction of f (D = d | M = m, X = x) > 0 ensures that, for any values of mediators and covariates in the population, we have common support for testing whether the effects of D on Y are fully mediated by 
+
+M . Similarly, f (M = m | D = d, X = x) > 0 implies that, for any values of treatment and covariates, common support exists for testing whether the effect of M on Y is unconfounded. A violation of common support entails that one may jointly test full mediation and mediator exogeneity only for a subset of covariate, treatment, or mediator value combinations. Thus, Assumption 2 is not strictly necessary for implementing our testing approach if we restrict attention to a subpopulation satisfying common support. However, this restriction to a subpopulation may reduce testing power. 8Our next assumption imposes that the treatment has a first-stage effect on the mediator: 
+
+Assumption 3 (Treatment effect on mediator) .
+
+Pr( M (d)̸ = M (d′) | X = x) > 0 for some d, d ′ ∈ D and ∀x ∈ X .
+
+This assumption ensures that treatment induces variation in the mediator for at least some individuals. If it fails, the indirect effect is necessarily zero, as M does not respond to changes in D. If treatment does not influence the mediator, mediation analysis becomes meaningless. Next, we assume that the treatment is as good as randomly assigned, as in an experiment, at least within strata defined by covariates X (or subsets thereof). This implies the following conditional independence assumption, where ⊥ denotes statistical independence: 
+
+Assumption 4 (Conditional independence of the treatment) .
+
+{Y (d, m ), M (d)}⊥ D | X = x ∀d ∈ D , m ∈ M , and x ∈ X .
+
+This assumption states that, conditional on X, there are no unobserved confounders jointly affecting the treatment D and any post-treatment variable, namely the mediator M or the outcome Y . This is known as the exogeneity, unconfoundedness, exchangeability, ignorability, or selection-on-observables assumption; see, for instance, Imbens (2004) for a survey. The assumption is trivially satisfied in experiments in which the treatment is randomized unconditionally, such that controlling for X is not required for identification. Under Assumption 4, Assumption 3 becomes testable by examining whether M varies across values of D, conditional on X.Maintaining Assumptions 1 to 4, we aim to test the following two assumptions. The first imposes full mediation, implying that the average treatment effect (ATE) corresponds to the indirect effect. The second imposes selection on observables with respect to the mediator. 
+
+Assumption 5 (Conditional full mediation) .
+
+Pr( Y (d, m ) = Y (m) | X = x) = 1 ∀d ∈ D , m ∈ M , and x ∈ X .
+
+Assumption 5 states that any effect of treatment D on Y is fully mediated by M , conditional on X. If 
+
+X consists only of pre-treatment covariates, this implies the stronger version Pr( Y (d, m ) = Y (m)) = 1, 9since D and M cannot affect Y through variables that causally precede them. If X includes post-treatment variables, this assumption allows D to affect Y via X, but stipulates that the only other causal mechanism through which D influences Y is the mediator M . In this case, testing focuses exclusively on the indirect effect of D through M , and does not consider other potential causal mechanisms via X that may exist in addition to those through M .
+
+Assumption 6 (Conditional independence of the mediator) .
+
+Y (m)⊥M | X = x ∀m ∈ M , and x ∈ X .
+
+Assumption 6 (Mediator exogeneity) implies that, given the covariates, the mediator is as good as randomly assigned, ruling out any unobserved confounders that jointly affect M and Y conditional on X. This represents a selection-on-observables assumption for mediator assignment. Figure 1: Causal model satisfying Assumptions 1 to 6 
+
+D M Y
+
+X
+
+U 1 U 2 U 3Figure 1 provides a causal model represented by a causal graph, where nodes denote variables (or sets of variables) and arrows indicate causal relationships between them, as discussed in Pearl (2000). In addition to the previously defined variables Y , D, M , and X, the variables U 1 to U 3represent unobserved factors, as shown by the dashed arrows, indicating that their effects are not directly observed. This model satisfies Assumptions 1 and Assumptions 3 to 6. For example, there is no reverse causality from Y to M or D, as stipulated in Assumption 1. Furthermore, D influences 
+
+M as per Assumption 3, and it does not directly affect Y given X, as required by Assumption 5. Additionally, D is as good as random conditional on X, as outlined in Assumption 4, with no unobservables jointly affecting D and Y , or D and M . Finally, M is as good as random conditional on X, as specified in Assumption 6, meaning there are no unobserved confounders jointly affecting 
+
+M and Y . As shown in Figure 1, D is conditionally independent of Y given both M and X, which is the testable implication of the joint satisfaction of these assumptions. 10 To discuss our testing approach more formally, consider the following conditional independence condition, which is testable in the data: 
+
+Y ⊥D|M = m, X = x, ∀m ∈ M , and x ∈ X . (TI) Theorem 1 below shows that, conditional on Assumptions 1, 3, and 4, the testable implication (TI) is a necessary and sufficient condition for the joint satisfaction of Assumptions 5 and 6 when considering potential outcomes Y (m) that correspond to the factual mediator realization M = m. This result implies that, in practice, Assumptions 5 and 6 can only be tested for factual (observed) outcomes, such as the potential outcomes Y (1) for units with M = 1 and Y (0) for units with M = 0. In contrast, it is not possible to construct tests based on counterfactual outcomes, such as Y (0) for units with M = 1 or Y (1) for units with M = 0. Consequently, our approach tests a necessary, but not sufficient, condition with respect to the joint distribution of potential outcomes. If violations of Assumptions 5 and 6 occur exclusively in counterfactual outcomes, for instance Y (0) for mediated units and Y (1) for non-mediated units, such violations cannot be detected by our testing procedure. From a practical perspective, however, it appears unlikely that violations would arise solely among counterfactual outcomes but not among factual ones, as this would require highly restrictive data-generating mechanisms. The proof of Theorem 1 is provided in Appendix A.1. 
+
+Theorem 1. Under Assumptions 1, 3, 4: Assumptions 5, 6 ⇐⇒ (TI) when considering potential outcomes Y (m) matching the factual mediator assignment M = m.
+
+The assumptions underlying Theorem 1 allow for testing independence across the entire conditional potential outcome distribution, as required when aiming to identify distributional treatment effects, such as effects at specific quantiles of the potential outcome distribution. Examples include the total treatment effects considered in Firpo (2007) and the causal mechanisms analyzed in Hsu, Huber, and Yen (2023). If the focus is on average treatment effects as the causal parameters of interest, the conditional independence assumptions 4 and 6 can be relaxed to conditional mean independence assumptions, while Assumption 3 is to be replaced by a conditional mean dependence assumption. In this case, an analogous theorem for testing in the context of average treatment and mediator effects can be established, in the same vein as Theorem 2 in Huber and Kueck (2022) (which we omit here for brevity). We also note that our practical implementation of the test based on DML, as outlined in Section 5, focuses on mean parameters. 11 3 Causal framework without (conditionally) random treatments 
+
+In this section, we discuss the testable implications without imposing Assumption 4, imposing that the treatment is as good as randomly assigned conditional on covariates. For this reason, we shift from experimental settings to the context of observational data, in which treatment assignment is typically not exogenous. Under Assumptions 1 to 3 alone, it can be shown that the satisfaction of the testable conditional independence (TI) implies and is implied by the joint satisfaction of Assumptions 5 and 6, as well as a conditional independence assumption on the treatment that is weaker than Assumption 4. To better see this, we first note that Assumption 4 implies the following two weaker marginal independence assumptions 
+
+Assumption 4a (Conditional independence of the treatment and potential outcome) .
+
+Y (d, m )⊥D | X = x ∀d ∈ D , m ∈ M , and x ∈ X .
+
+Assumption 4b (Conditional independence of the treatment and potential mediator) .
+
+M (d)⊥D | X = x ∀d ∈ D , m ∈ M , and x ∈ X .
+
+Assumption 4a states that, conditional on X, there are no confounders jointly affecting the treat-ment D and the outcome Y when the mediator M is held fixed at some value m. In other words, there are no confounders that influence both the treatment and the outcome directly, other than through the mediator. It is also worth noting that, together with Assumption 5 (full mediation), Assumption 4a implies 
+
+Y (m)⊥D|X = x ∀m ∈ M , and x ∈ X .
+
+Assumption 4b rules out confounders jointly affecting the treatment and the mediator. Theorem 2, which closely follows Theorem 1 in Huber and Kueck (2022), formally shows that, conditional on Assumptions 1 and 3, the testable implication (TI) is necessary and sufficient for Assumptions 5, 6, and 4a when considering (observed) potential outcomes Y (m) that correspond to the factual mediator realization M = m. Thus, (TI) requires that the mediator-outcome relationship is conditionally unconfounded, while confounders of the treatment and the mediator may be present, since Assumption 4b is not required for the satisfaction of (TI). The proof is provided in Appendix 12 A.2. 
+
+Theorem 2. Under Assumptions 1, 3: Assumptions 4a, 5, 6 ⇐⇒ (TI) when considering potential outcomes Y (m) matching the factual mediator assignment M = m.
+
+Our result in Theorem 2 implies that full mediation and the identifiability of the effect of the mediator M on the outcome Y can be tested, along with the absence of unobservables affecting both 
+
+D and Y directly (i.e., not through M ). However, the identification of the indirect treatment effect, and thus the total treatment effect under full mediation, cannot be verified based on our testable implication, because (TI) does not provide information about the existence of confounders jointly affecting D and M conditional on X. Such confounders would imply that the first-stage effect of D
+
+on M , as postulated in Assumption 3, cannot be identified. As a result, the indirect (and total) effect of D on Y operating through M cannot be identified, even if the second-stage effect of M on Y is identifiable. Such a causal scenario is depicted in Figure 2. In contrast to Figure 1, U2 now jointly affects both 
+
+D and M , thereby introducing confounding when measuring the effect of D on M . This confounding rules out the identification of the (indirect or total) effect of D on Y through M . At the same time, D
+
+remains conditionally independent of Y given both M and X, ensuring that the testable implication still holds. Figure 2: Causal model with treatment-mediator confounding 
+
+D M Y
+
+X
+
+U 1 U 2 U 3
+
+# 4 Comparisons with the back-door and front-door criterion 
+
+This section discusses the relation between our testable implication (TI) and two identification strate-gies aiming at identifying total treatment effects or related causal parameters given covariates, such as conditional potential outcome distributions or conditional average treatment effects (CATE). Using 13 the terminology of Pearl (2000), the first strategy relies on the back-door (BD) criterion by control-ling for X. This approach permits identification of conditional causal parameters under conditional independence of the treatment and potential post-treatment variables, as imposed in Assumption 4, which is commonly referred to as selection-on-observables or unconfoundedness; see, for instance, the discussion in Imbens (2004). The second strategy applies the front-door (FD) criterion conditional on 
+
+X, which yields identification under conditional independence of the treatment and the potential me-diator, as postulated in Assumption 4b, conditional full mediation as postulated in Assumption 5, and conditional independence of the mediator and potential outcomes given covariates X and treatment 
+
+D; see, e.g., Pearl (1995), Fulcher, Shpitser, Marealle, and Tchetgen Tchetgen (2019), and Bellemare, Bloem, and Wexler (2024). A natural question is whether one can learn something about the joint satisfaction of the identifying assumptions by verifying whether the identification results obtained from the BD and FD approaches coincide, for instance by means of a Hausman (1978)-type overidentification test, and how such an approach compares to our testable implication (TI). To discuss such a testing approach more formally, consider the conditional probability that a discrete potential outcome takes a specific value y under treatment d, Pr( Y (d, M (d)) = y | X = x). Under the selection-on-observables assumption, the BD approach identifies this quantity by the conditional probability appearing on the left-hand side of the equals sign in equation (BD=FD) below. In contrast, the conditional FD approach aims at computing Pr( Y (d, M (d)) = y | X = x) by the expression appearing on the right-hand side of the equals sign in equation (BD=FD), for a discrete treatment, mediator, and outcome. An overidentification test may therefore be constructed by verifying whether the parameter values obtained from both approaches are equivalent, that is, whether it holds that Pr( Y = y|D = d, X = x) = (BD=FD) 
+
+X
+
+> m
+
+Pr( M = m|D = d, X = x) · X
+
+> d′
+
+Pr( Y = y|D = d′, M = m, X = x) · Pr( D = d′|X = x)
+
+!
+
+∀y ∈ Y , d ∈ D , and x ∈ X .
+
+Relating this approach to our previous testable implication, it turns out that the satisfaction of (TI) implies (BD=FD), such that the conditional parameters given X based on FD and BD coincide at the population level, which is formally stated in Theorem 3. However, this immediately implies that a comparison of BD and FD, although it appears to be an overidentification test, does not allow 14 one to test whether all assumptions required for identification under BD and FD hold jointly. The reason is that the null hypothesis of FD and BD yielding identical parameter values holds even if Assumption 4b is violated, see Theorem 2 in the previous section. Such a violation introduces bias in the measurement of conditional potential outcomes under both FD and BD that is equal in magnitude for the two methods. Proof of Theorem 3 is provided in Appendix A.3. 
+
+Theorem 3. (TI) ⇒ (BD=FD) .
+
+While (TI) implies (BD=FD), the opposite does not hold in general. BD and FD may be equivalent at the population level even though (TI) fails. This implies that equivalence of FD and BD is not sufficient for inferring full mediation (whereas (TI) is sufficient by Theorem 2). The reason is that (BD=FD) imposes an equality condition on weighted averages over the mediator distribution (see the term P 
+
+> m
+
+Pr( M = m | D = d, X = x)), which may hold due to cancellation effects across values of 
+
+m, even if the conditional distributions Pr( Y | D = d, M = m, X = x) differ across values of d.For equivalence of (BD=FD) to also imply (TI), an additional assumption is required. One example of such a sufficient condition is a parametric assumption imposing additive separability of the effects of the treatment and the mediator on the outcome, conditional on covariates. Specifically, this assumption requires that the conditional distribution (or mean) of the outcome given the treatment, mediator, and covariates can be decomposed into a component depending on the treatment and covariates, and a separate component depending on the mediator and covariates. This rules out interaction effects between the treatment and the mediator on the outcome, which substantially restricts effect heterogeneity. Such no-interaction assumptions have been considered in the mediation analysis literature (Robins and Greenland, 1992; Robins, 2003) to achieve identification of direct and indirect effects without imposing (cross-world) independence assumptions between treatments and counterfactual (on top of factual) outcomes (Andrews and Didelez, 2021), in particular in the presence of post-treatment confounders. 
+
+Assumption 7 (Separability) . There exist two functions α : D × X → R and β : M × X → R, such that for all y ∈ Y , m ∈ M , d ∈ D , x ∈ X :
+
+Pr( Y = y|D = d, M = m, X = x) = α(d, x ) + β(m, x ).
+
+Theorem 4 shows that, conditional on separability, (TI) is both necessary and sufficient for equiv-alence of the BD and FD approaches. As a consequence, under Assumption 7, the assumptions 15 underlying Theorems 1 and 2 can also be tested based on a comparison of FD and BD. The proof is provided in Appendix A.4. 
+
+Theorem 4. Under Assumption 7: (TI) ⇐⇒ (BD=FD) .
+
+Under the separability assumption 7, it follows that the α(d, x ) component of the conditional probability Pr( Y = y | D = d, M = m, X = x) does not depend on the treatment value d, as shown in the proof of Theorem 4 in Appendix A.4. This essentially implies the absence of a direct effect. The empirical plausibility of separability strongly depends on the specific application. For instance, if the magnitude of a biomarker’s mediated effect depends on the administered drug dose (i.e., the treatment), this constitutes a treatment-mediator interaction, and the separability assumption is violated. We note that several mediation studies have proposed relaxations of, or alternatives to, the no-interaction assumption; see, for example, Imai and Yamamoto (2013), Tchetgen Tchetgen and VanderWeele (2014), and references provided in the survey by Huber (2020). 
+
+# 5 Testing 
+
+This section presents the empirical implementation of our testing approach, focusing on a version of the testable implication (TI) that is appropriate when evaluating (conditional) average treatment effects. Accordingly, we consider conditional mean independence rather than full independence as the relevant object for testing. We propose a test based on double machine learning (DML) for the following null hypothesis H0, which is equivalent to conditional mean independence between the treatment D and the outcome Y , given the mediator M and covariates X:
+
+H0 : E[Y | M = m, X = x, D = d] − E[Y | M = m, X = x] = 0 ∀m ∈ M , x ∈ X , d ∈ D .
+
+(5.1) We apply the DR testing approach proposed by Apfel, Hatamyar, Huber, and Kueck (2023), originally developed to jointly test the validity of an instrument and the exogeneity of a treatment conditional on covariates. In our application, the treatment corresponds to the instrument in their setting, and the mediator corresponds to their treatment. For a binary treatment D, we define the propensity score as p(M, X ) = Pr( D = 1 | M, X ). Furthermore, let μ(M, X, D ) = E[Y | M, X, D ]16 denote the conditional mean outcome. The DR score function for the binary treatment case is ˜ψ(W, θ, η ) (5.2) = ( μ(M, X, 1) − μ(M, X, 0)) 2
+
++ 2( μ(M, X, 1) − μ(M, X, 0)) 
+
+ (Y − μ(M, X, 1)) · Dp(M, X ) − (Y − μ(M, X, 0)) · (1 − D)1 − p(M, X )
+
+
+
++ μ(M, X, 1) − μ(M, X, 0) + 
+
+ (Y − μ(M, X, 1)) · Dp(M, X ) − (Y − μ(M, X, 0)) · (1 − D)1 − p(M, X )
+
+
+
+− θ, 
+
+where the target parameter ˜θ is ˜θ = E
+
+h
+
+(μ(M, X, 1) − μ(M, X, 0)) 2i
+
++ E [μ(M, X, 1) − μ(M, X, 0)] . (5.3) Testing the null hypothesis (5.1) based on (5.2) corresponds to an aggregate L2-type measure, com-monly used in specification tests relying on nonparametric regression (Racine, 1997; Racine, Hart, and Li, 2006; Hong and White, 1995; Wooldridge, 1992). Apfel, Hatamyar, Huber, and Kueck (2023) also extend (5.2) to multivalued treatments D, which requires discretizing D when it is continuous. Let {Dl}Ll=1 be a partition of D such that S 
+
+> l
+
+Dl = D.For discrete D, we define Dl = dl for those values with Pr( D = dl) > c for some constant c > 0, while for continuous D, the partition can be defined using quantiles. Let 1( D ∈ Dl) be the indicator function, and define the treatment propensity score as pl(M, X ) = Pr( D ∈ Dl | M, X ). The DR score function for multivalued D is 
+
+ψ(W, θ, η ) (5.4) =
+
+> L
+
+X
+
+> l=1
+
+(μ(M, X, D ∈ Dl) − μ(M, X, D / ∈ Dl)) 2
+
++
+
+> L
+
+X
+
+> l=1
+
+2( μ(M, X, D ∈ Dl) − μ(M, X, D / ∈ Dl)) 
+
+ (Y − μ(M, X, D ∈ Dl))1( D ∈ Dl)
+
+pl(M, X ) − (Y − μ(M, X, D / ∈ Dl))1( D / ∈ Dl)1 − pl(M, X )
+
+
+
++
+
+> L
+
+X
+
+> l=1
+
+(μ(M, X, D ∈ Dl) − μ(M, X, D / ∈ Dl)) +
+
+> L
+
+X
+
+> l=1
+
+(Y − μ(M, X, D ∈ Dl))1( D ∈ Dl)
+
+pl(M, X ) − (Y − μ(M, X, D / ∈ Dl))1( D / ∈ Dl)1 − pl(M, X ) − θ, 
+
+17 where the target parameter θ is 
+
+θ = E
+
+" LX
+
+> l=1
+
+(μ(M, X, D ∈ Dl) − μ(M, X, D / ∈ Dl)) 2 + ( μ(M, X, D ∈ Dl) − μ(M, X, D / ∈ Dl)) 
+
+#
+
+.
+
+(5.5) Apfel, Hatamyar, Huber, and Kueck (2023) show that both score functions, ˜ψ and ψ have ex-pectation zero under the null and satisfy Neyman orthogonality. This implies that a sample analog of θ is √n-consistent - where n denotes the sample size - and asymptotically normal under specific regularity conditions. A key requirement is that the product of the estimation errors for μ(M, X, D )and p(M, X ) vanishes at rate o(n−1/2) as the sample size grows. This condition is met if the esti-mation error of both models is of order o(n−1/4). Another important condition is that independent subsamples are used for estimating μ(M, X, D ) and p(M, X ), on the one hand, and for estimating the score function ˜ψ, on the other hand. This is obtained through cross-fitting, i.e., by iteratively swapping the subsamples used for the estimation tasks, as described in Chernozhukov, Chetverikov, Demirer, Duflo, Hansen, Newey, and Robins (2018). Finally, we present an analogous DML approach for testing differences in conditional mean out-comes across the FD and BD approaches (even though it appears less attractive given the caveats discussed in Section 4), which corresponds to a conditional mean version of (BD=FD). To this end, we denote by q(d, x ) = E[Y |D = d, X = x] the conditional mean outcome given the treatment and the covariates. This is the parameter considered by the BD approach and corresponds to the conditional mean potential outcome E[Y (d, M (d)) | X = x] if the identifying assumptions underlying BD, most importantly a selection-on-observables assumption such as Assumption 4, are satisfied. Concerning the FD approach, we denote by ν(m, x ) the nested conditional mean outcome given X = x, which is obtained by averaging the conditional mean outcome μ(m, x, d ) over treatment values D while holding the mediator fixed at value m:
+
+ν(m, x ) = X
+
+> d
+
+μ(m, x, d )f (d|X = x) = E[μ(m, x, D )|X = x], (5.6) where f (d | X) = Pr( D = d | X) denotes the treatment propensity score, and the treatment and mediator are assumed to be discrete. As discussed, for instance, in Fr¨ olich and Sperlich (2019), the conditional FD criterion corresponds 18 to the conditional mean of ν(m, x ) given the treatment and the covariates, E[ν(M, x )|D = d, X = x], which equals the conditional mean potential outcome E[Y (d, M (d)) | X = x] if the identifying assump-tions underlying the FD approach are satisfied. Fulcher, Shpitser, Marealle, and Tchetgen Tchetgen (2019) also present an alternative representation for this parameter, namely, 
+
+X
+
+> m
+
+μ(m, x, D )f (m|D = d, X = x), (5.7) where f (m|D, X ) = Pr( M = m|D, X ) denotes the conditional probability of the mediator taking value m (the mediator propensity score). It is worth noting that in equation (5.7), D in μ(m, x, D )is evaluated at observed treatment values while D = d is fixed in the mediator propensity score 
+
+f (m|D = d, X = x). For ease of notation, we will henceforth denote the expression in (5.7) by ζ(d, x ). We aim to test for differences in the conditional mean parameters obtained under the BD and FD approaches and therefore consider the following null hypothesis, which states that their difference is zero: 
+
+H0 : q(d, x ) − ζ(d, x ) = 0 . ∀x ∈ X , d ∈ D . (5.8) Applying the approach of Apfel, Hatamyar, Huber, and Kueck (2023) to testing (5.8), we consider as target parameter ¯θ = E (q(D, X ) − ζ(D, X )) 2 + E [q(D, X ) − ζ(D, X )] . (5.9) Considering a discrete treatment, we note that the DR score function of q(d, X ) is given by the following expression, see e.g. Robins, Rotnitzky, and Zhao (1994) and Robins and Rotnitzky (1995): 
+
+q(d, X ) + (Y − q(D, X )) · I(D = d)
+
+f (d | X) , (5.10) Furthermore, the DR function of the FD expression ζ(d, X ) is (for discrete D and M ) given by the following expression, see Fulcher, Shpitser, Marealle, and Tchetgen Tchetgen (2019) and Gorbach, 19 de Luna, Karvanen, and Waernbaum (2023): 
+
+ζ(d, X ) + [ Y − μ(M, X, D )] · f (M | d, X )
+
+f (M | D, X ) (5.11) + I(D = d)
+
+f (D | X)
+
+X
+
+> d
+
+μ(M, X, d )f (d|X)
+
+| {z }
+
+> ν(M,X )
+
+− X
+
+> d,m
+
+μ(m, X, d )f (m|D, X )f (d|X)
+
+ .
+
+Analogously to the score functions in (5.2) and (5.4), the score function for the difference between the DR score functions of the BD and FD approaches is given by ¯ψ(W, θ, η ) = ( q(d, X ) − ζ(d, X )) 2
+
++ 2( q(d, X ) − ζ(d, X )) ( r(d, X ) − s(d, M, X )) (5.12) + q(d, X ) − ζ(d, X ) + ( r(d, X ) − s(d, M, X )) − ¯θ, 
+
+where 
+
+r(d, X ) = (Y − q(d, X )) · I{D = d}
+
+f (d | X) (5.13) and 
+
+s(d, M, X ) = [ Y − μ(M, X, D )] · f (M | d, X )
+
+f (M | D, X ) (5.14) + I(D = d)
+
+f (D | X)
+
+X
+
+> d
+
+μ(M, X, d )f (d|X) − X
+
+> d,m
+
+μ(m, X, d )f (m|D, X )f (d|X)
+
+ .
+
+# 6 Simulations 
+
+This section evaluates the finite-sample performance of our proposed testing approach through a simulation study. We assess our method under varying levels of confounding, direct treatment effects, and sample sizes. Our first simulation design replicates the causal structure described in Section 2, 20 specified as follows: 
+
+D = I{X′β + U1 > 0},M = 0.5D + X′β + δU 1 + U2,Y = M + X′β + γD + δU 1 + U3,X ∼ N (0 , σ 2 
+
+> X
+
+), U1 ∼ N (0 , 1) , U2 ∼ N (0 , 1) , U3 ∼ N (0 , 1) ,
+
+with X, U1, U2, and U3 being independent of each other. The binary treatment variable D is generated as an indicator function I{·} based on a linear combination of pre-treatment covariates X - for a nonzero coefficient vector β - and an unobserved error term U1. The mediator M is specified as a linear function of D and X, alongside unobserved terms U1 and U2, allowing for potential confounding between the treatment, mediator, and outcome if 
+
+δ̸ = 0. The outcome variable Y is a linear function of mediator M , covariates X (if β̸ = 0), treatment 
+
+D (if γ̸ = 0, implying a direct effect), unobservable U3, and unobservable U1 (if δ̸ = 0). When γ = 0, the treatment effect is fully mediated by M , satisfying Assumption 5. When γ̸ = 0, a direct effect of D on Y exists, violating full mediation. The unobserved terms U1, U 2, U 3 are standard normally distributed and independent of each other and of X, which is a vector of p normally distributed covariates with zero means and covariance matrix Σ X , where the ( i, j )th element of Σ X corresponds to 0 .5|i−j|. The coefficient vector β gauges the effects of the covariates on Y , M , and D, quantifying the degree of confounding due to observables. The ith element of β is set to 0 .5/i 2 for i = 1 , . . . , p ,implying a quadratic decay in the relevance of any additional covariate i for confounding. Our study comprises 1000 simulations for each of two distinct sample sizes n consisting of 1000 and 4000 observations respectively, with the number of covariates p set to 200. To test the null hypothesis (5.1), we estimate the conditional means μ(M, X, 1) and μ(M, X, 0) as well as the propensity score 
+
+p(M, X ) involved in the score function (5.2) using lasso regression via the SuperLearner package in 
+
+R. Other machine learning methods, such as random forests, gradient boosting, or ensemble learners, could alternatively be employed, provided they satisfy the convergence rate requirements outlined in Section 5. We utilize 5-fold cross-fitting and trim observations with propensity scores below 0.05 or above 0.95 to prevent inflation of the inverse probability weights. The parameters δ and γ allow us to systematically introduce violations of the mediator exogeneity 21 assumption (Assumption 6) and full mediation assumption (Assumption 5), respectively. Setting 
+
+δ = 0 and γ = 0 implies satisfaction of both assumptions, such that the testable implication (TI) holds. When δ̸ = 0, the variable U1 becomes an unobserved confounder jointly affecting D, M , and 
+
+Y , violating Assumption 6. When γ̸ = 0, the treatment exhibits a direct effect on the outcome not operating through M , violating Assumption 5. Table 1 presents the results of our simulations under various choices of δ and γ, reporting the average estimate ˆθ, the standard deviation of the estimates across simulations (std. ˆθ), the average standard error (mean SE), and the test’s rejection rate (rej. rate) at the 5% level of statistical significance. Table 1: Simulations: Test for Full Mediation and Mediator Exogeneity sample size ˆθ std. ˆθ mean SE rej. rate 
+
+δ = 0 & γ = 0 1000 −0.014 0.089 0.094 0.055 4000 −0.005 0.037 0.041 0.040 
+
+δ = 0 .25 & γ = 0 1000 0.584 0.161 0.160 0.969 4000 0.561 0.075 0.075 1.000 
+
+δ = 0 & γ = 0 .21000 0.247 0.118 0.122 0.532 4000 0.240 0.056 0.055 1.000   
+
+> Notes: Column ‘ ˆθ’ gives the average estimate of the target parameter across simulations. ‘std. ˆθ’ gives the standard deviation of estimates across simulations. ‘mean SE’ gives the average standard error. ‘rej. rate’ gives the empirical rejection rate when setting the level of statistical signifi-cance to 0.05.
+
+The top panel of Table 1 shows the results for δ = 0 and γ = 0, ensuring satisfaction of both full mediation (Assumption 5) and mediator exogeneity (Assumption 6). The test maintains close adherence to the nominal 5% significance level, with rejection rates of 5.5% and 4.0% for n = 1000 and n = 4000, respectively. Notably, the average estimate ˆθ is close to zero under the null, and the standard deviation of estimates across simulations is well-approximated by the average standard error, indicating that the asymptotic variance formula performs adequately even at n = 1000. The intermediate panel reports the results for δ = 0 .25 and γ = 0, indicating a moderate violation of mediator exogeneity (Assumption 6) while full mediation holds. The rejection rate reaches 96.9% at n = 1 ,000 and 100% at n = 4 ,000, demonstrating strong power to detect confounding between the 22 mediator and outcome even at this smaller effect size. The positive value of ˆθ ≈ 0.58 (n=1,000) and 0.56 (n=4,000) reflects the magnitude of the violation, and the standard error decreases with sample size at a rate proportional to √n.The bottom panel presents results for δ = 0 and γ = 0 .2, where mediator exogeneity holds but full mediation is violated due to a direct treatment effect. For the smaller sample size of n = 1000, the rejection rate is 53.2%, indicating limited power to detect a direct effect of this magnitude. However, as the sample size increases to n = 4000, the test achieves 100% rejection, demonstrating that the test reliably detects violations of full mediation given sufficient sample size. Overall, the simulation results suggest that the test exhibits satisfactory size control under the null and strong power at n=4,000; power is more limited at n=1,000 for modest violations (53% for γ = 0 .2). Our second simulation design explores a scenario with treatment-mediator confounding, which, as established in Theorem 2, does not violate the testable implication (TI). This design modifies equation (6.1) by introducing a parameter λ that governs the extent of treatment-mediator confounding through 
+
+U2:
+
+D = I{X′β + λU 2 + U1 > 0},M = 0.5D + X′β + δU 1 + U2,Y = M + X′β + γD + δU 1 + U3,
+
+with all other distributional assumptions unchanged. When λ̸ = 0, the unobservable U2 jointly affects both D and M , introducing confounding in the treatment-mediator relationship. This corresponds to the causal structure depicted in Figure 2, where identification of the indirect effect is no longer possible due to the violation of Assumption 4b. However, Theorem 2 establishes that the testable implication (TI) remains satisfied as long as Assumptions 5 (full mediation) and 6 (mediator exogeneity) hold, even in the presence of treatment-mediator confounding. Table 2 presents simulation results for λ = 0 .25, directly comparing the test’s behavior with and without treatment-mediator confounding. This comparison illustrates what the test can and cannot detect. Note that the introduction of treatment-mediator confounding affects the effective sample size after propensity score trimming: for scenarios with δ = 1 and γ = 0, the average effective sample size is approximately 1900 out of 4000 observations, while for δ = 0 and γ = 0, it is approximately 3900 23 observations. Table 2: Simulations: Illustrating Theorem 2 ( λ =0.25) sample size ˆθ std. ˆθ mean SE rej. rate 
+
+λ = 0 .25, δ = 0 & γ = 0 1000 −0.009 0.097 0.103 0.030 4000 −0.004 0.043 0.045 0.037 
+
+λ = 0 .25, δ = 1 & γ = 0 1000 2.623 0.459 0.407 1.000 4000 2.594 0.224 0.213 1.000 
+
+λ = 0 .25, δ = 0 & γ = 0 .21000 0.258 0.134 0.132 0.482 4000 0.244 0.059 0.060 0.993   
+
+> Notes: Column ‘ ˆθ’ gives the average estimate of the target parameter across simulations. ‘std. ˆθ’ gives the standard deviation of estimates across simulations. ‘mean SE’ gives the average standard error. ‘rej. rate’ gives the empirical rejection rate when setting the level of statistical signifi-cance to 0.05.
+
+The top panel of Table 2 presents results for λ = 0 .25, δ = 0, and γ = 0, corresponding to treatment-mediator confounding without violations of full mediation or mediator exogeneity. As predicted by Theorem 2, the test maintains proper size control with rejection rates of 3.0% and 3.7% for n = 1 , 000 and n = 4 , 000, respectively, close to the nominal 5% level. Comparing these to the analogous scenario without treatment-mediator confounding in Table 1 (rejection rates of 5.5% and 4.0%), we observe that the introduction of D-M confounding does not inflate the rejection rate. This confirms that the test cannot detect-and is not designed to detect-violations of Assumption 4b. The intermediate panel reports results for λ = 0 .25 and δ = 1, where both treatment-mediator confounding and mediator-outcome confounding are present. The rejection rate reaches 100% for both sample sizes, demonstrating that the test retains full power to detect mediator-outcome confounding even in the presence of treatment-mediator confounding. Comparing to Table 1 without treatment-mediator confounding, the test statistic and standard errors are similar in magnitude, suggesting that the additional D-M confounding does not substantially attenuate the test’s ability to detect M-Y confounding. The bottom panel reports results for λ = 0 .25 and γ = 0 .2, where treatment-mediator confounding is present alongside a direct treatment effect. The rejection rates of 48.2% at n = 1 , 000 and 99.3% 24 at n = 4 , 000 are comparable to those in Table 1 (53.2% and 100%, respectively), indicating that the test maintains its power to detect violations of full mediation regardless of whether treatment-mediator confounding is present. These results highlight an important implication: while our test reliably detects violations of full mediation and mediator exogeneity, it provides no information about treatment-mediator confounding. Consequently, non-rejection of the test implies the identifiability of the mediator effect on the outcome, but does not guarantee identification of the total or indirect treatment effect, which additionally requires Assumption 4b to hold. 
+
+# 7 Empirical Application 
+
+Perinatal depression affects millions of women worldwide, with lasting consequences for both mothers and children. Baranov, Bhalotra, Biroli, and Maselko (2020) experimentally evaluate a landmark intervention - the Thinking Healthy Programme - which delivered cognitive behavioral therapy (CBT) to depressed mothers in rural Pakistan during pregnancy and early infancy. According to Baranov, Bhalotra, Biroli, and Maselko (2020), treated women exhibited lower depression rates and, notably, greater financial empowerment seven years later: they were more likely to control household finances and work outside the home. A natural question concerns the channels through which treatment of depression may affect economic empowerment. The authors hypothesize that improved mental health may strengthens women’s social support networks within the household. They document that treated women are more likely to have a grandmother present in the home and report better relationships with their husbands. It remains unclear whether these channels fully account for the treatment’s impact on financial empowerment, or whether other pathways - such as direct psychological changes including increased self-efficacy - also contribute. Kwon and Roth (2024) examine this issue using their sharp null test, which relies on a partial identification approach when testing full mediation alone and is unconditional in that it does not control for covariates. In contrast, we jointly test full mediation and mediator exogeneity while conditioning on baseline covariates, including depression severity, wealth, and education. Specifically, we investigate whether, among women with similar baseline profiles, treatment affects financial empowerment solely through the proposed mediators (the presence of a grandmother and the quality of the relationship with the husband), and whether these mediators are exogenous such that the indirect causal mechanisms are identified in this experimental study. We implement our test using lasso for nuisance estimation 25 with 5-fold cross-fitting, aggregated over S = 10 independent sample splits following Chernozhukov, Chetverikov, Demirer, Duflo, Hansen, Newey, and Robins (2018). Our controls include baseline demographics (mother’s age and its square, education, employment status, empowerment), depression severity (Hamilton and BDQ scores), general functioning (GAF), perceived social support (MSPSS), household wealth, family structure (grandmother and mother-in-law presence, father’s occupation, parity, first child indicator), and parents’ education, all measured prior to treatment assignment. Table 3 reports our findings alongside those of Kwon and Roth (2024) for comparison. Panel A presents our results with design controls only; Panel B adds the full set of baseline covariates with repeated cross-fitting. Panel C reproduces the unconditional test results from Kwon and Roth (2024). With full controls, we reject conditional mean independence for grandmother presence ( p = 0 .032) and for both mediators combined ( p = 0 .041). Relationship quality alone yields a marginally insignificant result ( p = 0 .068). These findings suggest that, conditional on baseline characteristics, at least one of the two assumptions (full mediation or mediator exogeneity) is violated. Our results diverge notably from those of Kwon and Roth (2024), who test for violations of full mediation using moment inequality conditions on outcome distributions across mediator (compliance) types - defined by how the mediator responds to treatment - under a monotonicity assumption of the mediator with respect to the treatment. They reject full mediation through each individual mediator ( p = 0 .023 and p = 0 .028), but fail to reject when both mediators are combined ( p = 0 .654), concluding that the two channels together may fully explain the treatment effect. This discrepancy may be driven by differences in what the tests evaluate and how they do so. In the partial identification-based test of Kwon and Roth (2024), rejection implies (asymptotically) a failure of full mediation, while mediator exogeneity is not tested. Conversely, non-rejection does not confirm that full mediation holds, as violations may be sufficiently small to still satisfy the moment inequality conditions. Our test evaluates the stronger condition of the joint satisfaction of full mediation and mediator exogeneity and does not rely on partial identification. Therefore, when the test of Kwon and Roth (2024) rejects – as in the case of individual mediators ( p = 0 .023 and p = 0 .028) – our test should also reject, though not necessarily vice versa, and this is indeed what we find ( p = 0 .024 and p = 0 .013). When their test does not reject – for the combined mediators ( p = 0 .654) – ours may still reject, for example due to a failure of mediator exogeneity, even if full mediation holds. Our rejection in this case ( p = 0 .008) therefore suggests that while grandmother presence and relationship quality may jointly fully mediate the treatment effect, the mediator exogeneity assumption required 26 for causal identification of the indirect effect may be violated. Alternatively, full mediation itself may be violated, but not detected by the partial identification approach of Kwon and Roth (2024). In sum, our rejection indicates that the causal mechanisms are not fully identified: either some mediators are missing, the observed mediators (grandmother presence and relationship quality) are not exogenous, or both. Even if the treatment effect were fully mediated through the observed variables, violations of mediator exogeneity prevent point identification of the indirect effect. Unobserved factors, such as resilience or social skills, may jointly influence both the mediators and the outcome (financial empowerment), confounding attempts to isolate indirect effects. Table 3: Test of Conditional Mean Independence: Baranov et al. (2020) Data Mediator Test Statistic SE p-value N
+
+Panel A: Our Test (Conditional on X, S = 10 )
+
+Grandmother presence 0.431 0.191 0.024 503 Relationship quality 0.401 0.162 0.013 503 Both combined 0.428 0.160 0.008 504 
+
+Panel B: Kwon & Roth (2024) - Partial Identification Test 
+
+Grandmother presence - - 0.023 585 Relationship quality - - 0.028 568 Both combined - - 0.654 -          
+
+> Notes: Panel A reports results of our conditional mean independence test with null hypothesis H0:Y⊥D|
+> M, X . Baseline controls include mother’s age (and square), depression severity (Hamilton and BDQ scores), general functioning (GAF), perceived social support (MSPSS), employment status, empowerment, wealth index, mother’s and father’s education, family structure (grandmother and mother-in-law presence, father’s occupation), parity, and first child indicator, all measured prior to treatment. Nuisance functions estimated via lasso with 5-fold cross-fitting, aggregated over S= 10 independent sample splits. Panel B reproduces the unconditional sharp null test from Kwon and Roth (2024).
+
+Our second application examines the role of social norms in shaping women’s labor market out-comes. Bursztyn, Gonzalez, and Yanagizawa-Drott (2020) conduct a field experiment among married men in Saudi Arabia to study how misperceived beliefs about others’ attitudes toward women working affect household decisions. Participants were asked to estimate what fraction of other men in their session would support women working outside the home. Those randomized to the treatment group then learned the true (typically higher) share, correcting their underestimates. The authors document two key findings. First, treated men were more likely to sign up their wives for a job-matching service offered at the end of the session. Second, in a follow-up survey, wives of treated men were more likely to have applied for jobs outside the home. These results highlight the need to understand mechanisms, as the information treatment may affect job applications not only through job-matching sign-up, but potentially also via other channels, such as shifting husbands’ attitudes or reducing perceived social 27 stigma. Table 4 reports the results. The partial identification – based test of Kwon and Roth (2024) suggests that full mediation through job-matching sign-up is rejected ( p = 0 .02). The authors note that at least 11 percent of “never-takers” - men who would not sign up their wives for the service under either treatment – are nevertheless directly affected by the information treatment. Applying our conditional independence test to these data, while conditioning on baseline beliefs about others’ views, employment status, education, and demographic characteristics, we strongly reject conditional mean independence ( p = 0 .004). These results align with Kwon and Roth (2024) and indicate that the treatment effect on job applications is not solely mediated by job-matching sign-up. In addition, the observed mediator may fail to be exogenous, meaning that both the presence of additional, unmea-sured mechanisms and violations of mediator exogeneity could contribute to the (highly statistically signficant) overall rejection indicated by our test. Table 4: Test of Conditional Mean Independence: Bursztyn et al. (2020) Data Test Statistic SE p-value N
+
+Our Test (Conditional on X)
+
+Job-matching sign-up 0.114 0.040 0.004 375 
+
+Kwon & Roth (2024) - Partial Identification Test 
+
+Job-matching sign-up - - 0.020 -   
+
+> Notes: The outcome is an indicator for whether the wife applied for jobs outside the home. The mediator is job-matching service sign-up. Controls include baseline beliefs (own views and perceptions of others’ views on women working, semi-segregation, and minimum wage), employment status of husband and wife, education, age, number of children, network characteristics, and session fixed effects-matching the specification in Bursztyn, Gonzalez, and Yanagizawa-Drott (2020). Nuisance functions estimated via lasso with 5-fold cross-fitting, aggregated over S= 10 sample splits.
+
+# 8 Conclusion 
+
+We develop a unified framework for testing full mediation and the identifiability of indirect treatment effects in causal studies. Unlike naive outcome regressions on treatment and mediators, which can produce biased inference due to post-treatment confounding, our approach uses tests of conditional independence between the treatment and outcome given mediators and covariates. Under randomized or conditionally randomized treatments, this allows for joint testing of full mediation of the treatment effect via observed mediators and the exogeneity conditions necessary for identifying these mediated effects. When the treatment is not (conditionally) randomized, our framework can still test for full 28 mediation, but not for the identifiability of mediated effects. In such settings, the conditional indepen-dence test informs only about mediator-outcome confounding, while treatment-mediator confounding may remain unaccounted for, preventing identification of mediated effects. We connect our testable implication to two identification strategies in observational studies, the back-door (BD) and the front-door (FD) criteria. Satisfaction of our conditional independence condi-tion implies that BD and FD yield identical (conditional) population parameters. This implies that, in general, equivalence of the BD and FD criteria does not guarantee identification of causal effects, since our conditional independence condition requires weaker assumptions than those necessary for effect identification - more specifically, it does not account for treatment-mediator confounding if the treatment is not (conditionally) randomized. Furthermore, while the conditional independence condition implies BD-FD equivalence, the converse only holds under an additional assumption such as a separability condition the rules out treatment-mediator interactions conditional on covariates. Such a condition appears unrealistic in many empirical applications. In this context, testing based on conditional independence appears more attractive than using a BD-FD comparison. For empirical implementation, we propose a double machine learning (DML) approach using dou-bly robust (DR) score functions, which accommodates high-dimensional covariates while preserving root-n consistency and asymptotic normality. We also present a simulation study that indicates good finite-sample performance. Finally, we apply our method to two randomized experiments, Baranov, Bhalotra, Biroli, and Maselko (2020) on cognitive behavioral therapy for maternal depression and Bursztyn, Gonzalez, and Yanagizawa-Drott (2020) on social norms and women’s employment. In both settings, we reject the joint null of full mediation and mediator exogeneity. 29 References 
+
+Acharya, A., M. Blackwell, and M. Sen (2016): “Explaining causal findings without bias: Detecting and assessing direct effects,” American Political Science Review , 110, 512–529. 
+
+Andrews, R. M., and V. Didelez (2021): “Insights into the cross-world independence assumption of causal mediation analysis,” Epidemiology , 32(2), 209–219. 
+
+Apfel, N., J. Hatamyar, M. Huber, and J. Kueck (2023): “Learning control variables and instruments for causal analysis in observational data,” working paper, University of Fribourg .
+
+Athey, S., R. Chetty, G. Imbens, and H. Kang (2020): “Estimating Treatment Effects using Multiple Surrogates: The Role of the Surrogate Score and the Surrogate Index,” arXiv preprint 1603.09326 .
+
+Baranov, V., S. Bhalotra, P. Biroli, and J. Maselko (2020): “Maternal Depression, Women’s Empowerment, and Parental Investment: Evidence from a Randomized Controlled Trial,” American Economic Review , 110(3), 824–59. 
+
+Bellemare, M. F., J. R. Bloem, and N. Wexler (2024): “The Paper of How: Estimating Treatment Effects Using the Front-Door Criterion,” Oxford Bulletin of Economics and Statistics ,86, 951–993. 
+
+Bursztyn, L., A. L. Gonzalez, and D. Yanagizawa-Drott (2020): “Misperceived Social Norms: Women Working Outside the Home in Saudi Arabia,” American Economic Review , 110(10), 2997– 3029. 
+
+Chernozhukov, V., D. Chetverikov, M. Demirer, E. Duflo, C. Hansen, W. Newey, and 
+
+J. Robins (2018): “Double/debiased machine learning for treatment and structural parameters,” 
+
+The Econometrics Journal , 21, C1–C68. 
+
+Cox, D. (1958): Planning of Experiments . Wiley, New York. 
+
+de Luna, X., and P. Johansson (2014): “Testing for the unconfoundedness assumption using an instrumental assumption,” Journal of Causal Inference , 2, 187–199. 
+
+Farbmacher, H., R. Guber, and S. Klaassen (2022): “Instrument validity tests with causal forests,” Journal of Business & Economic Statistics , 40, 605–614. 
+
+Firpo, S. (2007): “Efficient Semiparametric Estimation of Quantile Treatment Effects,” Economet-rica , 75, 259–276. 
+
+Flores, C. A., and A. Flores-Lagunes (2009): “Identification and Estimation of Causal Mecha-nisms and Net Effects of a Treatment under Unconfoundedness,” IZA DP No. 4237 .
+
+Frangakis, C. E., and D. B. Rubin (2002): “Principal stratification in causal inference,” Biomet-rics , 58, 21–29. 
+
+Fr¨ olich, M., and S. Sperlich (2019): Impact Evaluation: Treatment Effects and Causal Analysis .Cambridge University Press. 
+
+Fulcher, I. R., I. Shpitser, S. Marealle, and E. J. Tchetgen Tchetgen (2019): “Robust Inference on Population Indirect Causal Effects: The Generalized Front Door Criterion,” Journal of the Royal Statistical Society Series B: Statistical Methodology , 82, 199–214. 
+
+Gorbach, T., X. de Luna, J. Karvanen, and I. Waernbaum (2023): “Contrasting Identifying Assumptions of Average Causal Effects: Robustness and Semiparametric Efficiency,” Journal of Machine Learning Research , 24, 1–65. 30 Hausman, J. A. (1978): “Specification Tests in Econometrics,” Econometrica , 46, 1251–71. 
+
+Hong, G. (2010): “Ratio of mediator probability weighting for estimating natural direct and indirect effects,” in Proceedings of the American Statistical Association , pp. 2401–2415, Alexandria, VA. American Statistical Association. 
+
+Hong, Y., and H. White (1995): “Consistent Specification Testing via Nonparametric Series Re-gression,” Econometrica , 63(5), 1133–59. 
+
+Hsu, Y.-C., M. Huber, and Y.-M. Yen (2023): “Doubly Robust Estimation of Direct and Indirect Quantile Treatment Effects with Machine Learning,” arXiv preprint 2307.01049 .
+
+Huber, M. (2014): “Identifying causal mechanisms (primarily) based on inverse probability weight-ing,” Journal of Applied Econometrics , 29, 920–943. 
+
+Huber, M. (2020): “Mediation analysis,” Handbook of labor, human resources and population eco-nomics , pp. 1–38. 
+
+Huber, M., K. Kloiber, and L. Laffers (2024): “Testing identification in mediation and dynamic treatment models,” arXiv preprint arXiv:2406.13826 .
+
+Huber, M., and J. Kueck (2022): “Testing the identification of causal effects in observational data,” arXiv preprint arXiv:2203.15890 .
+
+Huber, M., and G. Mellace (2015): “Testing instrument validity for LATE identification based on inequality moment constraints,” Review of Economics and Statistics , 97, 398–411. 
+
+Imai, K., L. Keele, and T. Yamamoto (2010): “Identification, Inference and Sensitivity Analysis for Causal Mediation Effects,” Statistical Science , 25, 51 71. 
+
+Imai, K., and T. Yamamoto (2013): “Identification and Sensitivity Analysis for Multiple Causal Mechanisms: Revisiting Evidence from Framing Experiments,” Political Analysis , 21, 141–171. 
+
+Imbens, G. W. (2004): “Nonparametric estimation of average treatment effects under exogeneity: a review,” The Review of Economics and Statistics , 86, 4–29. 
+
+Kitagawa, T. (2015): “A test for instrument validity,” Econometrica , 83, 2043–2063. 
+
+Kwon, S., and J. Roth (2024): “Testing Mechanisms,” arXiv preprint 2404.11739 .
+
+Mourifi´ e, I., and Y. Wan (2017): “Testing LATE assumptions,” The Review of Economics and Statistics , 99, 305–313. 
+
+Neyman, J. (1923): “On the Application of Probability Theory to Agricultural Experiments. Essay on Principles.,” Statistical Science , Reprint, 5, 463–480. 
+
+Neyman, J. (1959): Optimal asymptotic tests of composite statistical hypotheses pp. 416–444. Wiley. 
+
+Pearl, J. (1988): Probabilistic reasoning in intelligent systems: networks of plausible inference .Morgan Kaufmann, San Mateo. 
+
+Pearl, J. (1995): “Causal Diagrams for Empirical Research,” Biometrika , 82, 669–710 (with discus-sion). (2000): Causality: Models, Reasoning, and Inference . Cambridge University Press, Cam-bridge. 
+
+Pearl, J. (2001): “Direct and indirect effects,” in Proceedings of the Seventeenth Conference on Uncertainty in Artificial Intelligence , pp. 411–420, San Francisco. Morgan Kaufman. 31 Prentice, R. L. (1989): “Surrogate endpoints in clinical trials: definition and operational criteria,” 
+
+Statistics in medicine , 8, 431–440. 
+
+Racine, J. (1997): “Consistent Significance Testing for Nonparametric Regression,” Journal of Busi-ness & Economic Statistics , 15(3), 369–378. 
+
+Racine, J., J. Hart, and Q. Li (2006): “Testing the Significance of Categorical Predictor Variables in Nonparametric Regression Models,” Econometric Reviews , 25, 523–544. 
+
+Richardson, T. S., and J. M. Robins (2013): “Single world intervention graphs (SWIGs): Aunification of the counterfactual and graphical approaches to causality,” Center for the Statistics and the Social Sciences, University of Washington Series. Working Paper , 128(30), 2013. 
+
+Robins, J. M. (2003): “Semantics of causal DAG models and the identification of direct and indirect effects,” in In Highly Structured Stochastic Systems , ed. by P. Green, N. Hjort, and S. Richardson, pp. 70–81, Oxford. Oxford University Press. 
+
+Robins, J. M., and S. Greenland (1992): “Identifiability and Exchangeability for Direct and Indirect Effects,” Epidemiology , 3, 143–155. 
+
+Robins, J. M., and A. Rotnitzky (1995): “Semiparametric Efficiency in Multivariate Regression Models with Missing Data,” Journal of the American Statistical Association , 90, 122–129. 
+
+Robins, J. M., A. Rotnitzky, and L. Zhao (1994): “Estimation of Regression Coefficients When Some Regressors Are not Always Observed,” Journal of the American Statistical Association , 90, 846–866. 
+
+Rubin, D. (1980): “Comment on ’Randomization Analysis of Experimental Data: The Fisher Ran-domization Test’ by D. Basu,” Journal of American Statistical Association , 75, 591–593. 
+
+Rubin, D. B. (1974): “Estimating Causal Effects of Treatments in Randomized and Nonrandomized Studies,” Journal of Educational Psychology , 66, 688–701. 
+
+Spirtes, P., C. N. Glymour, R. Scheines, and D. Heckerman (2000): Causation, prediction, and search . Springer. 
+
+Tchetgen Tchetgen, E. J., and I. Shpitser (2012): “Semiparametric theory for causal mediation analysis: Efficiency bounds, multiple robustness, and sensitivity analysis,” The Annals of Statistics ,40, 1816–1845. 
+
+Tchetgen Tchetgen, E. J., and T. J. VanderWeele (2014): “On Identification of Natural Direct Effects when a Confounder of the Mediator is Directly Affected by Exposure,” Epidemiology ,25, 282–291. 
+
+Wooldridge, J. M. (1992): “A test for functional form against nonparametric alternatives,” Econo-metric Theory , 8(4), 452–475. 32 A Appendix 
+
+Proofs of Theorems 1 and 2 follow similar mechanics as in Huber and Kueck (2022) and Huber, Kloiber, and Laffers (2024). We translate the identifying assumptions in this paper into DAG terminology (Pearl, 1995). Let G denote the original graph and let GD and GDM denote the interventional graphs in which all the arrows starting from D or D, M are removed. This follows from the Single World Intervention Graphs (SWIGs) framework of Richardson and Robins (2013). The identifying assumptions are the following: (1) There are no directed paths in the following directions: Y → M , Y → D, M → D, D → X, M → X,
+
+Y → X in graph G.(2) (This is a statistical assumption and it places no restrictions on the underlying DAG.) (3) There is a direct open path D → M with conditioning set {X} in graph G.(4a) Y and D are d-separated with conditioning set {X} in graph GDM .(4b) M and D are d-separated with conditioning set {X} in graph GD .(5) There is no open directed path D → Y with conditioning set {X}, apart from the one that goes through 
+
+M in GM .(6) Y and M are d-separated with conditioning set {X} in graph GDM .Below we provide analytical proofs. We also note that these proofs were verified computationally by exhaustive search in the space of DAGs with observed variables Y, D, M, X and unobserved confounders for all their pairs, see Huber, Kloiber, and Laffers (2024) for details. 
+
+A.1 Proof of Theorem 1 
+
+Proof. “ = ⇒ ”We proceed by a proof by contradiction. Suppose that ¬(T I ) holds (throughout the proofs, we use the notation ¬(S) to denote that the statement S does not hold). This means that there exists an open path 
+
+Y − · · · − D in the graph G conditional on {M, X }.Assumption (4a) (which from Assumption (4)) states that there is no open path Y − · · · − D in graph GDM 
+
+conditional on {X}.
+
+¬(TI) and (4a) can only hold simultaneously, if either of the following situations occur: (A) M is a collider and it opens the otherwise closed path Y − · · · − D,
+
+33 (B) adding arrows from D and/or M (difference between graphs G and GDM ) opens the otherwise closed path Y − · · · − D.(A) Suppose that M is a collider and it opens the path Y − · · · − D:
+
+M is a collider, so we have Y − · · · → M ← · · · − D. Now consider the this part Y − · · · → M of the path, which has to be open. We therefore have one of these cases: 
+
+• Y → M this contradicts (1). E
+
+• Y ← U → M this contradicts (6). E
+
+• Y ← X → M this path is closed, because X is conditioned on. E
+
+• Y ← U → X → M this path is closed, because X is conditioned on. E
+
+• Y ← X ← U → M this path is closed, because X is conditioned on. E
+
+• Y → X → M this contradicts (1). E
+
+Therefore M is not a collider that opens up the closed path Y − · · · − D.(B) Adding arrow(s) from D and/or M opens the otherwise closed path Y − · · · − D
+
+Consider the following situations when adding arrow from D would open up the path Y − · · · − D.
+
+• D → Y this contradicts (5). E
+
+• D → X this contradicts (1). E
+
+• D → M ← · · · Y this was ruled out in part (A) of the proof. E
+
+• D → M → · · · Y which is one of the following: 
+
+– D → M → X · · · Y this contradicts (1). E
+
+– D → M → Y which does not lead to a violation of (TI). E
+
+Consider the following situations when adding arrow from M would open up the path Y − · · · − D.
+
+• D . . . M → · · · Y which can only result in 
+
+– D . . . M → Y which does not lead to a violation of (TI). E
+
+– D . . . M → X · · · Y this contradicts (1). E
+
+• D · · · ← M · · · Y which can only result in 
+
+– D ← M · · · Y this contradicts (1). E
+
+– D . . . X ← M · · · Y this contradicts (1). E
+
+34 We conclude that neither (A) nor (B) can happen and therefore “ = ⇒ ” holds. Part “ ⇐= ” “(5) ⇐= ” Assume that (1), (3), (4a), (4b), (TI), ¬(5). 
+
+¬(5) together with (1) means that there is a direct link D → Y. But this directly contradicts (TI). E
+
+“(6) ⇐= ” Assume that (1), (3), (4a), (4b), (TI), ¬(6). 
+
+¬(6) says that there is an open path between Y and M in graph GDM conditional on X. Because there are no arrows from D or M in GDM , this is equivalent to the existence of path M ← U → Y. By (3) we have the existence of D → M , therefore we have D → M ← U → Y. But the existence of this path contradicts (TI). E
+
+A.2 Proof of Theorem 2 
+
+Proof. “ = ⇒ ”This part of the proof is identical to “ = ⇒ ” part of Theorem 1. Part “ ⇐= ” “(5) ⇐= ” and “(6) ⇐= ” are identical to the one of Theorem 1. “(4a) ⇐= ” Assume that (1), (3), (TI) and ¬(4a). 
+
+¬(4a) says that there exists an open path between Y and D in GDM conditional on X.By (TI) there is no open path between Y and D in G conditional on {X, M }. This implies that such path does not exist even in GDM . This implies that conditioning on M closes the path that is open in ¬(4a). This means that M is not a collider on this path, so at least one of the arrows have to go from M. But this contradicts the fact that there are no arrows from M in GDM . E
+
+A.3 Proof of Theorem 3 
+
+For simplicity, we only present the proof for discrete variables. 
+
+35 Proof. Let d ∈ D , m ∈ M , y ∈ Y , and x ∈ X be arbitrary. We start from the conditional independence relation in (TI) and derive (BD=FD) equality. Pr( Y = y|D = d, M = m, X = x)
+
+> (T I )
+
+z}|{ 
+
+= Pr( Y = y|D = d′, M = m, X = x)=⇒
+
+X
+
+> d′
+
+Pr( Y = y|D = d, M = m, X = x) Pr( D = d′|X = x) = X
+
+> d′
+
+Pr( Y = y|D = d′, M = m, X = x) Pr( D = d′|X = x)Pr( Y = y|D = d, M = m, X = x) X
+
+> d′
+
+Pr( D = d′|X = x)
+
+| {z }
+
+> =1
+
+= X
+
+> d′
+
+Pr( Y = y|D = d′, M = m, X = x) Pr( D = d′|X = x)=⇒
+
+Pr( Y = y|D = d, M = m, X = x) = X
+
+> d′
+
+Pr( Y = y|D = d′, M = m, X = x) Pr( D = d′|X = x)=⇒
+
+X
+
+> m
+
+Pr( M = m|D = d, X = x)· = X
+
+> m
+
+Pr( M = m|D = d, X = x) ·
+
+Pr( Y = y|D = d, M = m, X = x) X
+
+> d′
+
+Pr( Y = y|D = d′, M = m, X = x) Pr( D = d′|X = x)=⇒
+
+Pr( Y = y|D = d, X = x)
+
+> (BD =F D )
+
+z}|{ 
+
+= X
+
+> m
+
+Pr( M = m|D = d, X = x) ·
+
+X
+
+> d′
+
+Pr( Y = y|D = d′, M = m, X = x) Pr( D = d′|X = x)The first implication follows from multipying both sides by Pr( D = d′|X = x) and summing up across d′ ∈ D .
+
+Similarly, in the third implication we multiply both sides with Pr( M = m|D = d, X = x) and sum across m ∈ M . The last implication is an application of the law of total probability. 
+
+A.4 Proof of Theorem 4 
+
+Similarly to the proof of Theorem 3, we present the proof only for discrete variables. 
+
+Proof. Let d ∈ D , m ∈ M , y ∈ Y , and x ∈ X be arbitrary. We start from the equality of population-level 
+
+36 quantities in FD and BD (BD=FD) and derive the testable conditional independence relation in (TI). 
+
+Pr( Y = y|D = d, X = x)
+
+> (BD =F D )
+
+z}|{ 
+
+= X
+
+> m
+
+Pr( M = m|D = d, X = x) ·
+
+X
+
+> d′
+
+Pr( Y = y|D = d′, M = m, X = x) Pr( D = d′|X = x)=⇒
+
+X
+
+> m
+
+Pr( M = m|D = d, X = x)· = X
+
+> m
+
+Pr( M = m|D = d, X = x) ·
+
+Pr( Y = y|D = d, M = m, X = x) X
+
+> d′
+
+Pr( Y = y|D = d′, M = m, X = x) Pr( D = d′|X = x)
+
+> (7)
+
+z }| { 
+
+=⇒
+
+X
+
+> m
+
+Pr( M = m|D = d, X = x)· = X
+
+> m
+
+Pr( M = m|D = d, X = x) ·
+
+(α(d, x ) + β(m, x )) X
+
+> d′
+
+ α(d′, x ) + β(m, x ) Pr( D = d′|X = x)=⇒
+
+X
+
+> m
+
+Pr( M = m|D = d, X = x)α(d, x )+ = X
+
+> m
+
+Pr( M = m|D = d, X = x) X
+
+> d′
+
+α(d′, x ) Pr( D = d′|X = x) + 
+
+X
+
+> m
+
+Pr( M = m|D = d, X = x)β(m, x ) X
+
+> m
+
+Pr( M = m|D = d, X = x)β(m, x ) X
+
+> d′
+
+Pr( D = d′|X = x)
+
+| {z }
+
+> =1
+
+=⇒
+
+X
+
+> m
+
+Pr( M = m|D = d, X = x)α(d, x ) = X
+
+> m
+
+Pr( M = m|D = d, X = x) X
+
+> d′
+
+α(d′, x ) Pr( D = d′|X = x)=⇒
+
+α(d, x ) X
+
+> m
+
+Pr( M = m|D = d, X = x)
+
+| {z }
+
+> =1
+
+= X
+
+> d′
+
+α(d′, x ) Pr( D = d′|X = x) X
+
+> m
+
+Pr( M = m|D = d, X = x)
+
+| {z }
+
+> =1
+
+=⇒
+
+α(d, x ) = X
+
+> d′
+
+α(d′, x ) Pr( D = d′|X = x)
+
+| {z } 
+
+> does not depend on d
+
+=⇒
+
+α(d, x ) = α(d′, x )=⇒
+
+α(d, x ) + β(m, x ) = α(d′, x ) + β(m, x )=⇒
+
+Pr( Y = y|D = d, M = m, X = x)
+
+> (T I )
+
+z}|{ 
+
+= Pr( Y = y|D = d′, M = m, X = x)
+
+In the first implication, we multiply both sides by Pr( M = m | D = d, X = x) and sum over all m ∈ M . The second implication is an application of the separability assumption 7. The seventh implication follows from the fact that the RHS does not depend on d, and therefore neither does the LHS, which, after rearrangement, leads to the condition in (TI). 
+
+37

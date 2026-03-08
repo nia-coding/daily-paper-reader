@@ -1,0 +1,464 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-08T05:16:50.546567+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 1,
+    "deep_cap": 6,
+    "deep_selected": 1,
+    "quick_candidates": 12,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2602.23877v1",
+      "title": "Difference-in-differences for mediation analysis using double machine learning",
+      "abstract": "We propose a difference-in-differences (DiD) framework with mediation for possibly multivalued discrete or continuous treatments and mediators, aimed at identifying the direct effect of the treatment on the outcome (net of effects operating through the mediator), the indirect effect via the mediator, and the joint effects of treatment and mediator, consistent with the framework of dynamic treatment effects. Identification relies on a conditional parallel trends assumption imposed on the mean potential outcome across treatment and mediator states, or (depending on the causal parameter) additionally on the mean potential outcomes and potential mediator distributions across treatment states. We propose ATET estimators for repeated cross sections and panel data within the double/debiased machine learning framework, which allows for data-driven control of covariates, and we establish their asymptotic normality under standard regularity conditions. We investigate the finite-sample performance of the proposed methods in a simulation study and illustrate our approach in an empirical application to the US National Longitudinal Survey of Youth, estimating the direct effect of health care coverage on general health as well as the indirect effect operating through routine checkups.",
+      "authors": [
+        "Martin Huber",
+        "Sarina Joy Oberhänsli"
+      ],
+      "primary_category": "econ.EM",
+      "categories": [
+        "econ.EM"
+      ],
+      "published": "2026-02-27T10:18:16+00:00",
+      "link": "https://arxiv.org/pdf/2602.23877v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Difference-in-differences framework for mediation analysis with double machine learning",
+      "llm_evidence_cn": "结合双重机器学习的中介分析倍差法框架",
+      "llm_evidence": "结合双重机器学习的中介分析倍差法框架",
+      "canonical_evidence": "结合双重机器学习的中介分析倍差法框架",
+      "llm_tldr_en": "Provides a robust statistical method for identifying direct and indirect effects in mediation models.",
+      "llm_tldr_cn": "提供了一种稳健的统计方法，用于识别中介模型中的直接和间接效应。",
+      "llm_tldr": "提供了一种稳健的统计方法，用于识别中介模型中的直接和间接效应。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "mediating role of emotion regulation in parenting and cognition",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2602.23943v1",
+      "title": "A flexible approach to sequential prediction under intervention",
+      "abstract": "We propose a causal predictive framework for estimating risk under preventative interventions. The Unexposed Mediator Model maintains mediators that are also predictors at their unexposed level, removing double counting of intervention effects at followup visits. The Modifiable Risk Factor Model handles multiple interventions flexibly by modelling their effects via mediators that are also predictors, assuming a known causal structure. The Two Component Model combines a predictive baseline model with an intervention model to improve predictive performance. We illustrate the framework in primary prevention of cardiovascular disease. The proposed models allow arbitrary interventions to be evaluated within a prediction under intervention framework, with causally consistent risk estimates across repeated visits. Limitations include reliance on predictor values from an arbitrary first visit, requirements for causal structural knowledge, and a consistency assumption, that interventions with identical effects on predictors have identical effects on outcomes, which warrant further investigation.",
+      "authors": [
+        "Matthew Sperrin",
+        "Bowen Jiang",
+        "Joyce Huang",
+        "Niels Peek",
+        "Alexander Pate"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME"
+      ],
+      "published": "2026-02-27T11:44:34+00:00",
+      "link": "https://arxiv.org/pdf/2602.23943v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Causal predictive framework for estimating risk under interventions with mediators",
+      "llm_evidence_cn": "在包含中介变量的干预下估计风险的因果预测框架",
+      "llm_evidence": "在包含中介变量的干预下估计风险的因果预测框架",
+      "canonical_evidence": "在包含中介变量的干预下估计风险的因果预测框架",
+      "llm_tldr_en": "Proposes models for sequential prediction under intervention using mediators, useful for parenting intervention research.",
+      "llm_tldr_cn": "提出了利用中介变量进行干预下序列预测的模型，对教养干预研究有用。",
+      "llm_tldr": "提出了利用中介变量进行干预下序列预测的模型，对教养干预研究有用。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "The mediating role of basic psychological needs in the relationship between parenting and EF",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2602.23800v1",
+      "title": "Operationalizing Longitudinal Causal Discovery Under Real-World Workflow Constraints",
+      "abstract": "Causal discovery has achieved substantial theoretical progress, yet its deployment in large-scale longitudinal systems remains limited. A key obstacle is that operational data are generated under institutional workflows whose induced partial orders are rarely formalized, enlarging the admissible graph space in ways inconsistent with the recording process. We characterize a workflow-induced constraint class for longitudinal causal discovery that restricts the admissible directed acyclic graph space through protocol-derived structural masks and timeline-aligned indexing. Rather than introducing a new optimization algorithm, we show that explicitly encoding workflow-consistent partial orders reduces structural ambiguity, especially in mixed discrete--continuous panels where within-time orientation is weakly identified. The framework combines workflow-derived admissible-edge constraints, measurement-aligned time indexing and block structure, bootstrap-based uncertainty quantification for lagged total effects, and a dynamic representation supporting intervention queries. In a nationwide annual health screening cohort in Japan with 107,261 individuals and 429,044 person-years, workflow-constrained longitudinal LiNGAM yields temporally consistent within-time substructures and interpretable lagged total effects with explicit uncertainty. Sensitivity analyses using alternative exposure and body-composition definitions preserve the main qualitative patterns. We argue that formalizing workflow-derived constraint classes improves structural interpretability without relying on domain-specific edge specification, providing a reproducible bridge between operational workflows and longitudinal causal discovery under standard identifiability assumptions.",
+      "authors": [
+        "Tadahisa Okuda",
+        "Shohei Shimizu",
+        "Thong Pham",
+        "Tatsuyoshi Ikenoue",
+        "Shingo Fukuma"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-02-27T08:40:17+00:00",
+      "link": "https://arxiv.org/pdf/2602.23800v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Methodology for longitudinal causal discovery in real-world systems",
+      "llm_evidence_cn": "现实世界系统中纵向因果发现的方法论",
+      "llm_evidence": "现实世界系统中纵向因果发现的方法论",
+      "canonical_evidence": "现实世界系统中纵向因果发现的方法论",
+      "llm_tldr_en": "Develops a framework for longitudinal causal discovery by encoding workflow-induced constraints.",
+      "llm_tldr_cn": "通过编码工作流诱导的约束，开发了一个纵向因果发现的框架。",
+      "llm_tldr": "通过编码工作流诱导的约束，开发了一个纵向因果发现的框架。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "longitudinal association between parenting and executive function",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.02461v1",
+      "title": "Understanding Decision-Making Across the Lifespan Needs Theoretical Neuroscience",
+      "abstract": "Understanding how decision making changes across the lifespan is a central challenge for neuroscience, yet research on cognitive aging has remained largely disconnected from the theoretical and computational advances that now shape modern systems neuroscience. Over the past two decades, theoretical frameworks have transformed how we study cognition in young, healthy brains, providing principled tools to model latent decision states, neural dynamics, population codes, and interareal communication. In contrast, aging research has often relied on single metric behavioral readouts, cross sectional comparisons, and descriptive neural analyses, limiting our ability to explain fundamental differences in individual aging trajectories. This gap represents a missed opportunity because aging offers a powerful platform for testing theories of neural computation, stability, and flexibility under changing biological constraints. Here, we argue that closer integration between aging research and contemporary theoretical neuroscience can move the field beyond descriptive accounts toward more mechanistic explanations of decision making across the lifespan. To this end, we outline how recent advances in behavioral quantification, latent state modeling, dynamical systems, encoding models, representational geometry, and recurrent neural networks offer a rich theoretical toolkit for neuroscientists studying decision making across the lifespan.",
+      "authors": [
+        "Michael B. Ryan",
+        "Letizia Ye",
+        "Anne K. Churchland"
+      ],
+      "primary_category": "q-bio.NC",
+      "categories": [
+        "q-bio.NC"
+      ],
+      "published": "2026-03-02T23:02:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.02461v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "theoretical neuroscience approach to understanding decision-making changes across the lifespan",
+      "llm_evidence_cn": "理解整个生命周期中决策变化的理论神经科学方法",
+      "llm_evidence": "理解整个生命周期中决策变化的理论神经科学方法",
+      "canonical_evidence": "理解整个生命周期中决策变化的理论神经科学方法",
+      "llm_tldr_en": "Argues for using theoretical neuroscience to bridge the gap in understanding cognitive changes across the lifespan.",
+      "llm_tldr_cn": "主张利用理论神经科学来弥补理解整个生命周期认知变化方面的空白。",
+      "llm_tldr": "主张利用理论神经科学来弥补理解整个生命周期认知变化方面的空白。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "development of executive function in children and adolescents",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.00488v1",
+      "title": "Dynamic Spatio-Temporal Graph Neural Network for Early Detection of Pornography Addiction in Adolescents Based on Electroencephalogram Signals",
+      "abstract": "Adolescent pornography addiction requires early detection based on objective neurobiological biomarkers because self-report is prone to subjective bias due to social stigma. Conventional machine learning has not been able to model dynamic functional connectivity of the brain that fluctuates temporally during addictive stimulus exposure. This study proposes a state-of-the-art Dynamic Spatio-Temporal Graph Neural Network (DST-GNN) that integrates Phase Lag Index (PLI)-based Graph Attention Network (GAT) for spatial modeling and Bidirectional Gated Recurrent Unit (BiGRU) for temporal dynamics. The dataset consists of 14 adolescents (7 addicted, 7 healthy) with 19-channel EEG across 9 experimental conditions. Leave-One-Subject-Out Cross Validation (LOSO-CV) evaluation shows F1-Score of 71.00%$\\pm$12.10% and recall of 85.71%, a 104% improvement compared to baseline. Ablation study confirms temporal contribution of 21% and PLI graph construction of 57%. Frontal-central regions (Fz, Cz, C3, C4) are identified as dominant biomarkers with Beta contribution of 58.9% and Hjorth of 31.2%, while Cz-T7 connectivity is consistent as a trait-level biomarker for objective screening.",
+      "authors": [
+        "Achmad Ardani Prasha",
+        "Clavino Ourizqi Rachmadi",
+        "Sabrina Laila Mutiara",
+        "Hilman Syachr Ramadhan",
+        "Chareyl Reinalyta Borneo",
+        "Saruni Dwiasnati"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.HC"
+      ],
+      "published": "2026-02-28T06:04:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.00488v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "neurobiological biomarkers and brain connectivity in adolescent addiction",
+      "llm_evidence_cn": "青少年成瘾中的神经生物学标志物和大脑连接",
+      "llm_evidence": "青少年成瘾中的神经生物学标志物和大脑连接",
+      "canonical_evidence": "青少年成瘾中的神经生物学标志物和大脑连接",
+      "llm_tldr_en": "Uses EEG-based graph neural networks for early detection of pornography addiction in adolescents.",
+      "llm_tldr_cn": "利用基于脑电图的图神经网络早期检测青少年的色情成瘾。",
+      "llm_tldr": "利用基于脑电图的图神经网络早期检测青少年的色情成瘾。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "development of executive function in children and adolescents",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.02540v1",
+      "title": "A Neuropsychologically Grounded Evaluation of LLM Cognitive Abilities",
+      "abstract": "Large language models (LLMs) exhibit a unified \"general factor\" of capability across 10 benchmarks, a finding confirmed by our factor analysis of 156 models, yet they still struggle with simple, trivial tasks for humans. This is because current benchmarks focus on task completion, failing to probe the foundational cognitive abilities that highlight these behaviors. We address this by introducing the NeuroCognition benchmark, grounded in three adapted neuropsychological tests: Raven's Progressive Matrices (abstract relational reasoning), Spatial Working Memory (maintenance and systematic search), and the Wisconsin Card Sorting Test (cognitive flexibility). Our evaluation reveals that while models perform strongly on text, their performance degrades for images and with increased complexity. Furthermore, we observe that complex reasoning is not universally beneficial, whereas simple, human-like strategies yield partial gains. We also find that NeuroCognition correlates positively with standard general-capability benchmarks, while still measuring distinct cognitive abilities beyond them. Overall, NeuroCognition emphasizes where current LLMs align with human-like intelligence and where they lack core adaptive cognition, showing the potential to serve as a verifiable, scalable source for improving LLMs.",
+      "authors": [
+        "Faiz Ghifari Haznitrama",
+        "Faeyza Rishad Ardi",
+        "Alice Oh"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-03T02:54:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.02540v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "evaluation of cognitive flexibility and working memory using neuropsychological tests",
+      "llm_evidence_cn": "使用神经心理学测试评估认知灵活性和工作记忆",
+      "llm_evidence": "使用神经心理学测试评估认知灵活性和工作记忆",
+      "canonical_evidence": "使用神经心理学测试评估认知灵活性和工作记忆",
+      "llm_tldr_en": "Evaluates LLM cognitive abilities using tests like the Wisconsin Card Sorting Test for cognitive flexibility.",
+      "llm_tldr_cn": "使用威斯康星卡片分类测试等评估大语言模型的认知灵活性。",
+      "llm_tldr": "使用威斯康星卡片分类测试等评估大语言模型的认知灵活性。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "development of executive function in children and adolescents",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.02056v1",
+      "title": "A Resource-Rational Principle for Modeling Visual Attention Control",
+      "abstract": "Understanding how people allocate visual attention is central to Human-Computer Interaction (HCI), yet existing computational models of attention are often either descriptive, task-specific, or difficult to interpret. My dissertation develops a resource-rational, simulation-based framework for modeling visual attention as a sequential decision-making process under perceptual, memory, and time constraints. I formalize visual tasks, such as reading and multitasking, as bounded-optimal control problems using Partially Observable Markov Decision Processes, enabling eye-movement behaviors such as fixation and attention switching to emerge from rational adaptation rather than being hand-coded or purely data-driven. These models are instantiated in simulation environments spanning traditional text reading and reading-while-walking with smart glasses, where they reproduce classic empirical effects, explain observed trade-offs between comprehension and safety, and generate novel predictions under time pressure and interface variation. Collectively, this work contributes a unified computational account of visual attention, offering new tools for theory-driven and resource-efficient HCI design.",
+      "authors": [
+        "Yunpeng Bai"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T16:45:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.02056v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Modeling visual attention control as a sequential decision-making process under constraints",
+      "llm_evidence_cn": "将视觉注意控制建模为约束下的序列决策过程",
+      "llm_evidence": "将视觉注意控制建模为约束下的序列决策过程",
+      "canonical_evidence": "将视觉注意控制建模为约束下的序列决策过程",
+      "llm_tldr_en": "Develops a resource-rational framework for attention control, relevant to the cognitive modeling of EF.",
+      "llm_tldr_cn": "开发了一个注意力控制的资源理性框架，与执行功能的认知建模相关。",
+      "llm_tldr": "开发了一个注意力控制的资源理性框架，与执行功能的认知建模相关。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "development of executive function in children and adolescents",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.03476v1",
+      "title": "Stringology-Based Motif Discovery from EEG Signals: an ADHD Case Study",
+      "abstract": "We propose a novel computational framework for analyzing electroencephalography (EEG) time series using methods from stringology, the study of efficient algorithms for string processing, to systematically identify and characterize recurrent temporal patterns in neural signals. The primary aim is to introduce quantitative measures to understand neural signal dynamics, with the present findings serving as a proof-of-concept. The framework adapts order-preserving matching (OPM) and Cartesian tree matching (CTM) to detect temporal motifs that preserve relative ordering and hierarchical structure while remaining invariant to amplitude scaling. This approach provides a temporally precise representation of EEG dynamics that complements traditional spectral and global complexity analyses. To evaluate its utility, we applied the framework to multichannel EEG recordings from individuals with attention-deficit/hyperactivity disorder (ADHD) and matched controls using a publicly available dataset. Highly recurrent, group-specific motifs were extracted and quantified using both OPM and CTM. The ADHD group exhibited significantly higher motif frequencies, suggesting increased repetitiveness in neural activity. OPM analysis revealed shorter motif lengths and greater gradient instability in ADHD, reflected in larger mean and maximal inter-sample amplitude changes. CTM analysis further demonstrated reduced hierarchical complexity in ADHD, characterized by shallower tree structures and fewer hierarchical levels despite comparable motif lengths. These findings suggest that ADHD-related EEG alterations involve systematic differences in the structure, stability, and hierarchical organization of recurrent temporal patterns. The proposed stringology-based motif framework provides a complementary computational tool with potential applications for objective biomarker development in neurodevelopmental disorders.",
+      "authors": [
+        "Anat Dahan",
+        "Samah Ghazawi"
+      ],
+      "primary_category": "q-bio.NC",
+      "categories": [
+        "q-bio.NC",
+        "cs.DS",
+        "cs.IR",
+        "cs.NE"
+      ],
+      "published": "2026-03-03T19:44:55+00:00",
+      "link": "https://arxiv.org/pdf/2603.03476v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "EEG signal analysis for ADHD case study using stringology-based motif discovery",
+      "llm_evidence_cn": "基于字符串学的ADHD案例研究EEG信号分析",
+      "llm_evidence": "基于字符串学的ADHD案例研究EEG信号分析",
+      "canonical_evidence": "基于字符串学的ADHD案例研究EEG信号分析",
+      "llm_tldr_en": "Introduces a framework for identifying neural patterns in EEG, relevant to neurobiological studies of ADHD/EF.",
+      "llm_tldr_cn": "引入一种识别EEG神经模式的框架，与ADHD和执行功能的神经生物学研究相关。",
+      "llm_tldr": "引入一种识别EEG神经模式的框架，与ADHD和执行功能的神经生物学研究相关。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "Neurobiological mechanisms linking parenting styles to inhibitory control",
+      "matched_requirement_id": "req-13",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.03587v1",
+      "title": "Controllable Generative Sandbox for Causal Inference",
+      "abstract": "Method validation and study design in causal inference rely on synthetic data with known counterfactuals. Existing simulators trade off distributional realism, the ability to capture mixed-type and multimodal tabular data, against causal controllability, including explicit control over overlap, unmeasured confounding, and treatment effect heterogeneity. We introduce CausalMix, a variational generative framework that closes this gap by coupling a mixture of Gaussian latent priors with data-type-specific decoders for continuous, binary, and categorical variables. The model incorporates explicit causal controls: an overlap regularizer shaping propensity-score distributions, alongside direct parameterizations of confounding strength and effect heterogeneity. This unified objective preserves fidelity to the observed data while enabling factorial manipulation of causal mechanisms, allowing overlap, confounding strength, and treatment effect heterogeneity to be varied independently at design time. Across benchmarks, CausalMix achieves state-of-the-art distributional metrics on mixed-type tables while providing stable, fine-grained causal control. We demonstrate practical utility in a comparative safety study of metastatic castration-resistant prostate cancer treatments, using CausalMix to compare estimators under calibrated data-generating processes, tune hyperparameters, and conduct simulation-based power analyses under targeted treatment effect heterogeneity scenarios.",
+      "authors": [
+        "Qi Zhang",
+        "Harsh Parikh",
+        "Ashley Naimi",
+        "Razieh Nabi",
+        "Christopher Kim",
+        "Timothy Lash"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME",
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-03-03T23:37:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.03587v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "causal inference framework for synthetic data with explicit control over confounding and heterogeneity",
+      "llm_evidence_cn": "具有混杂和异质性显式控制的合成数据因果推断框架",
+      "llm_evidence": "具有混杂和异质性显式控制的合成数据因果推断框架",
+      "canonical_evidence": "具有混杂和异质性显式控制的合成数据因果推断框架",
+      "llm_tldr_en": "A generative framework for causal inference that allows explicit control over confounding and treatment effects.",
+      "llm_tldr_cn": "一种因果推断生成框架，允许对混杂因素和处理效应进行显式控制。",
+      "llm_tldr": "一种因果推断生成框架，允许对混杂因素和处理效应进行显式控制。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "longitudinal association between parenting and executive function",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.04003v1",
+      "title": "Efficient Bayesian Estimation of Dynamic Structural Equation Models via State Space Marginalization",
+      "abstract": "Dynamic structural equation models (DSEMs) combine time-series modeling of within-person processes with hierarchical modeling of between-person differences and differences between timepoints, and have become very popular for the analysis of intensive longitudinal data in the social sciences. An important computational bottleneck has, however, still not been resolved: whenever the underlying process is assumed to be latent and measured by one or more indicators per timepoint, currently published algorithms rely on inefficient brute-force Markov chain Monte Carlo sampling which scales poorly as the number of timepoints and participants increases and results in highly correlated samples. The main result of this paper shows that the within-level part of any DSEM can be reformulated as a linear Gaussian state space model. Consequently, the latent states can be analytically marginalized using a Kalman filter, allowing for highly efficient estimation via Hamiltonian Monte Carlo. This makes estimation of DSEMs computationally tractable for much larger datasets -- both in terms of timepoints and participants -- than what has been previously possible. We demonstrate the proposed algorithm in several simulation experiments, showing it can be orders of magnitude more efficient than standard Metropolis-within-Gibbs approaches.",
+      "authors": [
+        "Øystein Sørensen"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME",
+        "stat.CO"
+      ],
+      "published": "2026-03-04T12:47:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.04003v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "provides efficient estimation for dynamic structural equation models used in longitudinal social science data",
+      "llm_evidence_cn": "为社会科学纵向数据中使用的动态结构方程模型提供高效估计",
+      "llm_evidence": "为社会科学纵向数据中使用的动态结构方程模型提供高效估计",
+      "canonical_evidence": "为社会科学纵向数据中使用的动态结构方程模型提供高效估计",
+      "llm_tldr_en": "Introduces an efficient Bayesian estimation method for DSEMs, crucial for analyzing longitudinal parenting data.",
+      "llm_tldr_cn": "为动态结构方程模型引入了一种高效的贝叶斯估计方法，对分析纵向教养数据至关重要。",
+      "llm_tldr": "为动态结构方程模型引入了一种高效的贝叶斯估计方法，对分析纵向教养数据至关重要。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "longitudinal association between parenting and executive function",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.03819v1",
+      "title": "Direct Bayesian Additive Regression Trees for Conditional Average Treatment Effects in Regression Discontinuity Designs",
+      "abstract": "Regression discontinuity designs (RDD) are widely used for causal inference. In many empirical applications, treatment effects vary substantially with covariates, and ignoring such heterogeneity can lead to misleading conclusions, which motivates flexible modeling of heterogeneous treatment effects in RDD. To this end, we propose a Bayesian nonparametric approach to estimating heterogeneous treatment effects based on Bayesian Additive Regression Trees (BART). The key feature of our method lies in adopting a general Bayesian framework using a pseudo-model defined through a loss function for fitting local linear models around the cutoff, which gives direct modeling of heterogeneous treatment effects by BART. Optimal selection of the bandwidth parameter for the local model is implemented using the Hyvärinen score. Through numerical experiments, we demonstrate that the proposed approach flexibly captures complicated structures of heterogeneous treatment effects as a function of covariates.",
+      "authors": [
+        "Daisuke Kondo",
+        "Shonosuke Sugasawa"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME",
+        "stat.ML"
+      ],
+      "published": "2026-03-04T08:11:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.03819v1",
+      "tags": [
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Bayesian nonparametric approach for estimating heterogeneous treatment effects in causal inference",
+      "llm_evidence_cn": "用于因果推断中估计异质治疗效应的贝叶斯非参数方法",
+      "llm_evidence": "用于因果推断中估计异质治疗效应的贝叶斯非参数方法",
+      "canonical_evidence": "用于因果推断中估计异质治疗效应的贝叶斯非参数方法",
+      "llm_tldr_en": "Proposes a BART-based method for estimating varying treatment effects, useful for complex causal parenting studies.",
+      "llm_tldr_cn": "提出一种基于BART的方法来估计变化的治疗效应，可用于复杂的教养方式因果研究。",
+      "llm_tldr": "提出一种基于BART的方法来估计变化的治疗效应，可用于复杂的教养方式因果研究。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "longitudinal association between parenting and executive function",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.04109v1",
+      "title": "Testing Full Mediation of Treatment Effects and the Identifiability of Causal Mechanisms",
+      "abstract": "In causal analysis, understanding the causal mechanisms through which an intervention or treatment affects an outcome is often of central interest. We propose a test to evaluate (i) whether the causal effect of a treatment that is randomly assigned conditional on covariates is fully mediated by, or operates exclusively through, observed intermediate outcomes (referred to as mediators or surrogate outcomes), and (ii) whether the various causal mechanisms operating through different mediators are identifiable conditional on covariates. We demonstrate that if both full mediation and identification of causal mechanisms hold, then the conditionally random treatment is conditionally independent of the outcome given the mediators and covariates. Furthermore, we extend our framework to settings with non-randomly assigned treatments. We show that, in this case, full mediation remains testable, while identification of causal mechanisms is no longer guaranteed. We propose a double machine learning framework for implementing the test that can incorporate high-dimensional covariates and is root-n consistent and asymptotically normal under specific regularity conditions. We also present a simulation study demonstrating good finite-sample performance of our method, along with two empirical applications revisiting randomized experiments on maternal mental health and social norms.",
+      "authors": [
+        "Martin Huber",
+        "Kevin Kloiber",
+        "Lukáš Lafférs"
+      ],
+      "primary_category": "econ.EM",
+      "categories": [
+        "econ.EM",
+        "stat.ML"
+      ],
+      "published": "2026-03-04T14:29:57+00:00",
+      "link": "https://arxiv.org/pdf/2603.04109v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Statistical method for testing full mediation of treatment effects through intermediate outcomes",
+      "llm_evidence_cn": "测试通过中间结果进行处理效应完全中介作用的统计方法",
+      "llm_evidence": "测试通过中间结果进行处理效应完全中介作用的统计方法",
+      "canonical_evidence": "测试通过中间结果进行处理效应完全中介作用的统计方法",
+      "llm_tldr_en": "Proposes a test to evaluate if causal effects are fully mediated by observed intermediate outcomes.",
+      "llm_tldr_cn": "提出了一种测试方法，用于评估因果效应是否完全由观察到的中间变量中介。",
+      "llm_tldr": "提出了一种测试方法，用于评估因果效应是否完全由观察到的中间变量中介。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "The mediating role of basic psychological needs in the relationship between parenting and EF",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
+}

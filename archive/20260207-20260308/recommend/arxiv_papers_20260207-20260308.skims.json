@@ -1,0 +1,86 @@
+{
+  "mode": "skims",
+  "generated_at": "2026-03-08T05:28:02.707224+00:00",
+  "stats": {
+    "mode": "skims",
+    "forced_all_quick": true,
+    "min_score": 8.0,
+    "deep_divecandidates": 2,
+    "deep_cap": null,
+    "deep_selected": 0,
+    "quick_candidates": 2,
+    "quick_skim_target": null,
+    "quick_selected": 2
+  },
+  "deep_dive": [],
+  "quick_skim": [
+    {
+      "id": "2602.12764v1",
+      "title": "Social, Spatial, and Self-Presence as Predictors of Basic Psychological Need Satisfaction in Social Virtual Reality",
+      "abstract": "Extensive research has examined presence and basic psychological needs (drawing on Self-Determination Theory) in digital media. While prior work offers hints of potential connections, we lack a systematic account of whether and how distinct presence dimensions map onto the basic needs of autonomy, competence, and relatedness. We surveyed 301 social VR users and analyzed using Structural Equation Modeling. Results show that social presence predicts all three needs, while self-presence predicts competence and relatedness, and spatial presence shows no direct or moderating effects. Gender and age moderated these relationships: women benefited more from social presence for autonomy and relatedness, men from self- and spatial presence for competence and autonomy, and younger users showed stronger associations between social presence and relatedness, and between self-presence and autonomy. These findings position presence as a motivational mechanism shaped by demographic factors. The results offer theoretical insights and practical implications for designing inclusive, need-supportive multiuser VR environments.",
+      "authors": [
+        "Qijia Chen",
+        "Andrea Bellucci",
+        "Giulio Jacucci"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-02-13T09:47:34+00:00",
+      "link": "https://arxiv.org/pdf/2602.12764v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "basic psychological needs and self-determination theory",
+      "llm_evidence_cn": "基本心理需求与自我决定理论",
+      "llm_evidence": "基本心理需求与自我决定理论",
+      "canonical_evidence": "基本心理需求与自我决定理论",
+      "llm_tldr_en": "Analyzes how presence in social VR predicts basic psychological need satisfaction.",
+      "llm_tldr_cn": "分析了社交虚拟现实中的存在感如何预测基本心理需求的满足。",
+      "llm_tldr": "分析了社交虚拟现实中的存在感如何预测基本心理需求的满足。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "self-determination theory and basic psychological needs satisfaction",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04003v1",
+      "title": "Efficient Bayesian Estimation of Dynamic Structural Equation Models via State Space Marginalization",
+      "abstract": "Dynamic structural equation models (DSEMs) combine time-series modeling of within-person processes with hierarchical modeling of between-person differences and differences between timepoints, and have become very popular for the analysis of intensive longitudinal data in the social sciences. An important computational bottleneck has, however, still not been resolved: whenever the underlying process is assumed to be latent and measured by one or more indicators per timepoint, currently published algorithms rely on inefficient brute-force Markov chain Monte Carlo sampling which scales poorly as the number of timepoints and participants increases and results in highly correlated samples. The main result of this paper shows that the within-level part of any DSEM can be reformulated as a linear Gaussian state space model. Consequently, the latent states can be analytically marginalized using a Kalman filter, allowing for highly efficient estimation via Hamiltonian Monte Carlo. This makes estimation of DSEMs computationally tractable for much larger datasets -- both in terms of timepoints and participants -- than what has been previously possible. We demonstrate the proposed algorithm in several simulation experiments, showing it can be orders of magnitude more efficient than standard Metropolis-within-Gibbs approaches.",
+      "authors": [
+        "Øystein Sørensen"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME",
+        "stat.CO"
+      ],
+      "published": "2026-03-04T12:47:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.04003v1",
+      "tags": [
+        "query:PR EF"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "efficient estimation of dynamic structural equation models for longitudinal data",
+      "llm_evidence_cn": "纵向数据动态结构方程模型的高效估计",
+      "llm_evidence": "纵向数据动态结构方程模型的高效估计",
+      "canonical_evidence": "纵向数据动态结构方程模型的高效估计",
+      "llm_tldr_en": "Provides a faster Bayesian method for analyzing intensive longitudinal data in social sciences.",
+      "llm_tldr_cn": "为社会科学中密集纵向数据的分析提供了一种更快的高效贝叶斯方法。",
+      "llm_tldr": "为社会科学中密集纵向数据的分析提供了一种更快的高效贝叶斯方法。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "longitudinal association between parenting and executive function",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    }
+  ]
+}

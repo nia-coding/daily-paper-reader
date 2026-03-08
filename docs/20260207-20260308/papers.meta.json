@@ -1,0 +1,37 @@
+{
+  "label": "2026-02-07 ~ 2026-03-08",
+  "date": "2026-02-07 ~ 2026-03-08",
+  "generated_at": "2026-03-08T05:29:29",
+  "count": 2,
+  "papers": [
+    {
+      "paper_id": "20260207-20260308/2602.12764v1-social-spatial-and-self-presence-as-predictors-of-basic-psychological-need-satisfaction-in-social-virtual-reality",
+      "section": "quick",
+      "title_en": "Social, Spatial, and Self-Presence as Predictors of Basic Psychological Need Satisfaction in Social Virtual Reality",
+      "authors": "Qijia Chen, Andrea Bellucci, Giulio Jacucci",
+      "date": "2026-02-13",
+      "pdf": "https://arxiv.org/pdf/2602.12764v1",
+      "score": "8.0",
+      "evidence": "基本心理需求与自我决定理论",
+      "tldr": "本研究探讨了社交虚拟现实（Social VR）中三种临场感（社交、空间、自我）如何影响用户的基本心理需求（自主、胜任、归属）。通过对301名用户的调查和结构方程模型分析，发现社交临场感是满足需求的关键，而自我临场感也有显著作用。研究还揭示了性别和年龄的调节作用，为设计更具包容性和动机支持的VR环境提供了理论依据。",
+      "tags": "query:pr-ef",
+      "abstract_en": "Extensive research has examined presence and basic psychological needs (drawing on Self-Determination Theory) in digital media. While prior work offers hints of potential connections, we lack a systematic account of whether and how distinct presence dimensions map onto the basic needs of autonomy, competence, and relatedness. We surveyed 301 social VR users and analyzed using Structural Equation Modeling. Results show that social presence predicts all three needs, while self-presence predicts competence and relatedness, and spatial presence shows no direct or moderating effects. Gender and age moderated these relationships: women benefited more from social presence for autonomy and relatedness, men from self- and spatial presence for competence and autonomy, and younger users showed stronger associations between social presence and relatedness, and between self-presence and autonomy. These findings position presence as a motivational mechanism shaped by demographic factors. The results offer theoretical insights and practical implications for designing inclusive, need-supportive multiuser VR environments.",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "paper_id": "20260207-20260308/2603.04003v1-efficient-bayesian-estimation-of-dynamic-structural-equation-models-via-state-space-marginalization",
+      "section": "quick",
+      "title_en": "Efficient Bayesian Estimation of Dynamic Structural Equation Models via State Space Marginalization",
+      "authors": "Øystein Sørensen",
+      "date": "2026-03-04",
+      "pdf": "https://arxiv.org/pdf/2603.04003v1",
+      "score": "8.0",
+      "evidence": "纵向数据动态结构方程模型的高效估计",
+      "tldr": "动态结构方程模型（DSEM）在分析密集纵向数据时应用广泛，但在处理包含潜变量的大规模数据时面临严重的计算瓶颈。本文提出一种高效的贝叶斯估计方法，通过将DSEM的层内部分重构为线性高斯状态空间模型，并利用卡尔曼滤波对潜状态进行解析边际化，从而实现哈密顿蒙特卡洛（HMC）采样。该方法显著提升了在大规模数据集上的计算效率和采样质量，为复杂动态过程的建模提供了可扩展的解决方案。",
+      "tags": "query:pr-ef",
+      "abstract_en": "Dynamic structural equation models (DSEMs) combine time-series modeling of within-person processes with hierarchical modeling of between-person differences and differences between timepoints, and have become very popular for the analysis of intensive longitudinal data in the social sciences. An important computational bottleneck has, however, still not been resolved: whenever the underlying process is assumed to be latent and measured by one or more indicators per timepoint, currently published algorithms rely on inefficient brute-force Markov chain Monte Carlo sampling which scales poorly as the number of timepoints and participants increases and results in highly correlated samples. The main result of this paper shows that the within-level part of any DSEM can be reformulated as a linear Gaussian state space model. Consequently, the latent states can be analytically marginalized using a Kalman filter, allowing for highly efficient estimation via Hamiltonian Monte Carlo. This makes estimation of DSEMs computationally tractable for much larger datasets -- both in terms of timepoints and participants -- than what has been previously possible. We demonstrate the proposed algorithm in several simulation experiments, showing it can be orders of magnitude more efficient than standard Metropolis-within-Gibbs approaches.",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "errors": []
+}

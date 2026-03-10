@@ -1,0 +1,1003 @@
+Title: MagicAgent: Towards Generalized Agent Planning
+
+URL Source: https://arxiv.org/pdf/2602.19000v1
+
+Published Time: Tue, 24 Feb 2026 01:52:30 GMT
+
+Number of Pages: 36
+
+Markdown Content:
+# MagicAgent: Towards Generalized Agent Planning 
+
+Xuhui Ren 1 Shaokang Dong 1 Chen Yang 1 Qing Gao 1 Yunbin Zhao 1
+
+Yongsheng Liu 1 Xinwei Geng 1 Xiang Li 1 Demei Yan 1 Yanqing Li 1
+
+Chenhao Huang 2 Dingwei Zhu 2 Junjie Ye 2 Boxuan Yue 1 Yingnan Fu 1
+
+Mengzhe Lv 1 Zezeng Feng 1 Boshen Zhou 1 Bocheng Wang 1 Xuanjing Huang 2
+
+Yu-Gang Jiang 2 Tao Gui 2 ∗ Qi Zhang 2 ∗ Yunke Zhang 1 ∗
+
+1 Honor Device Co., Ltd 
+
+2 Fudan University 
+
+## Abstract 
+
+The evolution of Large Language Models (LLMs) from passive text processors to autonomous agents has established planning as a core component of modern intelligence. However, achieving gener-alized planning remains elusive, not only by the scarcity of high-quality interaction data but also by inherent conflicts across heterogeneous planning tasks. These challenges result in models that excel at isolated tasks yet struggle to generalize, while existing multi-task training attempts suffer from gradient interference. In this paper, we present MagicAgent , a series of foundation models specifically designed for generalized agent planning. We introduce a lightweight and scalable syn-thetic data framework that generates high-quality trajectories across diverse planning tasks, including hierarchical task decomposition, tool-augmented planning, multi-constraint scheduling, procedural logic orchestration, and long-horizon tool execution. To mitigate training conflicts, we propose a two-stage training paradigm comprising supervised fine-tuning followed by multi-objective reinforcement learning over both static datasets and dynamic environments. Empirical results demonstrate that MagicAgent-32B and MagicAgent-30B-A3B deliver superior performance, achieving accuracies of 
+
+75 .1% on Worfbench, 55 .9% on NaturalPlan, 57 .5% on τ 2-Bench, 86 .9% on BFCL-v3, and 81 .2%
+
+on ACEBench, as well as strong results on our in-house MagicEval benchmarks. These results sub-stantially outperform existing sub-100B models and even surpass leading closed-source models. Worfbench NaturalPlan 2-Bench BFCL-v3 ACEBench            
+
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Accuracy (%)
+> 75.1
+> 55.9 57.5
+> 86.9
+> 81.2
+> 74.8
+> 53.9 54.1
+> 86.5
+> 79.2
+> 49.6
+> 52.5
+> 62.9
+> 79.5
+> 75.4
+> 58.1
+> 36.0
+> 63.6
+> 82.3
+> 80.4
+> 58.6
+> 40.1
+> 65.3
+> 83.7 82.6
+> 56.4
+> 34.3
+> 62.2
+> 69.4 70.5
+> 54.0
+> 35.7
+> 62.3
+> 83.7
+> 73.6
+> 56.5
+> 38.5
+> 64.7
+> 85.8
+> 82.1
+> MagicAgent-32B MagicAgent-30B-A3B GPT-5.2 Kimi-K2 GLM-4.7 DeepSeek-V3.1 Qwen3-235B-A22B Qwen3-MAX
+
+Figure 1: Benchmark performance of MagicAgent. 
+
+> ∗
+
+Corresponding authors: Tao Gui (tgui@fudan.edu.cn), Qi Zhang (qz@fudan.edu.cn), Yunke Zhang (zhangyunke@honor.com). The MagicAgent series models will be released soon. 
+
+> arXiv:2602.19000v1 [cs.AI] 22 Feb 2026
+
+## 1 INTRODUCTION 
+
+The emergence of Large Language Models (LLMs) has catalyzed a paradigm shift across the Natural Language Pro-cessing (NLP) landscape, demonstrating unprecedented capabilities in language comprehension and generation (Cao et al., 2025). These models have fundamentally transformed the nature of human-AI interaction, evolving from passive text processors (OpenAI, 2025; Qwen Team, 2025a) to autonomous agents capable of addressing complex, real-world challenges (Huang et al., 2024; Xi et al., 2024; Qi et al., 2024). From autonomous website navigation and embodied intelligence to daily scheduling and virtual assistance (Zheng et al., 2024; Barres et al., 2025), LLMs are increasingly becoming central to modern computational ecosystems and large-scale intelligent agent systems. At the core of agentic intelligence lies planning-a fundamental cognitive function that enables and orchestrates task execution. Effective planning empowers an agent to decompose complex objectives into a series of actionable sub-tasks and schedule their execution in a logical order, thereby significantly enhancing task completion rates and operational efficiency (Huang et al., 2024). To build a sophisticated planning agent, the coordinated integration of environmental perception, rigorous logical reasoning, and sequential decision-making is required. As LLMs transition to proactive decision-making agents, planning proficiency becomes a key determinant of their practical utility in diverse application scenarios. However, achieving generalized planning capabilities remains a substantial challenge. Historically, both industry and academia have relied on bespoke systems tailored to specific tasks through expert-crafted rules (Bradshaw et al., 2017; Hong et al., 2023). While these systems often achieve high precision within their narrow domains, they are inherently brittle; their reliance on rigid, predefined rules renders them incapable of generalizing to unseen scenarios and prohibitively expensive to scale across the complexity of real-world applications (Shridhar et al., 2020; Wang et al., 2022; Yao et al., 2022a; Chen et al., 2025b). Modern LLMs, however, exhibit strong potential for broader generalization through prompting strategies, yet they remain constrained by the intrinsic limitations of the foundation model and the finite knowledge scope characteristic of static pretraining corpora. Researchers have begun to explore agent-centric model optimization to support various task-solving requirements. This paradigm typically involves fine-tuning models on task-specific trajectories to enable complex objective decomposition and task execution. A critical bottleneck, however, lies in the scarcity of high-quality training data. Prior synthetic data generation approaches have largely relied on simulated humanagent interactions within virtual environments, which are labor-intensive and cost-prohibitive (Martinez-Gonzalez et al., 2020). Furthermore, while progress has been made in tool-based planning, the broader landscape of general-purpose agent planning remains under-explored. Existing specialized models often focus on isolated capabilities, resulting in “single-point optimizations” rather than a unified planning foundation. Moreover, naive aggregation of multi-task planning data frequently leads to the “ seesaw effect ”, where competing optimization objectives across heterogeneous tasks impede stable joint convergence (Zhang & Yang, 2021; Yang et al., 2025a; Dong et al., 2024, 2025a). In such scenarios, performance gains in one domain often lead to unintended degradation in others, challenging the scalability of agentic models. We address these challenges by introducing a unified framework for training agent models that achieve superior per-formance across diverse planning scenarios. Recognizing data scarcity as a primary bottleneck, we develop a suite of lightweight synthetic data generation techniques spanning multiple planning dimensions, including task decompo-sition, tool-augmented planning, multi-constraint scheduling, and logical orchestration. Notably, we tackle complex tool chaining in long-horizon scenarios through a targeted trajectory generation framework, substantially improving the model’s operational memory and execution stability. To mitigate the “seesaw effect”, we propose a two-stage training paradigm that integrates supervised fine-tuning (SFT) with reinforcement learning (RL). In the SFT stage, we explicitly emphasize sample balance and diversity, enabling the coherent integration of heterogeneous planning datasets. Build-ing on this foundation, the RL stage employs a unified multi-objective reward function to further enhance generalization on static datasets. Subsequently, we articulate the exploration-exploitation trade-off, thereby improving generalization in dynamic environments characterized by sparse rewards. Our framework supports both dense and mixture-of-experts (MoEs) architectures. Accordingly, we introduce a robust optimization strategy that stabilizes MoE training for agentic tasks and effectively alleviates expert load imbalance in multi-task settings. Our MagicAgent-32B and MagicAgent-30B-A3B models achieve the accuracy of 80 .3% on Worfbench F1 Chain, 
+
+69 .9% on Worfbench F1 Graph, 55 .9% on NaturalPlan, 57 .5% on τ 2-Bench, 86 .9% on BFCL-v3, and 81 .2% on ACEBench, as shown in Figure 1, substantially outperforming existing sub-100B models on complex planning tasks, as well as several leading closed-source models, including GPT and DeepSeek. Additional evaluations on our in-house MagicEval-Plan and MagicEval-Tool benchmarks report as 98 .0% step accuracy, 95 .9% embedding semantic accuracy, 91 .2% LLM-as-a-Judge accuracy, 97 .7% tool name accuracy, and 87 .3% tool argument accuracy under general scenarios, further demonstrating the consistent and substantial performance advantage of MagicAgent. The primary contributions of this work are summarized as follows: 2• A Scalable Synthetic Data Framework : A suite of lightweight methodologies is introduced to synthesize high-quality agentic data. By mitigating the efficiency bottlenecks of traditional sandbox-based data acquisition and the limitations of single-point optimization, this approach provides a cost-effective solution for generating data. 
+
+• Two-Stage Multi-Task Optimization : A novel training paradigm integrating SFT with offline and online RL is proposed to address the “seesaw effect” in multi-task learning, enabling synergistic utilization of heterogeneous static datasets while explicitly modeling the exploration-exploitation trade-off in online environments. 
+
+• Load-Balanced MoE for Agents : An optimization strategy is developed specifically for MoE architectures in agent planning, effectively overcoming expert load imbalance and ensuring stable training and strong performance in multi-task agentic scenarios. 
+
+• State-of-the-art (SOTA) Performance : The MagicAgent series is released, demonstrating that the 32B model establishes a new benchmark among sub-100B models. The results indicate that our planning-centric training can effectively enhance the performance of existing foundation models. 
+
+## 2 RELATED WORK 
+
+The development of artificial intelligence systems is rapidly transitioning from static, task-specific models to dynamic, agent-based architectures capable of generalizing across diverse applications. Driven by advancements in large-scale pretraining, supervised fine-tuning (SFT), and reinforcement learning (RL), LLMs have demonstrated remarkable capa-bilities in planning, reasoning, and natural language understanding. In this section, we review the primary approaches related to our work. 
+
+2.1 Large Language Agent Models 
+
+The advent of LLMs has positioned them at the forefront of artificial intelligence research, providing a robust foundation for the development of LLM-centric autonomous agents (Durante et al., 2025; Zhang et al., 2025a; Durante et al., 2024; Li et al., 2024; Zhang et al., 2025b). Numerous efforts have leveraged LLMs to construct agents tailored for specific applications, including tool utilization (Qiao et al., 2024; Wang et al., 2025; Yuan et al., 2025; Zhao et al., 2024), embodied planning (Yao et al., 2022b; Wu et al., 2023; Song et al., 2023), web browsing (He et al., 2024; Cai et al., 2025; Wei et al., 2025), and software engineering (Li et al., 2025a; Dong et al., 2025b). Despite these advancements, existing agent methodologies predominantly focus on isolated domains planning tasks, thereby lacking broader generalization capabilities. A fundamental bottleneck hindering the generalization of large language agent models is the scarcity of high-quality agentic training data. To address this, several approaches explore simulating actual execution environments to collect behavioral trajectories for training robust agent models (Li et al., 2025d; Qiao et al., 2025; Li et al., 2025b). To construct a large-scale tool-learning dataset, Qin et al. (2023) collect thousands of real-world RESTful APIs to prompt a teacher model for diverse user instructions, and subsequently annotate successful multi-step execution trajectories by interacting with the real APIs via a depth-first search-based decision tree algorithm. Similarly, TaskCraft (Shi et al., 2025) utilizes depth-based and width-based extensions of atomic tasks to create verifiable trajectories. Furthermore, Fang et al. (2025) propose a scalable framework that automatically constructs fully simulated, database-backed environments from real-world API dependency graphs. Their method synthesizes multi-turn trajectories by executing logical tool sequences via random walks, retrospectively formulating complex user intents. However, these data generation paradigms remain labor- and time-intensive. Moreover, they primarily target specific planning tasks, resulting in a lack of diversity for generalized agent planning. 
+
+2.2 Model Training Paradigms for Agents SFT constitutes a foundational stage in the adaptation of LLMs to agentic settings, enabling alignment with both general instructions and agent-oriented task distributions (Zhou et al., 2024). The majority of existing studies adopt full-parameter SFT, leveraging carefully curated instruction corpora, interaction trajectories, or behavioral demonstrations to specialize pre-trained models for downstream agent tasks, as exemplified by AgentTuning (Zeng et al., 2024), Agent-FLAN (Chen et al., 2024), and AgentBank (Song et al., 2024). To alleviate the substantial computational overhead associated with full fine-tuning, Parameter-efficient Fine-tuning (PEFT) techniques, including LoRA (Hu et al., 2022) and QLoRA (Dettmers et al., 2023), have been widely explored. These methods restrict optimization to a small subset of trainable parameters while freezing the backbone model, thereby achieving performance comparable to full-parameter tuning at a fraction of the cost (Dou et al., 2024; Chen et al., 2023; Yue et al., 2025a). In addition to these general paradigms, recent work has proposed customized SFT formulations that incorporate task-aware optimization objectives, such as regularization-augmented loss functions (Zhu et al., 2024a) or iterative refinement over trajectory data (Xu et al., 32025a), in order to improve the trade-off between task specialization and generalization. Taken together, SFT-based approaches offer a versatile and effective framework for tailoring LLMs to a wide spectrum of agent-specific scenarios, ranging from broad instruction alignment to highly specialized and efficient adaptation. 
+
+RL approaches refine LLM-based agents through interaction-driven optimization, where learning signals are derived from human feedback, learned reward models, or direct environmental responses, enabling adaptation beyond the su-pervised data regime. For instance, AgentGym (Xi et al., 2024) optimizes agent policies using objective functions defined over environment-generated trajectory rewards, whereas WebRL (Qi et al., 2024) introduces a self-supervised Optimal Reward Model to assess trajectory quality and provide implicit evaluative signals for policy updates. Beyond such generic reward formulations, several studies design task-specific, multi-objective reward functions to guide agent behavior along additional dimensions, including computational or interaction efficiency (Peiyuan et al., 2024), policy stability through constrained updates (Ma et al., 2024), and confidence calibration by penalizing overconfident erro-neous outputs (Xu et al., 2024). Collectively, these RL-based methods demonstrate the adaptability of reward-centric optimization for deploying LLM-based agents in complex and evolving environments. Nevertheless, there remains no unified framework that effectively integrates these SFT, offline RL, and online RL paradigms to address multi-task agentic planning with strong robustness and generalization guarantees. 
+
+2.3 Mixture-of-Experts (MoEs) Training and Stability 
+
+As models scale up, Mixture-of-Experts (MoEs) architectures are increasingly favored for reducing inference costs and deployment overhead without sacrificing expressive power. However, the common “token-choice" routing paradigm often leads to expert load imbalance, causing a few experts to process most tokens while others remain under-utilized. Standard mitigation includes auxiliary load-balancing losses(Shazeer et al., 2017), z-loss(Zoph et al., 2022), and expert capacity constraints (Lepikhin et al., 2020; Zoph et al., 2022). More recent innovations have introduced adaptive loss coefficients (Wei et al., 2024), auxiliary-loss-free load balancing (Wang et al., 2024a) and global-batch-level statistics (Qiu et al., 2025) to stabilize training. Some studies have focused on enhancing expert specialization by introducing or-thogonal loss (Guo et al., 2025b) and ERC loss (Lv et al., 2025). Despite these advances, in the context of multi-domain agent training—where task formats range from task orchestration to long-horizon logic scheduling—naive balancing often suppresses expert specialization. Therefore, a training method that dynamically balances the specialization of heterogeneous task experts is essential for building generalize agent models based on MoE architectures. 
+
+## 3 Data Generation 
+
+The efficacy of agentic planning is fundamentally contingent upon the quality and diversity of the underlying training data. Although LLMs have demonstrated significant potential as autonomous agents, the scarcity of high-quality agent planning data remains a primary bottleneck to satisfy multi-type planning applications. Traditional data acquisition methodologies, which predominantly rely on labor-intensive humanagent interactions or computationally expensive sandbox-based simulations, suffer from limited scalability and often result in “single-point optimizations" that fail to generalize diverse agentic tasks. To address these challenges, we introduce a lightweight and scalable synthetic data generation framework, designed to significantly reduce the computational and manual overhead associated with synthesizing planning data. Our frame-work systematically encompasses the dominant paradigms of agentic planning: hierarchical task decomposition, tool-augmented planning, multi-constraint scheduling, procedural logic orchestration and long-horizon tool execution. The subsequent sections detail our methodology for synthesizing data across these varied scenarios, ensuring both the log-ical rigor and the operational stability necessary for high-performance agentic tuning. 
+
+3.1 Hierarchical Task Decomposition 
+
+The deployment of LLM agents in real-world environments is often impeded by the complexity of intricate user in-structions. To address this, we employ hierarchical task decomposition as the primary structural mechanism to parti-tion high-level user intents into granular, executable sub-tasks (Yin et al., 2025; Prasad et al., 2024). By decoupling complex planning into a structured hierarchy, this approach reduces the cognitive load on the executor, mitigates the risk of cascading error propagation, and significantly enhances the interpretability of the agent’s execution trajectory. To ensure that decomposed sub-tasks are both executable and sufficiently granular, we utilize a broad spectrum of functional APIs as the foundational building blocks of our planning formulation. Here, an executable “sub-task" is rigorously defined as a target tool invocation. As illustrated in Figure 2, our synthetic data pipeline for hierarchical task decomposition follows a four-stage process: (1) Tool Curation : Aggregating a high-fidelity repository of tools ac-4Figure 2: The synthesis pipeline of hierarchical task decomposition companied by exhaustive technical documentation. (2) Graph Construction : Modeling functional dependencies and relational synergies via tool relationship graphs. (3) Atomic Synthesis : Generating "Atomic Plans", the simplest units of execution derived from graph topology. (4) Trajectory Composition : Synthesizing complex, multi-turn dialogue trajectories by composing these atomic actions. In the initial stage, we aggregated over 5,000 tools from open-source APIs and our internal repository, spanning diverse domains such as e-commerce, productivity (e.g., email), entertainment, and travel. To ensure semantic consistency across heterogeneous resources, we normalized all tool definitions to strictly adhere to the OpenAI tool schema. 2 Fur-thermore, we refined the descriptions to incorporate explicit input-output specifications, ensuring each entry contains precise metadata: tool name, functional description, input parameters, and output schemas. To capture the logical dependencies and co-occurrence probabilities between tools, we construct two distinct topolog-ical structures: a directed Tool Dependency Graph ( Gdepend ) and an undirected Parameter Sharing Graph ( Gshare ). 
+
+Gdepend models the causal flow where the output of one tool is required as the input for another, while Gshare captures latent logical synergies and parameter overlap. We posit that conventional data generation methods, which often rely on stochastic random walks over tool graphs, fail to guarantee the semantic coherence of tool combinations. Conse-quently, we introduce the concept of the Atomic Plan, a minimal semantic unit consisting of one or two tool executions to control generation quality. Conditioned on the topologies of Gdepend and Gshare , we define three distinct strategies for synthesizing Atomic Plans, denoted as U = {q, p (q)}, where q represents the query and p(q) the corresponding plan: 
+
+• Isolated Plan ( Uiso ). This represents the simplest atomic unit containing a single sub-task. 
+
+Uiso = {q, {f1}} 
+
+Here, the LLM generates a query based on a randomly sampled tool function f1, utilizing its documentation and a set of few-shot prompts to ensure relevance. 
+
+• Serial Plan ( User ). This unit encapsulates two sub-tasks exhibiting a strict causal dependency. 
+
+User = {q, {f1 → f2}} 
+
+To generate a serial task, we sample a connected edge (f1, f 2) from the directed dependency graph Gdepend . The documentation for both tools serves as the context for the LLM simulation, prompting the generation of a query where the execution of f1 is a prerequisite for f2.
+
+• Parallel Plan ( Upar ). This unit contains two sub-tasks that are logically related but executionally independent. 
+
+Upar = {q, {f1, f 2}} 
+
+For this category, we sample two tools f1 and f2 from the graph that share a logical connection (e.g., via Gshare ) but lack a direct dependency edge in Gdepend . The LLM generates a multi-objective query requiring the independent execution of both tools. We posit that these atomic plans serve as the minimal semantic units for hierarchical task decomposition. To construct sophisticated, high-entropy planning scenarios that mirror real-world complexity, particularly for multi turn interactions, we introduce a set of operations to aggregate the atomic plans. These operators manipulate the topological structure of atomic plans to synthesize complex trajectories: 
+
+> 2https://platform.openai.com/docs/guides/function-calling
+
+5• Concatenate . Constructs a linear dependency chain by sequentially linking atomic tasks that share a unified data flow. This operator enforces a strict input-output coupling, where the execution result of a preceding atomic unit serves as the requisite input for the subsequent unit. This process synthesizes long-horizon planning trajectories characterized by deep, transitive dependencies. 
+
+• Add . Aggregates semantically disjoint atomic plans into a single composite directive. By combining tasks that possess no mutual dependencies or shared parameters, this operator simulates complex “multi-intent" user queries. This requires the agent to parse and execute multiple independent objectives simultaneously within a single conver-sational turn. 
+
+• Group . Identifies and fuses atomic tasks that operate on identical parameter spaces (as indicated by Gshare ). This operator consolidates redundant arguments, optimizing the context window and training the agent to recognize opportunities for parameter reuse and efficient context sharing across different sub-tasks. 
+
+• Mask . Selectively obscures obligatory parameters within a tool invocation schema to simulate information asym-metry. This operation forces the transition from direct execution to information-seeking behavior, compelling the agent to suspend execution and generate clarifying questions (slot-filling) to retrieve the missing constraints from the user. 
+
+• Transform . Converts the relationship between atomic plans into conditional edges ( f1
+
+> c
+
+−→ f2). This introduces branching logic where the execution of subsequent tools is predicated on specific output states or boolean conditions returned by antecedent actions, thereby training the agent in dynamic, reactive planning. 
+
+• Split . Deconstructs a composite task description into a temporal sequence of interactions. Rather than presenting the full intent in the initial prompt, this operator distributes the constraints across multiple dialogue turns. This simulates a realistic user who iteratively refines their request or provides instructions in stages, requiring the agent to maintain state over long context windows. Following the generation phase, we implement a rigorous quality assurance pipeline comprising three distinct filtering mechanisms: deduplication, schema validation, and semantic verification. First, we employ SimHash Manku et al. (2007) to compute local sensitivity hashes, identifying and removing samples with high similarity to eliminate redun-dancy. Second, we enforce a strict structural schema for all entries: 
+
+<Query>...</Query>\n<Plan>...</Plan> .Any sample deviating from this format is automatically discarded. Finally, we utilize a state-of-the-art LLM (i.e., GPT-5.2) to detect potential semantic drift in the generated content. Only samples that satisfy all three validation criteria are retained for the final training corpus. The generated samples can refer to Appendix C. 
+
+3.2 Tool-Augmented Planning 
+
+While Large Language Models (LLMs) demonstrate robust logical reasoning capabilities, their efficacy in real-world applications is frequently constrained by the static nature of their parametric knowledge. Tool-augmented planning provides a critical mechanism to bridge this gap, enabling agents to extend their operational boundaries through the dynamic invocation of external interfaces and APIs. However, acquiring high-fidelity training data for such capabilities has historically presented a significant challenge, primarily due to the reliance on resource-intensive sandbox simula-tions and the prohibitive costs associated with human-in-the-loop annotation. To circumvent these efficiency bottlenecks, we introduce a lightweight synthetic data generation framework tailored for tool-augmented scenarios, drawing upon the bidirectional translation methodology proposed in Yin et al. (2025). Leveraging the structured outputs from the Hierarchical Task Decomposition phase (described in Section 3.1), we es-tablish a streamlined pipeline: Atomic Plan → Hierarchical Task Decomposition → Tool-Augmented Planning .In this framework, we treat the hierarchical task decomposition data as the semantic specificationor "natural language blueprint" for the corresponding tool-call trajectories. This approach allows us to fully exploit the pre-defined topolog-ical relationships between tools (as modeled in Gdepend and Gshare ) to synthesize comprehensive interaction traces. Unlike stochastic methods, this manually defined and controllable task construction ensures that the resulting trajectory data exhibits superior stability, completeness, and adherence to logical constraints, effectively filtering out the noise inherent in simulation-based data collection. To operationalize this blueprint, we instantiate each sub-task from the decomposition phase as a discrete, sequential tool invocation. However, while the decomposition data provides the ground-truth sequence of "golden" function calls ( at), it lacks the intermediate cognitive context the reasoning traces ( et) required for robust agent training. To reconstruct this missing modality, we adopt the ReAct (Reasoning + Acting) paradigm (Yao et al., 2022b). We employ a specialized Reasoning Agent to synthesize the thought process for each step. By conditioning this agent on the conversation history 6and the target golden tool call, we prompt it to articulate the logical rationale justifying the selection of at given the current state. This "hindsight reasoning" ensures that the generated thoughts are perfectly aligned with the subsequent actions. Simultaneously, generating valid environmental observations ( ot) presents a distinct challenge. Conventional ap-proaches that rely on live API invocations are often plagued by latency, temporal instability, and access costs. To mitigate these issues, we draw inspiration from (Guo et al., 2024) and implement a virtualized API Simulator. This simulator mimics the behavior of real-world interfaces, providing deterministic and semantically consistent responses to tool calls. Consequently, our data generation pipeline functions as an end-to-end multi-agent system: the Reasoning Agent synthesizes the cognitive rationale, the Planner executes the golden actions, and the Simulator Agent generates the environmental feedback, yielding a complete (et, a t, o t) trajectory for every turn. To better emulate the complexity of real-world applications, our framework moves beyond linear task execution to support conditional planning. We define the topological relationship between atomic sub-tasks through two distinct connection types: static and dynamic. A static connection enforces a fixed execution order where task Ti+1 follows 
+
+Ti regardless of the intermediate output. Conversely, a dynamic connection introduces a branching logic, where the subsequent task or whether a task is executed at all is conditioned on the environmental feedback (observation) from the preceding step. We model the data generation process as a state transition system. For any given user query, the system synthesizes a trajectory composed of atomic turns. As illustrated in Figure 3, each turn is generated through a cycle of three spe-cialized functional modules, producing a tuple (et, a t, o t): Reasoning Module (et): employing a few-shot prompting strategy, this module synthesizes the "thought" process. It analyzes the current context, history, and task requirements to articulate the logical rationale for the next move, effectively bridging the gap between the user’s intent and the tool’s parameters. Action Module (at): This module determines the specific tool invocation. In our pipeline, this is derived from the "golden" actions identified in the hierarchical decomposition phase. We strictly validate consistency between the generated reasoning ( et) and this ground-truth action to ensure alignment. Observation Module (ot): To avoid the instability and latency of live API calls, we utilize the Virtualized API Simulator (Guo et al., 2024). This module generates synthetic, semantically consistent environmental feedback based on the action, allowing for a robust and lightweight data synthesis pipeline without external network dependencies. 
+
+Figure 3: The synthesis pipeline of tool use planning The progression of the trajectory is governed by a State Transition Mechanism, which determines the next system state based on the generated observation. We identify four transition categories: 
+
+• Standard Transition : Proceed to the next sequential step in the static plan. 
+
+• Conditional Branching : Dynamically select the next sub-task based on the specific content of the observation. 
+
+• User Clarification : Trigger a request for user input if tool parameters are missing or ambiguous. 
+
+• Termination : Conclude the workflow and generate a final summary upon completing all required sub-tasks. To ensure the high fidelity of the synthesized dataset, we implement a rigorous post-processing pipeline comprising syntactic verification, semantic auditing, and negative sampling. First, we enforce structural integrity by mandating valid JSON schemas and a strict thought-action-observation format: 
+
+<think>...</think> , <action>...</action> , <observation>...</observation> 
+
+During this stage, null parameters are automatically pruned to minimize data noise. Second, an auxiliary LLM per-forms a semantic audit to validate causal consistency across the query, reasoning trace, and tool selection, discarding 7any trajectories that exhibit hallucinations or logical inconsistencies. Finally, to bolster model robustness, we employ negative sampling by injecting “distractor tools" semantically proximate but functionally irrelevant metadata into the context. This forces the agent to differentiate between precise matches and plausible decoys. The format of the gener-ated samples can refer to Appendix D. 
+
+3.3 Multi-Constraint Scheduling 
+
+Multi-constraint scheduling entails the construction of detailed itineraries or resource allocations that optimize effi-ciency while adhering to a complex set of interacting constraints. This paradigm encapsulates critical real-world scenarios-such as travel logistics, meeting coordination, and calendar management-where the core challenge lies in simultaneously reasoning across diverse temporal, resource, and preference-based restrictions. Despite the potential of LLMs in automating administrative tasks, current models frequently falter when faced with the precise combinatorial reasoning required to satisfy interdependent constraints. Given its inherent complexity, multi-constraint scheduling serves as a rigorous testbed for evaluating advanced reason-ing capabilities. However, effective solutions for enhancing model performance in this domain remain scarce. Recent efforts have primarily focused on evaluation benchmarks. For instance, Zheng et al. (2024) introduced NATURAL PLAN, a benchmark utilizing natural language tasks to evaluate the scheduling capacity of LLMs, observing signif-icant performance gaps in state-of-the-art models. Similarly, Xie et al. (2024) developed a sandbox environment to assess LLM performance in realistic travel planning scenarios. 
+
+Figure 4: Framework for Generating Schedule Planning Data Building upon these foundations, we formulate travel planning, meeting coordination, and calendar scheduling as in-stances of a unified Constraint Satisfaction Problem (CSP). To address the lack of high-quality training data, we propose a generalized framework designed to synthesize complex planning scenarios. The data generation workflow is illus-trated in Figure 4 and consists of the following stages: 
+
+• Problem-Instance Construction. We begin by initializing the problem space for each sample. Structural elements-such as the number of days, specific cities, or candidate flightsare instantiated by randomly drawing from a prede-fined entity database. These elements collectively define the boundaries of a concrete problem instance. 
+
+• Optional Goal-Solution Fixing. To guarantee feasibility and uniqueness for complex tasks, we optionally employ an inverse generation strategy. In this step, we first generate a valid target solution and subsequently derive the necessary constraints to describe it. We apply this approach primarily to calendar scheduling, where deriving constraints from a fixed schedule ensures high-fidelity data construction. 
+
+• Constraint Sampling. Based on the initialized problem instance (and the fixed solution, where applicable), we sample specific constraints from a library of parameterized templates. These may include temporal restrictions (e.g., “Stay in Hong Kong for 2 days"), resource availability (e.g., “Direct flights exist between Beijing and Hong Kong"), or complex logic (e.g., “Visit 4 distinct global cities over 21 days"). 
+
+• Verification and Filtering. To ensure data quality, we implement a rigorous validation phase. We apply rejection sampling and automated logic checks to identify and discard inconsistent, ambiguous, or unsolvable constraint sets, retaining only those that yield a unique (or uniquely optimal) solution. 
+
+• Sample Integration. In the final stage, the verified constraints and the corresponding optimal solution are synthe-sized into a coherent natural language description using task-specific templates. The resulting sample, comprising the task description, user constraints, and the canonical solution, is then serialized for training or evaluation. The final format of the generated samples can refer to Appendix E. 83.4 Procedural Logic Orchestration 
+
+Procedural Logic Orchestration involves organizing and coordinating tasks, resources, and schedules to achieve spe-cific objectives efficiently(Wang et al., 2024b). Recently, there has been growing interest in leveraging large language models (LLMs) to support agentic workflows(Wang et al., 2024b; Zhu et al., 2024b; Fan et al., 2024). However, com-plex orchestration scenarios often require rigorous structural dependencies that challenge the reasoning capabilities of general-purpose LLMs. (Qiao et al., 2025) introduce a benchmark from graph workflow structures and find that the ability of LLM agents to predict graph plans is much worse than that of sequence plans. To address this, we focus on enhancing the fundamental ability of models to handle structured orchestration tasks. In this section, we model workflow orchestration as a graph-orchestration problem, representing tasks as nodes and dependencies as directed edges in a directed acyclic graph (DAG). This formulation provides a robust testbed for eval-uating and improving an agent’s reasoning over complex dependencies. To advance capabilities in this domain, we propose a general framework for generating high-quality datasets for workflow orchestration. Our data-generation workflow comprises the following steps (also illustrated in Figure 5): 
+
+• Raw Data Collection. We collect two types of raw data: question-answering (QA) interactions and tool-use in-teractions. All raw data include gold-standard plans. Specifically, for QA we use the dataset released with Li et al. (2025c); for tool-use we use the dataset released with Yin et al. (2024), augmented with our self-construct task-decomposition dataset. These sources form the basis for generating workflow orchestration instances. 
+
+• Data Parsing. We systematically parse the collected raw data to extract the elements essential for workflow orches-tration. From each source we extract task descriptions and their corresponding solutions, consolidate all actions observed in the QA data into an action candidate pool, and aggregate the tools referenced in the tool-use data into a tool candidate pool. 
+
+• DAG Construction. For each sample, we retain actions or tools from the gold-standard plan and randomly select additional actions or tools from the candidate pools as distractors. We then construct a directed acyclic graph (DAG) representing the workflow plan based on the gold-standard plan, and derive a topological ordering of the DAG to obtain the final plan sequence. 
+
+• DAG Verification. To guaranty robust data quality, we apply stringent filtering criteria to discard invalid structures. First, we reject any DAG that fails to include all necessary actions or tools from the gold-standard plan. In addi-tion, we filter out instances where the topologically derived sequence deviates from the ground truth. Finally, we eliminate any graphs containing cycles or failing to maintain unique START and END nodes, retaining only those candidates that satisfy all validity checks. 
+
+Figure 5: Data construction process of Procedural Logic Orchestration The format of generated data can refer to Appendix F. 
+
+3.5 Long-Horizon Tool Execution 
+
+While the ability to invoke individual tools represents a foundational step in agentic intelligence, real-world autonomy frequently demands Long-Horizon Tool Executionthe capacity to orchestrate extended sequences of interdependent actions to achieve a complex objective. Unlike independent task decomposition or simple tool invocation, long-horizon scenarios introduce severe challenges regarding context retention and error propagation. In these settings, agents must not only select appropriate tools but also manage intricate tool chaining, where the output of one action serves as the prerequisite input for subsequent steps. Current foundation models often falter in such environments due to limited operational memory and susceptibility to contextual drift, resulting in unstable execution trajectories. Some prior works propose to generate trajectory data based on manually crafted seed samples Hu et al. (2025); Li et al. (2025e). Although effective, they are labor intensive and time consuming for collecting and cleaning seed tasks. Inspired by these works and tackle the current limitations, 9Figure 6: The pipeline to synthesis long-horizon tool execution trajectory data. we introduce a targeted trajectory generation framework designed to synthesize complex, multi-step tool interactions. This pipeline explicitly constructs scenarios requiring rigorous state tracking and logical dependency management. By procedurally generating data that enforces strict input-output coupling across extended temporal horizons, we aim to robustly enhance the model’s execution stability and ability to maintain goal coherence throughout prolonged planning sessions. The synthesis pipeline consists of three stages: first, construct tasks with varying difficulty levels by appropriately combining atomic tasks. Next, generate long-context trajectory data involving multi-turn conversations and tool calls and filter high-quality samples as seed data. Finally, diffuse and generate more similar trajectory data. The details are in Figure 6. 
+
+Task Construction. To ensure that the constructed tasks are logical without contradictions or repetitions, the tasks are constructed based on atomic tasks with several steps. Firstly, atomic tasks are sampled according to the difficulty of the target task and the tools of them are collected in a list with the original relationships. Then, based on the selected atomic tasks, LLM is used to generate the initial setup Init (requirement, known _inf o, rules ) for the task, including the user’s problem and requirement, known information, the task rules that must be followed to solve the problem, and the conditions for completing the task. To ensure the long-horizon of the generated trajectory data, we set several requirements: 1. Number of tools must be greater than a threshold. 2. Initial user request: The request should not simply merge the queries of each atomic task, but a more general and vague requirement that requires reasoning to derive tool-related queries. 3. Termination conditions: All requests are fulfilled or more than 80% of the candidate tools are used. Finally, manually verify the rationality and consistency of all tasks and requirements. In summary, a task consists of three parts: initial task setting, candidate tools, and terminal conditions. 
+
+Long-Context Trajectory Seeds Synthesis. According to the task settings, we generate trajectory data several times for each task and filter high-quality samples as seed data. The synthesis pipeline is similar to the previous tool using planning data with some different parts: 
+
+• The next query and task plan, qt+1 , T t+1 , are not fixed, but generated based on initial settings Init , historical queries, and historical trajectory data. 
+
+• Reasoning traces ( et) and function calls ( at) of each turn are generated by the Reasoning Agent and Action Agent according to the candidate tools. 
+
+• Data labeling: If the number of steps reaches the upper limit, or all tools are used but the problem is still not completely solved, the synthesis trajectory is labeled unsuccessful. If all requirements are met, it is labeled as successful. The requirements for high-quality seed samples include: 1) fulfilling all task requirements, including the com-plete problem description and task specifications; 2) having the correct format, which follows a round structure of 
+
+{query, (agent (thought,tool call), observation) ×n, agent (summary/reply) }, and is saved in JSON format. To enhance the generalization ability of new samples, each seed sample further selects top task-related tools from the entire tools, together with the tools already used in the sample with each tool coming from a different atomic task. 
+
+Scaling Data Generation To synthesize large scale data based on the seed samples, a prompt is organized with a random seed sample to generate the new sample with tasks and conversations similar. The system prompt consists of system role definition, core capabilities and execution logic, execution principles, candidate tools, sample trajectory data, and output format requirements. Each generation process completes all rounds of a sample, including user query, agent reasoning, tool-calling, environment feedback. Since the number of candidate tools is larger than that of the seed 10 Stage II:  Reinforcement Learning (RL) Stage I: Supervised Fine -tuning (SFT)                
+
+> Query: Yoyo, hurry up and check out the popular routes on Dianping ,and by the
+> way, help me open the flight check -in service page on Fliggy Travel!
+> Response: <Plan> Step1. Open the Popular Routes page in Dianping .Step2. Open
+> the Boarding Service page in Fliggy Travel. </Plan> <Reply>Plan Finish</Reply>
+
+Hierarchical Task Decomposition    
+
+> Query: Please help me check if there are any unused train tickets in 12306.
+> Response: <think> …</think> < action > {'name': 'open_train_tickets_orders', 'arguments': {'app': '12306', 'order_status': ' unused '}} </ action >
+
+Tool -Augmented Planning       
+
+> Query: Please provide a schedule based on the existing agenda constraints, meeting
+> duration, and any possible preferences for meeting times.
+> Response :<think> … </think> <answer> Here is the proposed time: Thursday,
+> 09:30 -10:00 </answer>
+
+Multi -Constraint Scheduling     
+
+> Query: How to Soothe Your Child's Allergies ?
+> Response :<think> … </think> Node: 1: Buy over -the -counter antihistamines. 2:
+> Get your child decongestants. 3: Speak to your child’s pediatrician if their symptoms
+> do not improve. Edge: (START,1) (START,2) (1,3) (2,3) (3,END).
+
+Procedural Logic Orchestration      
+
+> Query: Hi, I need to cancel my round-trip from BOS to LAX this weekend. The
+> airline just cancelled my outbound flight. Do I qualify for any compensation?
+> Response: I can help you cancel the reservation. Please provide your user ID and reservation ID.
+> User: My user ID is anna_choi_882 and my reservation ID is 9MS4QK.
+> Response: <think> … </think> <tool_call > {"name": "get_reservation_details", "arguments": {"reservation_id": "9MS4QK"}} </ tool_call >
+
+Long -Horizon Tool Execution 
+
+Unified Multi -task Reward Function 
+
+𝑅 = 𝛼 1𝑅 𝑓𝑜𝑟𝑚𝑎𝑡 + 𝛼 2𝑅 𝑝𝑙𝑎𝑛 + 𝛼 3𝑅 𝑡𝑜𝑜𝑙 + 𝛼 4𝑅 𝑤𝑜𝑟𝑘𝑓𝑙𝑜𝑤 + 𝛼 5𝑅 𝑠𝑒ℎ𝑒𝑑𝑢𝑙𝑒 
+
+SFT Model  Offline RL 
+
+Policy Model KL Divergence 
+
+GRPO Algorithm 
+
+Agent 
+
+Environment 
+
+Action 
+
+State 
+
+Reward 
+
+𝜒 PO Algorithm 
+
+Trade off 
+
+Exploration:    
+
+> ➢Token Entropy
+> ➢Think -level Entropy Smooth
+> ➢Action -level Entropy Smooth
+
+Exploitation: 
+
+➢ Information Bottleneck 
+
+Online  RL Policy Model Figure 7: Overview of the MagicAgent training framework. sample, the newly generated samples differ from the seed samples to some extent, ensuring diversity and robustness of the new samples. Finally, post-processing is also applied. The format of the new sample must be the same as that of the seed sample. Tool validation: the tool name and reasoning content are semantically consistent, the usage and definition of tool parameters are consistent, and the tool format follows the function format. The format of generated data can refer to Appendix G. 
+
+## 4 Agent Foundation Model Training 
+
+Following the lightweight and scalable synthetic data generation framework, we have collected five types of plan-ning data, including hierarchical task decomposition, tool-augmented planning, multi-constraint scheduling, procedu-ral logic orchestration and long-horizon tool execution. To achieve consistently remarkable performance across these heterogeneous tasks, we introduce MagicAgent, an end-to-end unified agent model designed to address hybrid planning tasks. The overall training framework is illustrated in Figure 7 and consists of three stages: Stage I: Supervised Fine-tuning (SFT) (detailed in Section 4.1), which trains a foundation model on a large-scale and diverse planning dataset encompassing five fundamental planning tasks; Stage II: Reinforcement Learning (RL) , which further improves the accuracy and robustness of the model in heterogeneous static planning tasks (Section 4.2.2) and online environments under sparse task rewards (Section 4.2.3). 
+
+4.1 Agentic Supervised Fine-tuning 
+
+We adopt the Qwen3 series as the base model and further train it using our synthetic dataset, including the Hierarchical Task Decomposition, Tool-Augmented Planning, Multi-Constraint Scheduling, Procedural Logic Orchestration, and Long-Horizon Tool Execution tasks. To ensure comprehensive coverage and diversity across domains, we employ the NovelSum metric (Yang et al., 2025b) to construct a representative sub-training set Dsample , thereby facilitating the effective fusion of heterogeneous planning data. Specifically, the novelty of a candidate sample x relative to the currently selected training set Dsample is defined as follows: 
+
+v(x) = ∑
+
+xj ∈D sample 
+
+w(x, x j )κ1 · σ(xj )κ2 · d(x, x j ), (1) where the proximity weight w(x, x j ) = 1/ π(j) assigns higher importance to closer neighbors, with π(j) indicat-ing the rank of xj when samples are ordered by increasing distance to x. The density factor is defined as σ(xj ) = 
+
+11 1/ ∑Kk=1 d (xj , N k (xj )) , Nk(x) denotes the k-th nearest neighbor of x, and d(·, ·) denotes the distance between sam-ple embeddings. The hyper-parameters κ1 and κ2 control the degree of the proximity weight and density factor, re-spectively. At each iteration, the sample xhigh with the highest novelty score is selected with xhigh = arg max x v(x),and added to the training set as Dsample ← D sample ∪ xhigh . This procedure is repeated, starting from Dsample = ∅,until the predefined data budget is met. The loss function formulation for the optimization objective of the SFT stage is defined by as the standard token-level cross-entropy loss: 
+
+Lsft = − 1
+
+N
+
+> N
+
+∑
+
+> i=1
+> V
+
+∑
+
+> j=1
+
+yij log (pij ), (2) where N is the sequence length, V is the vocabulary size, yij is the ground-truth indicator for token i, and pij is the predicted probability for class j at token i.
+
+4.2 Agentic Reinforcement Learning 
+
+We define the agentic task as a finite-horizon Markov Decision Process (MDP) M = {T , S, A, P, R, μ 0, H }, where 
+
+• T denotes the type of tasks, including hierarchical task decomposition, tool-augmented planning, multi-constraint scheduling, procedural logic orchestration, long-horizon tool execution and online environment interaction. 
+
+• S = ( Sdata , S env ) represents the state space, comprising a static dataset component and an environment interaction component, where Sdata corresponds to user queries in the dataset and Senv denotes the environment state. 
+
+• A is the vocabulary token space from which the agent generates plans or actions. 
+
+• P : S × A × S → [0 , 1] defines the transition probability to the next state given the current state and action. 
+
+• R : S × A → R is a unified, multi-task, rule-based reward function that measures the accuracy of the planning agent in completing heterogeneous tasks. 
+
+• μ0 denotes the distribution over initial states, which may vary across tasks or environments. 
+
+• H specifies the finite horizon of each task, where H = 1 corresponds to static tasks and H > 1 denotes the maximum number of interaction steps in the environment. At each time step t, the planning agent observes a state st ∈ S, selects an action at ∈ A according to a learned policy 
+
+πRL (at|st; θt), and then receives an immediate reward rt. The agent’s objective is to learn an efficient policy that maximizes the expected return as EπRL (∑Ht=0 rt).The primary challenge in training a model to perform diverse agentic tasks, including both static tasks and environment interactions, lies in the heterogeneity and interference among multiple tasks. To address this challenge, we propose a sequential reinforcement learning paradigm, as illustrated in Figure 7. Specifically, we combine static datasets and perform domain-wise reinforcement learning with verifiable rewards tailored to different tasks. The resulting static RL model is subsequently deployed and trained within an online robotic environment ALFWorld (Shridhar et al., 2020), enabling the model to generalize from offline reasoning tasks to embodied decision-making. Furthermore, to better handle cross-task interactions in a multi-task setting, we design a unified multi-task verifiable reward function that evaluates both the output formats and the semantic correctness, thereby reducing inter-task inter-ference. This unified reward function is described in detail in Section 4.2.1. In addition, we introduce heterogeneous, task-specific prompts to further distinguish tasks such as tool invocation, plan decomposition, and plan scheduling, which further improves task awareness and generalization. When the static training data corresponds to a specific task 
+
+Ti ∈ T , we employ the standard Group Relative Policy Optimization (GRPO) algorithm to optimize the policy, as described in Section 4.2.2. During the subsequent online training phase in the environment, we propose a novel re-inforcement learning algorithm, termed χPO, which improves robustness and generalization in interactive settings by balancing exploration and exploitation. χPO incorporates additional entropy and information bottleneck regularization losses to stabilize training and prevent policy degeneration, as detailed in Section 4.2.3. 
+
+4.2.1 Unified Multi-task Reward Function 
+
+Reinforcement Learning with Verifiable Rewards (RLVR) enables Large Language Models (LLMs) to generate re-sponses and receive feedback from deterministic rule-based verifiers, as validated by DeepSeek-R1 (Guo et al., 2025a) and other models (Tang et al., 2024; Yue et al., 2025b; Lambert et al., 2024). In our agentic tasks, output format cor-rectness, task planning, tool invocation, workflow construction, and schedule planning constitute five critical aspects 12 for parsing valid planning actions. Accordingly, we design a unified multi-task, rule-based reward function composed of the following components: 
+
+R = α1Rf ormat + α2Rplan + α3Rtool + α4Rworkf low + α5Rschedule . (3) Here, α1, α 2, α 3, α 4, α 5 ∈ [0 , 1] denote the weighting coefficients of the respective reward components. For our five core planning tasks, the specific data format are summarized in Table 1. Table 1: The unified multi-task data format.          
+
+> Task Data format
+> Hierarchical Task Decomposition <Plan>Step1.P1 Step2.P2</Plan><Reply>R1</Reply>
+> Tool-Augmented Planning <think>...</think><action>ToolList:[Tool1,...,Tooln]</action>
+> Multi-Constraint Scheduling <think>...</think><answer>Schedule</answer>
+> Procedural Logic Orchestration Node 1:N1 2:N2. Edge:(E1),(E2),...,(En)
+> Long-Horizon Tool Execution <think>...</think><tool_call>Tool</tool_call>
+
+Hierarchical Task Decomposition. The reward components are defined as follows: 
+
+R = α1Rf ormat + α2Rplan ,Rplan = 1 if len(steps) == len(gt_steps) and cos_sim({P1,P2,R1}, gt) ≥ τ. (4) The format reward component Rf ormat = 1 if the planning agent’s output strictly adheres to the structure in Table 1. In addition, we employ a sentence embedding model to compute the cosine similarity between the generated content and the ground truth. Therefore, if the number of planning steps is correct and the cosine similarity scores of P1,P2,R1 
+
+with respect to the ground truth exceed predefined thresholds τ , the planning reward component is set to Rplan = 1 .
+
+Tool-Augmented Planning. The reward components for tool-augmented planning are defined as follows: 
+
+R = α1Rf ormat + α3Rtool ,Rtool = 1 if ToolList:[Tool1,...,Tooln] == gt . (5) The format reward component is set to Rf ormat = 1 if the output conforms to the above format. Tool-augmented planning data may invoke multiple tools within a single step. Therefore, the generated ToolList must exactly match the ground truth in both tool identity and execution order, in which case the tool reward component is set to Rtool = 1 .
+
+Multi-Constraint Scheduling. The reward components for multi-constraint scheduling are defined as follows: 
+
+R = α1Rf ormat + α5Rschedule ,Rschedule = 1 if parse(schedule) == gt . (6) The format reward component is set to Rf ormat = 1 if the planning agent’s output satisfies the above structure. Fur-thermore, the generated Schedule , which may include travel logistics, meeting coordination, and daily calendar management, is parsed to extract key scheduling attributes such as time, location, and participants. If these attributes satisfy the specified constraints, the scheduling reward component is set to Rschedule = 1 .
+
+Procedural Logic Orchestration. The reward components for procedural logic orchestration are defined as follows: 
+
+R = α1Rf ormat + α4Rworkf low ,Rworkf low = ( F1 (node ) + F1 (graph )) /2 . (7) The format reward component is set to Rf ormat = 1 if the planning agent’s output strictly conforms to the above structure. In addition, content evaluation is conducted under two complementary modes: node-level and graph-level. The node-level evaluation assesses the quality of the node sequence by emphasizing semantic similarity and relative or-dering, which is quantified via the longest increasing subsequence (LIS) of matched nodes. The graph-level evaluation measures structural and semantic similarity by identifying the largest connected component formed by semantically matched nodes and shared edges. In both modes, a higher F1-score indicates a higher-quality generated workflow. 13 Long-Horizon Tool Execution. The reward components for tool execution are defined as follows: 
+
+R = α1Rf ormat + α3Rtool ,Rtool = 1 if Tool == gt . (8) The format reward component is set to Rf ormat = 1 if the output conforms to the above structure. For the tool-related component, tool invocations must strictly follow a valid JSON format, with all required brackets and quotation marks properly paired.Accordingly, the tool reward component is set to Rtool = 1 if the generated Tool exactly matches the ground truth. In addition, we introduce a special tool, reply("content"=...) , which is used to request missing information required for invoking other specific tools. For this reply tool, cosine similarity is also employed to evaluate the semantic accuracy of the generated content. 
+
+4.2.2 Offline Reinforcement Learning 
+
+For the static dataset, we employ the standard Group Relative Policy Optimization (GRPO) algorithm with a unified multitask reward function to optimize the policy πθ (a|s), where s denotes the state comprising both the system prompt and the user query, and a represents either the generated plans or actions. The overall objective is defined as follows: 
+
+J GRPO (θ) = Es∼S, {oi}Gi=1 ∼πθold (·| s)
+
+[
+
+1
+
+G
+
+> G
+
+∑
+
+> i=1
+
+1
+
+|oi|
+
+> |oi|
+
+∑
+
+> l=1
+
+(
+
+min 
+
+( πθ (oi,l |s, o i,<l )
+
+πθold (oi,l |s, o i,<l ) Ai, clip ( πθ (oi,l |s, o i,<l )
+
+πθold (oi,l |s, o i,<l ) , 1 − ε, 1 + ε)Ai
+
+)
+
+− βD KL (πθ ∥πref )
+
+)] 
+
+,
+
+where 
+
+Ai = ri − mean ({r1, r 2, ..., r G})
+
+std ({r1, r 2, ..., r G}) , DKL (πθ ∥πref ) = πref (oi|s)
+
+πθ (oi|s) − log πref (oi|s)
+
+πθ (oi|s) − 1. (9) Here, mean and std denote the mean and standard deviation of the group of rewards, respectively. The reward function used in this formulation is the Unified Multi-task Reward Function defined in Section 4.2.1. Furthermore, the KL diver-gence term between the reference Supervised Fine-Tuning (SFT) policy πref the current policy serves as a regularizer to promote stable learning in the offline reinforcement learning setting. 
+
+4.2.3 Online Reinforcement Learning 
+
+In interactions with online environments, a primary challenge lies in balancing exploration and exploitation under sparse task reward conditions. Accordingly, we propose a novel eXploration-eXploitation Policy Optimization (χPO) algorithm, which incorporates additional token-level entropy as well as think-level and action-level entropy smoothing regularization to regulate exploration. Simultaneously, an information bottleneck is introduced to enhance the accuracy and compactness of output actions, thereby promoting effective exploitation. 
+
+Exploration: Token-level Entropy Regularization. In online reinforcement learning settings with sparse and de-layed rewards, insufficient exploration often arises at the token generation level, where early overconfident predictions can prematurely collapse the policy into narrow response patterns. To explicitly encourage exploration, we introduce token-level entropy regularization, which injects controlled stochasticity directly into the language generation process. We view each generated token as a micro-decision that shapes the future interaction space. By maintaining higher entropy over the token distribution, the policy is encouraged to diversify lexical choices, reasoning trajectories, and intermediate representations, thereby expanding the reachable behavioral space prior to the observation of task-level rewards. Concretely, token-level entropy regularization is defined as follows: 
+
+J token (θ) = 1
+
+B
+
+> B
+
+∑
+
+> b=1
+
+1
+
+H
+
+> H
+
+∑
+
+> h=1
+
+1
+
+|ob,h |
+
+> |ob,h |
+
+∑
+
+> i=1
+
+H(ob,h,i ) (10) Here, B is the batch size, H represents the number of interaction steps in the environment, H(ob,h,i ) is the entropy of the token ob,h,i , and |ob,h | denotes the sequence length at step h of sample b. By embedding exploration directly into the token-generation mechanism, token-level entropy regularization provides a principled and scalable means of promoting exploration in online reinforcement learning, and serves as the foundation for higher-level entropy smoothing and information bottleneck strategies introduced later. 14 Exploration: Think-level and Action-level Entropy Smoothing Regularization. While token-level entropy pro-motes local stochasticity, effective exploration in planning agents also depends on where uncertainty is permitted to accumulate. Inspired by the work EPO (Xu et al., 2025b), we observe a pronounced scale mismatch between the av-erage entropy of think segments and action segments: intermediate reasoning typically exhibits substantially higher entropy, whereas final actions naturally collapse toward low-entropy, decision-oriented outputs. Applying a uniform entropy constraint across both stages therefore results in suboptimal exploration dynamics. To address this imbalance, we introduce a think-action disentangled entropy smoothing regularizer that explicitly as-signs distinct exploration budgets to the two stages. For think-level tokens, a higher entropy ceiling is permitted, enabling the model to explore diverse reasoning trajectories, hypotheses, and intermediate abstractions, thereby pro-moting broader cognitive exploration prior to commitment. In contrast, action-level tokens are subject to a stricter entropy bound, preventing exploratory noise from propagating into final outputs where exploitation and decisiveness are paramount. Accordingly, the Entropy Smoothing Regularization is defined as follows: 
+
+J smooth (θ) = 1
+
+B
+
+> B
+
+∑
+
+> b=1
+
+1
+
+H
+
+> H
+
+∑
+
+> h=1
+
+1
+
+|ob,h |
+
+> |ob,h |
+
+∑
+
+> i=1
+
+P(ob,h,i ),
+
+P(ob,h,i ) = 
+
+
+
+0, if ob,h,i ∈ <think>...</think> and αthink low ¯Hthink ≤ H (ob,h,i ) ≤ αthink high ¯Hthink ,
+
+0, if ob,h,i ∈ <action>...</action> and αaction low ¯Haction ≤ H (ob,h,i ) ≤ αaction high ¯Haction ,ρ, otherwise .
+
+(11) Here, B, H and H(ob,h,i ) follow the same notation as in Eq.(10). ¯Hthink and ¯Haction represent the average historical entropy of think tokens and action tokens, respectively. Formally, the relation αthink low < α action low < 1 < α action high <αthink high indicates that think-level smoothing tolerates and preserves higher entropy, thereby effectively extending the exploration horizon. ρ is defined as a constant penalty term and is set to ρ = −0.2 in our experiments. Overall, think-action entropy smoothing transforms exploration from a flat, token-wise phenomenon into a hierarchical process, aligning exploratory effort with cognitive stages. This mechanism complements token-level entropy regularization by specifying where exploration should occur, thereby enhancing discovery under sparse rewards without compromising execution quality. 
+
+Exploitation: Information Bottleneck. While the exploration strategy described above encourages the agent to discover diverse reasoning patterns, effective exploitation is equally critical for planning models to act reliably and efficiently. In this regard, we introduce an information bottleneck mechanism that explicitly favors action-relevant reasoning while suppressing redundant or non-informative intermediate thoughts. From an exploitation perspective, the goal is to retain only the minimal yet sufficient internal representations that support accurate decision-making during online reinforcement learning. Concretely, the information bottleneck regularizes the reasoning process by constraining the mutual information between the input prompt and the internal reasoning content, while simultaneously maximizing the mutual information between the reasoning and the resulting action. This trade-off encourages the agent to discard superfluous reasoning content that does not contribute to action selection, thereby improving exploitation efficiency. The corresponding regularization term is defined as follows: 
+
+J IB (θ) = I(think , action ) − γI(prompt , think )= H(action ) − H (action |think ) − γ [H(think ) − H (think |prompt )] 
+
+≈ γH(think |prompt ) − H (action |think ) + C. (12) Here, I(·, ·) denotes the mutual information, γ controls the exploitation-compression trade-off and is set to γ = 1 in our experiments, and C = H(action ) − γH(think ) represents an approximately constant term. Maximizing this objective encourages the agent to compress its internal reasoning conditioned on the text input prompt while preserving the predictive capacity of the reasoning content for action generation. Consequently, the information bottleneck acts as a principled exploitation mechanism that aligns internal reasoning with actionable outcomes, resulting in more stable and effective planning behavior. Finally, the overall objective of χPO is to maximize the following terms: 
+
+JχPO (θ) = J GRPO (θ) + λ1J token (θ) + λ2J smooth (θ) + λ3J IB (θ), (13) where JGRPO (θ) follow the same notation as in Eq.(9), and λ1, λ 2, λ 3 ∈ (0 , 1) denote the weighting coefficients of the corresponding regularization terms. 15 5 Load-Balanced Strategy for MoE Models 
+
+To address the conflict between the robust planning capabilities of dense models and their prohibitive computational overhead for real-time deployment, we propose fine-tuning a Mixture-of-Experts (MoEs) variant of MagicAgent. By de-coupling total parameter capacity from active FLOPs through sparse expert activation, the MoE architecture maintains high-dimensional representational power for complex tasks while reducing inference costs to levels comparable with smaller dense networks. This superior computation-to-parameter efficiency establishes MoE as a highly cost-effective solution for scalable agent deployment. The core efficacy of an MoE model relies on its gating network (router), which dynamically dispatches input tokens to specialized experts. However, standard routing mechanisms often suffer from load imbalance, particularly in multi-task agent learning scenarios. Without regularization, routers tend to converge toward a "winner-takes-all" regime, where a small subset of experts processes the majority of tokens. This results in two failure modes: (1) Representation Collapse, where over-utilized experts generalized poorly across diverse tasks, and (2) Parameter Idleness, where under-utilized experts receive vanishing gradients, effectively reducing the model’s capacity. Addressing these challenges in the context of MagicAgent requires a tailored optimization strategy. Unlike general pre-training, our agent fine-tuning data consists of distinct, semantically homogeneous tasks (e.g., ierarchical task decomposition, tool-augmented planning, multi-constraint scheduling, procedural logic orchestration and long-horizon tool execution). We observe that applying standard sequence-level or micro-batch load balancing imposes overly rigid constraints. Since a single micro-batch often contains tokens from a single task, forcing the router to balance load locally disrupts expert specialization. To mitigate these routing pathologies, we introduce a global load-balancing strategy combined with router stability regularization. This approach allows experts to specialize in distinct agent capabilities while maintaining computational efficiency across the global training distribution. Formally, the total objective function for the MoE layer is defined as: 
+
+L = Lsft + μ1 · Lgbl + μ2 · Lz , (14) where Lsft adopts the same supervised fine-tuning loss as in Eq. 2, Lgbl represents the global batch load-balancing loss, and Lz is the router z-loss. The scalars λ1 and λ2 are hyperparameters controlling the regularization strength. Instead of enforcing balance within local micro-batches, we calculate expert usage statistics across the global batch (aggregated across all data parallel ranks). This global view encompasses a diverse mixture of tasks, allowing the model to balance expert utilization over the entire task distribution without penalizing task-specific specialization at the local level. The global load-balancing loss is formulated as: 
+
+Lgbl = NENE∑
+
+> i=1
+
+(fi · Pi), (15) where NE is the total number of experts, f i represents the fraction of tokens dispatched to expert i across the global batch, and P i denotes the global average routing probability for expert i. This objective encourages the uniform distri-bution of tokens to experts over time, maximizing the effective parameter usage. We further observed that during the early stages of mixed-task training, the router is prone to numerical overfitting on simpler tasks, producing disproportionately large logits. This logit instability suppresses exploration and hinders the learning of complex, long-horizon tool execution paths. To counteract this, we incorporate the z-loss regularization term to penalize large router logits and smooth gradient magnitudes: 
+
+Lz = 1
+
+T
+
+> T
+
+∑
+
+> i=1
+
+log 
+
+> NE
+
+∑
+
+> j=1
+
+em(i)
+
+> j
+
+
+
+> 2
+
+, (16) where T denotes the sequence length, and m(i) 
+
+> j
+
+represents the logit assigned to the j-th expert for the i-th token. By constraining the magnitude of the logit matrix M ∈ RT ×NE , Lz fosters robust routing decisions and ensures stable convergence across tasks of varying difficulty. 
+
+## 6 Experiments 
+
+To evaluate the planning capabilities of the MagicAgent series, we conduct a comprehensive comparative analysis against a representative set of industry-standard baselines, spanning both closed-source and open-source models. These 16 models are stratified by parameter scale into two primary cohorts: (i) Ultra-scale models (exceeding 100B parame-ters), including GPT-5.2(OpenAI, 2025), Kimi-K2-Instruct (Team et al., 2025), DeepSeek-v3.1(DeepSeek-AI et al., 2025), GLM-4.7(Zeng et al., 2025), Qwen3-235B-A22B-Instruct-2507(Qwen Team, 2025a), and Qwen3-Max (Qwen Team, 2025b); and (ii) Large-scale models (within the 100B threshold), such as Qwen3-32B (Qwen Team, 2025a), Qwen3-30B-A3B-Instruct-2507(Qwen Team, 2025a), Llama3.3-70B-Instruct (Dubey et al., 2024), ERNIE-4.5-21B-A3B(Baidu AI, 2025), Olmo-3.1-32B-Instruct(Olmo et al., 2025), and GLM-4.7-Flash(Zhipu AI, 2025). We first com-pare the performance on prominent open-source benchmarks in Section 6.1. We further evaluate MagicAgent on our in-house MagicEval-Plan and MagicEval-Tool benchmarks, as presented in Section 6.2. Furthermore, we validate the online Reinforcement Learning (RL) χPO algorithm and the Mixture-of-Experts (MoEs) training paradigm and in Sec-tions 6.3 and 6.4, respectively. These experiments are designed to rigorously assess the planning effectiveness of our proposed MagicAgent models, with detailed training hyperparameters provided in Appendix A. 
+
+6.1 Performance of Open-source Benchmarks 6.1.1 Benchmark Introduction 
+
+The planning capabilities of the models are rigorously benchmarked using 11 specialized metrics across five key datasets: NaturalPlan (Zheng et al., 2024), Worfbench (Qiao et al., 2025), τ 2-Bench (Barres et al., 2025), BFCL-v3 (Yan et al., 2024), and ACEBench Chen et al. (2025a). These benchmarks are selected to provide an exhaustive evalua-tion of model performance in Tool-Augmented Planning, Multi-Constraint Scheduling, Procedural Logic Orchestration and Long-Horizon Tool Execution. The detailed illustration of each dataset is listed as follows: 
+
+• NaturalPlan (Multi-Constraint Scheduling): This benchmark evaluates the model’s ability to address complex scheduling tasks, emphasizing natural language planning scenarios such as trip planning and meeting scheduling, which require satisfying a dense set of spatial, temporal, and resource-related constraints. Evaluation on NaturalPlan assesses the model’s deductive reasoning capabilities and its ability to maintain global consistency under complex scheduling requirements. 
+
+• Worfbench (Procedural Logic Orchestration): This benchmark is used to evaluate the model’s proficiency in procedural logic orchestration. Unlike conventional reasoning tasks, Worfbench requires agents to navigate complex workflows involving conditional branching, iterative loops, and interdependent subtasks. It therefore provides a rigorous assessment of the model’s ability to adhere to structured operational procedures and to manage control flow in multi-step processes, reflecting practical demands encountered in real-world planning and execution scenarios. 
+
+• BFCL-v3 and ACEBench (Tool-Augmented Planning): We employ the Berkeley Function Calling Leaderboard (BFCL-v3) and ACEBench to benchmark performance in tool-augmented planning. BFCL-v3 offers a robust frame-work for evaluating multi-tool function calling, requiring models to select appropriate APIs under dynamically evolving dialogue contexts. ACEBench complements this evaluation by introducing advanced tool-use scenarios that require higher-order planning to effectively bridge abstract user intents with concrete actions. 
+
+• τ 2-Bench (Long-Horizon Tool Execution): To evaluate the model’s state-tracking and self-consistency capabil-ities, we employ τ 2-Bench, a benchmark designed for long-horizon tool execution with realistic, multi-step tasks in domains such as retail and airline travel. It requires the agent to plan sequences of actions, adapt to dynamic feedback, and maintain execution fidelity over extended interaction cycles, thereby probing the limits of the model’s operational memory, robustness, and long-term decision consistency in complex interactive environments. To ensure fairness and reproducibility, we strictly followed the official instructions provided in the respective codebases for all baseline evaluations. Comprehensive details on the experimental setup are available in Appendix B. 
+
+6.1.2 Main Results 
+
+The experimental results presented in Table 2 present a comprehensive evaluation of the MagicAgent series against state-of-the-art closed-source and open-source baselines. Our analysis focuses on four core capabilities: Multi-Constraint Scheduling, Procedural Logic Orchestration, Tool-Augmented Planning, and Long-Horizon Tool Execution. These capabilities are evaluated across five datasets: NaturalPlan, WorfBench, τ 2-Bench, BFCL-v3, and ACEBench. 
+
+Procedural Logic Orchestration. On the WorfBench benchmark, we evaluate performance using F1 score at both the chain level and the graph level. The chain-level F1 score assesses how well a model captures the longest increasing subsequence (LIS) of aligned nodes, jointly reflecting precision and recall while prioritizing semantic correspondence and correct relative ordering among the matched modes. In contrast, the graph-level F1 score measures structural consis-tency by identifying the largest connected subgraph composed of semantically aligned nodes and their corresponding shared edges, thereby quantifying the quality of global relational alignment. The MagicAgent series exhibits a sub-17 Table 2: Benchmark Performance Comparison Across Various Models. Bold indicates the best performance in each benchmark, while Underline indicates the second-best performance.                                                                                                                                                                             
+
+> Models WorfBench NaturalPlan τ2-Bench BFCL-v3 ACEBench
+> F1Chain F1Graph Trip Meeting Calendar Retail Airline Live Non-Live En Zh
+> Ultra-Scale Models
+> GPT-5.2 60.1 39.1 39.4 53.7 64.5 75.2 50.5 76.8 82.2 70.7 80.1 Kimi-K2-Instruct 66.9 49.2 30.9 51.4 25.7 70.6 56.5 82.1 82.5 77.4 83.3 GLM-4.7 67.3 49.8 31.3 42.7 46.4 66.0 64.5 80.8 86.6 78.2 87.0
+> DeepSeek-V3.1-nothink 65.6 47.1 1.4 37.2 64.4 72.8 51.5 71.1 67.6 67.8 73.2 Qwen3-235B-A22B-Instruct 63.2 44.7 21.9 31.7 53.5 74.6 50.0 80.1 87.2 70.1 77.1 Qwen3-MAX 65.4 47.6 1.2 40.9 73.4 71.9 57.5 82.5 89.1 77.6 86.6
+> Large-Scale Models
+> Qwen3-32B-nothink 65.8 49.2 37.6 21.5 31.9 48.8 24.0 80.1 86.3 57.2 70.1 Qwen3-30B-A3B-Instruct 62.4 44.4 19.4 20.3 38.4 57.0 38.0 75.8 85.3 61.3 71.1 Llama3.3-70B-Instruct 62.3 43.8 30.8 33.8 44.0 --62.1 79.9 56.7 61.7 ERNIE-4.5-21B-A3B-PT 61.2 41.1 5.9 11.0 16.3 6.6 38.5 63.2 70.6 46.9 51.1 Olmo-3.1-32B-Instruct 33.2 22.7 14.1 20.2 26.2 --44.4 42.4 25.1 18.4 GLM-4.7-Flash 64.5 47.4 5.9 16.9 21.3 54.2 55.0 77.3 82.9 53.5 62.0
+> MagicAgent Series
+> MagicAgent-32B 80.3 69.7 48.6 57.7 61.5 62.0 53.0 84.1 89.7 78.3 84.1
+> MagicAgent-30B-A3B 79.6 69.9 42.8 60.7 58.3 53.1 55.0 83.3 89.6 74.9 83.5
+
+stantial performance improvement over both ultra-scale and large-scale models. In particular, MagicAgent-30B-A3B achieves the highest scores on both F1 Chain ( 79 .6%) and F1 Graph ( 69 .9%), surpassing GPT-5.2 by approximately 
+
+19 .5% and 30 .8%, respectively. These results indicate that the proposed specialized training strategy enables more ef-fective navigation of complex workflows, especially those involving conditional branching and interdependent subtasks, while maintaining stronger structural consistency than models with substantially larger parameters. 
+
+Multi-Constraint Scheduling. On the NaturalPlan benchmark, which evaluates deductive reasoning and global con-sistency, the MagicAgent series consistently achieves top-tier accuracy, with average scores of 55 .9% and 53 .9% for the Dense and MoE models, respectively. In the Trip and Meeting subset, MagicAgent-32B and MagicAgent-30B-A3B attain superior accuracy of 48 .6% and 60 .7%, respectively, substantially outperforming GPT-5.2 ( 39 .4% and 53 .7%). In the Calendar subset, the MagicAgent models maintain consistently strong performance, effectively bridging the gap between large-scale efficiency and ultra-scale reasoning capabilities. 
+
+Tool-Augmented Planning. The MagicAgent series demonstrates superior proficiency in tool-augmented planning, significantly outperforming ultra-scale closed-source models in both precision and multi-turn consistency. 
+
+• High-Precision API Invocation: On the BFCL-v3 benchmark, MagicAgent-32B achieves the highest reported Live Accuracy of 84 .1% and Non-Live Accuracy of 89 .7%, with an average of 86 .9%. This performance surpasses representative models such as Qwen3-Max ( 82 .5%) and GPT-4o ( 66 .9%), indicating a superior ability to map complex natural language intents to precise tool signatures. 
+
+• Cross-Lingual Robustness: Results on ACEBench demonstrate substantial gains in both English (En) and Chinese (Zh) contexts. Notably, MagicAgent-32B achieves an average accuracy of 81 .2%, exceeding DeepSeek-V3.1 ( 67 .8%
+
+in En, 73 .2% in Zh) and Qwen3-235B ( 70 .1% in En, 77 .1% in Zh) despite a significant disparity in parameter scale. These results highlight the effectiveness of planning-specific fine-tuning in distilling high-order reasoning into compact architectures. 
+
+Long-Horizon Tool Execution. Evaluation via τ 2-Bench assesses models’ state-tracking and self-consistency capa-bilities over extended interaction horizons in the Retail and Airline domains. MagicAgent-32B and MagicAgent-30B-A3B achieve average accuracies of 57 .5% and 54 .1%, respectively. 
+
+• Adaptive State Tracking: In the Retail domain, MagicAgent-32B achieves an accuracy of 62 .0%, corresponding to a 27 .0% relative improvement over the base Qwen3-32B model ( 48 .8%). This indicates a more robust internal representation of task state, effectively mitigating error accumulation over long horizons. 
+
+• Competitive Operational Integrity: Within the Airline domain, MagicAgent-30B-A3B reaches an accuracy of 
+
+55 .0%, exceeding substantially larger models such as Qwen3-235B-A22B ( 50 .0%) and closely approaching GLM-18 Table 3: MagicEval-Plan Performance Comparison Across Various Models. Bold indicates the best performance in each benchmark, while Underline indicates the second-best performance.                                                                                                                                                                                        
+
+> Models General Dependency Condition Context Inheritance
+> Step Embedding LLM Step Embedding LLM Step Embedding LLM Step Embedding LLM
+> Ultra-Scale Models
+> GPT-5.2 36.8 89.7 92.0 28.5 89.9 96.5 51.0 89.9 85.3 33.5 89.7 91.8 Kimi-K2-Instruct 85.7 91.9 86.7 79.5 91.7 88.1 87.0 91.0 80.2 88.7 91.7 88.3 GLM-4.7 87.9 97.0 88.1 82.5 96.8 89.1 85.5 96.6 83.2 94.6 96.6 88.2 DeepSeek-V3.1-nothink 81.0 96.8 84.0 64.0 96.9 88.3 65.0 96.5 77.0 89.5 96.3 89.9 Qwen3-235B-A22B-Instruct 70.6 91.4 85.1 65.5 90.5 87.0 72.5 89.6 74.6 82.1 90.8 88.0 Qwen3-MAX 81.0 92.7 89.3 78.0 91.8 88.8 76.0 91.0 80.6 88.3 92.0 90.7
+> Large-Scale Models
+> Qwen3-32B-nothink 64.5 91.6 87.1 72.5 91.6 88.6 67.5 90.4 77.1 67.7 90.7 87.5 Qwen3-30B-A3B-Instruct 35.1 90.3 78.7 16.0 91.5 91.8 46.5 89.8 74.4 33.5 90.3 78.7 Llama3.3-70B-Instruct 36.8 92.1 82.6 38.5 90.7 86.4 40.5 87.9 70.2 38.5 90.3 85.5 ERNIE-4.5-21B-A3B-PT 72.7 92.4 85.1 71.0 91.6 86.6 49.0 90.2 76.2 76.3 91.3 87.9 Olmo-3.1-32B-Instruct 48.5 91.5 82.4 47.5 90.5 89.5 39.5 87.7 71.9 61.9 90.5 79.9 GLM-4.7-Flash 48.5 86.8 72.6 46.5 87.1 79.0 37.0 83.8 65.6 56.4 85.9 73.1
+> MagicAgent Series
+> MagicAgent-32B 98.0 95.6 91.2 98.2 95.7 91.2 97.5 95.3 87.4 97.6 94.3 92.2 MagicAgent-30B-A3B 97.6 95.9 91.0 97.0 95.6 92.3 97.0 95.5 88.1 97.6 94.6 90.2
+
+4.7-Flash. Its capacity to handle dynamic feedback and multi-step execution logic supports its suitability as a foundation for autonomous planning agents. 
+
+6.2 Performance of in-house Benchmarks 6.2.1 Benchmark Introduction 
+
+To further evaluate the real-world applicability of our model, we collected actual user interaction logs from our produc-tion environment to construct an in-house evaluation dataset, named MagicEval 3. Within our deployment scenario, the agent is expected to execute two primary types of tasks: user query decomposition and tool invocation planning. These tasks correspond directly to evaluating the agent’s proficiency in hierarchical task decomposition and tool-augmented planning, respectively. The evaluation covers four dominant conversational scenarios: (1) General : Queries are randomly sampled from the entire interaction corpus to assess the model’s overall baseline performance across diverse conditions. (2) Dependency :Queries require the execution of sequential actions, specifically designed to test the model’s ability to handle complex task dependencies. (3) Condition : Queries involve conditional execution paths, evaluating the model’s capacity for dynamic decision-making based on specific constraints. (4) Context Inheritance : Queries necessitate the tracking and inheritance of information across multi-turn interactions, testing the model’s comprehension of historical context. 
+
+• MagicEval-Plan (Hierarchical Task Decomposition): To assess the efficacy of hierarchical planning, the MagicEval-Plan dataset evaluates the model’s capacity to decompose high-level user queries into sequences of executable sub-tasks. Performance is quantified using a multi-dimensional approach: Step Accuracy validates the structural alignment of the generated plan length; Semantic Similarity utilizes embedding distances to ensure the generated tasks semantically match the annotated ground truth; and LLM-as-a-Judge leverages a state-of-the-art model (GPT-5.2) to provide a qualitative assessment of plan correctness. Collectively, these metrics serve to verify that the generated decomposition faithfully reflects human-annotated intent in terms of both structure and semantics. 
+
+• MagicEval-Tool (Tool-Augmented Planning): This dataset focuses on the precision of execution planning, specif-ically examining the model’s ability to invoke internal tools correctly within a dialogue context. This evaluation relies on two industry-standard metrics: Tool Name Accuracy, which verifies that the correct function is selected from the available library, and Tool Argument Accuracy, which ensures the parameters passed to the function align perfectly with the required schema. These metrics are critical for benchmarking the reliability of the agent in production environments where precise and error-free API execution is paramount. 19 Table 4: MagicEval-Tool Performance Comparison Across Various Models. Bold indicates the best performance in each benchmark, while Underline indicates the second-best performance.                                                                                                                            
+
+> Models General Dependency Condition Context Inheritance
+> Name Argument Name Argument Name Argument Name Argument
+> Ultra-Scale Models
+> GPT-5.2 74.6 55.8 67.8 46.5 73.5 58.2 71.0 55.5 Kimi-K2-Instruct 89.9 66.8 91.0 58.3 88.7 71.0 90.3 67.5 GLM-4.7 89.1 70.6 85.3 56.5 82.6 65.6 85.5 66.0 DeepSeek-V3.1-nothink 86.8 65.0 86.8 54.8 86.6 66.5 86.3 62.0 Qwen3-235B-A22B-Instruct 89.3 67.3 89.5 55.3 87.5 69.2 88.8 63.8 Qwen3-MAX 92.4 72.3 90.0 58.3 88.1 69.5 89.5 67.0
+> Large-Scale Models
+> Qwen3-32B-nothink 69.5 50.7 69.8 43.8 57.6 44.2 70.0 48.0 Qwen3-30B-A3B-Instruct 48.3 34.5 49.3 30.0 40.2 29.7 46.6 29.2 Llama3.3-70B-Instruct 74.9 53.8 71.0 41.8 76.8 53.1 75.5 48.8 ERNIE-4.5-21B-A3B-PT 71.6 43.7 61.5 32.8 61.3 40.2 74.5 43.3 Olmo-3.1-32B-Instruct 19.5 11.7 21.3 9.5 10.7 5.2 2.6 14.0 GLM-4.7-Flash 38.3 26.4 24.8 13.0 27.4 20.1 34.5 21.5
+> MagicAgent Series
+> MagicAgent-32B 97.5 87.3 97.5 80.0 95.4 88.7 98.8 85.5 MagicAgent-30B-A3B 97.7 86.3 98.5 78.5 94.2 87.2 98.5 82.0
+
+6.2.2 Main Results Hierarchical Task Decomposition. Table 3 evaluates model’s hierarchical task decomposition ability under four structured planning settings. The results demonstrate that the MagicAgent series substantially improves fine-grained plan construction quality across all evaluation protocols (Step, Embedding, and LLM). 
+
+• Step-based evaluation: Under the Step-level metric, which directly measures structural correctness of decomposed plans, MagicAgent achieves near-perfect performance across all four scenarios. MagicAgent-32B obtains 98 .0%,
+
+98 .2%, 97 .5%, and 97 .6%, while MagicAgent-30B-A3B consistently reaches 97 .0. In contrast, even ultra-scale models exhibit noticeable structural weaknesses, particularly under Dependency and Condition settings where step accuracy often drops to 70 % ∼ 90 %. This gap indicates that large general-purpose models struggle with precise hierarchical decomposition when multi-step constraints are involved. 
+
+• Embedding-based evaluation: MagicAgent maintains stable and leading performance ( 95 % across all tasks), sug-gesting strong semantic alignment between generated plans and reference decompositions. Importantly, unlike some ultra-scale models that show relatively high embedding similarity but lower step correctness, MagicAgent achieves both structural validity and semantic consistency. 
+
+• LLM-based evaluation: MagicAgent remains competitive across all scenarios, achieving balanced performance without sacrificing structural rigor. While certain ultra-scale models occasionally obtain slightly higher LLM scores on isolated tasks, they fail to match MagicAgent’s consistent dominance on step-level correctness, which is more directly aligned with hierarchical decomposition fidelity. Overall, the results indicate that MagicAgent substantially strengthens hierarchical task decomposition, producing plans that are not only semantically plausible but structurally precise. The consistent improvements across General, Depen-dency, Condition, and Context Inheritance settings suggest robustness under complex hierarchical constraints. 
+
+Tool-Augmented Planning. Table 4 evaluates tool-augmented planning ability, decomposed into tool name and ar-gument accuracy, across the same four structured reasoning scenarios. The results show that MagicAgent significantly improves both tool identification accuracy and parameter precision. 
+
+• Tool name: MagicAgent achieves near-ceiling performance across all categories. Both variants consistently reach 
+
+95 % ∼ 99 %, clearly outperforming ultra-scale baselines whose best accuracy remain around 90 % ∼ 92 %. The advantage becomes more evident under Dependency and Context Inheritance settings, where correct tool selection 
+
+> 3All interaction data used for evaluation has been fully anonymized, with all personally identifiable information (PII) removed.
+
+20 Table 5: Performance comparison in the online ALFWorld environment. We report two success metrics: Succ. ∗
+
+and Succ. . The table is organized into two parts: (i) a ReAct-based comparison across ultra-scale, large-scale, and MagicAgent series, and (ii) a various training-algorithm evaluation on the Qwen2.5 backbone. Bold and underline indicate the best and second-best results, respectively, applied separately within these two parts. Results for baseline methods (ReAct, Agentgym, SFT, GRPO, GiGPO, RLVMR, EPO) are taken from the EPO paper. The gray color indicates that GIGPO and RLVMR employ the Qwen2.5-7B model, whereas EPO and our proposed χPO use the smaller-parameter Qwen2.5-3B model while achieving comparable performance. We run our own implementations of 
+
+χPO across multiple random seeds to ensure stable results.                                                                                                     
+
+> Models Methods IID Succ. ∗IID Succ. OOD Succ. ∗OOD Succ.
+> Ultra-Scale Models
+> GPT-4o ReAct 57.3 -66.0 -GPT-5.2 ReAct 63.5 -62.6 -DeepSeek-V3.1 ReAct 67.1 -76.1 -DeepSeek-R1 ReAct 68.8 -70.2 -Qwen3-235B-A22B-Instruct ReAct 57.1 -55.9 -Qwen3-MAX ReAct 50.7 -59.7 -
+> Large-Scale Models
+> Qwen3-32B ReAct 61.4 -68.7 -Qwen3-30B-A3B ReAct 44.3 -44.0 -Qwen3-8B ReAct 51.4 -53.7 -Qwen2.5-7B ReAct 23.1 -28.5 -
+> MagicAgent Series
+> MagicAgent-32B ReAct 81.4 -78.4 -
+> MagicAgent-30B-A3B ReAct 67.9 -71.6 -
+> Training Algorithms
+> LLaMa2-7B AgentGym 76.6 -63.3 -Qwen2.5-7B SFT 63.3 -57.0 -Qwen2.5-7B GiGPO 89.5 -90.2 -Qwen2.5-7B RLVMR 91.4 -91.8 -Qwen2.5-3B GRPO 87.5 63.3 83.3 63.5 Qwen2.5-3B EPO 91.7 75.8 89.6 75.4 Qwen2.5-3B χPO 91.7 78.2 91.8 75.9
+
+requires reasoning over cross-step constraints. This indicates that MagicAgent more reliably integrates structural plan context into tool decisions. 
+
+• Tool Argument: For argument generation, which requires precise semantic grounding and constraint satisfaction, the performance gap becomes even more pronounced. MagicAgent achieves 80 % ∼ 89 % across all settings, while most ultra-scale models remain below 70 %. The largest improvements appear in the Dependency setting, sug-gesting that MagicAgent better propagates intermediate constraints into tool parameters, reducing argument-level inconsistencies. Taken together, the results demonstrate that MagicAgent enhances both macro-level tool selection and micro-level argu-ment specification. Unlike ultra-large models that may select plausible tools but produce partially incorrect arguments, MagicAgent shows stronger alignment between plan structure and tool execution details. This confirms its effectiveness in tool-augmented planning under structured, multi-constraint scenarios. 
+
+6.3 Performance of Online RL 
+
+This section presents a comprehensive evaluation of the proposed χPO in the online environment ALFWorld (Shrid-har et al., 2020). ALFWorld comprises 4,639 interactive household task instances spanning six categories, including 
+
+Pick & Place , Examine in Light , Clean & Place , Heat & Place , Cool & Place , Pick Two & Place . These tasks require long-horizon planning, sequential decision-making, and robust spatial reasoning. For each category, task instances are organized into a train split, along with separate seen and unseen validation splits used for evaluation. The seen split contains tasks executed in environments encountered during training but with al-21 0 20 40 60 80 100 120 140 
+
+> Training Steps
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 1.2
+> Think-level Entropy
+> Think-level Entropy
+> Action-level Entropy
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> 0.25
+> Action-level Entropy
+
+(a) Think-level and action-level entropy in ALFWorld. 0 50 100 150 200  
+
+> Training Steps
+> 1.60
+> 1.65
+> 1.70
+> 1.75
+> 1.80
+> 1.85
+> 1.90
+> Offline RL Rewards
+> Offline RL
+> Online RL
+> 0
+> 1
+> 2
+> 3
+> 4
+> 5
+> 6
+> 7
+> 8
+> Online RL Rewards
+
+(b) Online and offline RL rewards 
+
+Figure 8: RL training dynamics analysis. (a) The entropy at the think level is approximately an order of magnitude higher than that at the action level. (b) Both online and offline RL exhibit steadily increasing reward accumulation over the course of training. tered object configurations, counts, and visual properties. In contrast, the unseen split consists of entirely new task instances situated in previously unobserved rooms with novel receptacles and layout structures. 
+
+Experiment Setting. Our evaluation follows the protocol introduced in EPO (Xu et al., 2025b), reporting perfor-mance under both IID (in-distribution) conditions on the seen split and OOD (out-of-distribution) conditions on the unseen split. To ensure robustness and reproducibility, all experiments are conducted using five random seeds. We report two success metrics: Succ. ∗ , defined as the mean of the best success rates achieved across the five random seeds, and Succ. , which reflects the average steady-state performance after convergence over the same set of runs. More information about the experimental settings are available in Appendix B. 
+
+Baselines. We adopt baseline results reported in EPO, encompassing prompt-based approaches such as ReAct (Yao et al., 2022b), which rely exclusively on in-context reasoning without parameter updates. We further compare against Supervised Fine-Tuning (SFT) and general-purpose reinforcement learning methods, including GRPO (Shao et al., 2024). In addition, we evaluate approaches specifically designed for these embodied or interactive agents in the on-line environment, including GiGPO (Feng et al., 2025), RLVMR (Zhang et al., 2025c), and EPO (Xu et al., 2025b). Following the experimental setup of EPO, we use the Qwen2.5 models rather than the Qwen3 series in this experiment. 
+
+Results. As shown in Table 5, we compare our MagicAgent model with other ultra-scale and large-scale models under a ReAct-based framework. Specifically, MagicAgent-32B achieves the best performance, with 81.4% IID and 78.4% OOD success rates, substantially outperforming the representative ultra-scale state-of-the-art GPT-5.2 (IID: 63 .5%,OOD: 62 .6%) and DeepSeek (IID: 68 .8%, OOD: 76 .1%) models. 
+
+Effectiveness of χPO. In addition, we compare multiple training algorithms to verify the effectiveness of the pro-posed χPO algorithm. As shown in Table 5, χPO achieves the strongest overall performance, attaining both the highest peak success rates ( IID: 91.7%, OOD: 91.8% ) and best converged success rates (IID: 78.2%, OOD: 75.9% ), outper-forming the EPO method. Moreover, χPO with the Qwen2.5-3B model achieves performance comparable to GiGPO and RLVMR using the larger Qwen2.5-7B model, indicating that the proposed exploration-exploitation mechanisms im-prove learning efficiency rather than relying solely on model scale. To further examine the think-level and action-level entropy smoothing mechanisms, Figure 8a shows that entropy at the think level is approximately an order of magnitude higher than that at the action level, and that both decrease throughout training. In addition, rewards in both offline and online reinforcement learning exhibit consistent upward trends in Figure 8b. These consistent improvements indi-cate that χPO not only accelerates early exploration to discover high-reward behaviors, but also stabilizes long-term performance through more reliable action execution. This behavior aligns with our design choices: token-level en-tropy regularization, think-level and action-level entropy smoothing promote broader exploration, which is particularly beneficial under sparse rewards, while the information bottleneck suppress unnecessary uncertainty at convergence, resulting in higher steady-state success rates. 22 6.4 Performance of MoE 
+
+Table 6: Ablation Study of Joint Optimization Strategy for MoE Supervised Fine-Tuning. Bold indicates the best performance in each benchmark, while Underline indicates the second-best performance.                                                                          
+
+> Method WorfBench NaturalPlan τ2-Bench
+> F1Chain F1Graph Trip Meeting Calendar Retail Airline BP 79.0 68.4 39.5 59.5 54.5 20.8 39.5 BP + LBL micro 78.5 69.0 38.1 57.8 52.4 43.9 47.0 BP + VarianceLoss 78.5 68.5 39.8 57.4 53.9 28.9 40.0 BP + LBL seq 77.9 68.4 38.1 55.5 54.5 26.1 41.0 BP + LBL gbl 79.3 70.2 40.0 58.5 53.2 45.0 44.0 BP + z_loss 78.3 68.2 38.3 57.5 53.6 51.3 48.0 BP + Expert Capacity 77.9 67.6 39.6 57.6 55.8 37.5 46.0 BP + LBL gbl + z_loss 79.0 69.2 41.8 60.3 54.9 52.6 52.5
+
+Joint Optimization Strategies for Enhancing Model Performance. We compare the effects of applying different training tricks individually with a joint optimization strategy during the MoE SFT stage. The methods under compari-son mainly include z-loss, micro-batch LBL, sequence-level LBL, global-batch LBL, variance loss, and expert capacity control. We perform ablation studies using the same training data, which includes multi-constraint scheduling, procedu-ral logic orchestration, and long-horizon tool execution. With identical hyperparameters, the joint optimization strategy achieves superior benchmark metrics. In our training data, Long-Horizon Tool Execution task exhibits both high complexity and long context, constituting the primary challenge for mixed training. Under this condition, most mainstream training tricks fail to maintain balanced performance. As shown in Table 6, variance loss and sequence-level LBL exhibit suboptimal performance on τ 2-Bench: retail and airline scores are mostly below 45. In contrast, z-loss performs clearly better, with 51.3% in retail and 48.0% in airline. By penalizing extreme routing logits, z-loss mitigates overly sharp routing distributions, yields smoother gradients, and stabilizes training. This is crucial for long-horizon tool execution training, where long sequences increase the numerical sensitivity of MoE. Furthermore, global-batch LBL contributes by adopting a global optimization perspective to realize corpus-level load balancing and enhance expert specialization. On WorfBench, it achieves the highest scores on both F1 Chain (79.3%) and F1 Graph (70.2%), indicating more principled routing and improved expert allocation. Finally, combining z-loss with global-batch LBL achieves balanced performance: on τ 2-Bench, retail reaches 52.6% and airline 52.5%, with consistent gains across other benchmarks. These results suggest that jointly z-loss and global load balancing loss is an effective strategy for mixed training. 
+
+Balanced Expert Loading and Specialization. We report the MaxVio batch value during training to evaluate the impact of different strategies on training load balancing and efficiency. MaxVio batch is defined as: 
+
+MaxVio batch = max i Load i − Load i
+
+Load i
+
+, (17) where Load i denotes the number of tokens assigned to the i-th expert per training batch, and Load i represents the ideal load distributed under perfect load balance. As shown in Figure 9b, both the expert capacity constraint and the z-loss improve training load balance over the base-line to a certain extent. While the variance loss encourages more discriminative routing decisions to enhance model performance, the absence of explicit load balancing constraints leads to a slight expert load imbalance compared to the baseline. As illustrated in Figure 9a, the joint optimization strategy achieves a balance in training load comparable to that of mainstream load balancing losses, while substantially outperforming the baseline and other competing ap-proaches. This strategy ensures a significantly more stable and equitable distribution of training loads throughout the entire optimization trajectory. Furthermore, we visualize the expert selection frequencies as heatmaps to analyze expert specialization patterns under different strategies. As illustrated in Figure 10, distinct routing allocation patterns emerge across the three NaturalPlan subtasks: Trip, Meeting, and Calendar. This observation indicates that the model gradually develops stable expert 23 400 600 800 1000 1200 1400 
+
+> Global Step
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0.8
+> MaxVio Value
+> Ours
+> Base + LBL-micro
+> Base + LBL-global
+> Base + LBL-seq
+
+(a) MaxVio curve (Lower range). 0 200 400 600 800 1000 1200 1400  
+
+> Global Step
+> 4.00
+> 4.25
+> 4.50
+> 4.75
+> 5.00
+> MaxVio Value
+> Base
+> Base + Z-loss
+> Base + Expert Capacity
+> Base + Variance Loss
+
+(b) MaxVio curve (Higher range). 
+
+Figure 9: MaxVio value under various load-balanced strategies. (a) illustrates the MaxVio curves for LBL micro ,
+
+LBL gbl , LBL seq and joint optimization strategy. (b) presents the MaxVio metrics for the baseline, z-loss, Expert Capacity, and Variance Loss methods. 0
+
+> 8
+> 16
+> 24
+> 32
+> 40
+> 48
+> 56
+> 64
+> 72
+> 80
+> 88
+> 96
+> 104
+> 112
+> 120
+> Expert ID
+> 0 4 8 12  16  20  24  28  32  36  40  44
+> Layer ID
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> Expert Token Ratio
+
+(a) Calendar task 0 
+
+> 8
+> 16
+> 24
+> 32
+> 40
+> 48
+> 56
+> 64
+> 72
+> 80
+> 88
+> 96
+> 104
+> 112
+> 120
+> Expert ID
+> 0 4 8 12  16  20  24  28  32  36  40  44
+> Layer ID
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> Expert Token Ratio
+
+(b) Meeting task 0 
+
+> 8
+> 16
+> 24
+> 32
+> 40
+> 48
+> 56
+> 64
+> 72
+> 80
+> 88
+> 96
+> 104
+> 112
+> 120
+> Expert ID
+> 0 4 8 12  16  20  24  28  32  36  40  44
+> Layer ID
+> 0.00
+> 0.05
+> 0.10
+> 0.15
+> 0.20
+> Expert Token Ratio
+
+(c) Trip task 
+
+Figure 10: Expert frequency heatmaps under different agent tasks on NaturalPlan. (a) Calendar task, (b) Meeting task, and (c) Trip task. The distinct expert utilization patterns across tasks indicate the emergence of stable task-specific expert specialization during training. Table 7: Inference Efficiency Comparison between Dense and MoE Models across Various Concurrency Levels. 
+
+Model Avg TTFT (s) Avg TPOT (s) Avg Latency (s) Concurrency 
+
+MagicAgent-32B 0.498 0.016 16.722 1MagicAgent-30B-A3B 0.341(-31.5%) 0.007(-56.3%) 7.582(-54.7%) 1MagicAgent-32B 0.785 0.018 19.586 10 MagicAgent-30B-A3B 0.558(-28.9%) 0.011(-38.9%) 11.783(-39.9%) 10 MagicAgent-32B 2.851 0.024 27.855 50 MagicAgent-30B-A3B 1.153(-59.6%) 0.016(-33.3%) 17.891(-35.8%) 50 MagicAgent-32B 4.009 0.035 39.555 100 MagicAgent-30B-A3B 2.250(-43.9%) 0.021(-40.0%) 23.478(-40.6%) 100 specialization during training, enabling it to adaptively activate task-relevant experts to effectively handle different tasks. 
+
+Inference Efficiency. In addition, we evaluate the inference efficiency 4 of our proposed models, specifically compar-ing the Dense model (MagicAgent-32B) and the MoE model (MagicAgent-30B-A3B). The benchmarks are conducted on a server equipped with 4 NVIDIA A800 GPUs, using a standardized configuration of 1024 input tokens and 1024 output tokens. As illustrated in Table 7, the MoE architecture demonstrates a substantial performance advantage over the Dense counterpart across all measured metrics. Notably, our MoE model achieves a reduction of 28.9% to 59.6% in Average TTFT and 33.3% to 56.3% in Average TPOT across various concurrency levels. These results underscore that our MoE model significantly reduces computational overhead and overall latency (by up to 54.7%) while maintaining high throughput, making it highly suitable for large-scale deployment. 
+
+> 4
+
+The evaluation is based on the EvalScope framework. 
+
+24 7 Conclusions 
+
+This paper presents MagicAgent , a model series that addresses the bottlenecks of “single-point optimizations” and balances multi-type agent planning tasks in a unified framework. To mitigate the scarcity of high-quality and diverse agentic data, a systematic yet lightweight framework for agentic data synthesis is purposed, covering tasks across hi-erarchical task decomposition, tool-augmented planning, multi-constraint scheduling, procedural logic orchestration and long-horizon tool execution. Moreover, we develop a two-stage training framework centered on multi-task rein-forcement learning(RL), combined with an online RL method named χPO that balances exploration and exploitation. Empirical validation across public and proprietary benchmarks demonstrates that MagicAgent achieves superior per-formance among both Ultra-Scale Models and Large-Scale Models. Driven by its strong capabilities in planning, the MagicAgent model series has been deployed across multiple high-value scenarios under Honor’s intelligent assistant. We present three representative application domains to illustrate the versatility and efficacy of our approach in Ap-pendix H. In future work, our next step is to push beyond current model limits by advancing long-horizon reasoning and code-augmented task completion, while leveraging memory and personalized information to unlock new frontiers in agent intelligence. 
+
+## References 
+
+Baidu AI. Ernie 4.5 technical report, 2025. Victor Barres, Honghua Dong, Soham Ray, Xujie Si, and Karthik Narasimhan. τ 2-bench: Evaluating conversational agents in a dual-control environment. arXiv preprint arXiv:2506.07982 , 2025. Jeffrey M Bradshaw, Paul J Feltovich, and Matthew Johnson. Human–agent interaction. In The handbook of human-machine interaction , pp. 283–300. CRC Press, 2017. Hongru Cai, Yongqi Li, Wenjie Wang, Fengbin Zhu, Xiaoyu Shen, Wenjie Li, and Tat-Seng Chua. Large language models empowered personalized web agents. In ACM on Web Conference (WWW) , pp. 198–215, 2025. Pengfei Cao, Tianyi Men, Wencan Liu, Jingwen Zhang, Xuzhao Li, Xixun Lin, Dianbo Sui, Yanan Cao, Kang Liu, and Jun Zhao. Large language models for planning: A comprehensive and systematic survey. arXiv preprint arXiv:2505.19683 , 2025. Baian Chen, Chang Shu, Ehsan Shareghi, Nigel Collier, Karthik Narasimhan, and Shunyu Yao. Fireact: Toward language agent fine-tuning. arXiv preprint arXiv:2310.05915 , 2023. Chen Chen, Xinlong Hao, Weiwen Liu, Xu Huang, Xingshan Zeng, Shuai Yu, Dexun Li, Shuai Wang, Weinan Gan, Yuefeng Huang, et al. Acebench: Who wins the match point in tool usage? arXiv preprint arXiv:2501.12851 , 2025a. Kevin Chen, Marco Cusumano-Towner, Brody Huval, Aleksei Petrenko, Jackson Hamburger, Vladlen Koltun, and Philipp Krähenbühl. Reinforcement learning for long-horizon interactive llm agents. arXiv preprint arXiv:2502.01600 , 2025b. Zehui Chen, Kuikun Liu, Qiuchen Wang, Wenwei Zhang, Jiangning Liu, Dahua Lin, Kai Chen, and Feng Zhao. Agent-flan: Designing data and methods of effective agent tuning for large language models. arXiv preprint arXiv:2403.12881 , 2024. DeepSeek-AI, Aixin Liu, Bei Feng, Bing Xue, Bingxuan Wang, and Bochao Wu. Deepseek-v3 technical report. arXiv preprint arXiv:2412.19437 , 2025. Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer. Qlora: Efficient finetuning of quantized llms. 
+
+Advances in Neural Information Processing Systems (NeurIPS) , 36:10088–10115, 2023. Shaokang Dong, Chao Li, Shangdong Yang, Bo An, Wenbin Li, and Yang Gao. Egoism, utilitarianism and egalitari-anism in multi-agent reinforcement learning. Neural Networks , 178:106544, 2024. Shaokang Dong, Chao Li, Shangdong Yang, Hongye Cao, Wanqi Yang, and Yang Gao. Beyond mandatory federations: Balancing egoism, utilitarianism and egalitarianism in mixed-motive games. In PAAAI Conference on Artificial Intelligence (AAAI) , volume 39, pp. 16336–16344, 2025a. Yihong Dong, Xue Jiang, Jiaru Qian, Tian Wang, Kechi Zhang, Zhi Jin, and Ge Li. A survey on code generation with llm-based agents. arXiv preprint arXiv:2508.00083 , 2025b. Zi-Yi Dou, Cheng-Fu Yang, Xueqing Wu, Kai-Wei Chang, and Nanyun Peng. Re-rest: Reflection-reinforced self-training for language agents. arXiv preprint arXiv:2406.01495 , 2024. Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan, et al. The llama 3 herd of models. arXiv e-prints , pp. arXiv–2407, 2024. 25 Zane Durante, Qiuyuan Huang, Naoki Wake, Ran Gong, Jae Sung Park, Bidipta Sarkar, Rohan Taori, Yusuke Noda, Demetri Terzopoulos, Yejin Choi, et al. Agent ai: Surveying the horizons of multimodal interaction. arXiv preprint arXiv:2401.03568 , 2024. Zane Durante, Ran Gong, Bidipta Sarkar, Naoki Wake, Rohan Taori, Paul Tang, Shrinidhi Lakshmikanth, Kevin Schul-man, Arnold Milstein, Hoi Vo, et al. An interactive agent foundation model. In Computer Vision and Pattern Recognition (CVPR) , pp. 3652–3662, 2025. Shengda Fan, Xin Cong, Yuepeng Fu, Zhong Zhang, Shuyan Zhang, Yuanwei Liu, Yesai Wu, Yankai Lin, Zhiyuan Liu, and Maosong Sun. Workflowllm: Enhancing workflow orchestration capability of large language models. arXiv preprint arXiv:2411.05451 , 2024. Runnan Fang, Shihao Cai, Baixuan Li, Jialong Wu, Guangyu Li, Wenbiao Yin, Xinyu Wang, Xiaobin Wang, Liangcai Su, Zhen Zhang, et al. Towards general agentic intelligence via environment scaling. arXiv preprint arXiv:2509.13311 , 2025. Lang Feng, Zhenghai Xue, Tingcong Liu, and Bo An. Group-in-group policy optimization for llm agent training. arXiv preprint arXiv:2505.10978 , 2025. Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 , 2025a. Hongcan Guo, Haolang Lu, Guoshun Nan, Bolun Chu, Jialin Zhuang, Yuan Yang, Wenhao Che, Sicong Leng, Qimei Cui, and Xudong Jiang. Advancing expert specialization for better moe. arXiv preprint arXiv:2505.22323 , 2025b. Zhicheng Guo, Sijie Cheng, Hao Wang, Shihao Liang, Yujia Qin, Peng Li, Zhiyuan Liu, Maosong Sun, and Yang Liu. Stabletoolbench: Towards stable large-scale benchmarking on tool learning of large language models. arXiv preprint arXiv:2403.07714 , 2024. Hongliang He, Wenlin Yao, Kaixin Ma, Wenhao Yu, Yong Dai, Hongming Zhang, Zhenzhong Lan, and Dong Yu. Webvoyager: Building an end-to-end web agent with large multimodal models. In Annual Meeting of the Association for Computational Linguistics (ACL) , pp. 6864–6890, 2024. Sirui Hong, Mingchen Zhuge, Jonathan Chen, Xiawu Zheng, Yuheng Cheng, Jinlin Wang, Ceyao Zhang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, et al. Metagpt: Meta programming for a multi-agent collaborative framework. In 
+
+International Conference on Learning Representations (ICLR) , 2023. Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. Lora: Low-rank adaptation of large language models. In International Conference on Learning Representations (ICLR) , 2022. Mengkang Hu, Pu Zhao, Can Xu, Qingfeng Sun, Jian-Guang Lou, Qingwei Lin, Ping Luo, and Saravan Rajmohan. Agentgen: Enhancing planning abilities for large language model based agent via environment and task generation. In ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD) , pp. 496–507, 2025. Xu Huang, Weiwen Liu, Xiaolong Chen, Xingmei Wang, Hao Wang, Defu Lian, Yasheng Wang, Ruiming Tang, and Enhong Chen. Understanding the planning of llm agents: A survey. arXiv preprint arXiv:2402.02716 , 2024. Nathan Lambert, Jacob Morrison, Valentina Pyatkin, Shengyi Huang, Hamish Ivison, Faeze Brahman, Lester James V Miranda, Alisa Liu, Nouha Dziri, Shane Lyu, et al. Tulu 3: Pushing frontiers in open language model post-training. 
+
+arXiv preprint arXiv:2411.15124 , 2024. Dmitry Lepikhin, HyoukJoong Lee, Yuanzhong Xu, Dehao Chen, Orhan Firat, Yanping Huang, Maxim Krikun, Noam Shazeer, and Zhifeng Chen. Gshard: Scaling giant models with conditional computation and automatic sharding. 
+
+arXiv preprint arXiv:2006.16668 , 2020. Jierui Li, Hung Le, Yingbo Zhou, Caiming Xiong, Silvio Savarese, and Doyen Sahoo. Codetree: Agent-guided tree search for code generation with large language models. In Annual Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics (NAACL) , pp. 3711–3726, 2025a. Kuan Li, Zhongwang Zhang, Huifeng Yin, Liwen Zhang, Litu Ou, Jialong Wu, Wenbiao Yin, Baixuan Li, Zheng-wei Tao, Xinyu Wang, et al. Websailor: Navigating super-human reasoning for web agent. arXiv preprint arXiv:2507.02592 , 2025b. Weizhen Li, Jianbo Lin, Zhuosong Jiang, Jingyi Cao, Xinpeng Liu, Jiayu Zhang, Zhenqiang Huang, Qianben Chen, Weichen Sun, Qiexiang Wang, Hongxuan Lu, Tianrui Qin, Chenghao Zhu, Yi Yao, Shuying Fan, Xiaowan Li, Tian-nan Wang, Pai Liu, King Zhu, He Zhu, Dingfeng Shi, Piaohong Wang, Yeyi Guan, Xiangru Tang, Minghao Liu, Yuchen Eleanor Jiang, Jian Yang, Jiaheng Liu, Ge Zhang, and Wangchunshu Zhou. Chain-of-agents: End-to-end agent foundation models via multi-agent distillation and agentic rl. arXiv preprint arXiv:2508.13167 , 2025c. 26 Weizhen Li, Jianbo Lin, Zhuosong Jiang, Jingyi Cao, Xinpeng Liu, Jiayu Zhang, Zhenqiang Huang, Qianben Chen, We-ichen Sun, Qiexiang Wang, et al. Chain-of-agents: End-to-end agent foundation models via multi-agent distillation and agentic rl. arXiv preprint arXiv:2508.13167 , 2025d. Yuanchun Li, Hao Wen, Weijun Wang, Xiangyu Li, Yizhen Yuan, Guohong Liu, Jiacheng Liu, Wenxing Xu, Xiang Wang, Yi Sun, et al. Personal llm agents: Insights and survey about the capability, efficiency and security. arXiv preprint arXiv:2401.05459 , 2024. Yuetai Li, Huseyin A. Inan, Xiang Yue, Wei-Ning Chen, Lukas Wutschitz, Janardhan Kulkarni, Radha Poovendran, Robert Sim, and Saravan Rajmohan. Simulating environments with reasoning models for agent training. arXiv preprint arXiv:2511.01824 , 2025e. Ang Lv, Jin Ma, Yiyuan Ma, and Siyuan Qiao. Coupling experts and routers in mixture-of-experts via an auxiliary loss. arXiv preprint arXiv:2512.23447 , 2025. Hao Ma, Tianyi Hu, Zhiqiang Pu, Liu Boyin, Xiaolin Ai, Yanyan Liang, and Min Chen. Coevolving with the other you: Fine-tuning llm with sequential cooperative multi-agent reinforcement learning. Advances in Neural Information Processing Systems (NeurIPS) , 37:15497–15525, 2024. Gurmeet Singh Manku, Arvind Jain, and Anish Das Sarma. Detecting near-duplicates for web crawling. In Interna-tional Conference on World Wide Web (WWW) , pp. 141–150, 2007. Pablo Martinez-Gonzalez, Sergiu Oprea, Alberto Garcia-Garcia, Alvaro Jover-Alvarez, Sergio Orts-Escolano, and Jose Garcia-Rodriguez. Unrealrox: an extremely photorealistic virtual reality environment for robotics simulations and synthetic data generation. Virtual Reality , 24(2):271–288, 2020. Team Olmo, Allyson Ettinger, Amanda Bertsch, Bailey Kuehl, David Graham, David Heineman, Dirk Groeneveld, Faeze Brahman, Finbarr Timbers, Hamish Ivison, et al. Olmo 3. arXiv preprint arXiv:2512.13961 , 2025. OpenAI. Introducing GPT-5.2. https://openai.com/zh-Hans-CN/index/introducing-gpt-5-2/ ,December 2025. Accessed: 2026-02-11. Feng Peiyuan, Yichen He, Guanhua Huang, Yuan Lin, Hanchong Zhang, Yuchen Zhang, and Hang Li. Agile: A novel reinforcement learning framework of llm agents. Advances in Neural Information Processing Systems (NeurIPS) ,37:5244–5284, 2024. Archiki Prasad, Alexander Koller, Mareike Hartmann, Peter Clark, Ashish Sabharwal, Mohit Bansal, and Tushar Khot. Adapt: As-needed decomposition and planning with language models. In Findings of Annual Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics (NAACL) , pp. 4226–4252, 2024. Zehan Qi, Xiao Liu, Iat Long Iong, Hanyu Lai, Xueqiao Sun, Wenyi Zhao, Yu Yang, Xinyue Yang, Jiadai Sun, Shuntian Yao, et al. Webrl: Training llm web agents via self-evolving online curriculum reinforcement learning. arXiv preprint arXiv:2411.02337 , 2024. Shuofei Qiao, Ningyu Zhang, Runnan Fang, Yujie Luo, Wangchunshu Zhou, Yuchen Jiang, Chengfei Lv, and Huajun Chen. Autoact: Automatic agent learning from scratch for qa via self-planning. In Annual Meeting of the Association for Computational Linguistics (ACL) , pp. 3003–3021, 2024. Shuofei Qiao, Runnan Fang, Zhisong Qiu, Xiaobin Wang, Ningyu Zhang, Yong Jiang, Pengjun Xie, Fei Huang, and Huajun Chen. Benchmarking agentic workflow generation. arXiv preprint arXiv:2410.07869 , 2025. Yujia Qin, Shihao Liang, Yining Ye, Kunlun Zhu, Lan Yan, Yaxi Lu, Yankai Lin, Xin Cong, Xiangru Tang, Bill Qian, et al. Toolllm: Facilitating large language models to master 16000+ real-world apis. arXiv preprint arXiv:2307.16789 ,2023. Zihan Qiu, Zeyu Huang, Bo Zheng, Kaiyue Wen, Zekun Wang, Rui Men, Ivan Titov, Dayiheng Liu, Jingren Zhou, and Junyang Lin. Demons in the detail: On implementing load balancing loss for training specialized mixture-of-expert models. arXiv preprint arXiv:2501.11873 , 2025. Qwen Team. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025a. Qwen Team. Qwen3-max: Just scale. https://qwen.ai/blog?id=qwen3-max , September 2025b. Accessed: 2026-02-11. Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK Li, Yang Wu, et al. Deepseekmath: Pushing the limits of mathematical reasoning in open language models. arXiv preprint arXiv:2402.03300 , 2024. Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, and Jeff Dean. Out-rageously large neural networks: The sparsely-gated mixture-of-experts layer. arXiv preprint arXiv:1701.06538 ,2017. 27 Dingfeng Shi, Jingyi Cao, Qianben Chen, Weichen Sun, Weizhen Li, Hongxuan Lu, Fangchen Dong, Tianrui Qin, King Zhu, Minghao Liu, et al. Taskcraft: Automated generation of agentic tasks. arXiv preprint arXiv:2506.10055 , 2025. Mohit Shridhar, Xingdi Yuan, Marc-Alexandre Côté, Yonatan Bisk, Adam Trischler, and Matthew Hausknecht. Alf-world: Aligning text and embodied environments for interactive learning. arXiv preprint arXiv:2010.03768 , 2020. Chan Hee Song, Jiaman Wu, Clayton Washington, Brian M Sadler, Wei-Lun Chao, and Yu Su. Llm-planner: Few-shot grounded planning for embodied agents with large language models. In International Conference on Computer Vision (ICCV) , pp. 2998–3009, 2023. Yifan Song, Weimin Xiong, Xiutian Zhao, Dawei Zhu, Wenhao Wu, Ke Wang, Cheng Li, Wei Peng, and Sujian Li. Agentbank: Towards generalized llm agents via fine-tuning on 50000+ interaction trajectories. arXiv preprint arXiv:2410.07706 , 2024. Liujian Tang, Shaokang Dong, Yijia Huang, Minqi Xiang, Hongtao Ruan, Bin Wang, Shuo Li, Zhiheng Xi, Zhihui Cao, Hailiang Pang, et al. MagicGUI: A foundational mobile GUI agent with scalable data pipeline and reinforcement fine-tuning. arXiv preprint arXiv:2408.03700 , 2024. Kimi Team, Yifan Bai, Yiping Bao, Guanduo Chen, Jiahao Chen, Ningxin Chen, Ruijue Chen, Yanru Chen, Yuankun Chen, Yutian Chen, et al. Kimi k2: Open agentic intelligence. arXiv preprint arXiv:2507.20534 , 2025. Lean Wang, Huazuo Gao, Chenggang Zhao, Xu Sun, and Damai Dai. Auxiliary-loss-free load balancing strategy for mixture-of-experts. arXiv preprint arXiv:2408.15664 , 2024a. Ruoyao Wang, Peter Jansen, Marc-Alexandre Côté, and Prithviraj Ammanabrolu. Scienceworld: Is your agent smarter than a 5th grader? arXiv preprint arXiv:2203.07540 , 2022. Zezhong Wang, Xingshan Zeng, Weiwen Liu, Liangyou Li, Yasheng Wang, Lifeng Shang, Xin Jiang, Qun Liu, and Kam-Fai Wong. Toolflow: Boosting llm tool-calling through natural and coherent dialogue synthesis. In Annual Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics (NAACL) , pp. 4246–4263, 2025. Zora Zhiruo Wang, Jiayuan Mao, Daniel Fried, and Graham Neubig. Agent workflow memory. arXiv preprint arXiv:2409.07429 , 2024b. Tianwen Wei, Bo Zhu, Liang Zhao, Cheng Cheng, Biye Li, Weiwei Lü, Peng Cheng, Jianhao Zhang, Xiaoyu Zhang, Liang Zeng, et al. Skywork-moe: A deep dive into training techniques for mixture-of-experts language models. arXiv preprint arXiv:2406.06563 , 2024. Zhepei Wei, Wenlin Yao, Yao Liu, Weizhi Zhang, Qin Lu, Liang Qiu, Changlong Yu, Puyang Xu, Chao Zhang, Bing Yin, et al. Webagent-r1: Training web agents via end-to-end multi-turn reinforcement learning. arXiv preprint arXiv:2505.16421 , 2025. Zhenyu Wu, Ziwei Wang, Xiuwei Xu, Jiwen Lu, and Haibin Yan. Embodied task planning with large language models. 
+
+arXiv preprint arXiv:2307.01848 , 2023. Z. Xi, Y. Ding, W. Chen, B. Hong, H. Guo, J. Wang, D. Yang, C. Liao, X. Guo, W. He, et al. AgentGym: Evolving large language model-based agents across diverse environments. arXiv preprint arXiv:2406.04151 , 2024. Jian Xie, Kai Zhang, Jiangjie Chen, Tinghui Zhu, Renze Lou, Yuandong Tian, Yanghua Xiao, and Yu Su. Travelplan-ner: a benchmark for real-world planning with language agents. In International Conference on Machine Learning (ICML) , pp. 54590–54613, 2024. Fangzhi Xu, Qiushi Sun, Kanzhi Cheng, Jun Liu, Yu Qiao, and Zhiyong Wu. Interactive evolution: A neural-symbolic self-training framework for large language models. In Annual Meeting of the Association for Computational Linguis-tics (ACL) , pp. 12975–12993, 2025a. Tianyang Xu, Shujin Wu, Shizhe Diao, Xiaoze Liu, Xingyao Wang, Yangyi Chen, and Jing Gao. Sayself: Teaching llms to express confidence with self-reflective rationales. arXiv preprint arXiv:2405.20974 , 2024. Wujiang Xu, Wentian Zhao, Zhenting Wang, Yu-Jhe Li, Can Jin, Mingyu Jin, Kai Mei, Kun Wan, and Dimitris N Metaxas. Epo: Entropy-regularized policy optimization for llm agents reinforcement learning. arXiv preprint arXiv:2509.22576 , 2025b. Fanjia Yan, Huanzhi Mao, Charlie Cheng-Jie Ji, Tianjun Zhang, Shishir G. Patil, Ion Stoica, and Joseph E. Gonzalez. Berkeley function calling leaderboard. https://gorilla.cs.berkeley.edu/blogs/8_berkeley_ function_calling_leaderboard.html , 2024. Yaming Yang, Dilxat Muhtar, Yelong Shen, Yuefeng Zhan, Jianfeng Liu, Yujing Wang, Hao Sun, Weiwei Deng, Feng Sun, Qi Zhang, et al. Mtl-lora: Low-rank adaptation for multi-task learning. In AAAI Conference on Artificial Intelligence (AAAI) , volume 39, pp. 22010–22018, 2025a. 28 Yuming Yang, Yang Nan, Junjie Ye, Shihan Dou, Xiao Wang, Shuo Li, Huijie Lv, Tao Gui, Qi Zhang, and Xuan-Jing Huang. Measuring data diversity for instruction tuning: A systematic analysis and a reliable metric. In Annual Meeting of the Association for Computational Linguistics (ACL) , pp. 18530–18549, 2025b. Shunyu Yao, Howard Chen, John Yang, and Karthik Narasimhan. Webshop: Towards scalable real-world web inter-action with grounded language agents. Advances in Neural Information Processing Systems (NeurIPS) , 35:20744– 20757, 2022a. Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R Narasimhan, and Yuan Cao. React: Synergizing reasoning and acting in language models. In International Conference on Learning Representations (ICLR) , 2022b. Da Yin, Faeze Brahman, Abhilasha Ravichander, Khyathi Chandu, Kai-Wei Chang, Yejin Choi, and Bill Yuchen Lin. Agent lumos: Unified and modular training for open-source language agents. arXiv preprint arXiv:2311.05657 ,2024. Fan Yin, Zifeng Wang, I-Hung Hsu, Jun Yan, Ke Jiang, Yanfei Chen, Jindong Gu, Long T. Le, Kai-Wei Chang, Chen-Yu Lee, Hamid Palangi, and Tomas Pfister. Magnet: Multi-turn tool-use data synthesis and distillation via graph translation. arXiv preprint arXiv:2503.07826 , 2025. Siyu Yuan, Kaitao Song, Jiangjie Chen, Xu Tan, Yongliang Shen, Kan Ren, Dongsheng Li, and Deqing Yang. Easytool: Enhancing llm-based agents with concise tool instruction. In Annual Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics (NAACL) , pp. 951–972, 2025. Shengbin Yue, Siyuan Wang, Wei Chen, Xuanjing Huang, and Zhongyu Wei. Synergistic multi-agent framework with trajectory learning for knowledge-intensive tasks. In AAAI Conference on Artificial Intelligence (AAAI) , volume 39, pp. 25796–25804, 2025a. Yang Yue, Zhiqi Chen, Rui Lu, Andrew Zhao, Zhaokai Wang, Shiji Song, and Gao Huang. Does reinforcement learning really incentivize reasoning capacity in llms beyond the base model? arXiv preprint arXiv:2504.13837 , 2025b. Aohan Zeng, Mingdao Liu, Rui Lu, Bowen Wang, Xiao Liu, Yuxiao Dong, and Jie Tang. Agenttuning: Enabling generalized agent abilities for llms. In Findings of the Association for Computational Linguistics (ACL) , pp. 3053– 3077, 2024. Aohan Zeng, Xin Lv, Qinkai Zheng, Zhenyu Hou, Bin Chen, Chengxing Xie, Cunxiang Wang, Da Yin, Hao Zeng, Jiajie Zhang, et al. Glm-4.5: Agentic, reasoning, and coding (arc) foundation models. arXiv preprint arXiv:2508.06471 ,2025. Jianguo Zhang, Tian Lan, Ming Zhu, Zuxin Liu, Thai Quoc Hoang, Shirley Kokane, Weiran Yao, Juntao Tan, Akshara Prabhakar, Haolin Chen, et al. xlam: A family of large action models to empower ai agent systems. In Annual Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics (NAACL) , pp. 11583–11597, 2025a. Peng-Fei Zhang, Ying Cheng, Xiaofan Sun, Shijie Wang, Fengling Li, Lei Zhu, and Heng Tao Shen. A step toward world models: A survey on robotic manipulation. arXiv preprint arXiv:2511.02097 , 2025b. Yu Zhang and Qiang Yang. A survey on multi-task learning. IEEE Transactions on Knowledge and Data Engineering (TKDE) , 34:5586–5609, 2021. Zijing Zhang, Ziyang Chen, Mingxiao Li, Zhaopeng Tu, and Xiaolong Li. Rlvmr: Reinforcement learning with verifi-able meta-reasoning rewards for robust long-horizon agents. arXiv preprint arXiv:2507.22844 , 2025c. Yuyue Zhao, Jiancan Wu, Xiang Wang, Wei Tang, Dingxian Wang, and Maarten De Rijke. Let me do it for you: Towards llm empowered recommendation via tool learning. In International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR) , pp. 1796–1806, 2024. Huaixiu Steven Zheng, Swaroop Mishra, Hugh Zhang, Xinyun Chen, Minmin Chen, Azade Nova, Le Hou, Heng-Tze Cheng, Quoc V. Le, Ed H. Chi, and Denny Zhou. Natural plan: Benchmarking llms on natural language planning. 
+
+arXiv preprint arXiv:2406.04520 , 2024. Zhipu AI. GLM-4.7: The New King of Open-Source. https://z.ai/blog/glm-4.7 , December 2025. Ac-cessed: 2026-02-11. Qinhao Zhou, Zihan Zhang, Xiang Xiang, Ke Wang, Yuchuan Wu, and Yongbin Li. Enhancing the general agent capabilities of low-parameter llms through tuning and multi-branch reasoning. arXiv preprint arXiv:2403.19962 ,2024. Junda Zhu, Lingyong Yan, Haibo Shi, Dawei Yin, and Lei Sha. Atm: Adversarial tuning multi-agent system makes a robust retrieval-augmented generator. arXiv preprint arXiv:2405.18111 , 2024a. 29 Yuqi Zhu, Shuofei Qiao, Yixin Ou, Shumin Deng, Shiwei Lyu, Yue Shen, Lei Liang, Jinjie Gu, Huajun Chen, and Ningyu Zhang. Knowagent: Knowledge-augmented planning for LLM-based agents. arXiv preprint arXiv:2403.03101 , 2024b. Barret Zoph, Irwan Bello, Sameer Kumar, Nan Du, Yanping Huang, Jeff Dean, Noam Shazeer, and William Fedus. St-moe: Designing stable and transferable sparse expert models. arXiv preprint arXiv:2202.08906 , 2022. 30 Appendix A Training Details 
+
+We provide a comprehensive overview of the training hyperparameters for MagicAgent-32B and MagicAgent-30B-A3B, including core model configurations, mixture-of-experts (MoE) parallelization strategies, and optimization set-tings. Table 8 details prompt and generation limits, optimizer and scheduler choices, and numerical precision, along with parallelism parameters tailored for large-scale MoE training. It further specifies the hyperparameters used for both Supervised Fine-tuning (SFT) and Reinforcement Learning (RL), including batch sizes, learning rates, generation strategies, and reward weighting, ensuring reproducibility and stable optimization across training stages. Table 8: Training parameters for the MagicAgent-32B and MagicAgent-30B-A3B models. 
+
+Parameter Default Value Description 
+
+max_prompt_length 20480 Maximum prompt length max_new_token 2048 Maximum completion length num_train_epochs 1 Number of training epochs weight_decay 0.01 Weight decay coefficient adam_beta1 0.9 Adam optimizer beta1 parameter adam_beta2 0.95 Adam optimizer beta2 parameter lr_scheduler_type cosine Learning rate scheduler type bf16 True Use bfloat16 precision 
+
+MoE Setting 
+
+tensor_model_parallel_size 4 Tensor parallel size pipeline_model_parallel_size 2 Pipeline parallel size context_parallel_size 2 Context parallel size expert_model_parallel_size 4 Expert parallel size moe_aux_loss_coeff 1e-4 Global aux loss coefficient moe_z_loss_coeff 5e-4 Z-Loss coefficient 
+
+Supervised Fine-tuning (SFT) 
+
+num_gpus 32 Number of GPUs (4 machines Œ 8 GPUs) per_device_train_batch_size 4 Training batch size per device gradient_accumulation_steps 1 Gradient accumulation steps learning_rate 1e-5 Learning rate of SFT 
+
+Reinforcement Learning (RL) 
+
+num_gpus 32 Number of GPUs (4 machines Œ 8 GPUs) per_device_train_batch_size 1 Training batch size per device gradient_accumulation_steps 1 Gradient accumulation steps learning_rate 1e-6 Learning rate of actor policy num_generations 8 Number of generations in RL temperature 0.9 Temperature parameter for generations in RL top_p 0.96 Cumulative probability threshold for generation top_k 20 Number of top tokens filtered by highest probability 
+
+α1, α 2, α 3, α 4, α 5 1.0 Weighting coefficients of the respective reward components 
+
+## B Evaluation Settings 
+
+All evaluations were conducted in strict adherence to the protocols outlined in the official public repositories. To ensure a fair comparison, all models were evaluated in standard inference mode (i.e., with any extended reasoning or thinking 
+
+31 features disabled). The evaluation parameters were set as the recommended values. The specific codebases utilized for benchmarking are listed below: 
+
+• NaturalPlan : google-deepmind/natural-plan 
+
+• Worfbench : zjunlp/WorfBench 
+
+• BFCL-v3 : ShishirPatil/gorilla 5
+
+• ACEBench : chenchen0103/ACEBench 
+
+• τ 2-Bench : sierra-research/tau2-bench We observed that certain model families, such as the GLM series, have introduced an optimized user simulator to enhance evaluation performance on the τ 2-Bench. However, as the implementation details and source code for this specialized simulator have not been publicly released, we adhere strictly to the official evaluation protocols and codebase to ensure a standardized and fair comparison across all models. Evaluating on the ALFWorld benchmark necessitates a critical comprehension of complex environmental contexts. Consequently, relying on a standard inference mode is inadequate for this evaluation. To ensure a fair comparison among different models within a unified sandbox environment, we selected a subset of baseline models recognized for their robust reasoning capabilities. For the ALFWorld benchmark, the selected models were evaluated in reasoning inference mode (i.e., with extended reasoning or thinking features enabled). The evaluation sandbox strictly adheres to the official open-source codebase: 
+
+ALFWorld : verl-agent 
+
+## C Hierarchical Task Decomposition Examples 
+
+Raw Format                                                
+
+> <Query> Go to Ctrip to check the Disney tickets in Shanghai, and then help me check it in Meituan by the way, remember to check the one with the highest rating! </Query> <Plan> Step 1. Search for Shanghai Disneyland tickets on Ctrip and sort by highest rating. Step 2. Search for Shanghai Disneyland tickets on Meituan and sort by highest rating. </Plan>
+
+Raw Format    
+
+> <Query> 115117 </Query> <Plan> Step1. 1151172 Step2. </Plan>
+> 5Given the rapid iteration of this repository, we utilized the specific commit cd9429 to ensure reproducibility.
+
+32 D Tool-Augmented Planning Examples 
+
+Raw Format 
+
+<Query> </Query> <think> ""app "" </think> <action> {"name": "call_order_courier", "arguments": {"app": "", "search_info_slot": ""}} </action> <observation> {"status": "success", "message": "", "tool_result": [{"courier_name": "", "courier_phone": "13812345678", "order_number": "JD202406120001", "call_result": "", "call_time": "2024-06-12 15:42:10"}]} </observation> <think> app </think> <action> {"name": "finish", "arguments": {"content": "\n\n13812345678\nJD202406120001\n\ n2024-06-12 15:42:10"}} </action> 
+
+## E Multi-Constraint Scheduling Examples 
+
+Raw Format 
+
+<Task> You plan to visit 2 global cities for 11 days in total. You only take direct flights to commute between cities. You want to stay in Geneva for 5 days. You must be in Paris between day 5 and day 11 of your trip. You want to stay in Paris for 7 days. Here are the cities that have direct flights: Bratislava and Geneva, Paris and Bratislava, Paris and Geneva. Find a trip plan of visiting the cities for 11 days by taking direct flights to commute between them. </Task> <Plan> Here is the trip plan for visiting the 2 European cities for 11 days: **Day 1-5:** Arriving in Geneva and visit Geneva for 5 days. **Day 5:** Fly from Geneva to Paris. **Day 5-11:** Visit Paris for 7 days. </Plan> 
+
+33 F Procedural Logic Orchestration Examples 
+
+Raw Format 
+
+<Task> Get nearest metro station to salt lake city kolkata. </Task> <Candidates> [’Search for the latest information on operational metro stations in Kolkata, especially in and around the Salt Lake City area.’, ’Determine which specific district he represented in that period.’, ’Determine the station(s) closest to the central part of Salt Lake City.’, ’Identify which metro line covers Salt Lake City.’ ]</Candidates> <Plan> Nodes: 1: Search for the latest information on operational metro stations in Kolkata, especially in and around the Salt Lake City area. 2: Identify which metro line covers Salt Lake City. 3: Determine the station(s) closest to the central part of Salt Lake City. Edges: (START,1) (1,2) (1,3) (2,END) (3,END) </Plan> 
+
+## G Long-Horizon Tool Execution Examples 
+
+ShareGPT Format 
+
+{"conversations": [ {"from": "human", "value": "Hellocan you help me cancel my flight and get a refund? Im not going to make the trip anymore." }, {"from": "gpt", "value": "I can help with that. Please provide your **user ID** and ** reservation ID**. If you dont know the reservation ID, tell me your user ID and I can look it up." }, {"from": "human", "value": "My user ID is elena_park_2391. I dont have the reservation number handy." }, {"from": "gpt", "value": "<think>\nI need the users profile to locate their reservation IDs since they dont have it. I will call the function get_user_details.\n</think>\n< tool_call>\n{\"name\": \"get_user_details\", \"arguments\": {\"user_id\": \" elena_park_2391\"}}\n</tool_call>\n" 
+
+34 }, ---(*@\textcolor{gray}{\itshape // omitted for brevity ...}@*) ---{"from": "human", "value": "<observation>{\"status\":\"cancelled\",\"reservation_id\":\"QK3M7P \"}</observation>" }, {"from": "gpt", "value": "Donereservation **QK3M7P** has been **cancelled**.\nYour refund will be issued back to the **original payment method (credit_card_9047712)** and should post within **57 business days**." }]}
+
+## H Usage 
+
+The proposed foundation model, MagicAgent, demonstrates broad applicability across a variety of practical and com-mercial scenarios. We outline three representative application domains to illustrate the versatility and efficacy of our approach. 
+
+• Tool-calling Agent . MagicAgent exhibits robust performance in tool-augmented applications. By effectively en-gaging with user queries, the model executes intelligent decisions regarding both tool selection and parameter instantiationcapabilities that serve as the fundamental backbone for most real-world, interactive agent deployments. The use case is shown in Figure 11. 
+
+Figure 11: A demo case of Tool-calling Agent. 35 • Travel Planning Agent . Our model demonstrates exceptional proficiency in comprehending complex user re-quirements alongside dynamic environmental constraints. Leveraging this contextual information, MagicAgent functions as an intelligent travel assistant, rationally synthesizing and optimizing comprehensive travel itineraries. The use case is shown in Figure 12. 
+
+Figure 12: A demo case of Travel Planning Agent. 
+
+• Intent-Routing Agent in Multi-Agent Architectures . MagicAgent is highly capable of decomposing complex, high-level user tasks into sequential, executable sub-tasks. Acting as a central intent router, it strategically orches-trates the deployment of downstream, domain-specific agents to achieve optimal and coherent outcomes. The use case is shown in Figure 13. 
+
+Figure 13: A demo case of Intent-Routing Agent in Multi-Agent Architectures. 36

@@ -1,0 +1,348 @@
+Title: Production-Grade AI Coding System for Client-Side Development
+
+URL Source: https://arxiv.org/pdf/2603.01460v1
+
+Published Time: Tue, 03 Mar 2026 02:59:29 GMT
+
+Number of Pages: 18
+
+Markdown Content:
+# Production-Grade AI Coding System for Client-Side Development 
+
+RUIHAN WANG, Shanghai Jiao Tong University, China and Xiaohongshu, China 
+
+CHENCHENG GUO, Xiaohongshu, China 
+
+GUANGJING WANG, Xiaohongshu, China Deploying large language model–based code generation in real-world client-side development remains chal-lenging due to heterogeneous inputs, strict engineering constraints, and complex interaction logic expressed in product requirement documents (PRDs). Existing design-to-code approaches often focus on visual translation or single-shot generation, and struggle to reliably align generated code with production requirements. This paper presents a production-grade AI coding system designed for client-side development under realistic industrial constraints. The system adopts a structured, multi-stage pipeline that integrates Figma designs, natural-language PRDs, and domain-specific engineering knowledge into explicit intermediate artifacts, enabling controlled planning and incremental code generation. By grounding PRD understanding in concrete UI components, the system improves alignment between product requirements and implementation. We evaluate the system on proprietary but realistic datasets derived from production client-side projects. Results show that domain-specific adaptation significantly improves PRD understanding accuracy, while end-to-end evaluations demonstrate high UI fidelity and robust implementation of interaction logic in real-world cases. These findings suggest that structured, artifact-centric pipelines provide a practical foundation for production-grade AI coding systems. 
+
+1 Introduction 
+
+Despite recent advances in code generation with large language models (LLMs), integrating such capabilities into real-world software development workflows remains elusive [ 1]. While existing tools demonstrate promising results in frontend prototyping or personal scripting tasks, they often fall short in production environments, where generated code must align with product requirements, enterprise standards, and runtime constraints [ 24 ]. This gap is especially evident in client-side development, an area that combines architectural complexity, platform fragmentation, and strict design fidelity, yet remains underexplored in the current literature. This paper presents a production-grade AI coding system designed for real-world client-side engineering scenarios. In contrast to prior studies that emphasize generic usability or simplified sandbox scenarios, our system is designed to operate under realistic industrial constraints. In practice, generated code must conform to internal design specifications, implement requirements expressed in natural-language product requirement documents (PRDs), and integrate with existing enterprise engineering practices. Our system accepts two primary inputs: (1) a Figma design artifact that specifies layout structure, styling, component usage, and (2) a PRD describing behaviors facing users and business logic in natural language. The system outputs client-side code that is directly usable within the target mobile codebase and suitable for deployment in a production environment. Formulating this problem in a production setting gives rise to several practical challenges. Design artifacts provide accurate UI structure but are devoid of behavioral semantics; layout hierarchies and component names alone cannot infer interaction logic. PRDs, in contrast, contain rich semantic descriptions but are often unstructured, incomplete, and ambiguous. These challenges are further amplified in client-side development, where projects span large and deeply nested codebases with complex lifecycle management, platform-specific constraints, and heterogeneous UI frameworks (e.g., SwiftUI, UIKit, Jetpack Compose). Compilation is slow, debugging often requires physical  
+
+> Authors’ Contact Information: Ruihan Wang, Shanghai Jiao Tong University, Shanghai, China and Xiaohongshu, China; Chencheng Guo, Xiaohongshu, China; Guangjing Wang, Xiaohongshu, China.
+> arXiv:2603.01460v1 [cs.SE] 2 Mar 2026 2Ruihan Wang, Chencheng Guo, and Guangjing Wang
+
+devices, and runtime observability is limited, making error localization and recovery substantially more costly than in server-side or web-based environments. To address these challenges, we do not treat AI coding as a single-shot generation problem, but rather as a structured, multi-stage engineering pipeline, inspired by stepwise code generation strategies proposed in recent work [ 17 ]. Our system transforms heterogeneous inputs into canonical intermediate representations, plans execution via a deterministic protocol, and finally synthesizes code incrementally under explicitly defined constraints. Each stage produces persistent artifacts, enabling human review, auditing, and recovery from failure. Compared with open-ended prompting workflows, this design ensures that both reasoning processes and decision outcomes remain verifiable and reproducible. Building on this pipeline, we introduce several engineering-centric techniques tailored to client-side development. First, we treat PRD decomposition as a domain-specific entity extraction problem inspired by Named Entity Recognition (NER) [ 11 ], mapping functional requirements to executable logic units anchored to concrete UI components. Second, we employ structured context engineering to enrich LLM inputs with design tokens, spacing rules, component usage policies, and project-specific architectural constraints. Third, we support static UI layout validation by aligning rendered code with the design tree extracted from Figma, enabling automated detection of layout mismatches prior to runtime. Together, these techniques bridge the gap between high-level product specifications and production-grade client-side implementations. Due to the proprietary nature of the system and codebase, our evaluation is conducted on a controlled, internal test suite composed of real PRDs, Figma designs, and production client-side projects. We report comparative results before and after PRD decomposition, present two end-to-end execution cases, and analyze internal metrics on layout fidelity and logic correctness. Although the evaluation scale is necessarily constrained, the results consistently indicate that, under realistic production settings, structured and artifact-centric generation pipelines substantially outperform free-form prompting workflows in terms of code quality, robustness, and maintainability. In summary, this paper makes the following contributions: 
+
+• A structured, production-grade AI coding pipeline for client-side engineering. 
+
+We present an artifact-centric AI coding system tailored for client-side development in an industrial environment. The system integrates heterogeneous inputs from Figma designs and natural-language PRDs, enforces alignment with internal engineering guidelines through explicit intermediate artifacts, and generates production-ready mobile code with human-in-the-loop validation. 
+
+• PRD decomposition as UI-anchored logic extraction. We formulate PRD understanding as a UI logic decomposition task inspired by Named Entity Recognition (NER), and propose a domain-specific UI component taxonomy to anchor interaction logic to UI elements. 
+
+• Empirical evaluation on realistic workloads. We conduct controlled evaluations on proprietary datasets derived from real client-side projects, including quantitative analysis of PRD decomposition accuracy, checklist-based UI fidelity assessment, and PRD logic implementation studies. The results demonstrate that the system can reliably support code generation under practical production constraints. 
+
+2 System Design 2.1 Core Insight 
+
+The core insight of our system is that reliable AI coding in real scenarios should be treated as a multi-stage engineering pipeline, rather than a single-step generation. In our system, user inputs are progressively transformed into a sequence of explicit intermediate representations that describe Production-Grade AI Coding System for Client-Side Development 3
+
+what should be implemented and how the work should be executed. Code generation is then reduced to executing these representations under well-defined constraints. This separation allows reasoning, validation, and human intervention to occur before irreversible code changes are made, significantly improving controllability and robustness in practice. 
+
+2.2 System Overview 
+
+To support the pipeline described above, the system is organized as a two-tier agentic architecture consisting of a client-side coding agent and a backend capability server. Operationally, the client and server cooperate along the pipeline. The coding agent is responsible for reasoning, code editing, and mediating human-in-the-loop interactions, while the server manages the main system pipeline, including three sequential stages: (1) context canonicalization, which converts heterogeneous inputs, such as Figma and PRD URLs into canonical representations; (2) task planning, which synthesizes an execution plan through a protocol; and (3) execution orchestration, which consumes the plan in a dependency-aware and resumable manner. Each stage produces persistent artifacts that serve as the inputs to the next stage, forming a clear and auditable pipeline. The following sections will describe each stage in detail. 
+
+2.3 Context Canonicalization 
+
+A prerequisite for reliable design-to-code is to convert heterogeneous inputs into a canonical context representation. In our system, this responsibility is handled by a context normalization layer that ingests (1) Figma URLs, (2) PRD, and (3) enterprise engineering standards. The layer outputs structured artifacts that are directly consumable by the downstream planning workflow. 
+
+2.3.1 Figma Canonicalization. When given a Figma URL, the system first retrieves the correspond-ing design data via API, and transforms it into a simplified design intermediate representation (IR). The IR captures the design as a typed hierarchical structure, where each node encodes its semantic role, layout geometry, visual appearance, and textual attributes. In addition to the node hierarchy, the IR maintains a global style and token space, in which colors, spacing, typography, and other reusable properties are abstracted into stable identifiers. This separation mirrors the structure of modern client UI frameworks, where layout structure and style tokens are managed independently. To further improve robustness across real-world scenarios, the canonicalization process is designed to be fault-tolerant. Optional metadata (such as design variables or auxiliary annotations) is incorporated when available, but its absence does not block the construction of a usable design IR. Optionally, the system applies an augmentation step. A rendered preview image of the target design node is analyzed using YOLO as the object detector to identify UI elements [ 9 , 31 ]. The detected regions are used to refine the canonical structure by flattening overly deep or redundant hierarchies, inserting detected elements as explicit nodes when appropriate. Finally, by traversing the hierarchical structure, the system identifies which UI components are involved and summarizes them into a component set. This set enables subsequent stages to ground planning decisions in project-specific component libraries and usage constraints. 
+
+2.3.2 PRD Decomposition. While the UI framework defines the structural and visual boundaries of a product, it is insufficient to support the behavior of a real system. Without an explicit logic layer, the system can only render interfaces but cannot perform tasks or guarantee correct interactions. UI design mockups are typically accompanied by corresponding PRDs, which enable developers to integrate the software’s visual appearance with its functional logic. The primary objective of PRD processing is to translate interaction logic described in natural language into executable and well-scoped logical units. These logic units typically exhibit several 4 Ruihan Wang, Chencheng Guo, and Guangjing Wang 
+
+characteristics: they are largely independent and can be generated separately; they must be explicitly bound to corresponding UI components to avoid misalignment between logic and UI; and in certain cases, they require awareness of surrounding UI context to ensure globally consistent interaction semantics. In practice, PRD content is provided either as raw text or fetched from document links through an external service. Unlike UI descriptions derived from Figma, PRDs are highly unstructured and expressed in free-form natural language. To mitigate the negative impact of this ambiguity on code generation quality, we design a dedicated PRD ingestion process that converts unstructured PRDs into structured representations using a large language model trained specifically for this purpose (details described in subsection 3.3). Inspired by the paradigm of Named Entity Recognition (NER) [ 11 ], our approach treats UI compo-nents as the primary entities to be identified within PRD text. Each extracted entity corresponds to a concrete UI component, and the surrounding textual descriptions define the scope and semantics of its associated logic. Table 1 summarizes the conceptual parallels between classical NER tasks and PRD logic decomposition. Anchoring logic extraction around UI component entities offers several advantages: each logic unit is explicitly grounded in existing UI code, reducing spurious reasoning across similar components; subtasks can be generated and validated independently; and the classification schema remains extensible as new interaction patterns or business requirements emerge. The structured output of PRD ingestion is persisted as a “requirement understanding” artifact and saved to the local workspace. Once this artifact is reviewed and confirmed by the user, it is treated as the single source of truth for downstream execution, preventing silent reinterpretation or unintended rewrites in later stages. 
+
+> Table 1. Parallels between NER tasks and PRD decomposition
+
+NER tasks PRD decomposition Goal Identify entities from text Identify UI component entities from PRD 
+
+Category e.g., person/location/organization e.g., button/input box/list 
+
+Boundary Start and end positions of entities Scope of control logic 
+
+Relation Semantic relations among entities Interaction relations among UI components 
+
+Context Dependency on linguistic context Functional context of UI components 
+
+2.3.3 Knowledge Injection via Retrieval-Augmented Context. To generate high quality code used in real projects, we require adherence to enterprise engineering standards. Therefore, the context canonicalization layer performs retrieval-augmented context injection by fetching two types of project knowledge: (1) Component usage guidelines and (2) Baseline engineering rules such as spacing systems and resource usage standards. This domain knowledge is maintained in an internal knowledge base constructed from documents routinely used in production workflows, including enterprise specifications such as UI guidelines and coding standards. All documents are centrally managed within a dedicated document space, where they are segmented into chunks and encoded into vector embeddings [ 10 ]. During context canonicalization, relevant documents or passages are retrieved through a hybrid retrieval strategy that combines vector similarity search with keyword matching. This approach enables robust recall of both semantically related and explicitly referenced engineering constraints. To ensure system robustness, the retrieval process is controlled by a cache flag and supported by a time-bounded cache with a fixed time-to-live (TTL). Caching is essential because documentation Production-Grade AI Coding System for Client-Side Development 5
+
+retrieval constitutes an external dependency in the execution pipeline. In practice, a TTL of one hour provides a practical trade-off between system responsiveness and knowledge freshness. 
+
+2.4 Task Planning 
+
+The system formalizes planning as a finite-step protocol rather than a one-shot generation process. Planning is modeled as a stateful interaction in which each step has a well defined objective, explicit inputs and outputs, and a clear completion condition. Conceptually, the protocol operates as a finite state machine (FSM). Each invocation specifies the current step identifier and returns a structured response describing the required action and whether the planning process has terminated. A key invariant is step monotonicity: the current step must be fully completed and its artifacts persisted before the protocol advances. This prevents partial or out-of-order planning and ensures that downstream steps always consume finalized artifacts. The protocol supports two modes with different termination behavior. In PRD-only mode, the user’s intent is limited to PRD clarification or refinement. So execution stops after producing a validated requirement understanding artifact. In full coding mode, the protocol proceeds through technical planning and produces a structured task specification for downstream execution. In addition, the system introduces several human-in-the-loop checkpoints. These checkpoints ensure that ambiguities are resolved early and prevent incorrect assumptions from propagating into code generation. 
+
+2.5 Execution Orchestration 
+
+The output of the planning protocol is a Task Intermediate Representation (Task IR). Task IR bridges high-level intent and concrete implementation by representing work as a structured set of tasks with explicit dependencies and persistent state. Task IR is organized as a hierarchical task tree. Internal nodes represent semantic groupings, while leaf nodes are atomic units executed by the coding agent. Each task carries a stable identifier, an objective in natural language, optional execution context, a task type, and an explicit status field. Task ordering is governed by a local dependency directed acyclic graph (DAG) defined among sibling tasks. The system validates dependencies and performs topological sorting using Kahn’s algorithm before scheduling, ensuring that execution deadlocks are surfaced at planning time rather than during execution [18]. The orchestrator exposes the next leaf task to the client agent, which performs the corresponding code modification and reports completion status back to the server. Task status updates are applied incrementally and written back to the persisted Task IR. As a result, the orchestrator itself remains largely stateless beyond the stored artifact, enabling execution to resume deterministically after interruptions or restarts. This design ensures that execution failures surface as explicit task states rather than implicit agent errors. Together, Task IR and its scheduler form a deterministic and robust execution backbone for multi-step code generation. 
+
+3 Implementation Details 3.1 Implementation Architecture and Engineering Stack 
+
+The system is implemented as a client–server architecture that decouples planning and orchestration from code editing and model interaction. The backend implements a capability server that exposes structured tools for context canonicalization, task planning, and execution orchestration, while the client hosts a coding agent responsible for invoking these capabilities and applying code changes to the target repository. The coding agent is integrated into an integrated development environment (IDE) extension that supports mainstream development environments, including Visual Studio Code and JetBrains. 6 Ruihan Wang, Chencheng Guo, and Guangjing Wang 
+
+Through this extension, the agent communicates with the backend capability server via Model Context Protocol (MCP) to invoke structured tools. The underlying code generation model is configurable, allowing the agent to interface with different large language models (e.g., Claude, Gemini [2, 8]) without affecting the system architecture. On the server side, the system is implemented as a long-running TypeScript service on a Node.js runtime. The server exposes its functionality as a set of callable capabilities through MCP, which standardizes how planning, retrieval, and execution tools are registered and invoked by the client agent. The server can be deployed either as a local standard-I/O tool server or as an HTTP service using server-sent events. These capabilities return structured context objects, planning instruc-tions, or task specifications, rather than directly modifying code, ensuring a clean separation of responsibilities between the server and the client agent. Intermediate artifacts, including normalized context representations and task plans, are serialized using structured JSON and Markdown formats and persisted in the local artifact workspace of a project. This design enables deterministic execution, auditability, and resumable workflows across multiple agent invocations. 
+
+3.2 Execution Workflow 
+
+Figure 1 illustrates the end-to-end execution workflow of the system from the perspective of a user interacting with the coding agent in the full-coding mode. The figure illustrates how user inputs are processed across multiple stages, from context canonicalization and task planning to incremental code execution. Rather than depicting low-level control flow, the sequence emphasizes the separation between planning and code editing, as well as the role of explicit intermediate artifacts in mediating in-teractions between the client-side agent and the backend capability server. This design enables controlled and auditable execution while keeping all irreversible code modifications localized to the client environment. 
+
+3.3 Fine-tuning for PRD Decomposition 
+
+To enable accurate PRD decomposition, we fine-tune a large language model to identify UI com-ponent entities and map them to executable logic units. A critical prerequisite for this process is a well-defined taxonomy of UI components, which serves as the classification space for PRD decomposition and directly determines the granularity and correctness of generated logic tasks. 
+
+3.3.1 Design of UI Component Taxonomy. The core of PRD decomposition lies in the definition of UI component categories. We establish the taxonomy based on three scientifically grounded criteria. 
+
+Completeness. The taxonomy should cover all common UI components encountered in mobile applications. Every component appearing in real-world PRDs must be assignable to at least one category, ensuring both coverage and exhaustiveness. 
+
+Mutual Exclusivity. Each UI component should belong to only one primary category. Clear boundaries and explicit classification rules are defined to guarantee unambiguous assignment and avoid overlapping logic responsibilities during code generation. 
+
+Practical Utility. Beyond conceptual clarity, the taxonomy must directly support downstream engineering tasks. Each category is designed to correspond to a distinct class of logic generation patterns, thereby providing actionable guidance for task decomposition. Based on industry design guidelines and practical development experience, we categorize UI components into seven classes, as summarized in Table 2. Production-Grade AI Coding System for Client-Side Development 7user 
+
+IDE Extension 
+
+(Coding Agent) 
+
+user 
+
+Start coding request 
+
+natural language 
+
+an d
+
+Figma/PRD urls 
+
+Get Figma/PRD information 
+
+Fetch Figma/PRD data 
+
+Raw Figma/PRD data 
+
+Normalized context 
+
+Canonicalize 
+
+(parsing Figma/PRD )
+
+Retrieve other information 
+
+Search in the knowledge base 
+
+Retrieved knowledge context 
+
+Loop: Step -based Planning 
+
+Capability Server External Service Artifact Workspace 
+
+IDE Extension 
+
+(Coding Agent) Capability Server External Service 
+
+Single step name 
+
+Step objective & Dependencies 
+
+Write Plan .md 
+
+Review / Confirm 
+
+Write Requirement .md 
+
+Ask for user’s check 
+
+Review / Edit / Confirm 
+
+Present task plan 
+
+Loop: Task Execution 
+
+Get next task 
+
+Get task tree 
+
+Topological order 
+
+Next executable task 
+
+Write code 
+
+Review / Confirm 
+
+Present code edits 
+
+Report task status 
+
+Update task status 
+
+Present final results 
+
+Artifacts Workspace 
+
+Time 
+
+line 
+
+Fig. 1. Temporal workflow of the system, showing how natural language and design inputs are progressively transformed into executable code through a sequence of structured stages. Detailed explanations of the stages and connections are provided in the main text. 8 Ruihan Wang, Chencheng Guo, and Guangjing Wang 
+
+> Table 2. UI control categories
+
+UI controls Example 
+
+Input Controls input boxes, search bars, keyboard triggers Functional Button Controls send button, voice button, plus button, back button, confirm/cancel buttons Overlay Panel Controls floating cards, toasts, pop-up windows Navigation Bar and Page Framework Controls page background, top navigation bar area Content Display Controls avatars, labels, message bubbles, in-page struc-tural components List Selection Controls dropdown menus, single-/multi-select lists, tabs Additional Logic Control Conditions user state validation, first-time interaction checks, card-triggered states, cross-device trig-ger conditions This taxonomy defines the target output space of PRD decomposition and serves as the supervi-sion schema for fine-tuning the decomposition model. 
+
+3.3.2 PRD Decomposition Dataset. To fine-tune the LLM for PRD decomposition, we manually constructed a domain-specific dataset derived from real-world PRDs. The dataset pairs raw PRD segments with annotated UI component entities and their corresponding logical roles, following the taxonomy defined above. We constructed two complementary datasets. 
+
+Text-only dataset. This dataset follows the Alpaca instruction-tuning format. Each sample consists of three fields: (1) an instruction that explicitly defines the decomposition task, supported UI component categories (Table 2), output format, and classification rules; (2) an input containing the raw PRD text; and (3) an output produced by professional software engineers, in which UI components are identified and mapped to their logic descriptions. 
+
+Multi-modal dataset. We additionally constructed a multi-modal dataset in the ShareGPT format. In this dataset, images embedded in PRDs, such as UI mockups or screenshots, are included alongside textual instructions. These visual cues provide supplementary context, enabling more accurate alignment between textual logic descriptions and UI structure. Each dataset contains 182 samples and is randomly split into training and test sets with an 8:2 ratio. 
+
+3.3.3 Fine-tuning Strategy. We conducted separate fine-tuning experiments on the training datasets. The Qwen2.5-72B-Instruct model was used as the baseline for text-only settings, while Qwen2.5-VL-72B-Instruct was used for multi-modal settings [3]. For both experiments, we adopted Low-rank adaptation (LoRA) as the fine-tuning method, which allows efficient adaptation of LLMs without modifying the full set of parameters [ 15 ]. During training, we systematically varied key hyperparameters, such as learning rate and LoRA rank. Model performance was evaluated on the held-out test set using the F1 score of PRD decomposition. The fine-tuning was conducted on an internal training platform, using a unified hardware environment of four H20 GPUs. The best-performing models from both the text-only and multi-modal experiments were selected for deployment. Detailed hyperparameter configurations are reported in Table 3. Production-Grade AI Coding System for Client-Side Development 9
+
+> Table 3. Parameter settings for the two optimal models
+
+Text-only Multi-modal 
+
+Baseline Qwen2.5-72B-Instruct Qwen2.5-VL-72B-Instruct Cutoff length 6000 6000 LoRA rank 4 4Learning rate 1e-4 1e-5 Epochs 30 30 
+
+4 Test and Evaluation 4.1 Evaluation of PRD Decomposition 
+
+We evaluated the effectiveness of the fine-tuned PRD decomposition models in identifying UI control categories from real-world PRDs. The goal of this evaluation is to assess whether fine-tuning enables the model to reliably align unstructured PRDs with the predefined UI control taxonomy (Table 2), which serves as the foundation for subsequent planning and code generation stages. 
+
+4.1.1 Metrics. We report precision, recall, and F1 score for UI control category prediction. Precision measures the proportion of predicted categories that are correct, recall measures the proportion of ground-truth categories that are successfully identified, and F1 score provides a balanced summary of both aspects. All metrics are computed at the category level and averaged across the test set. 
+
+4.1.2 Evaluation Setup. We evaluate four model variants: (1) a text-only baseline model without domain-specific fine-tuning; (2) a fine-tuned text-only model; (3) a multi-modal baseline model; and (4) a fine-tuned multi-modal model. All models are evaluated on the same held-out PRD decomposition test set described in subsubsection 3.3.2. For each PRD in the test set, models are instructed to decompose the input into UI components and assign each component to one of the predefined UI control categories. We focus exclusively on the correctness of the predicted UI control category labels, rather than downstream logic descriptions, in order to isolate the model’s structural understanding of PRDs. To further analyze the contribution of visual information, we introduce an additional evaluation setting for the fine-tuned multi-modal model. In this setting, all images embedded in the PRDs (e.g., UI mockups or screenshots) are removed, and the model is evaluated using text-only inputs. This no-image evaluation allows us to isolate the impact of visual cues on PRD decomposition performance, while keeping the model architecture and parameters fixed. Ground-truth labels are provided by experienced client-side engineers, who manually annotated each PRD with the corresponding UI control categories. Model predictions are matched against these annotations at the category level. 
+
+4.1.3 Results Analysis. Detailed quantitative results are reported in Table 4. It shows that domain-specific fine-tuning leads to substantial performance gains over the baseline models in PRD decom-position. For the text-only setting, fine-tuning improves the F1 score from 0.568 to 0.743. The effect of fine-tuning is even more pronounced in the multi-modal setting. The fine-tuned multi-modal model achieves an F1 score of 0.848, compared to 0.211 for the multi-modal baseline, demonstrat-ing that without task-specific adaptation, visual information alone does not yield reliable PRD decomposition. After fine-tuning, the model is able to effectively integrate visual cues with textual descriptions, resulting in both high precision and recall. Removing visual inputs from the fine-tuned multi-modal model leads to a noticeable performance degradation, with the F1 score dropping from 0.848 to 0.751. While the no-image variant still outperforms the text-only baseline, this result 10 Ruihan Wang, Chencheng Guo, and Guangjing Wang 
+
+confirms that visual context provides complementary information that contributes meaningfully to accurate UI control category identification. 
+
+> Table 4. PRD decomposition performance on UI control category identification
+
+Model Precision Recall F1 
+
+Text-only Baseline 0.506 0.685 0.568 Text-only Fine-tuned 0.822 0.722 0.743 Multi-modal Baseline 0.202 0.256 0.211 Multi-modal Fine-tuned 0.880 0.865 0.848 Multi-modal Fine-tuned (No Image) 0.808 0.732 0.751 
+
+4.2 UI Fidelity Evaluation 
+
+To evaluate whether the generated UI code faithfully reproduces the intended Figma design, we conduct a UI fidelity study on four real modification requests collected from a production mobile application. Each test case corresponds to a concrete UI change proposal and is backed by an associated Figma design. During evaluation, the input to our coding system is only the Figma link. After code generation, the resulting UI is rendered in a real device-like preview environment. Professional client-side engineers then compare the rendered result against the target design and perform structured checks. 
+
+4.2.1 Metrics. We adopt a checklist-based fidelity score that reflects whether the generated UI meets a set of concrete, visually verifiable constraints. Fidelity is defined as: Fidelity = #Passed Dimensions 
+
+#Total Dimensions .
+
+Each “dimension” is a binary criterion (pass/fail). This formulation intentionally avoids subjective holistic ratings and instead decomposes UI correctness into a set of atomic, auditable criteria, improving reproducibility and interpretability of failure cases. The checklist covers both page-level structure and element-level rendering quality, organized into four groups: 
+
+• Page framework design. Whether the overall page structure is implemented using an appropriate layout paradigm (e.g., list-based screens should be realized with list primitives rather than ad-hoc stacking). 
+
+• Element constraint relations. Spatial constraints among UI elements, including rela-tive positioning (top/bottom/left/right anchoring), alignment consistency, and list-specific spacing such as item margins and vertical gaps. 
+
+• Element geometry. Size correctness and scaling behavior, including whether sizes are properly adaptive where required, or correctly set to absolute values when the design specifies fixed dimensions. For text elements, we additionally check line-wrapping behavior and ellipsis truncation. 
+
+• Element styling. Visual style attributes including background color, text color, border color, corner radius, icons, and font styling. To mitigate subjectivity, the fidelity checklist was defined prior to evaluation and applied consis-tently across all test cases. Each dimension corresponds to a concrete, visually verifiable criterion that can be assessed directly from the rendered UI, rather than from code internals or system metadata. Evaluators performed item-by-item checks based solely on observable discrepancies between the generated UI and the target design. Production-Grade AI Coding System for Client-Side Development 11 
+
+While expert judgment is still required to determine pass or fail for certain fine-grained styling attributes, the checklist-based formulation constrains such judgment to localized, atomic decisions. This design enables failures to be explicitly attributed to specific UI controls and dimensions, improving auditability and reproducibility compared to holistic or impression-based ratings. We acknowledge that this evaluation does not eliminate subjectivity entirely, but we find that it provides a practical and structured mechanism for assessing UI fidelity in production-oriented scenarios. 
+
+4.2.2 Evaluation Setup. For each test case, the system generates code from the Figma link, and the output is rendered into a device preview. Engineers evaluate the result by (1) enumerating the relevant UI modules and controls appearing on the screen; (2) applying the checklist on each UI control across applicable dimensions; and (3) recording failures with concrete discrepancy notes. For instance, in the emoji search case shown in Figure 2, there are 4 failures out of 36 check items. The failures are localized to specific controls and dimensions, such as incorrect color styling for the close button and placeholder text, a row spacing smaller than designed in the emoji list, and an unintended corner radius on the cell container. Such annotations help distinguish between layout errors and purely stylistic deviations, and provide actionable guidance for iterative correction. 😀 😀 😀 😀 
+
+😀 😀 😀 😀 
+
+😀 😀 😀 😀 
+
+😀 😀 😀 😀 
+
+😀 😀 😀 😀 
+
+😀 😀 😀 😀  
+
+> (a) Target UI design (b) Generated UI design
+> Fig. 2. An anonymized example of an emoji searching interface used in our evaluation. (a) Target UI design. (b) Generated UI design produced by the system. All visual elements are mock assets and do not correspond to any real product.
+
+4.2.3 Results Analysis. Across four real-world cases, our system achieves consistently high UI fidelity. The results are summarized below: 
+
+• Emoji search: 89% fidelity (36 checks, 4 failures). 
+
+• Friend selection: 89% fidelity (57 checks, 6 failures). 
+
+• Direct message settings: 88% fidelity (34 checks, 4 failures). 
+
+• Profile popup: 83% fidelity (18 checks, 3 failures). Overall, the generated UIs match the target designs with fidelity ranging from 83% to 89%. A recurring observation is that most failures are localized and non-catastrophic : they typically involve 12 Ruihan Wang, Chencheng Guo, and Guangjing Wang 
+
+fine-grained styling attributes, rather than incorrect overall page framework or missing UI modules. This is consistent with the nature of client-side UI implementation, where coarse layout primitives are often recovered correctly from design structure, while pixel-level style and spacing can be sensitive to default component behaviors and platform-specific rendering nuances. These findings suggest that the system is already reliable at reproducing the layout and component structure, and that remaining gaps are concentrated in a small number of easily identifiable visual dimensions, making them amenable to targeted remediation such as stricter style constraints and enhanced design token grounding. 
+
+4.3 PRD Logic Fidelity Evaluation 
+
+In this subsection, we evaluate the system’s ability to correctly implement PRD-specified interaction logic in realistic client-side development scenarios. Unlike UI fidelity, which focuses on visual correctness, this evaluation targets functional requirements that span user interactions and state transitions. 
+
+4.3.1 Metrics. The evaluated PRD logic includes, but is not limited to: (1) navigation behaviors (e.g., default tab selection, back navigation); (2) list interactions (e.g., pull to refresh, pagination, empty state handling); (3) interaction-triggered state changes (e.g., category filtering and tab selection); (4) content display rules (e.g., text truncation, timestamp formatting); and (5) basic robustness behaviors from an engineering perspective (e.g., correct usage of refresh and loading more components). 
+
+4.3.2 Evaluation Setup. We collect 20 test cases derived from real PRDs collected from a production mobile application. Each case specifies a set of interaction and data logic requirements aggregated over one or more UI components. During evaluation, the system is provided with both the Figma link and the corresponding PRD document. Code generation is performed under a human-in-the-loop setting, where experienced engineers intervene at several checkpoints to correct obvious errors or ambiguities before final code is produced. This setup reflects the intended usage of the system in practice, where AI-assisted coding operates as a collaborative process rather than a fully autonomous pipeline. After code generation, professional client-side engineers evaluate generated code at the level of functional correctness (pass/fail), based on whether it fulfills the specified logic and PRD require-ments. 
+
+4.3.3 Results Analysis. Out of the 20 evaluated PRD logic cases, 15 are successfully implemented, resulting in an overall pass rate of 75%. Importantly, all logic code are generated correctly, indicating that the system is capable of translating PRD descriptions into executable interaction logic under realistic conditions. The failed cases are primarily attributable to two factors. First, in several instances, the system fails to correctly detect or apply specific framework-level UI components. Second, some failures arise from ambiguous logic descriptions in the generated code, such as missing constraints on text line limits. Notably, these issues do not reflect a misunderstanding of PRD intent, but rather limitations in component grounding and fine-grained implementation details. Engineers report that such issues are typically localized and can be addressed through improved component retrieval, stronger constraint injection, or tighter integration with UI fidelity detection mechanisms. Production-Grade AI Coding System for Client-Side Development 13 
+
+5 Related Work 5.1 Design-to-Code Generation 
+
+Automating the transformation from user interface (UI) designs to executable front-end code, commonly referred to as design-to-code or UI-to-code , has been an active research topic in software engineering for more than a decade. Early efforts primarily relied on computer vision techniques based on rules. Systems such as REMAUI extracted UI components using handcrafted heuristics, optical character recognition, and edge detection, and translated them into platform-specific layout code [ 26 ]. While effective for constrained design styles, these methods rely heavily on fixed rules, limiting their robustness to diverse and evolving UI designs. With the advent of deep learning, subsequent work shifted toward end-to-end neural generation models. Approaches such as pix2code [ 4] and Sketch2Code [ 16 ] trained convolutional neural networks to directly map visual UI inputs to executable code [ 29 ]. Later models enhanced this paradigm with attention mechanisms or improved visual encoders [ 7 , 35 ], but largely retained a single-shot generation setting. As a result, these methods often struggle with complex layouts, dependencies, and error recovery in realistic scenarios. To address these limitations, later work introduced multi-stage pipelines that explicitly model UI elements and layout hierarchies. Representative systems decompose the problem into component detection, classification, and layout assembly [ 25 , 39 ], or generate coarse-grained structural rep-resentations before filling in detailed code [ 13 , 38 ]. Other approaches segment complex UIs into regions for independent generation [ 36 ], or incorporate iterative refinement through compilation or rendering feedback [ 44 ]. These methods significantly improve structural correctness and layout fidelity. In parallel, several datasets and benchmarks have been proposed to support training and evalua-tion. WebSight provides millions of synthetic screenshot-HTML pairs for scalable model training, while Vision2ui and Web2Code focus on real-world web pages with complex layouts and accompa-nying metadata [ 12 , 19 , 43 ]. Design2Code introduces a curated benchmark with comprehensive automatic and human evaluation metrics, revealing that even state-of-the-art multimodal models frequently produce incomplete or poorly structured code on realistic designs [34]. Despite these advances, most prior design-to-code research primarily treats code generation as a transformation from visual or partially structured UI representations to implementation. Although recent approaches incorporate hierarchical modeling and region-level decomposition, they generally lack persistent, inspectable intermediate artifacts and do not explicitly integrate higher-level product requirements or interaction logic. These limitations motivate system-level approaches that frame design-to-code as a structured engineering process rather than a purely perceptual or generative task. 
+
+5.2 LLM-based Code Generation 
+
+The emergence of large language models (LLMs) has enabled a new paradigm for code generation. Early demonstrations such as Codex showed that transformer-based models trained on code corpora can generate functional programs from natural language descriptions [ 6]. AlphaCode extended this direction by combining large-scale sampling with automatic validation to achieve better performance [ 22 ]. Open-source models, including CodeGen and CodeT5, further explored architectural adaptations for code generation [ 28 , 37 ]. More recently, models such as StarCoder and Code Llama have demonstrated that code generation capabilities can scale to large parameter regimes with competitive performance [21, 32]. Despite these advances at the model level, many LLM-based coding systems still treat code generation as a direct sequence prediction problem. Generated outputs are often syntactically correct 14 Ruihan Wang, Chencheng Guo, and Guangjing Wang 
+
+but misaligned with user intent or project-specific constraints, particularly in large and evolving codebases. To mitigate these issues, recent work has explored more structured generation paradigms that introduce explicit planning or reasoning steps prior to code synthesis [ 17 ]. Tree-based reasoning frameworks such as Tree-of-Thought and Tree-of-Code maintain multiple intermediate reasoning or program states to explore alternative solution paths [ 27 , 41 ], while systems such as FunCoder decompose problems into hierarchical plans [5]. Another emerging direction involves multi-agent systems that simulate collaborative software development process. Frameworks such as MetaGPT and ChatDev organize multiple specialized agents that communicate to design, implement, and validate software artifacts [ 14 , 30 ]. SWE-agent applies similar ideas to real-world GitHub issues by combining retrieval-augmented generation with automated testing [ 40 ]. Other systems enhance single-agent loops through structured reasoning– action cycles or reflection mechanisms [ 33 , 42 ], while Blueprint2Code formalizes multi-agent coordination via persistent planning and execution artifacts [23]. Overall, these frameworks mentioned above represent a clear shift toward multi-stage code generation with intermediate reasoning and feedback. However, effectively aligning LLM outputs with product-level specifications, domain-specific constraints, and evolving codebases remains an open challenge. In particular, most existing systems do not ground planning and execution in persistent, inspectable artifacts that explicitly bridge product requirements, design structure, and implementation. These gaps motivate our approach, which integrates explicit intermediate representations and protocolized execution to support production-grade AI coding. 
+
+6 Discussion 
+
+This section discusses the broader implications of our system design choices, analyzes the gen-eralizability and limitations of the proposed approach, and reflects on the role of structured, artifact-centric pipelines in production-grade AI coding systems. 
+
+6.1 Why Multi-stage Pipeline Matters 
+
+A central design choice of our system is to treat AI coding as a multi-stage engineering pipeline rather than a single-shot generation task. In practice, this choice is driven less by model capability limitations than by the operational realities of client-side software development. In large client-side codebases, errors are expensive to localize and recover from. Under such conditions, normal generation workflows tend to produce brittle outputs: when a generated change fails, developers have limited visibility into the reasoning process that led to the error, making targeted correction difficult. By contrast, our system enforces explicit intermediate representations at each stage, including normalized context artifacts, requirement understanding documents, technical plans, and execution states. These artifacts serve as stable inspection points that allow both humans and automated checks to intervene before irreversible code changes are applied. Our experience suggests that even when the final output is imperfect, the availability of intermediate artifacts significantly reduces rework cost and increases developer trust in AI-assisted workflows. 
+
+6.2 Generalizability and Domain Specificity 
+
+While the system is developed and evaluated within a single organization, many of its core design principles are domain-agnostic. The separation between context canonicalization, planning, and execution; the use of persistent intermediate artifacts; and the formulation of execution as a dependency-aware task graph are applicable to a wide range of AI-assisted software engineering scenarios beyond client-side development. At the same time, certain components of the system are intentionally domain-specific. The UI component taxonomy, PRD decomposition schema, and engineering rules reflect conventions Production-Grade AI Coding System for Client-Side Development 15 
+
+and practices specific to mobile client development. Rather than viewing this specialization as a limitation, we argue that it is a necessary condition for production readiness. Our results suggest that fully general AI coding systems without incorporating domain knowledge may appear to perform perfectly, but they are difficult to be deployed as trustworthy tools in real - world scenarios. This observation points to a broader implication: effective AI coding systems may need to balance general capabilities with domain-specific intermediate representations. Future work could explore how such representations can be modularized or adapted across domains, for example by introducing pluggable taxonomies or configurable planning protocols. 
+
+6.3 Limitations 
+
+Our study has several limitations that warrant discussion. First, due to proprietary constraints, the system source code and the datasets used for PRD decomposition cannot be publicly released. While this restricts direct reproducibility, it reflects a common trade-off in industrial software engineering research. To mitigate this issue, we provide detailed descriptions of the system design, taxonomy, and evaluation protocols to facilitate conceptual replication. Second, the UI fidelity evaluation relies on expert assessment using a structured checklist rather than fully automated metrics. Although the checklist is designed to minimize subjectivity by decomposing fidelity into atomic, visually verifiable criteria, some degree of human judgment remains unavoidable. Finally, the current evaluation focuses on relatively small-scale UI modification tasks. While these cases are representative of real development scenarios, scaling the system to larger feature implementations or long-term maintenance tasks remains an open challenge. Addressing this will likely require tighter integration with testing frameworks, richer dependency analysis, and more advanced change impact modeling. 
+
+6.4 Implications for Future AI Coding Systems 
+
+The findings of this work suggest that progress in AI-assisted software engineering should not be measured solely by end-to-end success rates. Instead, system-level properties such as controllability, auditability, and recovery cost play a crucial role in determining practical usefulness. By reframing AI coding as a structured engineering pipeline with explicit intermediate arti-facts and protocolized execution, our system demonstrates a viable path toward integrating large language models into real-world development workflows. We believe this perspective comple-ments ongoing advances in model capability and offers a foundation for future research on robust, maintainable, and trustworthy AI coding systems. 
+
+7 Conclusion and Future Work 7.1 Conclusion 
+
+This paper presents a production-grade AI coding system for client-side development that bridges the gap between research-oriented code generation and real-world engineering practice. By adopt-ing a structured, multi-stage pipeline with explicit intermediate artifacts, the system integrates Figma designs, natural-language PRDs, and domain knowledge to enable controlled planning and incremental code generation. A central contribution is the formulation of PRD decomposition as UI logic extraction, which improves alignment between product requirements and implementation. Evaluations demonstrate improved PRD understanding, high UI fidelity, and robust logic imple-mentation under realistic constraints. These results highlight the effectiveness of artifact-centric system design for practical AI-assisted software engineering. 16 Ruihan Wang, Chencheng Guo, and Guangjing Wang 
+
+7.2 Future Work 
+
+7.2.1 Codebase knowledge Graph. A key limitation of conventional retrieval-augmented generation (RAG) [ 20 ] lies in an assumption: knowledge is typically represented as unstructured text, which is well suited for design guidelines or engineering documentation, but less effective for reasoning over large, evolving codebases. In practice, effective code modification requires an understanding of historical evolution and prior implementation decisions. To address this gap, we are exploring the construction of a knowledge graph based on the codebase that models source files, symbols, APIs, dependency relations, and versioned changes as entities. By hybrid search, the system can retrieve both relevant code and semantically related docs. It has the potential to provide more precise and temporally grounded context for AI coding tasks, particularly in scenarios involving legacy code modification. 
+
+7.2.2 Richer Evaluation Protocols. Finally, future work will focus on expanding the scope and depth of system evaluation. While the current study evaluates PRD decomposition quantitatively and UI fidelity through structured expert checklists, these evaluations are necessarily limited in scale. As the system matures, we aim to conduct longitudinal evaluations across larger codebases and longer development cycles, capturing metrics such as regression frequency, recovery cost, and developer intervention effort. In addition, we plan to explore partially automated evaluation techniques, such as layout tree comparison, visual similarity metrics, to complement expert assessment. Together, these efforts may enable more scalable and reproducible evaluation of production-grade AI coding systems. 
+
+8 Data Availability 
+
+The system described in this paper is implemented using internal tooling and infrastructure developed within the authors’ organization. Due to proprietary and confidentiality constraints, the source code of the system, including the MCP tools and execution framework, cannot be publicly released. The datasets used for PRD decomposition and test cases for evaluation are derived from real-world product requirement documents and client-side development tasks from production projects. These materials contain sensitive product information and therefore cannot be shared. Similarly, the fine-tuning process for PRD decomposition was conducted on an internal platform, where training execution is handled by platform-managed infrastructure rather than user-accessible code. Despite these restrictions, all experimental metrics, evaluation criteria, and decision procedures are explicitly specified to support conceptual replication of the reported results. We believe that this level of methodological disclosure provides meaningful evidence for the claims made in this paper while respecting the constraints of industrial software development environments. 
+
+References              
+
+> [1] Altaf Allah Abbassi, Leuson Da Silva, Amin Nikanjam, and Foutse Khomh. 2025. Unveiling inefficiencies in llm-generated code: Toward a comprehensive taxonomy. arXiv preprint arXiv:2503.06327 (2025). [2] Anthropic. 2024. The Claude 3 model family. https://www.anthropic.com/news/claude-3-family. Accessed: 2026-01-28. [3] Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun Tang, et al. 2025. Qwen2. 5-vl technical report. arXiv preprint arXiv:2502.13923 (2025). [4] Tony Beltramelli. 2018. pix2code: Generating code from a graphical user interface screenshot. In Proceedings of the ACM SIGCHI symposium on engineering interactive computing systems . 1–6. [5] Jingchang Chen, Hongxuan Tang, Zheng Chu, Qianglong Chen, Zekun Wang, Ming Liu, and Bing Qin. 2024. Divide-and-conquer meets consensus: Unleashing the power of functions in code generation. Advances in Neural Information Processing Systems 37 (2024), 67061–67105. [6] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf,
+
+Production-Grade AI Coding System for Client-Side Development 17 
+
+Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, Nick Ryder, Mikhail Pavlov, Alethea Power, Lukasz Kaiser, Mohammad Bavarian, Clemens Winter, Philippe Tillet, Felipe Petroski Such, Dave Cummings, Matthias Plappert, Fotios Chantzis, Elizabeth Barnes, Ariel Herbert-Voss, William Hebgen Guss, Alex Nichol, Alex Paino, Nikolas Tezak, Jie Tang, Igor Babuschkin, Suchir Balaji, Shantanu Jain, William Saunders, Christopher Hesse, Andrew N. Carr, Jan Leike, Josh Achiam, Vedant Misra, Evan Morikawa, Alec Radford, Matthew Knight, Miles Brundage, Mira Murati, Katie Mayer, Peter Welinder, Bob McGrew, Dario Amodei, Sam McCandlish, Ilya Sutskever, and Wojciech Zaremba. 2021. Evaluating Large Language Models Trained on Code. arXiv:2107.03374 [cs.LG] https://arxiv.org/abs/2107.03374 [7] Wen-Yin Chen, Pavol Podstreleny, Wen-Huang Cheng, Yung-Yao Chen, and Kai-Lung Hua. 2022. Code generation from a graphical user interface via attention-based encoder–decoder model. Multimedia Systems 28, 1 (2022), 121–130. [8] Google DeepMind. 2023. Gemini 1: A Family of Highly Capable Multimodal Models . Technical Report. Google DeepMind. https://storage.googleapis.com/deepmind-media/gemini/gemini_1_report.pdf Accessed: 2026-01-28. [9] Tausif Diwan, G Anirudh, and Jitendra V Tembhurne. 2023. Object detection using YOLO: challenges, architectural successors, datasets and applications. multimedia Tools and Applications 82, 6 (2023), 9243–9275. [10] Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yi Dai, Jiawei Sun, Meng Wang, and Haofen Wang. 2024. Retrieval-Augmented Generation for Large Language Models: A Survey. arXiv:2312.10997 [cs.CL] https://arxiv.org/abs/2312.10997 [11] Ralph Grishman and Beth M Sundheim. 1996. Message understanding conference-6: A brief history. In COLING 1996 volume 1: The 16th international conference on computational linguistics .[12] Yi Gui, Zhen Li, Yao Wan, Yemin Shi, Hongyu Zhang, Yi Su, Shaoling Dong, Xing Zhou, and Wenbin Jiang. 2024. Vision2ui: A real-world dataset with layout for code generation from ui designs. CoRR (2024). [13] Yi Gui, Yao Wan, Zhen Li, Zhongyi Zhang, Dongping Chen, Hongyu Zhang, Yi Su, Bohua Chen, Xing Zhou, Wenbin Jiang, et al . 2025. UICoPilot: Automating UI synthesis via hierarchical code generation from webpage designs. In 
+
+Proceedings of the ACM on Web Conference 2025 . 1846–1855. [14] Sirui Hong, Mingchen Zhuge, Jonathan Chen, Xiawu Zheng, Yuheng Cheng, Jinlin Wang, Ceyao Zhang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, et al . 2023. MetaGPT: Meta programming for a multi-agent collaborative framework. In The twelfth international conference on learning representations .[15] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen, et al .2022. Lora: Low-rank adaptation of large language models. ICLR 1, 2 (2022), 3. [16] Vanita Jain, Piyush Agrawal, Subham Banga, Rishabh Kapoor, and Shashwat Gulyani. 2019. Sketch2Code: transforma-tion of sketches to UI in real-time using deep neural network. arXiv preprint arXiv:1910.08930 (2019). [17] Xue Jiang, Yihong Dong, Lecheng Wang, Zheng Fang, Qiwei Shang, Ge Li, Zhi Jin, and Wenpin Jiao. 2024. Self-Planning Code Generation with Large Language Models. ACM Trans. Softw. Eng. Methodol. 33, 7, Article 182 (Sept. 2024), 30 pages. doi:10.1145/3672456 [18] Arthur B Kahn. 1962. Topological sorting of large networks. Commun. ACM 5, 11 (1962), 558–562. [19] Hugo Laurençon, Léo Tronchon, and Victor Sanh. 2024. Unlocking the conversion of web screenshots into html code with the websight dataset. arXiv preprint arXiv:2403.09029 (2024). [20] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, et al . 2020. Retrieval-augmented generation for knowledge-intensive nlp tasks. Advances in neural information processing systems 33 (2020), 9459–9474. [21] Raymond Li, Loubna Ben Allal, Yangtian Zi, Niklas Muennighoff, Denis Kocetkov, Chenghao Mou, Marc Marone, Christopher Akiki, Jia Li, Jenny Chim, Qian Liu, Evgenii Zheltonozhskii, Terry Yue Zhuo, Thomas Wang, Olivier Dehaene, Mishig Davaadorj, Joel Lamy-Poirier, João Monteiro, Oleh Shliazhko, Nicolas Gontier, Nicholas Meade, Armel Zebaze, Ming-Ho Yee, Logesh Kumar Umapathi, Jian Zhu, Benjamin Lipkin, Muhtasham Oblokulov, Zhiruo Wang, Rudra Murthy, Jason Stillerman, Siva Sankalp Patel, Dmitry Abulkhanov, Marco Zocca, Manan Dey, Zhihan Zhang, Nour Fahmy, Urvashi Bhattacharyya, Wenhao Yu, Swayam Singh, Sasha Luccioni, Paulo Villegas, Maxim Kunakov, Fedor Zhdanov, Manuel Romero, Tony Lee, Nadav Timor, Jennifer Ding, Claire Schlesinger, Hailey Schoelkopf, Jan Ebert, Tri Dao, Mayank Mishra, Alex Gu, Jennifer Robinson, Carolyn Jane Anderson, Brendan Dolan-Gavitt, Danish Contractor, Siva Reddy, Daniel Fried, Dzmitry Bahdanau, Yacine Jernite, Carlos Muñoz Ferrandis, Sean Hughes, Thomas Wolf, Arjun Guha, Leandro von Werra, and Harm de Vries. 2023. StarCoder: may the source be with you! arXiv:2305.06161 [cs.CL] https://arxiv.org/abs/2305.06161 [22] Yujia Li, David Choi, Junyoung Chung, Nate Kushman, Julian Schrittwieser, Rémi Leblond, Tom Eccles, James Keeling, Felix Gimeno, Agustin Dal Lago, et al . 2022. Competition-level code generation with alphacode. Science 378, 6624 (2022), 1092–1097. [23] Kehao Mao, Baokun Hu, Ruixin Lin, Zewen Li, Guanyu Lu, and Zhengyu Zhang. 2025. Blueprint2Code: a multi-agent pipeline for reliable code generation via blueprint planning and repair. Frontiers in Artificial Intelligence 8 (2025), 1660912. 18 Ruihan Wang, Chencheng Guo, and Guangjing Wang 
+
+[24] Chiara Michelutti, Jens Eckert, Milko Monecke, Julian Klein, and Sabine Glesner. 2024. A Systematic Study on the Potentials and Limitations of LLM-assisted Software Development. In 2024 2nd International Conference on Foundation and Large Language Models (FLLM) . IEEE, 330–338. [25] Kevin Moran, Carlos Bernal-Cárdenas, Michael Curcio, Richard Bonett, and Denys Poshyvanyk. 2018. Machine learning-based prototyping of graphical user interfaces for mobile apps. IEEE transactions on software engineering 46, 2 (2018), 196–221. [26] Tuan Anh Nguyen and Christoph Csallner. 2015. Reverse Engineering Mobile Application User Interfaces with REMAUI (T). In 2015 30th IEEE/ACM International Conference on Automated Software Engineering (ASE) . 248–259. doi:10.1109/ASE.2015.32 [27] Ziyi Ni, Yifan Li, Ning Yang, Dou Shen, Pin Lv, and Daxiang Dong. 2024. Tree-of-Code: A Tree-Structured Exploring Framework for End-to-End Code Generation and Execution in Complex Task Handling. arXiv preprint arXiv:2412.15305 
+
+(2024). [28] Erik Nijkamp, Bo Pang, Hiroaki Hayashi, Lifu Tu, Huan Wang, Yingbo Zhou, Silvio Savarese, and Caiming Xiong. 2022. Codegen: An open large language model for code with multi-turn program synthesis. arXiv preprint arXiv:2203.13474 
+
+(2022). [29] Keiron O’shea and Ryan Nash. 2015. An introduction to convolutional neural networks. arXiv preprint arXiv:1511.08458 
+
+(2015). [30] Chen Qian, Wei Liu, Hongzhang Liu, Nuo Chen, Yufan Dang, Jiahao Li, Cheng Yang, Weize Chen, Yusheng Su, Xin Cong, et al . 2024. Chatdev: Communicative agents for software development. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) . 15174–15186. [31] Joseph Redmon, Santosh Divvala, Ross Girshick, and Ali Farhadi. 2016. You Only Look Once: Unified, Real-Time Object Detection. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR) .[32] Baptiste Roziere, Jonas Gehring, Fabian Gloeckle, Sten Sootla, Itai Gat, Xiaoqing Ellen Tan, Yossi Adi, Jingyu Liu, Romain Sauvestre, Tal Remez, et al . 2023. Code llama: Open foundation models for code. arXiv preprint arXiv:2308.12950 
+
+(2023). [33] Noah Shinn, Federico Cassano, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. 2023. Reflexion: Language agents with verbal reinforcement learning. Advances in Neural Information Processing Systems 36 (2023), 8634–8652. [34] Chenglei Si, Yanzhe Zhang, Ryan Li, Zhengyuan Yang, Ruibo Liu, and Diyi Yang. 2025. Design2code: Benchmarking multimodal code generation for automated front-end engineering. In Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers) . 3956–3974. [35] Davit Soselia, Khalid Saifullah, and Tianyi Zhou. 2023. Learning UI-to-Code Reverse Generator Using Visual Critic Without Rendering. arXiv preprint arXiv:2305.14637 (2023). [36] Yuxuan Wan, Chaozheng Wang, Yi Dong, Wenxuan Wang, Shuqing Li, Yintong Huo, and Michael Lyu. 2025. Divide-and-Conquer: Generating UI Code from Screenshots. Proceedings of the ACM on Software Engineering 2, FSE (2025), 2099–2122. [37] Yue Wang, Weishi Wang, Shafiq Joty, and Steven C. H. Hoi. 2021. CodeT5: Identifier-aware Unified Pre-trained Encoder-Decoder Models for Code Understanding and Generation. arXiv:2109.00859 [cs.CL] https://arxiv.org/abs/2109.00859 [38] Fan Wu, Cuiyun Gao, Shuqing Li, Xin-Cheng Wen, and Qing Liao. 2025. MLLM-Based UI2Code Automation Guided by UI Layout Information. Proceedings of the ACM on Software Engineering 2, ISSTA (2025), 1123–1145. [39] Jason Wu, Xiaoyi Zhang, Jeff Nichols, and Jeffrey P Bigham. 2021. Screen parsing: Towards reverse engineering of ui models from screenshots. In The 34th Annual ACM Symposium on User Interface Software and Technology . 470–483. [40] John Yang, Carlos E Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik R Narasimhan, and Ofir Press. 2024. SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering. In The Thirty-eighth Annual Conference on Neural Information Processing Systems . https://arxiv.org/abs/2405.15793 [41] Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Tom Griffiths, Yuan Cao, and Karthik Narasimhan. 2023. Tree of thoughts: Deliberate problem solving with large language models. Advances in neural information processing systems 
+
+36 (2023), 11809–11822. [42] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R Narasimhan, and Yuan Cao. 2022. React: Syner-gizing reasoning and acting in language models. In The eleventh international conference on learning representations .[43] Sukmin Yun, Rusiru Thushara, Mohammad Bhat, Yongxin Wang, Mingkai Deng, Jinhong Wang, Tianhua Tao, Junbo Li, Haonan Li, Preslav Nakov, et al . 2024. Web2code: A large-scale webpage-to-code dataset and evaluation framework for multimodal llms. Advances in neural information processing systems 37 (2024), 112134–112157. [44] Ting Zhou, Yanjie Zhao, Xinyi Hou, Xiaoyu Sun, Kai Chen, and Haoyu Wang. 2025. DeclarUI: Bridging Design and Development with Automated Declarative UI Code Generation. Proceedings of the ACM on Software Engineering 2, FSE (2025), 219–241.

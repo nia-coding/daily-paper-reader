@@ -1,0 +1,972 @@
+Title: SWE-Bench Mobile: Can Large Language Model Agents Develop Industry-Level Mobile Applications?
+
+URL Source: https://arxiv.org/pdf/2602.09540v1
+
+Published Time: Wed, 11 Feb 2026 01:45:59 GMT
+
+Number of Pages: 23
+
+Markdown Content:
+# SWE-Bench Mobile: Can Large Language Model Agents Develop Industry-Level Mobile Applications? 
+
+# Muxin Tian 1,2,* Zhe Wang 2,* Blair Yang 3 Zhenwei Tang 1 Kunlun Zhu 4
+
+# Honghua Dong 1 Hanchen Li 5 Xinni Xie 2 Guangjing Wang 2 Jiaxuan You 4, †
+
+> 1
+
+University of Toronto 2Xiaohongshu Inc. 3Coolwei AI Lab 4University of Illinois Urbana-Champaign 
+
+> 5
+
+University of California, Berkeley 
+
+## Abstract 
+
+Can large language model agents develop industry-level mobile applications? We introduce SWE-Bench Mobile , a benchmark for evaluating coding agents on realistic software engineering tasks de-rived from a production iOS codebase. Unlike existing benchmarks that focus on isolated problems or bug fixes, SWE-Bench Mobile cap-tures the full complexity of industrial development: multi-modal in-puts (PRDs and Figma designs), a large-scale mixed Swift/Objective-C codebase, and comprehensive test suites. We evaluate 22 agent-model configurations across four coding agents—three commercial (Cursor, Codex, Claude Code) and one open-source (OpenCode)— and find that even the best configurations achieve only 12% task success rate. Our analysis reveals that (1) agent design matters as much as model capability—the same model shows up to 6 × per-formance gap across agents, (2) commercial agents consistently outperform open-source alternatives, and (3) simple “Defensive Programming” prompts outperform complex ones by 7.4%. These findings highlight a significant gap between current agent capabili-ties and industrial requirements, while providing actionable insights for practitioners and researchers. We release SWE-Bench Mobile as a hosted benchmark challenge to prevent data contamination and ensure fair evaluation. The public leaderboard and development toolkit are available at https://swebenchmobile.com. 
+
+## Keywords 
+
+Large Language Models, Software Engineering Agents, Mobile De-velopment Benchmark 
+
+## 1 Introduction 
+
+Large language models (LLMs) have enabled a new generation of autonomous coding agents that can understand requirements, navigate codebases, and implement features with minimal human intervention. Commercial systems like GitHub Copilot, Cursor, and Claude Code have achieved impressive results on existing benchmarks, raising a critical question: Can these agents handle the complexity of real-world, industry-level mobile software development? 
+
+Answering this question requires a comprehensive evaluation that faithfully captures professional software engineering. However, existing benchmarks have significant limitations. HumanEval [ 3 ]and MBPP [ 2 ] evaluate isolated algorithmic problems far removed from industrial practice. SWE-Bench [ 7] advances the field by using real GitHub issues, but still falls short of industrial realism: it focuses on bug fixes rather than feature development, uses text-only inputs without design specifications, typically involves small localized   
+
+> *Equal contribution. †Corresponding author: jiaxuan@illinois.edu .
+
+changes to 1-2 files, and concentrates on Python which is well-represented in training data. Recent work like SWE-Bench Pro [ 5]addresses some limitations by introducing longer-horizon tasks, but still lacks multi-modal inputs and focuses exclusively on Python. In professional software development, engineers participate in a structured workflow that goes far beyond writing code. They in-terpret Product Requirement Documents (PRDs) that specify what to build and why. They translate visual designs from tools like Figma into implementation decisions about layout and interaction. They navigate large codebases—often hundreds of thousands of lines—to find relevant files and understand existing patterns. They make coordinated changes across multiple modules while main-taining consistency. And they ensure their implementations handle edge cases and pass comprehensive tests. A benchmark claiming to evaluate “industry-level” capabilities must test all of these aspects. We focus on mobile application development not merely for lan-guage diversity, but because it represents a distinct and critical par-adigm in software engineering that remains unexplored by current benchmarks. Unlike server-side logic (e.g., Python scripts), mobile development introduces unique challenges for AI agents: (1) Multi-modal Dependency: Implementation is strictly guided by visual designs (Figma) and user interactions, requiring agents to perform visually-grounded program synthesis rather than just text-to-code generation. (2) Event-Driven Complexity: Mobile apps are state-ful systems that must handle asynchronous user events, network changes, and strict OS lifecycle callbacks, challenging agents’ abil-ity to model dynamic system states. (3) Client-Side Constraints: 
+
+Development occurs within framework-heavy environments (e.g., iOS SDK) with rapid iterations, testing generalization to domain-specific APIs. We introduce SWE-Bench Mobile , a benchmark for evaluating coding agents on industry-level mobile application development. SWE-Bench Mobile is constructed from real development artifacts at a major technology company, comprising 50 authentic tasks derived from actual product requirements. Each task combines multi-modal inputs—PRDs, Figma designs, and a large-scale mixed Swift/Objective-C production codebase—with comprehensive eval-uation through 449 human-verified test cases. 
+
+Contributions. 
+
+(1) We introduce SWE-Bench Mobile, the first benchmark combin-ing PRDs, Figma designs, and a large-scale codebase to capture the full complexity of industrial software development. (2) We evaluate 22 agent-model configurations across four cod-ing agents (three commercial, one open-source), with detailed analysis of performance, cost, and robustness. 
+
+> arXiv:2602.09540v1 [cs.SE] 10 Feb 2026
+
+Figure 1: Overview of the SWE-Bench Mobile pipeline. (1) Agents receive multi-modal inputs including a Product Requirement Document (PRD), Figma design, and a large-scale Swift/Objective-C codebase. (2) The agent navigates the codebase, plans the implementation, and generates code. (3) The output is a Git patch that is applied and evaluated against a comprehensive test suite. 
+
+(3) We systematically categorize agent failures, finding that 54% stem from missing feature flags—a production practice unfa-miliar to agents—followed by missing data models (22%) and incomplete file coverage (11–15%). (4) We provide actionable insights: agent design matters as much as model capability (up to 6 × performance gap for the same model), commercial agents outperform open-source ones, sim-ple prompts outperform complex ones, and cost-effective con-figurations exist. To strictly preserve the integrity of the evaluation and respect the proprietary nature of the production codebase, we adopt a 
+
+hosted evaluation paradigm . Unlike static datasets that are prone to data contamination in future model training sets, our held-out private test set ensures that agents are evaluated on truly unseen industrial tasks. We provide a sanitized development kit and a public leaderboard to foster community progress. Our evaluation reveals a significant gap between current capabil-ities and industrial requirements. The best configuration achieves only 12% task success rate, with most failures due to incomplete implementations. The same model (Opus 4.5) achieves 12% on Cur-sor but only 2% on OpenCode—a 6 × gap—demonstrating that agent scaffolding matters as much as model capability. Commercial agents consistently outperform the open-source OpenCode, whose best result (8% with GLM 4.6) trails the best commercial result (12%) by 4 percentage points. Success drops from 18% for simple tasks requiring 1-2 files to just 2% for complex tasks requiring 7+ files, indicating agents struggle with cross-file reasoning. These findings suggest that while coding agents show promise for simple tasks, substantial improvements in requirement understanding, multi-modal reasoning, and codebase navigation are needed for reliable industry-level development. 
+
+## 2 SWE-Bench Mobile 
+
+SWE-Bench Mobile is a benchmark designed to evaluate coding agents on industry-level mobile application development. Unlike existing benchmarks that focus on isolated coding problems or bug fixes, SWE-Bench Mobile captures the full complexity of profes-sional software engineering: multi-modal inputs, large codebases, and comprehensive testing. Figure 1 illustrates the overall bench-mark pipeline. 
+
+## 2.1 Problem Formulation 
+
+Each benchmark instance is represented as a triplet: 
+
+T = (I , O, E) ,
+
+where I is the input context, O is the expected output, and E is the evaluation configuration. 
+
+Input ( I). The input context mimics a typical developer’s start-ing point for a new feature. It consists of three main components (see Figure 2). First, a Product Requirement Document (PRD) 
+
+describes the feature goal, user story, acceptance criteria, and con-straints. These PRDs are derived from actual product requirements at XiaoHongShu Inc., a major social media platform with over 300 million monthly active users, follow standard industrial conven-tions [ 1], and have an average length of 450 words, requiring agents to parse natural language specifications. Second, 70% of tasks in-clude a Figma Design specification, containing component layout, typography, and visual details that the agent must translate into code. Finally, the agent is provided with the XiaoHongShu produc-tion codebase , a Git repository snapshot containing approximately 500,000 lines of Swift/Objective-C code across thousands of files. This large-scale context forces the agent to perform retrieval and navigation, rather than just code generation. 
+
+Output ( O). The expected output is a unified diff patch that, when applied to the codebase, implements the feature described in the PRD. This format matches the standard pull request workflow used in industry. 
+
+Evaluation ( E). Each task is paired with a task-specific pytest 
+
+suite (9.1 tests per task on average) that evaluates the generated 
+
+patch directly. Concretely, tests operate on the unified diff text with-out compiling or running the iOS application, and therefore avoid build-time overhead and simulator/device nondeterminism. This patch-level evaluation is designed to verify the presence of necessary UI-facing edits (e.g., view construction, layout logic) and data/logic edits (e.g., control-flow, state updates), while remaining tolerant to 
+
+> 2
+
+Figure 2: A concrete example of a SWE-Bench Mobile task (Task 056). The agent must interpret the PRD requirements (replace interaction button with publish time label) and visual design (Figma), locate the relevant files in the codebase (FeedItem-Footer.swift), and implement the changes while handling edge cases and feature configuration. 
+
+superficial variability such as identifier naming, refactoring style, and minor structural reorganization. 
+
+## 2.2 Design Principles 
+
+SWE-Bench Mobile is constructed under guiding principles to en-sure relevance to professional software engineering. End-to-End Realism is paramount; tasks span the full engineering process from PRD to testing, preserving real-world dependencies and incomplete specifications. Unlike synthetic benchmarks, our tasks come from actual product development cycles. Multi-Modal Reasoning is re-quired, as agents must jointly interpret textual requirements (PRD), visual designs (Figma), and structured code. Diverse Coverage 
+
+ensures robustness, with tasks covering multiple categories (Ta-ble 3) and difficulty levels, from simple UI adjustments to complex architectural refactoring. Finally, by focusing on Swift/Objective-C, an Under-Represented Language in LLM training data compared to Python or JavaScript, SWE-Bench Mobile serves as a challenging test of an agent’s ability to generalize to less familiar syntax and frameworks. 
+
+## 2.3 Dataset Statistics 
+
+Table 1 summarizes the key statistics of SWE-Bench Mobile. The benchmark consists of 50 tasks with 449 total test cases. The major-ity of tasks (70%) include Figma designs, and 92% include reference images, highlighting the multi-modal nature of the dataset. The average PRD length is 450 words, providing substantial context. The codebase scale is significant, with the repository size reaching approximately 5GB. 
+
+## 2.4 Task Construction 
+
+Source. Tasks are derived from real product requirements at Xi-aoHongShu Inc., a leading social media platform in China with over 300 million monthly active users. Each task represents a fea-ture that was actually implemented by XiaoHongShu engineers in the production iOS application, ensuring realistic complexity and 
+
+Table 1: SWE-Bench Mobile dataset statistics. 
+
+Metric Value 
+
+Total Tasks 50 Total Test Cases 449 Avg. Test Cases per Task 9.1 Tasks with Figma Design 35 (70%) Tasks with Reference Images 46 (92%) Avg. PRD Length (words) 450 Codebase Size Large Scale ( ∼5GB) Programming Language Swift/Objective-C (iOS) Avg. Files Modified per Task 4.2 UI Components (18) 
+
+> Data Mgmt (10)
+> Gesture &
+> Interaction (8)
+> Media &
+> Assets (7)
+> Networking (4)
+> Other (3)
+> By Category
+> Easy (15)
+> Medium (25)
+> Hard (10)
+> By Difficulty
+
+Figure 3: Task distribution by category (left) and difficulty (right). Each label shows the count, percentage, and average agent pass rate. UI Components (36%) dominate the bench-mark, while performance drops sharply from Easy (18.5% pass) to Hard (5.8% pass). 
+
+scope. Unlike existing benchmarks that use synthetic problems or isolated bug fixes from open-source repositories, our tasks capture the full complexity of feature development in a commercial mobile application: multi-file changes, UI/UX implementation from design specs, integration with existing business logic, and handling of edge cases and feature flags. This industry-sourced approach ensures 
+
+> 3
+
+that our benchmark reflects the actual challenges faced by software engineers in production environments. 
+
+Quality Control. Each task undergoes a rigorous multi-stage re-view process. First, the PRDs are reviewed to ensure requirements are clear and self-contained. Next, comprehensive test suites are designed to verify both correctness and quality. Finally, we per-form human validation to verify that the reference implementation passes all tests. 
+
+Difficulty Calibration. Tasks are labeled by implementation com-plexity based on several factors: the number of files to modify (1-2 for Easy, 3-5 for Medium, 6+ for Hard), the lines of code changed (<50 for Easy, 50-150 for Medium, >150 for Hard), and the archi-tectural complexity, distinguishing between localized changes and cross-module refactoring. 
+
+## 2.5 Evaluation Pipeline 
+
+Unlike traditional code benchmarks that rely solely on unit tests, SWE-Bench Mobile performs comprehensive verification through a multi-step pipeline. 
+
+Patch-to-Task Routing. SWE-Bench Mobile evaluates submis-sions as unified diff patches and associates each patch with a specific task. This routing step ensures that each submission is evaluated under the task’s PRD-defined intent and its corresponding test suite, while keeping the evaluation independent of repository checkout, compilation, or runtime execution. In practice, the test harness exposes the patch text to the task-specific tests, enabling purely diff-based verification. 
+
+Static Analysis. Before running task-specific assertions, we per-form lightweight static checks on the diff text. This includes verify-ing unified diff structure (e.g., diff –git headers), rejecting empty or near-empty patches, and ensuring that added lines contain mean-ingful code changes rather than only whitespace or comments. We also check whether the patch touches relevant files using flexible path patterns (e.g., accepting file moves/renames), and apply basic language-agnostic sanity checks to filter malformed submissions early. 
+
+Diff-Based Intent Tests. Direct runtime evaluation for mobile applications is challenging to scale. Unit tests are ill-suited for vali-dating visual correctness, while end-to-end UI testing introduces substantial compilation overhead and environmental nondetermin-ism. To address these constraints, SWE-Bench Mobile adopts a 
+
+diff-based evaluation strategy: our pytest suites inspect the patch diff and verify structural intent and architectural compliance .This allows us to evaluate high-level architectural decisions and requirement compliance at scale. Tests are constructed from the PRD and a human reference patch, emphasizing: 
+
+• Goal-oriented checks : verifying modification patterns (the “what”) rather than exact code shape. 
+
+• Feature entry points : checking integration surfaces (e.g., rout-ing, hooks). 
+
+• Removal of blocking behavior : ensuring constraints or legacy guards are lifted. 
+
+• Cohesion across files : verifying related edits across modules. 
+
+Table 2: Comparison with existing benchmarks.                
+
+> Benchmark Multi-Modal Codebase Language
+> HumanEval ✗None Python MBPP ✗None Python SWE-Bench ✗Medium Python
+> SWE-Bench Mobile ✓Large Swift/ObjC
+
+• Semantics-aware matching : using flexible pattern matching to accommodate alternative naming. 
+
+Batch Reporting and Error Analysis. Beyond pass/fail deci-sions, our evaluator produces both task-level and test-case-level summaries. For large-scale runs, we classify failures into coarse categories (e.g., missing critical file edits, missing UI components, empty patches). This analysis provides interpretable diagnostics of common agent failure modes and supports systematic iteration on prompts and agent scaffolding. 
+
+Metrics. We report two complementary metrics. Task Success Rate is the percentage of tasks where all tests pass, representing the strict standard for a completed feature. Test Pass Rate is the percentage of individual test cases passed, which reveals partial progress even when the full task is not completed. The gap be-tween these metrics reveals how often agents make partial progress without fully completing tasks. 
+
+## 2.6 Comparison with Existing Benchmarks 
+
+Table 2 compares SWE-Bench Mobile with existing coding bench-marks. SWE-Bench Mobile distinguishes itself by being multi-modal, including PRDs and Figma designs rather than just code or text descriptions. It operates on a large-scale codebase ( ∼5GB), signifi-cantly larger than the individual repositories or snippets used in other benchmarks. Furthermore, it targets mixed Swift/Objective-C, which is under-represented in training data compared to Python, and focuses on feature implementation rather than bug fixing. 
+
+## 3 Experiments 
+
+We evaluate leading coding agents on SWE-Bench Mobile to answer several key research questions. First, we investigate how state-of-the-art coding agents perform on industry-level mobile develop-ment tasks ( RQ1 ). Second, we analyze how task complexity affects agent performance ( RQ2 ). Third, we examine the cost-performance trade-off ( RQ3 ). Fourth, we assess the robustness of agent results across multiple runs ( RQ4 ). Finally, we explore how prompt engi-neering affects performance ( RQ5 ). 
+
+## 3.1 Experimental Setup 
+
+Agents and Models. We evaluate four coding agents spanning commercial and open-source systems: Cursor , an AI-powered code editor with an agent mode; Codex , OpenAI’s coding agent CLI; 
+
+Claude Code , Anthropic’s coding agent CLI; and OpenCode , an open-source coding agent. We test these agents with multiple back-bone models including Claude Opus 4.5, Claude Sonnet 4.5, Claude Haiku, GLM 4.6, GLM 4.7, GPT 5, GPT 5.1, GPT 5.2, and Gemini 3 Pro, yielding 22 agent-model configurations in total.         
+
+> 40246810 12 14 16
+> Task Success Rate (%)
+> Cursor + Opus 4.5
+> Cursor + Sonnet 4.5
+> Codex + GLM 4.6
+> Codex + Sonnet 4.5
+> Codex + GPT 5
+> CC + GLM 4.6
+> CC + Sonnet 4.5
+> Cursor + GPT 5.2
+> CC + Opus 4.5
+> CC + Haiku
+> OC + GLM 4.6
+> Cursor + Gemini 3 Pro
+> OC + GPT 5.1
+> Codex + Opus 4.5
+> OC + Sonnet 4.5
+> OC + GLM 4.7
+> OC + Gemini 3 Pro
+> OC + GPT 5.2
+> Cursor + GPT 5.1
+> OC + Opus 4.5
+> OC + GPT 5
+> Codex + GPT 5.1
+> 12.0%
+> 12.0%
+> 12.0%
+> 10.0%
+> 10.0%
+> 10.0%
+> 10.0%
+> 8.0%
+> 8.0%
+> 8.0%
+> 8.0%
+> 6.0%
+> 6.0%
+> 4.0%
+> 4.0%
+> 4.0%
+> 4.0%
+> 4.0%
+> 2.0%
+> 2.0%
+> 2.0%
+> 0.0%
+> Cursor
+> Codex
+> Claude Code
+> OpenCode
+
+Figure 4: Task Success Rate across all configurations. Best performance is 12%, achieved by Cursor + Opus/Sonnet and Codex + GLM. Metrics. We report two primary metrics: Task Success Rate ,which is the percentage of tasks where all test cases pass, and 
+
+Test Pass Rate , which is the percentage of individual test cases passed. All rates are computed with a fixed denominator of 50 tasks and 449 test cases. When an agent fails to produce a patch for a task (e.g., due to timeout or error), the missing patch is counted as failing all associated tests. 
+
+## 3.2 Main Results (RQ1) 
+
+Figure 4 presents the main experimental results across all agent-model configurations. 
+
+Key Findings. Our evaluation reveals a generally low overall per-formance, with even the best agents solving only 12% of tasks. This indicates a significant gap between current capabilities and industrial requirements. However, the Test Pass Rate (up to 28.1%) is much higher than the Task Success Rate (12%), indicating that agents often make partial progress but fail to complete tasks fully. Notably, we find that the choice of agent matters significantly: the same model (Opus 4.5) achieves 12% on Cursor but only 2% on Open-Code, a 6 × difference. Commercial agents consistently outperform the open-source OpenCode agent: the best OpenCode configuration (GLM 4.6, 8%) trails the best commercial configuration (12%) by 4 percentage points. 
+
+## 3.3 Task Complexity Analysis (RQ2) 
+
+We analyze how task complexity affects agent performance. Fig-ure 5 shows the relationship between task complexity (measured by number of files modified and patch size) and success rate. 
+
+Key Findings. Performance drops sharply as complexity increases. The success rate drops from 18% for tasks requiring 1-2 file mod-ifications to just 2% for tasks requiring 7+ files, suggesting that agents struggle with cross-file reasoning. Similarly, larger patches correlate with lower success, indicating difficulty with complex implementations. 1-2 3-4 5-6 7+      
+
+> Number of Files Modified
+> 20
+> 0
+> 20
+> 40
+> 60
+> Task Success Rate (%)
+> n=3
+> n=10
+> n=5 n=11
+> (a) Performance vs. Files Modified
+> 1-50 51-100 101-200 200+
+> Lines Changed (Added + Deleted)
+> 10
+> 0
+> 10
+> 20
+> 30
+> 40
+> Task Success Rate (%)
+> n=10
+> n=5
+> n=10 n=4
+> (b) Performance vs. Patch Size
+
+Figure 5: Performance decreases sharply with task complex-ity. (a) Tasks requiring 1-2 file modifications have 18% success rate vs. 2% for 7+ files. (b) Small patches ( <50 lines) achieve 20% success vs. 3% for large patches ( >200 lines). Error bars show 95% confidence intervals based on binomial propor-tions. Opus 4.5 Sonnet 4.5 GLM 4.6 GPT 5.1    
+
+> Model
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> 12
+> 14
+> 16
+> Task Success Rate (%)
+> N/A N/A
+> 12 12
+> 2
+> 4
+> 10
+> 12
+> 8
+> 10 10
+> 2
+> 4
+> 8
+> 6
+> Cursor
+> Codex
+> Claude Code
+> OpenCode
+
+Figure 6: Same model, different agents: Opus 4.5 achieves 12% on Cursor but only 2% on OpenCode—a 6 × gap. Commercial agents consistently outperform the open-source alternative. 
+
+## 3.4 Model Comparison Across Agents 
+
+A surprising finding is that the same model performs very dif-ferently across agents . Figure 6 shows this comparison across all four agents. 
+
+Implications. This finding suggests that agent scaffolding (tool use, context management, iteration strategy) is as important as the underlying model capability. The performance gap between com-mercial agents (Cursor, Codex, Claude Code) and the open-source OpenCode is substantial across all models, suggesting that years of engineering investment in tool integration, context management, and iterative refinement provide significant advantages. Practition-ers should evaluate agents holistically rather than focusing solely on model benchmarks. 
+
+## 3.5 Performance by Task Category 
+
+We analyze how agents perform across different task categories. Figure 7 shows the success rate breakdown. 
+
+## 3.6 Cost and Time Analysis (RQ3) 
+
+Table 3 presents the cost and time metrics for each configuration. We measure API cost per task and average execution time. 
+
+Key Findings. Among commercial agents, Codex + GLM 4.6 offers the best value, achieving 12% success at only $1.30/task—the same success rate as Cursor + Opus 4.5 but at less than half the cost                    
+
+> 5Cursor Codex Claude Code OpenCode
+> UI Components
+> Data Mgmt
+> Gesture
+> Media
+> Network
+> 14% 10% 8% 5%
+> 12% 15% 11% 7%
+> 8% 6% 7% 3%
+> 10% 8% 9% 4%
+> 11% 12% 10% 5%
+> Task Success Rate by Category and Agent
+> 4
+> 6
+> 8
+> 10
+> 12
+> 14 Success Rate (%)
+
+Figure 7: Task Success Rate by Category and Agent. Agents generally perform better on Data Management tasks but struggle with Gesture & Interaction and Media tasks, which require complex multi-modal reasoning. Table 3: Cost and time comparison across all agents. Best value in each column is bold. OpenCode costs are reported via OpenRouter API billing. 
+
+Agent Model Cost ($/task) Time (min) 
+
+Cursor Opus 4.5 3.50 15.0 Cursor Sonnet 4.5 2.00 14.2 Codex GLM 4.6 1.30 13.3 Codex Sonnet 4.5 2.50 12.5 CC GLM 4.6 1.30 11.7 CC Sonnet 4.5 2.00 13.3 CC Opus 4.5 4.00 15.0 CC Haiku 0.50 8.3 OC Opus 4.5 9.33 8.2 OC Sonnet 4.5 3.50 11.1 OC GLM 4.6 0.13 32.5 OC GLM 4.7 0.49 52.1 OC GPT 5 0.18 9.8 OC GPT 5.1 0.02 2.0 
+
+OC GPT 5.2 0.04 10.9 OC Gemini 3 Pro 0.03 8.9 
+
+($3.50/task). OpenCode exhibits a striking cost–time trade-off: it is dramatically cheaper (GLM 4.6 at $0.13/task vs. $1.30 for Codex/CC), but GLM models run much slower (32–52 min vs. 11–13 min). Open-Code + Opus 4.5 is the most expensive configuration at $9.33/task yet achieves only 2% success, while OpenCode + GPT 5.1 is the cheapest at $0.02/task but completes tasks in only 2 minutes on average—likely because it fails quickly on most tasks (6% success, 7.1% test pass rate). 
+
+## 3.7 Robustness Analysis (RQ4) 
+
+To assess result stability, we run selected configurations multiple times. Figure 8 shows the variance across runs. 
+
+Observations. We observe moderate variance for Claude Code + Opus 4.5, with scores of 6%, 8%, and 6% across 3 runs ( 𝜇 =6.7%, 
+
+𝜎 =1.15%). In contrast, Codex + Opus 4.5 is perfectly stable at 4% across runs. CC + Opus 4.5 Codex + Opus 4.5 
+
+> 0
+> 2
+> 4
+> 6
+> 8
+> 10
+> 12
+> Task Success Rate (%)
+> =6.7%
+> =1.15
+> =4.0%
+> =0.00
+> Robustness: Stability Across Multiple Runs
+> Mean Success Rate
+> Individual Run
+> Standard Deviation
+
+Figure 8: Result stability across multiple runs. Error bars indicate standard deviation. While Claude Code shows mod-erate variance ( 𝜎 =1.15%), the absolute fluctuation is small ( ±1task), indicating that agent performance is relatively stable. Table 4: Prompt ablation results. Best and worst high-lighted. Full prompts in Appendix C. 
+
+Prompt Strategy Task (%) Test (%) 
+
+Defensive Programming 10.0 26.7 
+
+Quality Focused 10.0 26.3 Example Driven 10.0 23.4 Chain of Thought 10.0 21.8 Baseline 10.0 19.3 Explicit Instructions 8.0 17.8 Figma Emphasis 8.0 18.0 Test Driven 6.0 22.0 Detailed Role 4.0 20.7 Structured Checklist 4.0 20.7 Context Rich 4.0 22.7 Comprehensive 4.0 22.7 
+
+## 3.8 Prompt Engineering (RQ5) 
+
+We conduct a systematic ablation study with 12 prompt variants using Claude Code + GLM 4.6. Table 4 shows the results. 
+
+Key Findings. The "Defensive Programming" prompt strategy per-forms best, improving the Test Pass Rate by 7.4% over the baseline (19.3% → 26.7%) while maintaining the same Task Success Rate (10.0%). This indicates that while both prompts complete the same number of tasks fully, Defensive Programming handles edge cases better in partially-completed tasks, passing significantly more indi-vidual test cases. This suggests that emphasizing defensive coding practices helps agents avoid common pitfalls even when they can-not complete all requirements. Interestingly, complexity appears to hurt performance; overly detailed prompts reduce Task Success from 10.0% to 4.0%. Overall, prompts focusing on code quality out-perform those emphasizing workflow. 
+
+## 3.9 Error Analysis 
+
+We categorize failure modes across all experiments by analyzing test failure messages from the best-performing agents. The most criti-cal failure pattern is Missing Feature Flags (54%), where agents 
+
+> 6
+
+implement core functionality but fail to add proper feature tog-gles or experiment flags—a standard practice in production mobile development for gradual rollout and A/B testing. Missing Data Models (22%) occurs when agents fail to create or update data structures required by the PRD. Missing Files (11-15%) represents cases where agents identify some but not all required files to modify. 
+
+Missing UI Components (11-15%) captures failures to implement specific UI elements like buttons, labels, or views. Missing Re-quired Methods (9%) reflects incomplete class implementations. While Incomplete Multi-File Implementation affects only 4-7% of tasks, it disproportionately impacts complex features requiring coordination across 5+ files. The dominance of feature flag failures highlights a gap between agents’ code generation capabilities and their understanding of production deployment practices. 
+
+## 4 Discussion and Conclusion 
+
+Our evaluation reveals a significant gap between current agent capabilities and the demands of industrial mobile development, with the best configurations achieving only a 12% success rate. This shortfall, primarily driven by failures in cross-file reasoning and requirement understanding, underscores that autonomous software engineering remains an open challenge. 
+
+Implications. For practitioners , our results suggest that agents should currently be viewed as “copilots” requiring human over-sight rather than autonomous developers. The high variance in performance across agents for the same model (e.g., Cursor 12% vs. OpenCode 2% for Opus 4.5) highlights the critical role of agent scaffolding—practitioners should evaluate the complete system, not just the underlying model. The consistent gap between commer-cial and open-source agents suggests that engineering investment in tool integration and context management provides significant practical value. Furthermore, cost-effective models like GLM 4.6 can match the performance of expensive frontier models when paired with effective agent frameworks, offering a viable path for scalable adoption. For researchers , the sharp performance drop on complex, multi-file tasks (18% vs. 2%) points to a need for better code context retrieval and graph-based reasoning. The 25% fail-ure rate due to requirement misunderstanding calls for improved grounding of natural language PRDs into code. Additionally, the under-utilization of visual designs suggests that future work must better integrate multi-modal signals into the coding loop. 
+
+Future Work. We plan to expand SWE-Bench Mobile along sev-eral dimensions. First, we will add Android (Kotlin) tasks to enable cross-platform comparison and investigate whether agents exhibit consistent strengths and weaknesses across mobile ecosystems. Sec-ond, we will integrate simulator-based runtime evaluation to verify UI rendering, gesture handling, and state management—aspects that text-based diff inspection cannot capture. Third, we aim to evaluate additional open-source agents like OpenHands and SWE-Agent, and open-weight models like Qwen-Coder, to further broaden the benchmark’s coverage. Finally, we plan to develop a public API for continuous evaluation, allowing agent providers to track their progress over time as both models and scaffolding improve. In conclusion, SWE-Bench Mobile provides a rigorous testbed for the next generation of coding agents. While current performance is modest, the benchmark offers a clear roadmap for advancing agents from simple script generation to complex, industry-level software development. 
+
+## 5 Related Work 5.1 Code Generation Benchmarks 
+
+Early benchmarks for code generation focused on algorithmic problem-solving. HumanEval [3] introduced 164 hand-crafted Python programming problems with unit tests, becoming a stan-dard evaluation for code LLMs. MBPP [2 ] expanded this with 974 crowd-sourced problems. While influential, these benchmarks test isolated function generation rather than realistic software engineer-ing. 
+
+SWE-Bench [ 7] marked a significant advance by evaluating agents on real GitHub issues from popular Python repositories. Agents must understand issue descriptions, navigate codebases, and generate patches that pass existing tests. The benchmark has since evolved into a family of tasks, including SWE-bench Multi-modal [15 ], which incorporates visual elements such as screenshots and diagrams to test visual software domains; SWE-bench Mul-tilingual [ 16 , 17 ], which expands evaluation to 9 programming languages beyond Python; and SWE-bench Pro [ 5], which intro-duces longer-horizon instances and includes proprietary/commer-cial codebases. Even with these extensions, many existing bench-marks still derive tasks from GitHub issue and pull-request artifacts, which more often emphasize bug fixing and localized improvements than new feature implementation from high-level specifications. Other benchmarks target specific domains: DS-1000 [8] for data science, ODEX [ 11 ] for open-domain execution, and ClassEval [ 6 ]for class-level generation. DevBench [ 9] evaluates repository-level coding but still focuses on Python. SWE-Bench Mobile differs from these benchmarks in several key aspects: (1) multi-modal inputs including PRDs and Figma de-signs, (2) a large-scale production codebase (approx. 5GB), (3) mixed Swift/Objective-C target languages, and (4) feature implementation rather than bug fixing. 
+
+## 5.2 Coding Agents 
+
+The emergence of powerful LLMs has enabled a new generation of autonomous coding agents. These systems go beyond simple code completion to perform multi-step reasoning, tool use, and iterative refinement. 
+
+Commercial agents include GitHub Copilot (Microsoft), Cursor (Anysphere), Claude Code (Anthropic), and Codex CLI (OpenAI). These agents integrate with development environments and can navigate codebases, run tests, and iterate on solutions. 
+
+Open-source agents have emerged as alternatives. OpenCode provides a terminal-based coding agent supporting multiple LLM backends. SWE-Agent [ 14 ] introduces an agent-computer interface optimized for software engineering. AutoCodeRover [ 19 ] combines code search with LLM reasoning. Agentless [ 13 ] shows that sim-pler approaches without complex agent loops can be competitive. CodeAgent [18] uses a repository-level code graph for navigation. 
+
+> 7
+
+Our work provides a challenging benchmark for evaluating both commercial and open-source agents on industry-level tasks, reveal-ing significant gaps in current capabilities and the importance of agent scaffolding. 
+
+## 5.3 Multi-Modal Code Understanding 
+
+Recent work has explored combining visual and textual informa-tion for code-related tasks. Design2Code [10 ] evaluates generating code from webpage screenshots. Screenshot2Code systems con-vert UI designs to implementation. SWE-Bench Mobile extends this direction by incorporating Figma designs as part of the input specification, requiring agents to reason about visual layouts alongside textual requirements. 
+
+## 5.4 Prompt Engineering for Code 
+
+Prompt engineering significantly impacts LLM performance on coding tasks. Chain-of-thought prompting [ 12 ] improves reasoning. Self-debugging [ 4] enables iterative refinement. Structured prompts with role definitions and examples often outperform simple instruc-tions. Our ablation study (Section 3.8) systematically evaluates 12 prompt strategies, finding that “Defensive Programming” prompts emphasizing edge cases outperform both simple baselines and com-plex multi-step prompts. 
+
+## Limitations 
+
+Platform Scope. SWE-Bench Mobile focuses on a single produc-tion iOS codebase from XiaoHongShu, which ensures depth and realism but limits generalization to other mobile platforms (An-droid, cross-platform frameworks like Flutter/React Native) and programming paradigms. The Swift/Objective-C mixed-language codebase, while representative of many large iOS projects, may not capture challenges unique to Kotlin-based Android development or cross-platform toolchains. 
+
+Evaluation Methodology. Our evaluation uses text-based diff inspection rather than runtime execution, which means we vali-date structural correctness and architectural compliance but cannot detect issues that only manifest during runtime interactions, on spe-cific devices, or under particular OS versions. Future work should integrate simulator-based testing to capture dynamic behaviors such as UI rendering, memory management, and concurrency is-sues. 
+
+Prompt and Model Coverage. Our prompt ablation study covers one agent-model configuration (Claude Code + GLM 4.6) and 12 prompt variants. While this provides insights into prompt sensi-tivity, different models may respond differently to these strategies. Additionally, API costs reported are based on pricing at experiment time and may vary with different prompting strategies or model updates. 
+
+Benchmark Scale. The benchmark’s 50 tasks, while derived from real product development, represent a snapshot of mobile devel-opment challenges and may not cover all possible feature types (e.g., real-time communication, payment integration, accessibility features) or edge cases encountered in production. We plan to con-tinuously expand the task set to improve coverage. 
+
+## Ethics Statement 
+
+The tasks and codebase in SWE-Bench Mobile are derived from XiaoHongShu Inc. with explicit permission for research use. The codebase snapshot excludes sensitive credentials and business logic. Human validation was performed by the authors and XiaoHongShu engineers; no crowdworkers were employed. Our work evaluates AI agents for software engineering tasks. Current performance (12% task success rate) indicates that hu-man oversight remains essential. We view these agents as assistive tools rather than replacements for human developers. Practitioners should use comprehensive testing and code review when deploying AI-generated code, as emphasized by our benchmark’s evaluation approach. 
+
+> 8
+
+## References 
+
+[1] Atlassian. 2024. How to Write a Product Requirements Document (PRD). https://www.atlassian.com/agile/product-management/requirements. [2] Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, et al . 2021. Program Synthesis with Large Language Models. arXiv preprint arXiv:2108.07732 (2021). [3] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, et al . 2021. Evaluating Large Language Models Trained on Code. arXiv preprint arXiv:2107.03374 (2021). [4] Xinyun Chen, Maxwell Lin, Nathanael Schärli, and Denny Zhou. 2023. Teaching Large Language Models to Self-Debug. arXiv preprint arXiv:2304.05128 (2023). [5] Xiang Deng, Jeff Da, Edwin Pan, Yannis Yiming He, Charles Ide, Kanak Garg, Niklas Lauffer, Andrew Park, Nitin Pasari, Chetan Rane, et al . 2025. SWE-Bench Pro: Can AI Agents Solve Long-Horizon Software Engineering Tasks? arXiv preprint arXiv:2509.16941 (2025). [6] Xueying Du, Mingwei Liu, Kaixin Wang, Hanlin Wang, Junwei Liu, Yixuan Chen, Jiayi Feng, Chaofeng Sha, Xin Peng, and Yiling Lou. 2024. ClassEval: A Manually-Crafted Benchmark for Evaluating LLMs on Class-level Code Generation. In International Conference on Machine Learning .[7] Carlos E Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik R Narasimhan. 2024. SWE-bench: Can Language Models Resolve Real-world GitHub Issues?. In The Twelfth International Conference on Learning Representations .[8] Yuhang Lai, Chengxi Li, Yiming Wang, Tianyi Zhang, Ruiqi Zhong, Luke Zettlemoyer, Wen-tau Yih, Daniel Fried, Sida Wang, and Tao Yu. 2023. DS-1000: A Natural and Reliable Benchmark for Data Science Code Generation. In International Conference on Machine Learning .[9] Bowen Li, Wenhan Wu, Ziwei Tang, Lin Shi, John Yang, Jinyang Li, Shunyu Yao, Chen Xiong, and Karthik Narasimhan. 2024. DevBench: A Comprehensive Benchmark for Software Development. arXiv preprint arXiv:2403.08604 (2024). [10] Chenglei Si, Yanzhe Li, Zhengyuan Jiang, Xinyang Liu, Zheng Lu, Yuqing Jiang, Yong Liu, Yu Wang, Yujiu Yuan, Lydia Liu, et al . 2024. Design2Code: How Far Are We From Automating Front-End Engineering? arXiv preprint arXiv:2403.03163 (2024). [11] Zhiruo Wang, Shuyan Zhou, Daniel Fried, and Graham Neubig. 2022. Execution-Based Evaluation for Open-Domain Code Generation. arXiv preprint arXiv:2212.10481 (2022). [12] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al . 2022. Chain-of-Thought Prompting Elicits Reasoning in Large Language Models. Advances in Neural Information Processing Systems 35 (2022), 24824–24837. [13] Chunqiu Steven Xia, Yinlin Deng, Soren Dunn, and Lingming Zhang. 2024. Agentless: Demystifying LLM-based Software Engineering Agents. arXiv preprint arXiv:2407.01489 
+
+(2024). [14] John Yang, Carlos E Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik Narasimhan, and Ofir Press. 2024. SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering. arXiv preprint arXiv:2405.15793 (2024). [15] John Yang, Carlos E Jimenez, Alex L Zhang, Kilian Lieret, Joyce Yang, Xindi Wu, Ofir Press, Niklas Muennighoff, Gabriel Synnaeve, Karthik R Narasimhan, et al . 2025. SWE-bench Multimodal: Do AI Systems Generalize to Visual Software Domains?. In The Thirteenth International Conference on Learning Representations .[16] John Yang, Kilian Lieret, Carlos E Jimenez, Alexander Wettig, Kabir Khandpur, Yanzhe Zhang, Binyuan Hui, Ofir Press, Ludwig Schmidt, and Diyi Yang. 2025. SWE-smith: Scaling Data for Software Engineering Agents. arXiv preprint arXiv:2504.21798 (2025). [17] Daoguang Zan, Zhirong Huang, Wei Liu, Hanwu Chen, Linhao Zhang, Shulin Xin, Lu Chen, Qi Liu, Xiaojian Zhong, Aoyan Li, Siyao Liu, Yongsheng Xiao, Liangqiang Chen, Yuyu Zhang, Jing Su, Tianyu Liu, Rui Long, Kai Shen, and Liang Xiang. 2025. Multi-SWE-bench: A Multilingual Benchmark for Issue Resolving. arXiv:2504.02605 [cs.SE] https://arxiv.org/abs/2504.02605 [18] Kechi Zhang, Jia Li, Ge Li, Xianjie Shi, and Zhi Jin. 2024. CodeAgent: Enhancing Code Generation with Tool-Integrated Agent Systems for Real-World Repo-level Coding Challenges. arXiv preprint arXiv:2401.07339 (2024). [19] Yuntong Zhang, Haifeng Ruan, Zhiyu Fan, and Abhik Roychoudhury. 2024. AutoCodeRover: Autonomous Program Improvement. arXiv preprint arXiv:2404.05427 (2024). 
+
+> 9
+
+## A Task Examples 
+
+We present two representative tasks from SWE-Bench Mobile to illustrate the benchmark format. Each task includes a Product Requirement Document (PRD) with design specifications, translated from the original Chinese used by the development team. 
+
+## A.1 Task 003: Custom Emoji Limit Adjustment      
+
+> Difficulty: Easy Files to Modify: 3Test Cases: 5
+> Adjust Custom Emoji Collection Limit
+
+Background 
+
+The current custom emoji (saved stickers) limit is hardcoded to 300 on the client side. As user demand grows, we need to increase this limit to better serve our users. 
+
+Requirements 
+
+(1) Increase limit: Change from 300 to 999 (2) Update UI prompts: Adjust warning messages to reflect new limit (3) Server-driven config: Remove hardcoded values; future changes should not require app updates (4) Comprehensive coverage: Apply to all emoji-saving scenarios (chat, comments, etc.) 
+
+Competitor Analysis 
+
+App Emoji Limit 
+
+WeChat 999 Douyin (TikTok) 599 Kuaishou 158 
+
+Design Mockups See Figure 9 for the original design specifications provided to developers. 
+
+Evaluation Criteria 
+
+✓ Hardcoded limit (300) removed or increased to ≥450 
+
+✓ New limit (999) properly configured 
+
+✓ Server-driven configuration implemented 
+
+✓ Changes applied across multiple files 
+
+✓ Non-empty, meaningful code changes 
+
+## A.2 Task 007: Card Message Click Decoupling      
+
+> Difficulty: Medium Files to Modify: 5Test Cases: 5
+> 10 iOS Card Reference Click Decoupling
+
+Background 
+
+Card messages have been added to the app. While most iOS code is decoupled from the messaging module, the click logic for card message references remains coupled in AppChatBaseViewController . This task decouples the click handling for better maintainability. 
+
+Architecture Design 
+
+Abstract click logic to CardRefBaseProvider . The view controller should find the concrete implementation based on card type, following the provider pattern. 
+
+Implementation Sketch      
+
+> @objc(AppRefMessageDataService)
+> public class AppRefMessageDataService: NSObject {
+> var chatType: String?
+> var chatId: String?
+> var senderId: String?
+> var messageId: String? }
+
+Impact Scope: Shopping card, Advertisement card 
+
+Evaluation Criteria 
+
+✓ New AppRefMessageDataService class created 
+
+✓ Click handling moved out of AppChatBaseViewController 
+
+✓ Provider pattern correctly implemented 
+
+✓ Shopping and advertisement card handling works 
+
+✓ No regression in existing functionality 
+
+## B Complete Experimental Results B.1 Cross-Agent Model Comparison 
+
+Table 6 reveals that the same model can perform very differently across agents, highlighting the importance of agent design. 
+
+> 11
+
+Table 5: Complete evaluation results on SWE-Bench Mobile. Task Success measures the percentage of tasks where all test cases pass (out of 50 tasks). Test Pass measures the percentage of individual test cases passed (out of 449 tests). Best results per agent in bold. 
+
+Agent Model Task Success (%) Test Pass (%) Cost ($/task) Time (min) 
+
+Cursor 
+
+Claude Opus 4.5 12.0 28.1 3.50 15.0 Claude Sonnet 4.5 12.0 26.7 2.00 14.2 GPT-5.2 8.0 27.4 1.80 20.0 Gemini 3 Pro 6.0 23.2 1.00 12.5 GPT-5.1 2.0 19.6 1.10 14.2 
+
+Codex 
+
+GLM-4.6 12.0 19.6 1.30 13.3 Claude Sonnet 4.5 10.0 28.1 2.50 12.5 GPT-5 10.0 21.4 1.50 10.0 Claude Opus 4.5 4.0 20.7 3.50 14.2 GPT-5.1 0.0 7.1 1.00 13.3 
+
+Claude Code 
+
+GLM-4.6 10.0 26.7 1.30 11.7 Claude Sonnet 4.5 10.0 24.7 2.00 13.3 Claude Opus 4.5 8.0 21.8 4.00 15.0 Claude Haiku 8.0 18.3 0.50 8.3 
+
+OpenCode 
+
+GLM-4.6 8.0 17.8 0.13 32.5 GPT-5.1 6.0 7.1 0.02 2.0 Claude Sonnet 4.5 4.0 14.7 3.50 11.1 GLM-4.7 4.0 14.3 0.49 52.1 Gemini 3 Pro 4.0 13.4 0.03 8.9 GPT-5.2 4.0 12.0 0.04 10.9 Claude Opus 4.5 2.0 12.0 9.33 8.2 GPT-5 2.0 12.0 0.18 9.8 
+
+Table 6: Same model, different agents: Task Success Rate (%). The gap between best and worst agent can be as large as 6 ×.
+
+Model Cursor Codex CC OpenCode Gap 
+
+Opus 4.5 12 4 8 2 6×
+
+Sonnet 4.5 12 10 10 4 3×
+
+GLM-4.6 — 12 10 8 1.5 ×
+
+GPT-5.1 2 0 — 6 ∞
+
+> 12
+
+## C Prompt Templates 
+
+We designed 12 prompt variants for the ablation study. Below we present the key prompts. All prompts share a common structure: role definition, task description, and output format. The differentiating factor is the emphasis placed on different aspects. 
+
+## C.1 Best Prompt: Defensive Programming 
+
+> P10: Defensive Programming (Best)
+
+“You are a senior iOS engineer known for writing robust, production-ready code. Implement the feature with a focus on defensive programming and edge case handling. Don’t just implement the happy path. Think about everything that could go wrong: 
+
+• Empty data, nil values, invalid formats 
+
+• Very long/short text, different screen sizes 
+
+• Slow network, timeouts, concurrent operations 
+
+• First-time user, offline mode, low memory Your code should handle all of this gracefully without crashing.” 
+
+## C.2 Baseline Prompt 
+
+> P1: Baseline
+
+“You are an iOS developer. Read the PRD carefully and implement the required changes. Generate a unified diff patch that can be applied to the codebase.” 
+
+## C.3 Worst Performing Prompts 
+
+> P12: Comprehensive (Worst)
+
+“You are a senior iOS engineer. Before implementing: (1) Analyze the PRD thoroughly (2) Identify all affected files (3) Plan your implementation strategy (4) Consider edge cases (5) Review the Figma design (6) Check for existing patterns (7) Implement with tests in mind (8) Validate against requirements Generate a complete, production-ready patch.”  
+
+> Why Comprehensive Failed: The overly detailed checklist appears to overwhelm the model, causing it to focus on process rather than actual implementation. Simpler, focused prompts consistently outperform complex ones.
+
+## C.4 Other Notable Prompts 
+
+P7: Chain of Thought Asks the model to “think step by step” before coding. Achieved 10% Task Success but lower Test Pass Rate (21.8%) than Defensive Programming. 
+
+P9: Figma Emphasis Emphasizes matching the Figma design exactly. Surprisingly underperformed (8% Task Success), possibly because many tasks don’t require UI changes. 
+
+P11: Test Driven Asks the model to “think about what tests would verify your implementation.” Achieved only 6% Task Success despite the intuitive appeal of test-driven thinking. 
+
+> 13
+
+Table 7: SWE-Bench Mobile dataset statistics.           
+
+> Metric Value
+> Task Composition
+> Total Tasks 50 Tasks with Figma Design 35 (70%) Tasks with Reference Images 46 (92%)
+> Task Complexity
+> Avg. PRD Length (words) 450 Avg. Test Cases per Task 9.1 Total Test Cases 449 Avg. Files to Modify 4.2
+> Codebase
+> Programming Language Swift/Objective-C (iOS) Codebase Size ∼500K LoC
+
+## D Dataset Statistics 
+
+We provide detailed statistics of the SWE-Bench Mobile dataset in Table 7. The benchmark consists of 50 tasks with varying levels of complexity, involving multi-modal inputs (PRDs and Figma designs) and a large-scale production codebase. The tasks are designed to cover a wide range of mobile development scenarios, ensuring a comprehensive evaluation of agent capabilities. 
+
+## E Reproducibility 
+
+Environment. All experiments were conducted on macOS 14.x with: 
+
+• Cursor : v2.3 with Agent mode enabled 
+
+• Codex : OpenAI Codex CLI v0.77.0 
+
+• Claude Code : Anthropic Claude Code CLI v2.1.37 
+
+• OpenCode : v1.1.44 (open-source coding agent) 
+
+Model API Configuration. 
+
+For reproducibility, we specify the exact API endpoints and configurations used: 
+
+• GPT Models (GPT 5, 5.1, 5.2) : Accessed via Microsoft Azure OpenAI API with default temperature and top-p settings 
+
+• Claude Models (Opus 4.5, Sonnet 4.5, Haiku) : Accessed via Google Vertex AI API for Anthropic models 
+
+• Gemini 3 Pro : Accessed via Google Vertex AI API with standard configuration 
+
+• GLM Models (GLM 4.6, 4.7) : Used GLM Coding Plan with default agent scaffolding 
+
+Multi-Modal Input Handling. 
+
+To handle Figma designs and reference images, we configured Model Context Protocol (MCP) integrations: 
+
+• Vision-capable models (GPT, Claude, Gemini) : Used official Figma MCP to directly access design specifications 
+
+• GLM Models : Since GLM 4.6 is not a native vision model, we used the official GLM Vision MCP to process images and Figma designs, converting visual inputs into structured descriptions for the text-only model 
+
+Evaluation Pipeline. 
+
+(1) Load generated patch file as text (2) Run task-specific pytest test suite (tests inspect the patch diff text using pattern matching and structural analysis) (3) Record pass/fail status for each test case (4) Aggregate results across all 50 tasks    
+
+> 14 (a) User Complaint. Social media post showing frustration with the 300-emoji limit: “Xiaohongshu’s emoji limit is too high, I can’t add more emojis.”
+> (b) Community Feedback. Another user asking “Can Xiaohongshu remove the emoji collection limit?” showing widespread user demand.
+> (c) Emoji Collection UI. The sticker collection interface with warning dialog “Emoji limit reached, cannot add more.” Agents must increase this limit from 300 to 999.
+
+Figure 9: Design mockups for Task 003 (Custom Emoji Limit). These mockups are provided to agents as part of the PRD to guide implementation. They show real user complaints about the 300-emoji limit and the current UI that needs modification. Availability and Hosted Evaluation. The SWE-Bench Mobile benchmark is derived from a proprietary production codebase with permission from XiaoHongShu Inc. Due to the confidential nature of the source code and product requirements, the full dataset cannot be publicly released. We view this constraint as a feature rather than a limitation: by keeping the test set private, we eliminate the risk of data contamination —a well-known issue with public benchmarks where test instances may leak into LLM training corpora [7]. SWE-Bench Mobile is designed as a standardized evaluation platform for coding agent providers and foundation model vendors . We host a public leaderboard at https://swebenchmobile.com where agent companies (e.g., Cursor, Codex, Claude Code) and model providers (e.g., OpenAI, Anthropic, Google, Zhipu AI) can submit their systems for evaluation against our held-out industrial test suite. This provides an objective, contamination-free comparison on real-world mobile development tasks that complements existing Python-centric benchmarks. Submission guidelines and evaluation configurations are available at https://github.com/realtmxi/mobile-bench. 
+
+## F Task Design Mockups 
+
+Figure 9 shows the design mockups provided to agents for Task 003 (Custom Emoji Limit). These real-world screenshots demonstrate the user pain point and expected UI behavior that agents must understand to implement the feature correctly. 
+
+> 15
+
+Table 8: Successful implementation by Cursor + GPT-5.2 on Task 007 (Medium difficulty). The agent correctly created the AppRefMessageDataService class with all required fields and methods, demonstrating strong architectural understanding. 
+
+Task Context Difficulty: Medium Files to Modify: 5 Category: Architecture Refactoring 
+
+Agent: Cursor + GPT-5.2 Result: ✓ PASS (5/5 tests) 
+
+Problem Statement (Summary) 
+
+Decouple card message click handling from AppChatBaseViewController by abstracting logic into CardRefBaseProvider . The click logic for card references should be moved to a new AppRefMessageDataService class following the provider pattern. 
+
+Key Requirements 
+
+• Create AppRefMessageDataService class with fields: chatType , chatId , senderId , messageId , sender , innerContentDict 
+
+• Move click handling out of view controller 
+
+• Implement provider pattern for different card types 
+
+• Support shopping and advertisement cards 
+
+Generated Patch (Key Excerpts)         
+
+> // Created new file: AppRefMessageDataService.swift @objc(AppRefMessageDataService) @objcMembers
+> public class AppRefMessageDataService: NSObject { // Session info
+> public var chatType: String?
+> public var chatId: String? // Message info
+> public var senderId: String?
+> public var messageId: String?
+> public var sender: String? // Reference content dict
+> public var innerContentDict: [String: Any ] = [:]
+> public override init () {
+> super .init () }}
+
+Why This Succeeded 
+
+(1) Correct architectural pattern: Agent understood the provider pattern and created a proper data service class with clean separation of concerns. (2) Complete implementation: All required fields ( chatType , chatId , senderId , messageId ) were included with proper Objective-C interop annotations (@objc , @objcMembers ). (3) Minimal but sufficient design: Class exposes all necessary fields with a simple default initializer, matching the provider pattern without over-engineering. (4) Correct ObjC bridging: Used @objc(AppRefMessageDataService) to expose a clean ObjC class name for the mixed Swift/ObjC codebase. 
+
+## G Qualitative Analysis of Agent Outputs 
+
+We present detailed analyses of agent-generated patches to provide insights into both successful implementations and common failure modes. These examples illustrate the practical challenges agents face when implementing features from PRDs and Figma designs in a production codebase. 
+
+## G.1 Medium Difficulty: Comment UI Enhancement 
+
+Task Overview: This medium-difficulty task requires enhancing the comment display system in a social media feed. As shown in Figure 10, the task involves coordinated changes across the Model-View architecture to improve comment rendering and interaction. 
+
+Key Characteristics. 
+
+• Multi-file coordination: Requires modifying 3 files in sync (data model, view component, footer UI) 
+
+• UI consistency: Must maintain visual design consistency across different comment states 
+
+• Clear architecture: Well-defined Model-View separation makes dependencies explicit 
+
+> 16
+
+Figure 10: Medium difficulty task example with multi-modal inputs. Top: Feature requirements with UI mockups showing social media feed comment interface. Bottom: Code changes across 3 files (CommentEntityModel, CommentEntityView, CommentFooter) demonstrating coordinated Model-View layer modifications. Success Factors. Tasks at this complexity level (3-5 files, medium difficulty) achieve approximately 10% success rate across agents. Success depends on: (1) Identifying all three related files through codebase search (2) Understanding the data flow: Model → View → Footer (3) Translating UI mockups into layout constraints and styling code (4) Ensuring backward compatibility with existing comment types 
+
+Common Pitfalls. Even when agents successfully identify the files, they often: 
+
+• Modify the model but forget to update the view to consume new fields 
+
+• Implement UI changes without corresponding data model support 
+
+• Miss edge cases (e.g., long comments, missing user info, deleted comments) 
+
+> 17
+
+Figure 11: Hard difficulty task example with data-driven requirements. Top: Summary from 260K user feedback sessions (14 batches, 92.3% feedback rate) identifying validation rule issues. UI mockups show 4-screen input flow. Bottom: Code changes across 5 files requiring cross-module coordination. 
+
+> 18
+
+## G.2 Hard Difficulty: Form Validation Optimization 
+
+Task Overview: This hard-difficulty task addresses a real user pain point discovered through large-scale feedback analysis (260K data points). As shown in Figure 11, the task requires optimizing nickname input validation rules that are blocking long-tail users, while maintaining security and quality standards. 
+
+Key Characteristics. 
+
+• Data-driven requirements: Based on quantitative user feedback (92.3% reporting issues) 
+
+• Multi-module complexity: Touches 5+ files across validation, UI feedback, and persistence layers 
+
+• Conflicting constraints: Must relax validation rules without compromising security 
+
+• Long user flow: 4-screen interaction sequence shown in mockups 
+
+Why This is Hard. Tasks at this complexity level (6+ files, hard difficulty) achieve only 5.8% success rate. The challenges include: (1) Distributed validation logic: Rules are split across client-side checks, server validation, and UI feedback—agents must identify and update all three (2) Subtle requirement interpretation: “Optimize for long-tail users” requires understanding statistical distribution of input patterns, not just relaxing all rules (3) Backward compatibility: Existing users’ nicknames must remain valid under new rules (4) Testing complexity: Need to validate across multiple input scenarios (Chinese characters, emojis, special characters, length limits) (5) Performance considerations: Validation runs on every keystroke—must remain fast 
+
+Expected Implementation Strategy. A successful solution would: 
+
+• Update validation regex patterns based on user feedback analysis 
+
+• Implement progressive validation (lenient during input, strict on submit) 
+
+• Add clear error messages for each validation failure type 
+
+• Update UI to show real-time validation feedback 
+
+• Add feature flag for gradual rollout to monitor impact 
+
+Common Agent Failures on This Task Type. 
+
+• Incomplete scope: Modify client validation but miss server-side checks, causing inconsistent behavior 
+
+• Over-simplification: Remove all validation rules instead of carefully relaxing specific constraints 
+
+• UI disconnect: Update validation logic but fail to update error messages shown to users 
+
+• Empty patches: Get overwhelmed by complexity and produce no output (as seen in Table 10) This task exemplifies the gap between current agent capabilities and production requirements: while the technical solution is straight-forward for human developers (2-3 days of work), the architectural reasoning and multi-module coordination remain challenging for AI agents. 
+
+## G.3 Key Insights from Qualitative Analysis 
+
+Based on detailed examination of 50+ agent-generated patches across all 4 agents, we identify several patterns: 
+
+Success Predictors. 
+
+• Well-scoped changes: Tasks requiring 1-3 files with clear boundaries (e.g., creating new data models, updating configuration logic) 
+
+• Clear architectural guidance: PRDs that specify class names, method signatures, or reference existing code patterns 
+
+• Isolated modules: Features in self-contained modules with minimal cross-module dependencies 
+
+• Existing patterns: Tasks that resemble code already in the codebase that agents can reference 
+
+Failure Predictors. 
+
+• Distributed logic: Changes spanning multiple architectural layers (Model-View-Controller-Manager) 
+
+• Implicit requirements: PRDs using phrases like “all scenarios” or “everywhere” without explicit file lists 
+
+• UI + Logic coupling: Features requiring both backend logic changes and frontend UI updates 
+
+• Novel implementations: Tasks requiring architectural patterns not present in existing codebase 
+
+Agent Differences. 
+
+> 19
+
+• Cursor: Best at exploratory search, often identifies all relevant files but may not modify all of them 
+
+• Claude Code: More conservative, produces well-formed patches for files it chooses to modify 
+
+• Codex: Strong code generation but weaker codebase navigation, relies heavily on initial context 
+
+• OpenCode: Struggles with large codebases, often gets stuck in endless file reading loops 
+
+Implications for Practitioners. For teams considering AI coding agents for production use: (1) Structure PRDs carefully: Explicitly list affected files, reference similar code patterns, provide architectural context (2) Start with isolated modules: Assign agents well-scoped tasks before attempting complex multi-module features (3) Human review is critical: Even “successful” patches may miss edge cases or have incomplete coverage (4) Iterative refinement: Use agent output as first draft, not final implementation 
+
+> 20
+
+Table 9: Partial implementation by Cursor + Opus 4.5 on Task 003 (Easy difficulty). Agent correctly implemented server-driven configuration but failed one test due to incomplete file coverage. Code excerpts are reproduced verbatim from agent output, including any typos (e.g., defalut ). 
+
+Task Context Difficulty: Easy Files to Modify: 3 Category: Configuration Change 
+
+Agent: Cursor + Opus 4.5 Result: ✗ FAIL (4/5 tests passed) 
+
+Problem Statement (Summary) 
+
+Increase custom emoji collection limit from hardcoded 300 to 999, with server-driven configuration to allow future updates without app releases. Changes must apply across all emoji-saving scenarios (chat, comments, etc.). 
+
+Key Requirements 
+
+• Remove hardcoded limit (300) 
+
+• Implement server-driven config with 999 as default 
+
+• Apply to all emoji collection contexts 
+
+• Update UI prompts to reflect new limit 
+
+Generated Patch (Key Excerpts)                               
+
+> // MemeManager.swift changes -private let kMaxMemeCount = 300 +/// Default meme limit when server config is unavailable +private let kDefaultMaxMemeCount = 999 ++/// Config key for meme limit from server +private let kMemeMaxCountConfigKey = "ios_meme_max_count" +public var maxMemeCount: Int { +let configValue = ConfigCenter.shared.int( +forKey: kMemeMaxCountConfigKey, +defalut: kDefaultMaxMemeCount // [sic] typo in agent output +)+guard configValue > 0 else {+// Log warning and use default +return kDefaultMaxMemeCount +}+return configValue +}
+> public func reachedNumLimit() -> Bool { -self .memes.count >= kMaxMemeCount +let limit = maxMemeCount +let currentCount = self .memes.count +// ... logging ... +return currentCount >= limit }
+
+Analysis: What Went Right 
+
+• Correct approach: Replaced hardcoded constant with server-driven config using ConfigCenter 
+
+• Good default handling: Used 999 as fallback when server config unavailable 
+
+• Robust implementation: Added validation ( configValue > 0 ) and logging for debugging 
+
+• Clean refactoring: Updated reachedNumLimit() to use dynamic limit 
+
+Analysis: Why It Failed One Test 
+
+• Incomplete file coverage: Agent only modified MemeManager.swift , but PRD required changes in all emoji-saving contexts 
+
+• Missing UI updates: Did not update warning prompts in UI layers (e.g., MemeCollectionViewController )
+
+• Scope misunderstanding: PRD stated “ including but not limited to chat save, comment area save, etc. ” but agent focused on single manager class 
+
+Lesson Learned 
+
+Even when core logic is implemented correctly, agents struggle with comprehensive scope analysis in large codebases. The phrase “apply to all scenarios” in PRDs requires agents to perform cross-file searches to identify all affected modules—a task that proved challenging even for Opus 4.5. 
+
+> 21
+
+Table 10: Severe incomplete implementation by Claude Code + Opus 4.5 on Task 015 (Hard difficulty). Agent produced minimal changes covering only 1 of 5 requirements, demonstrating difficulty with complex multi-module features. 
+
+Task Context Difficulty: Hard Files to Modify: 8 Category: New Feature Implementation 
+
+Agent: Claude Code + Opus 4.5 Result: ✗ FAIL (1/5 tests passed) 
+
+Problem Statement (Summary) 
+
+Implement a complete search history feature with: (1) History manager for CRUD operations, (2) Collection view-based UI, (3) Edit mode with individual and bulk delete, (4) Integration with search view controller, (5) Persistence with 32–50 query limit. 
+
+Key Requirements 
+
+• Create SearchHistoryManager class with save/load/delete methods 
+
+• Design SearchHistoryViewController with UICollectionView 
+
+• Implement edit mode UI with selection states 
+
+• Add “Clear All” and “Delete” buttons 
+
+• Persist history locally with 32–50 query limit 
+
+Generated Patch (Partial)        
+
+> #Partial implementation - only persistence layer
+> #Files: 2 (missing 6 required files)
+> #Lines: ~150 (insufficient for full feature) // Only implemented basic manager structure // Missing: UI components, edit mode, integration
+
+Failure Mode Analysis Category: Severe incomplete implementation 
+
+What agent completed: 
+
+✓ Created basic SearchHistoryManager class structure 
+
+✗ Missing get-all-queries operation (test: has_get_operation )
+
+✗ No delete button/icon on query cells in edit mode (test: has_cell_delete )
+
+✗ Missing search view controller modifications (test: has_search_vc )
+
+✗ Missing theme color usage in UI styling (test: has_theme_colors )
+
+Failure causes: 
+
+(1) Multi-file coordination barrier: Task requires creating 8+ new files with complex interactions (manager ↔ view controller ↔ collection view cells) (2) Architectural ambiguity: PRD describes what to build but not where in the codebase to integrate it (3) Missing reference implementations: No similar features in codebase to use as templates (4) Premature termination: Agent likely hit iteration limit after basic exploration without completing implementation 
+
+Comparison with Human Implementation 
+
+Human developers solved this by: 
+
+• Creating 3 core files first: Manager → Model → ViewController 
+
+• Reusing existing UICollectionView patterns from other modules 
+
+• Implementing in phases: basic save/load → UI → edit mode 
+
+• Took 2-3 days for full implementation and testing 
+
+> 22
+
+Table 11: Analysis of a critical failure pattern: Incomplete implementation across multiple files. While this affects only 4-7% of tasks on average, it represents a fundamental limitation in agents’ ability to coordinate complex changes. 
+
+Pattern: Incomplete Multi-File Implementation Manifestation 
+
+Agents correctly identify the primary file to modify but fail to update all dependent modules. Common patterns include: 
+
+• Modify model class but not the view controller that uses it 
+
+• Update business logic but miss UI layer changes 
+
+• Change one module but not its protocol consumers 
+
+• Implement core logic but miss edge case handling in related files 
+
+Real Examples from Evaluation Task 038 (Cursor + Opus 4.5): Share functionality expansion 
+
+Required: Modify 5+ files across share scenarios 
+
+Agent output: Modified only 1 file ( share_panel )
+
+Test failure: “CRITICAL: Patch must cover at least 5 share scenarios. Found 1: [’share_panel’]” 
+
+Task 057 (Cursor + Opus 4.5): Multi-module feature integration 
+
+Required: Modify at least 5 files 
+
+Agent output: Modified only 4 files 
+
+Test failure: “CRITICAL: Patch must modify at least 5 files, found 4” 
+
+Root Cause Analysis 
+
+(1) Insufficient dependency tracing: Agents use initial file search but don’t follow call chains comprehensively (2) Premature convergence: After finding primary file, agents begin implementation without exhaustive dependency analysis (3) Context window limitations: As agents explore large codebases, earlier findings may be deprioritized (4) Missing architectural understanding: Incomplete grasp of iOS patterns (MVVM, delegation, protocol-oriented design) 
+
+Quantitative Impact 
+
+Based on error analysis across all agent configurations: 
+
+• Cursor + Opus 4.5: 2 out of 44 failed tasks (4.5% of failures), representing 4% of all 50 tasks 
+
+• Codex + GPT-5: 3 out of 45 failed tasks (6.7% of failures) 
+
+• Average across agents: 4-7% of failed tasks show this pattern 
+
+• Higher impact on Hard tasks: Among Hard difficulty tasks, this pattern affects 15-20% of failures While the raw percentage is modest, this pattern disproportionately affects high-value complex features that require coordinated multi-file changes—precisely the tasks where AI coding assistance could provide the most value.

@@ -1,0 +1,667 @@
+Title: Hand2World: Autoregressive Egocentric Interaction Generation via Free-Space Hand Gestures
+
+URL Source: https://arxiv.org/pdf/2602.09600v2
+
+Published Time: Mon, 16 Feb 2026 01:41:17 GMT
+
+Number of Pages: 27
+
+Markdown Content:
+# Hand2World: Autoregressive Egocentric Interaction Generation via Free-Space Hand Gestures 
+
+## Yuxi Wang 1 Wenqi Ouyang 1 Tianyi Wei 1 Yi Dong 1 Zhiqi Shen 1∗ Xingang Pan 1∗
+
+1College of Computing and Data Science, Nanyang Technological University 
+
+{yuxiwang, wenqi.ouyang, tianyi.wei, yi.dong, zqshen, xingang.pan }@ntu.edu.sg Scene Image Egocentric Monocular Video Streaming    
+
+> The screen provides visual feedback for free -space gesture input
+
+Generated Interaction Video             
+
+> Round 1
+> Round 2
+> Round 1
+> Round 2
+> Across 400 frames and support arbitrary -length generation
+> Scene 1
+> Scene 2
+
+Figure 1. Given a scene image (left) and free-space hand gestures from an egocentric monocular stream (middle), Hand2World synthesizes interaction videos (right) in which hands enter the depicted scene and manipulate objects while following the input viewpoint changes. Each scene is driven by two consecutive gesture rounds and generated autoregressively over 400+ frames, demonstrating arbitrary-length rollout. 
+
+## Abstract 
+
+Egocentric interactive world models are essential for aug-mented reality and embodied AI, where visual generation must respond to user input with low latency, geometric con-sistency, and long-term stability. We study egocentric interac-tion generation from a single scene image under free-space hand gestures, aiming to synthesize photorealistic videos in which hands enter the scene, interact with objects, and induce plausible world dynamics under head motion. This setting introduces fundamental challenges, including distri-bution shift between free-space gestures and contact-heavy training data, ambiguity between hand motion and camera motion in monocular views, and the need for arbitrary-length video generation. We present Hand2World, a unified autore-gressive framework that addresses these challenges through occlusion-invariant hand conditioning based on projected 3D hand meshes, allowing visibility and occlusion to be inferred from scene context rather than encoded in the con-trol signal. To stabilize egocentric viewpoint changes, we inject explicit camera geometry via per-pixel Pl ¨ucker-ray 
+
+> *Corresponding authors.
+
+embeddings, disentangling camera motion from hand motion and preventing background drift. We further develop a fully automated monocular annotation pipeline and distill a bidi-rectional diffusion model into a causal generator, enabling arbitrary-length synthesis. Experiments on three egocentric interaction benchmarks show substantial improvements in perceptual quality and 3D consistency while supporting cam-era control and long-horizon interactive generation. Project page: https://hand2world.github.io .
+
+## 1. Introduction 
+
+Interactive world models [ 4, 10 ] offer a promising paradigm for simulating environment dynamics in augmented real-ity, teleoperation, and embodied AI. Among various control interfaces, hands provide one of the most natural signals: modern head-mounted devices can reliably capture free-space hand gestures —contact-free motions performed in mid-air—enabling intuitive human-in-the-loop interaction in both virtual and real-world scenarios. In this paper, we study egocentric interaction generation from a single scene image under free-space hand control .1
+
+> arXiv:2602.09600v2 [cs.CV] 13 Feb 2026
+
+Given a reference scene image and an egocentric gesture sequence, the goal is to synthesize a photorealistic video in which hands enter the depicted scene and manipulate ob-jects as if the gestures were physically performed inside that environment. This requires a model that jointly addresses three fundamental challenges: (i) Interaction plausibility —hands must form realistic contacts with objects and induce physically plausible object responses; (ii) Occlusion cor-rectness —hands should be correctly visible or occluded relative to scene objects, maintaining accurate depth or-dering; (iii) World consistency under head motion —the natural ego-motion of the wearer should be reflected co-herently in the background throughout the sequence. Be-yond these, practical deployment further requires arbitrary-length, streaming-friendly generation , which we refer to as autoregressive (AR ) synthesis. A scalable direction is to learn egocentric interactions from abundant monocular videos using deep generative mod-els [ 30 ]. Recent monocular approaches typically condition generation on 2D hand masks [ 2, 17 , 26 ], and have demon-strated strong performance for replaying contact-heavy inter-action videos. However, they face fundamental limitations under our target setting: (i) Brittle free-space control. Mask-based conditioning suffers from a severe distribution shift :training masks are often partially visible due to occlusions, whereas free-space gestures are fully visible by construction. This conflation of hand geometry with visibility state causes the learned distribution to break down under complete masks, producing phantom occluders and incorrect depth ordering (Fig. 3). (ii) Unstable scene geometry. Egocentric videos are dominated by head-induced camera motion. Without explicit camera conditioning, models must infer viewpoint changes from appearance alone, leading to drifting back-grounds. Multi-view systems [ 15 , 28 ] alleviate this but rely on synchronized rigs or scanned assets, limiting scalabil-ity. (iii) Lack of online interaction pipelines. Closed-loop deployment demands a causal, end-to-end pipeline that in-gests continuous monocular signals and produces frames in a streaming fashion. Such a pipeline, where a user drives scene interaction through live hand gestures and ego-motion, has not been explored. These limitations suggest three design principles: (P1) Oc-clusion should be inferred from 3D geometry rather than prescribed by masks; (P2) Camera motion must be explicit to prevent background drift; and (P3) Synthesis must be causal and streaming for online deployment. Building on these insights, we propose Hand2World , a unified framework for photorealistic egocentric interaction generation with free-space hand control, explicit camera control, and AR synthesis. First, to eliminate mask distri-bution shift, we condition the generator on an occlusion-invariant hand representation : we reconstruct 3D hand meshes (MANO [ 24 ]) and project their complete geometry                                                          
+
+> Table 1. Systematic comparison with state-of-the-art methods.
+> Free-G : robust free-space gesture control. Cam : explicit camera control. AR : autoregressive generation. Gen-Dyn : generative scene dynamics. Scale : monocular training scalability. Mono : monocular inference. Odenotes limited support.
+> Method Free-G Cam AR Gen-Dyn Scale Mono
+> CosHand [26] O✗✗O✓✓
+> InterDyn [2] O✗✗✓✓✓
+> Mask2IV [17] O✗✗O✓✓
+> Re-HOLD [8] ✗✗✗O✓✓
+> SpriteHand [18] ✗O✓✗✓✓
+> PlayerOne [28] ✓O✓✓✗✗
+> DWM [15] ✓O✗✓✗✗
+> Hand2World (Ours) ✓✓✓✓✓✓
+
+to the image plane as a composite silhouette-and-wireframe signal. Unlike 2D masks, this representation remains format-consistent regardless of occlusion state, allowing the model to learn occlusion reasoning from visual context rather than from visibility hard-coded into the condition. Second, we inject explicit camera motion using per-pixel Pl ¨ucker-ray em-beddings via a lightweight adapter, disentangling viewpoint changes from hand motion and stabilizing scene geometry under head movement. Third, we develop a fully automated monocular annotation pipeline that extracts temporally con-sistent hand meshes and approximate camera trajectories from raw videos, avoiding manual labels and multi-view rigs. Finally, we distill the bidirectional diffusion teacher into a causal AR generator [ 14 , 36 ], enabling streaming-friendly, arbitrary-length synthesis. Extensive experiments on three egocentric datasets [ 3 , 9 ,21 ] demonstrate that Hand2World substantially improves perceptual quality and 3D/viewpoint consistency, achieving a 76% reduction in FVD and a 42% reduction in camera tra-jectory error over state-of-the-art baselines (Tables 1 and 2). Our main contributions are: • The first monocular framework that synthesizes photo-realistic egocentric hand–object interaction videos from a single scene image, driven by unconstrained free-space gestures, with explicit camera control and arbitrary-length AR synthesis. • Occlusion-invariant hand conditioning via projected 3D hand mesh controls (silhouette-and-wireframe) that encode complete hand geometry independent of visibility, eliminating mask distribution shift. • Explicit camera modeling through Pl ¨ucker-ray em-beddings injected into the video diffusion model via a lightweight adapter, disentangling camera motion from hand motion and preventing background drift. • Scalable training and deployment: a fully automated monocular annotation pipeline and autoregressive distilla-tion, validated across three datasets. 22. Related Work 
+
+2.1. Generative World Models 
+
+World models [ 10 , 16 ] learn to predict environmental dy-namics for planning and simulation. Recent work spans driv-ing [ 12 ], robotics [ 34 ], and interactive gaming; Genie [ 4], GameNGen [ 29 ], and Oasis [ 7 ] generate playable environ-ments in real-time. Foundation models like Cosmos [ 1 ] scale to millions of hours of video for physical AI. However, ex-isting approaches either lack fine-grained hand control or require specialized hardware. Our work targets egocentric hand–object manipulation, learning from monocular video. 
+
+2.2. Hand-Object Interaction Synthesis 
+
+Synthesizing realistic hand interactions is a central challenge in computer vision. Table 1 provides a systematic compari-son across six dimensions. We discuss each in turn, following the order of challenges presented in the Introduction. 
+
+Free-Space Gesture Control. Mask-based monocular meth-ods [ 2, 17 , 26 ] suffer from mask distribution shift : train-ing on contact-heavy data yields partial masks (hands fre-quently occluded), while free-space inference presents com-plete masks—a distribution mismatch causing phantom oc-cluder artifacts. Multi-view methods [ 15 , 28 ] achieve ro-bust free-space control via 3D supervision, but require ex-pensive capture rigs. Reenactment approaches [ 8] require driving videos showing the target interaction, precluding free-space input. SpriteHand [ 18 ] renders hands over static backgrounds, avoiding occlusion reasoning entirely but for-feiting realistic scene integration. 
+
+Camera Control. Monocular mask-based methods (Cos-Hand, InterDyn, Mask2IV, Re-HOLD) lack explicit camera modeling, conflating hand motion with viewpoint changes and producing “floating” backgrounds that drift indepen-dently of intended camera motion. PlayerOne [ 28 ] estimates egocentric camera from exocentric (third-person) views, in-troducing systematic bias due to the fundamental viewpoint discrepancy between ego and exo perspectives. DWM [ 15 ]and SpriteHand [ 18 ] support limited camera control but with-out explicit geometric grounding via Pl¨ ucker embeddings. 
+
+Arbitrary-Length Generation. Most video diffusion meth-ods generate fixed-length clips due to bidirectional atten-tion. Only PlayerOne [ 28 ] and SpriteHand [ 18 ] support au-toregressive generation for arbitrary-length synthesis; other methods are limited to short fixed-length clips or require sliding-window inference prone to boundary artifacts. 
+
+Generative Scene Dynamics. CosHand [ 26 ] generates sin-gle images rather than videos, precluding temporal dynam-ics. Mask2IV [ 17 ] requires pre-specified object trajectory masks as input rather than generating object motion, lim-iting generative capability. Re-HOLD [ 8] transfers exist-ing motions from driving videos rather than synthesizing novel dynamics. SpriteHand [ 18 ] renders hands over static backgrounds without object state changes. In contrast, In-terDyn [ 2], PlayerOne [ 28 ], and DWM [ 15 ] generate full interaction dynamics including object motion. 
+
+Scalability and Monocular Inference. Multi-view meth-ods (PlayerOne, DWM) require synchronized ego-exocentric camera rigs or pre-scanned 3D assets for both training and inference, severely limiting scalability to diverse scenes and practical deployment. By contrast, monocular methods (Cos-Hand, InterDyn, Mask2IV, Re-HOLD, SpriteHand) train on abundant single-view video and require only monocular input at inference, enabling in-the-wild deployment with-out specialized hardware. Our method is the first to achieve all six capabilities: robust free-space control via occlusion-invariant 3D hand conditioning, explicit camera control, au-toregressive generation for arbitrary-length video, generative scene dynamics, and full monocular scalability for both train-ing and deployment. 
+
+2.3. Controllable Video Diffusion 
+
+ControlNet [ 38 ] and its video extensions [ 31 ] standardize spatial conditioning for diffusion models. Egocentric video additionally requires camera control to distinguish head mo-tion from hand and object motion. Implicit camera learn-ing [ 33 ] often produces “floating background” artifacts; we instead adopt explicit Pl ¨ucker-ray embeddings [ 11 , 23 ] en-suring 3D-consistent viewpoint changes. 
+
+2.4. Hand Modeling and Autoregressive Generation 
+
+Monocular hand mesh estimation [ 22 , 37 ] enables extract-ing 3D hand geometry from unlabeled video. For arbitrary-length video synthesis, autoregressive distillation [ 36 ] with self-forcing [ 14 ] compresses bidirectional diffusion into causal generators, enabling arbitrary-length generation. 
+
+## 3. Method 
+
+3.1. Overview 
+
+Hand2World generates an egocentric interaction video from a single reference scene image and a free-space hand-gesture sequence (Fig. 2). Two observations specific to our setting motivate its core designs. First, mask-based hand condition-ing conflates hand geometry with visibility : contact-heavy training videos contain partially visible hands, whereas free-space inference inputs are fully visible, creating a train–test mismatch that yields incorrect depth ordering (Fig. 3). Sec-ond, egocentric head motion produces substantial viewpoint changes that generators tend to entangle with hand motion, causing background drift. Hand2World addresses these is-sues with three key designs: (1) Occlusion-Invariant Hand Conditioning (Sec. 3.3), which represents gestures as pro-jected 3D hand meshes to provide a visibility-independent control signal; (2) Explicit Camera Control (Sec. 3.4), which injects dense Pl ¨ucker-ray embeddings to decouple 3viewpoint change from hand motion; and (3) Autoregressive Generator Distillation (Sec. 3.7), which distills the bidirec-tional diffusion teacher into a causal generator for arbitrary-length deployment. We build on Wan2.1-1.3B-Control [ 30 ], a flow-matching video diffusion transformer operating in a VAE-compressed latent space ( 8× spatial and 4× temporal downsampling, C=16 channels). 
+
+3.2. Problem Formulation 
+
+Let Iscene denote a reference scene image, {Ht }Nt=1 a hand gesture sequence encoding hand configurations at each frame, and {Ct }Nt=1 a camera trajectory encoding viewpoint changes. Our goal is to learn a generator Gθ that synthesizes an egocentric video 
+
+{It }Nt=1 = Gθ
+
+ Iscene , {Ht }Nt=1, {Ct }Nt=1
+
+ , (1) such that (i) hands enter the scene and induce plausible object dynamics, (ii) depth ordering and occlusions are con-sistent with scene geometry, and (iii) the background evolves consistently with the intended camera motion. 
+
+3.3. Occlusion-Invariant Hand Conditioning 
+
+Most prior work conditions on 2D visible-pixel masks ex-tracted from training frames. However, when a hand grasps an object, parts of the hand become occluded and the cor-responding mask shrinks. At inference, the same gesture performed in free space produces a complete mask, creating a distribution gap that can confuse the generator into halluci-nating occluders or misjudging depth ordering. To sidestep this issue, we design a hand control signal that specifies in-tended 3D geometry while leaving visibility to be inferred from the scene context. We parameterize each gesture as Hht = ( β h, θ ht , tht ) for hand h ∈ { L, R} (MANO [ 24 ] shape, pose, translation) and transform it into an occlusion-invariant control signal St as the actual generator input. 
+
+Hand mesh construction. For each hand at time t, we com-pute 3D vertices via the parametric hand model M:
+
+V ht = M(β h, θ ht ) + tht ∈ R778 ×3. (2) 
+
+Projection and rendering. We project the vertices onto the image plane using camera intrinsics Kt and rasterize them into a two-layer composite control frame: 
+
+St = Render  V Lt , V Rt ; Kt
+
+ . (3) The first layer is a filled silhouette that constrains spatial ex-tent and coarse hand shape; the second is a wireframe overlay that exposes articulation structure, namely finger configura-tion and joint topology. Left and right hands are color-coded to preserve identity under bimanual overlap. Compared to silhouettes alone, the wireframe provides additional articu-lation cues under self-occlusion ( e.g ., palm-facing poses), improving adherence to fine-grained gestures (Sec. 4.3). Crucially, because this representation is derived from a 3D mesh rather than from observed pixels, it does not encode any visibility convention ( e.g ., “only visible pixels”) and therefore remains format-consistent regardless of whether training data contain contact-heavy occlusions or inference inputs are free-space gestures. Occlusion reasoning is thus delegated to the generator, which must infer depth ordering from the scene context. 
+
+3.4. Explicit Camera Control 
+
+Egocentric head motion produces global parallax and back-ground shifts that are not identifiable from hand motion alone. Without explicit supervision, we observe that gener-ators tend to “explain away” viewpoint change by warping the background in hand-correlated patterns, resulting in drift. We therefore condition the generator on per-pixel Pl ¨ucker-ray embeddings derived from the camera trajectory {Ct },providing a dense, spatially grounded viewpoint signal. 
+
+Pl ¨ucker-ray parameterization. Each camera parameter 
+
+Ct = ( Rt , tt , Kt ) specifies rotation, translation, and intrinsics. For each pixel (u, v) at time t, we compute: 
+
+dt (u, v) = R⊤ 
+
+> t
+
+K−1 
+
+> t
+
+[u, v, 1]⊤
+
+∥R⊤ 
+
+> t
+
+K−1 
+
+> t
+
+[u, v, 1]⊤∥2
+
+, ot = −R⊤ 
+
+> t
+
+tt , (4) and form the 6D Pl¨ ucker-ray coordinates as 
+
+Pt (u, v) =  mt (u, v), dt (u, v), mt (u, v) = dt (u, v)×ot .
+
+(5) We describe how these Pl ¨ucker-ray maps are injected into the diffusion backbone in Sec. 3.6. 
+
+3.5. Monocular Auto-Annotation Pipeline 
+
+Training our model requires paired supervision of hand ge-ometry and camera motion for each video frame, but such annotations are generally unavailable for in-the-wild ego-centric footage. We therefore build an automatic annotation pipeline that recovers both modalities from monocular video and uses them as pseudo-labels for conditioning. 
+
+Hand mesh extraction and temporal stabilization. We run a YOLO-based hand detector per frame and apply lightweight temporal heuristics: IoU-based duplicate re-moval, boundary suppression for boxes within 10% of the image edge, and linear interpolation across short miss-ing segments. MANO parameters are then estimated with HaMeR [ 22 ] and rendered into silhouette-and-wireframe controls (Sec. 3.3). These steps improve temporal stability and reduce flicker in the control stream (Sec. 4.3). 
+
+Camera trajectory estimation. We estimate per-frame cam-era parameters (Rt , tt , Kt ) from monocular video and nor-malize all trajectories relative to the first frame. Depth is used only to support pose recovery and is not provided to the generator at any stage. 4Camera     
+
+> Estimation
+> Monocular
+> Video Input
+> Scene Image
+> Camera Params
+> Camera Latent Plücker Embedding
+> Scene Latent
+> Camera
+> Control
+> Adapter
+
+`
+
+Training Input Processing & Conditioning Signals         
+
+> Noise Latent
+> 3D Patch Embedding
+> VAE
+> Enc .
+> DiT Backbone
+> (Wan2.1 -based)
+> DiT Backbone
+> (Wan2.1 -based)
+> 3D MANO Mesh
+> Hand Detection
+> &
+> Reconstruction
+> Occlusion -Invariant
+> Projection
+> VAE
+> Enc .
+> Hand Latent
+> Flow Matching Loss
+
+Autoregressive Distillation 
+
+> LoRA
+
+Video Diffusion Training    
+
+> Student:
+> Causal AR Generator
+> Distillation
+> (CausVid + Self -Forcing)
+> Teacher:
+> Bidirectional Diffusion
+> Channel -wise
+> Concatenation
+> Element -wise
+> Addition
+> Element -wise Addition
+> Frozen Weight
+> Trainable Module
+> Channel -wise Concatenation
+
+Inference        
+
+> Free -Space
+> Hand Gestures
+> Scene Image
+> Hand Detection
+> &
+> Reconstruction
+> Camera
+> Estimation
+> Causal AR Generator (with KV Cache)
+
+…
+
+…
+
+> Iscene
+> zin
+> St
+> Pt
+> It
+
+Figure 2. Hand2World encodes gestures as projected 3D hand meshes (silhouette-and-wireframe) to decouple geometry from visibility, and models camera motion via per-pixel Pl ¨ucker-ray embeddings (left). During training (center), scene and hand controls are channel-concatenated into the diffusion transformer backbone (Wan2.1-1.3B-Control) while camera embeddings are injected additively through a lightweight adapter. The bidirectional teacher is distilled into a causal AR generator via CausVid [ 36 ] and self-forcing [ 14 ] (right). At inference (bottom), monocular estimators (HaMeR [ 22 ], Depth Anything V3 [ 19 ]) and KV-cached block-wise generation enable arbitrary-length egocentric interaction from a single scene image and free-space gestures. 
+
+Figure 3. Training videos contain partially visible hands due to object occlusions (top), producing partial masks at training time. At inference, free-space gestures yield fully visible hands and com-plete masks (bottom), creating a train–test distribution gap. Mask-conditioned methods such as CosHand degrade under this shift, whereas our projected 3D hand mesh maintains a format-consistent control signal regardless of occlusion state. 
+
+3.6. Dual-Pathway Video Diffusion 
+
+With the hand and camera conditioning pathways in place, we now describe how they are integrated into the video dif-fusion backbone. Following the principle of disentangled information injection , which fuses different types of con-ditioning through structurally distinct pathways, we feed hand control and the scene image as dense latent channels, while camera geometry modulates the token stream through additive injection. 
+
+Latent construction. Let z(τ) ∈ RC×T ×H′×W ′
+
+denote the noisy video latent at diffusion timestep τ, where T = ⌈N/4⌉,
+
+H′ = H/8, and W ′ = W /8. We encode the hand-control video {St }Nt=1 into a latent of the same spatial and temporal resolution: 
+
+zh = Enc  {St }Nt=1
+
+ ∈ RC×T ×H′×W ′
+
+. (6) The reference scene image is encoded only at the first latent time index, with the remaining indices zero-padded: 
+
+zr = Enc (Iscene ), 0, . . . , 0 ∈ RC×T ×H′×W ′
+
+. (7) These three latents are then concatenated channel-wise to form the input: 
+
+zin = z(τ); zh; zr
+
+ ∈ R3C×T ×H′×W ′
+
+. (8) 
+
+Camera injection. Rather than concatenating camera fea-tures channel-wise, which would increase dimensionality and risk entangling camera cues with appearance, we in-ject them additively. A small adapter acam temporally packs consecutive Pl ¨ucker-ray maps {Pt } (Sec. 3.4) to match the VAE’s 4× temporal stride, downsamples them to the patch grid, and projects the 6D ray features to the token embedding dimension: 
+
+h0 = Emb patch (zin ) + acam ({Pt }). (9) 5This additive design provides a dedicated pathway for view-point cues, allowing the model to attribute global parallax to the explicit camera signal rather than inferring it from hand motion, reducing background drift (Sec. 4.3). The trans-former predicts flow-matching velocity fields for denoising. 
+
+Training strategy. The model is trained with the rectified flow objective [20]: 
+
+L = Eτ, z0, ε
+
+h
+
+∥vθ (zin , τ, {Pt }) − (ε − z0)∥2i
+
+, (10) where z(τ) = ( 1−τ) z0 + τ ε linearly interpolates between the data latent z0 and Gaussian noise ε. Directly fine-tuning all parameters with the new conditioning pathways risks destabilizing the pretrained generative prior. We therefore adopt a two-stage schedule: we first pretrain the camera adapter with the transformer backbone frozen, allowing the adapter to learn meaningful viewpoint representations; we then jointly fine-tune the adapter together with low-rank adaptation (LoRA) modules inserted into the transformer. This staged approach stabilizes camera conditioning while preserving the base model’s image and motion priors. 
+
+3.7. Autoregressive Generator Distillation 
+
+Bidirectional diffusion models are typically constrained to synthesizing clips of fixed duration. Interactive and real-world applications, however, demand streaming-friendly, long-horizon generation. To bridge this gap, we distill our bidirectional diffusion teacher into a causal autoregressive (AR) generator, following the CausVid paradigm [ 36 ] com-bined with self-forcing strategies [14]. 
+
+Distillation procedure. We first initialize the student via ODE pretraining on teacher-generated trajectories, then ap-ply distribution matching distillation [ 35 ] to align its output distribution with that of the bidirectional teacher. To miti-gate exposure bias caused by train-time reliance on teacher-provided context, we adopt self-forcing [ 14 ], replacing his-tory frames with the student’s predictions during training. 
+
+Block-wise inference. At inference time, the AR generator produces frames sequentially in blocks, caching key/value states as context for subsequent blocks. Compared to sliding-window inference, this block-wise strategy maintains tem-poral coherence at block boundaries and naturally supports arbitrary-length rollouts, enabling our system to synthesize extended egocentric interaction videos from a single scene image and free-space gestures. 
+
+## 4. Experiments 
+
+We evaluate Hand2World on egocentric interaction genera-tion under free-space hand control. Our evaluation targets three capabilities aligned with the problem motivation: (i) 
+
+perceptual realism and temporal coherence of synthe-sized videos, (ii) controllability with respect to fine-grained hand articulation and camera motion, and (iii) 3D/viewpoint consistency under ego-motion, including long-horizon AR rollouts. We report results for both the bidirectional diffu-sion teacher (Hand2World) and its distilled causal variant (Hand2World-AR), where AR denotes autoregressive .
+
+4.1. Experimental Setup 
+
+Implementation. We build on Wan2.1-1.3B-Control [ 30 ]with a two-stage training protocol. We first pretrain the cam-era adapter for 10,000 steps while freezing the transformer backbone to align coordinate systems. We then jointly fine-tune the adapter together with rank-256 LoRA [ 13 ] mod-ules inserted into the attention and feed-forward layers for 100,000 steps. Training uses AdamW with bf16 mixed preci-sion on 8 × NVIDIA A100-80GB GPUs with a global batch size of 8. We sample 41-frame clips resized to 480p on the short side (aspect ratio preserved), and the AR generator trains on 384p for efficiency. 
+
+AR distillation. We distill the bidirectional model into an AR generator following CausVid [ 36 ] and self-forcing [ 14 ]. The generator is initialized with ODE pretraining and refined using distribution matching distillation. 
+
+Datasets and baselines. Our primary evaluation is con-ducted on ARCTIC [ 9]; additional results on HOT3D [ 3]and HOI4D [ 21 ] are reported in the supplementary ma-terial. We compare against CosHand [ 26 ], InterDyn [ 2], Mask2IV [ 17 ], and Wan2.1-1.3B-Control [ 30 ] without our proposed hand/camera conditioning. All methods use identi-cal test splits and consistent preprocessing. For mask-based baselines, we provide SAM3-derived [ 5 ] segmentation masks to ensure high-quality hand control signals, isolating the effect of our occlusion-invariant hand representation. We do not include DWM [ 15 ], Re-HOLD [ 8 ], or Sprite-Hand [18] due to the lack of public implementations at sub-mission time. PlayerOne [ 28 ] requires synchronized ego– allocentric capture and is not directly comparable in our monocular setting; we include it only in qualitative compar-isons when results are available. 
+
+Evaluation metrics. We report Fr ´echet Video Distance (FVD) [ 25 ] for distributional realism and DINO similar-ity [ 6] for semantic alignment. PSNR, SSIM [ 32 ], and LPIPS [ 39 ] measure frame-level fidelity. Flow-ERR mea-sures temporal coherence using RAFT [ 27 ]. Depth-ERR and Cam-ERR evaluate 3D structure and viewpoint consistency by comparing depth and camera trajectories estimated with Depth Anything V3 [ 19 ]. Metric definitions are in Sec. D.2. 
+
+4.2. Quantitative Results 
+
+Table 2 summarizes results on ARCTIC. Hand2World im-proves both perceptual quality and controllability-related metrics over prior work. Compared to InterDyn, the strongest baseline in terms of FVD, Hand2World reduces FVD from 908.32 to 218.76 and improves DINO similarity from 0.80 to 0.88. It also improves 3D/viewpoint consistency, achieving 6Table 2. Quantitative comparisons on the ARCTIC test set. We evaluate distributional realism (FVD, lower is better), semantic alignment (DINO, higher), frame-level fidelity (PSNR/SSIM higher; LPIPS lower), temporal coherence (Flow-ERR lower), and 3D/viewpoint consistency (Depth-ERR/Cam-ERR lower). Hand2World achieves the strongest overall results, and the distilled Hand2World-AR remains close while enabling causal long-horizon generation. Best results are bold .                                                                                      
+
+> Method FVD ↓DINO ↑PSNR ↑SSIM ↑LPIPS ↓Flow-ERR ↓Depth-ERR ↓Cam-ERR ↓
+> CosHand [26] 1400.68 0.79 12.41 0.63 0.55 78.87 22.51 0.14 InterDyn [2] 908.32 0.80 12.43 0.63 0.53 72.20 27.23 0.13 Mask2IV [17] 1083.62 0.78 11.47 0.62 0.55 70.45 31.34 0.12 Wan2.1-1.3B-Control [30] 1038.53 0.75 12.81 0.62 0.49 63.71 22.66 0.13
+> Hand2World-AR (Ours) 232.40 0.88 14.55 0.67 0.41 46.10 17.02 0.07 Hand2World (Ours) 218.76 0.88 14.93 0.67 0.39 44.43 16.14 0.07 Table 3. Ablation study on ARCTIC. Best results are bold . Re-moving explicit camera conditioning yields the largest degradation, while wireframe augmentation and temporal stabilization provide complementary gains.
+> Configuration FVD ↓DINO ↑PSNR ↑Cam-ERR ↓
+> w/o Camera Adapter 815.14 0.84 12.66 0.13 w/o Wireframe 223.29 0.87 14.78 0.08 w/o Interpolation 231.09 0.87 14.75 0.08 w/o Edge Filter 219.15 0.87 14.76 0.08 w/o Overlap Filter 219.75 0.87 14.78 0.08
+> Full Model 218.76 0.88 14.93 0.07
+
+lower Depth-ERR and Cam-ERR than all baselines (Table 2). The distilled model Hand2World-AR remains close to the teacher at the 81-frame horizon while enabling efficient long-horizon rollouts (Sec. 4.4). 
+
+4.3. Ablation Study 
+
+We ablate key components on ARCTIC to validate the contributions of explicit camera conditioning, wireframe-augmented hand rendering, and annotation-time temporal stabilization (Table 3). Full ablations on all three datasets are in the supplementary material (Table 7). Table 3 decomposes the contributions of explicit cam-era conditioning, wireframe-augmented hand controls, and annotation-time temporal stabilization. The camera adapter is the dominant factor: removing it increases FVD to 815.14 and raises Cam-ERR to 0.13. This reflects the fact that global ego-motion is a primary source of variation in egocentric videos; without an identifiable camera signal, the model tends to entangle viewpoint change with scene dynamics, leading to background drift and unstable parallax (Fig. 4). On top of camera conditioning, wireframe augmentation and temporal stabilization provide complementary gains (Ta-ble 3). The wireframe overlay supplies articulation cues that can be ambiguous from a silhouette under self-occlusion, especially when the palm faces the camera and fingers are largely occluded. This helps the generator maintain plausible finger configurations. Temporal interpolation and filtering    
+
+> Figure 4. Without explicit camera conditioning (top), the model fails to follow the rightward-then-leftward head pan and produces background drift. With Pl ¨ucker-ray injection (middle), the gener-ated trajectory closely matches the ground truth (bottom).
+> Figure 5. Each column compares the full annotation pipeline (top) against a single-component ablation (bottom) at a representative frame. Green boxes highlight affected regions.
+
+reduce brief missing or misaligned segments in per-frame detections, which otherwise manifest as flicker or discontin-uous motion for input conditions (Fig. 5). 
+
+4.4. Autoregressive Generation 
+
+We distill the bidirectional teacher into a causal AR generator to enable streaming, arbitrary-length synthesis. Table 4 eval-uates Hand2World-AR as the rollout length increases from 81 to 324 frames. At 81 frames, the AR generator closely matches the teacher. Quality degrades gradually at longer horizons as autoregressive errors accumulate, yet the model 7Figure 6. For each example, the input gesture video (odd rows) provides the driving hand motion, while the scene image (leftmost column) defines the target environment; Hand2World-AR generates the interaction sequences (even rows). Rows 1–2: the model synthesizes sequential multi-object manipulation—grasping and removing a thin book to reveal the box underneath, then pushing the box—while following the ego-motion present in the input stream and maintaining a stable background. Rows 3–4: starting from a closed box, the model opens the lid to reveal a plausible interior, then closes and repositions the box, preserving object identity and geometric consistency.                           
+
+> Table 4. Generation length ablation on ARCTIC. Hand2World-AR maintains quality and degrades gradually at longer rollouts.
+> Attention Len FVD ↓DINO ↑PSNR ↑Cam-ERR ↓
+> Bidirectional 81 218.76 0.88 14.93 0.07
+> Autoregressive 81 232.40 0.88 14.55 0.07
+> Autoregressive 162 264.20 0.88 13.53 0.12 Autoregressive 324 331.71 0.86 12.45 0.17
+
+maintains coherent camera motion and plausible interaction dynamics throughout. Hand2World-AR achieves 8.9 FPS on a single A100 GPU at 544 ×384 resolution. Detailed runtime is in Sec. E. 
+
+4.5. Qualitative Results 
+
+Figure 6 presents long-horizon rollouts driven solely by free-space (mid-air) hand gestures. Given a reference scene image and a monocular egocentric gesture stream, Hand2World-AR synthesizes interaction videos that remain stable under sub-stantial head-induced viewpoint changes, while maintaining consistent hand–object occlusions during contact. In the first example (top), the user manipulates a thin book, which provides limited graspable thickness and therefore requires precise finger articulation and robust adherence to the input hand controls to lift without visual artifacts. Notably, when the book rests on the box, the box is heavily occluded and only a small corner is visible. Despite this partial observation, the model performs plausible amodal completion of the box and keeps its shape and appearance stable as the book is grasped, lifted, and removed, rather than letting the underlying object flicker or drift. After removing the book, the rollout naturally transitions to interacting with the box, suggesting that the learned control is not tied to a single target object but supports sequential interactions with multiple objects in the same scene. In the second example (bottom), the gesture stream al-ternates between motions that indicate opening the lid and motions that indicate lifting/carrying the box. The model follows these changes by opening the hinged lid and synthe-sizing a plausible interior, and then closing and picking up the box while preserving its identity and temporal continuity throughout the rollout. Additional qualitative comparisons are provided in the supplementary material. 
+
+## 5. Conclusion 
+
+We introduced Hand2World, a monocular framework for gen-erating egocentric interaction videos from a scene image and free-space hand gestures. Hand2World decouples hand artic-ulation from visibility by conditioning on occlusion-invariant projections of 3D hand meshes, and improves viewpoint con-sistency by injecting explicit camera control via Pl ¨ucker-ray embeddings. Combined with monocular auto-annotation and autoregressive distillation, the framework enables control-lable long-horizon rollouts and achieves strong performance on egocentric interaction benchmarks. 
+
+Limitations. Free-space gestures lack physical contact constraints, so users may specify infeasible motions (e.g., penetrating solid objects), potentially leading to implausi-ble interactions. Incorporating force-feedback devices could help enforce physical plausibility. 
+
+Acknowledgements. This research is supported by RIE2025 Industry Alignment Fund – Industry Collaboration Projects (IAF-ICP) (Award I2301E0026), administered by A*STAR, and by Alibaba Group and NTU Singapore through the Alibaba-NTU Global e-Sustainability CorpLab (ANGEL). 8References 
+
+[1] Niket Agarwal, Arslan Ali, Maciej Bala, Yogesh Balaji, Erik Barker, Tiffany Cai, Prithvijit Chattopadhyay, Yongxin Chen, Yin Cui, Yifan Ding, et al. Cosmos world foundation model platform for physical ai. arXiv preprint arXiv:2501.03575 ,2025. 3 [2] Rick Akkerman, Haiwen Feng, Michael J Black, Dimitrios Tzionas, and Victoria Fern ´andez Abrevaya. Interdyn: Con-trollable interactive dynamics with video diffusion models. In 
+
+Proceedings of the Computer Vision and Pattern Recognition Conference , pages 12467–12479, 2025. 2, 3, 6, 7, 15 [3] Prithviraj Banerjee, Sindi Shkodrani, Pierre Moulon, Shreyas Hampali, Shangchen Han, Fan Zhang, Linguang Zhang, Jade Fountain, Edward Miller, Selen Basol, et al. Hot3d: Hand and object tracking in 3d from egocentric multi-view videos. In 
+
+Proceedings of the Computer Vision and Pattern Recognition Conference , pages 7061–7071, 2025. 2, 6, 13 [4] Jake Bruce, Michael D Dennis, Ashley Edwards, Jack Parker-Holder, Yuge Shi, Edward Hughes, Matthew Lai, Aditi Mavalankar, Richie Steigerwald, Chris Apps, et al. Genie: Generative interactive environments. In Forty-first Interna-tional Conference on Machine Learning , 2024. 1, 3 [5] Nicolas Carion, Laura Gustafson, Yuan-Ting Hu, Shoub-hik Debnath, Ronghang Hu, Didac Suris, Chaitanya Ryali, Kalyan Vasudev Alwala, Haitham Khedr, Andrew Huang, Jie Lei, Tengyu Ma, Baishan Guo, Arpit Kalla, Markus Marks, Joseph Greer, Meng Wang, Peize Sun, Roman R ¨adle, Tri-antafyllos Afouras, Effrosyni Mavroudi, Katherine Xu, Tsung-Han Wu, Yu Zhou, Liliane Momeni, Rishi Hazra, Shuangrui Ding, Sagar Vaze, Francois Porcher, Feng Li, Siyuan Li, Aish-warya Kamath, Ho Kei Cheng, Piotr Doll ´ar, Nikhila Ravi, Kate Saenko, Pengchuan Zhang, and Christoph Feichtenhofer. Sam 3: Segment anything with concepts, 2025. 6 [6] Mathilde Caron, Hugo Touvron, Ishan Misra, Herv ´e J ´egou, Julien Mairal, Piotr Bojanowski, and Armand Joulin. Emerg-ing properties in self-supervised vision transformers. In Pro-ceedings of the IEEE/CVF international conference on com-puter vision , pages 9650–9660, 2021. 6, 13 [7] Etched Decart, Quinn McIntyre, Spruce Campbell, Xinlei Chen, and Robert Wachen. Oasis: A universe in a transformer. 
+
+URL: https://oasis-model. github. io , 2024. 3 [8] Yingying Fan, Quanwei Yang, Kaisiyuan Wang, Hang Zhou, Yingying Li, Haocheng Feng, Errui Ding, Yu Wu, and Jing-dong Wang. Re-hold: Video hand object interaction reen-actment via adaptive layout-instructed diffusion model. In 
+
+Proceedings of the Computer Vision and Pattern Recognition Conference , pages 17550–17560, 2025. 2, 3, 6 [9] Zicong Fan, Omid Taheri, Dimitrios Tzionas, Muhammed Kocabas, Manuel Kaufmann, Michael J Black, and Otmar Hilliges. Arctic: A dataset for dexterous bimanual hand-object manipulation. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 12943–12954, 2023. 2, 6, 13 [10] David Ha and J ¨urgen Schmidhuber. World models. arXiv preprint arXiv:1803.10122 , 2(3), 2018. 1, 3 [11] Hao He, Yinghao Xu, Yuwei Guo, Gordon Wetzstein, Bo Dai, Hongsheng Li, and Ceyuan Yang. Cameractrl: Enabling camera control for text-to-video generation. arXiv preprint arXiv:2404.02101 , 2024. 3 [12] Anthony Hu, Lloyd Russell, Hudson Yeo, Zak Murez, George Fedoseev, Alex Kendall, Jamie Shotton, and Gianluca Cor-rado. Gaia-1: A generative world model for autonomous driving. arXiv preprint arXiv:2309.17080 , 2023. 3 [13] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen, et al. Lora: Low-rank adaptation of large language models. ICLR , 1(2):3, 2022. 6, 11 [14] Xun Huang, Zhengqi Li, Guande He, Mingyuan Zhou, and Eli Shechtman. Self forcing: Bridging the train-test gap in autore-gressive video diffusion. arXiv preprint arXiv:2506.08009 ,2025. 2, 3, 5, 6, 12 [15] Byungjun Kim, Taeksoo Kim, Junyoung Lee, and Han-byul Joo. Dexterous world models. arXiv preprint arXiv:2512.17907 , 2025. 2, 3, 6 [16] Yann LeCun. A path towards autonomous machine intelli-gence version 0.9. 2, 2022-06-27. Open Review , 62(1):1–62, 2022. 3 [17] Gen Li, Bo Zhao, Jianfei Yang, and Laura Sevilla-Lara. Mask2iv: Interaction-centric video generation via mask tra-jectories. arXiv preprint arXiv:2510.03135 , 2025. 2, 3, 6, 7, 15 [18] Zisu Li, Hengye Lyu, Jiaxin Shi, Yufeng Zeng, Mingming Fan, Hanwang Zhang, and Chen Liang. Spritehand: Real-time versatile hand-object interaction with autoregressive video generation. arXiv preprint arXiv:2512.01960 , 2025. 2, 3, 6 [19] Haotong Lin, Sili Chen, Junhao Liew, Donny Y Chen, Zhenyu Li, Guang Shi, Jiashi Feng, and Bingyi Kang. Depth anything 3: Recovering the visual space from any views. arXiv preprint arXiv:2511.10647 , 2025. 5, 6, 12, 14 [20] Xingchao Liu, Chengyue Gong, and Qiang Liu. Flow straight and fast: Learning to generate and transfer data with rectified flow. arXiv preprint arXiv:2209.03003 , 2022. 6 [21] Yunze Liu, Yun Liu, Che Jiang, Kangbo Lyu, Weikang Wan, Hao Shen, Boqiang Liang, Zhoujie Fu, He Wang, and Li Yi. Hoi4d: A 4d egocentric dataset for category-level human-object interaction. In Proceedings of the IEEE/CVF Con-ference on Computer Vision and Pattern Recognition , pages 21013–21022, 2022. 2, 6, 13 [22] Georgios Pavlakos, Dandan Shan, Ilija Radosavovic, Angjoo Kanazawa, David Fouhey, and Jitendra Malik. Reconstruct-ing hands in 3d with transformers. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 9826–9836, 2024. 3, 4, 5, 12 [23] Julius Pl ¨ucker. On a new geometry of space. Philosophical Transactions of the Royal Society of London , 155:725–791, 1865. 3 [24] Javier Romero, Dimitrios Tzionas, and Michael J Black. Em-bodied hands: Modeling and capturing hands and bodies to-gether. arXiv preprint arXiv:2201.02610 , 2022. 2, 4, 12 [25] Ivan Skorokhodov, Sergey Tulyakov, and Mohamed Elho-seiny. Stylegan-v: A continuous video generator with the price, image quality and perks of stylegan2. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 3626–3636, 2022. 6, 13 
+
+9[26] Sruthi Sudhakar, Ruoshi Liu, Basile Van Hoorick, Carl Von-drick, and Richard Zemel. Controlling the world by sleight of hand. In European Conference on Computer Vision , pages 414–430. Springer, 2024. 2, 3, 6, 7, 15 [27] Zachary Teed and Jia Deng. Raft: Recurrent all-pairs field transforms for optical flow. In European conference on com-puter vision , pages 402–419. Springer, 2020. 6, 13 [28] Yuanpeng Tu, Hao Luo, Xi Chen, Xiang Bai, Fan Wang, and Hengshuang Zhao. Playerone: Egocentric world simulator. 
+
+arXiv preprint arXiv:2506.09995 , 2025. 2, 3, 6 [29] Dani Valevski, Yaniv Leviathan, Moab Arar, and Shlomi Fruchter. Diffusion models are real-time game engines. arXiv preprint arXiv:2408.14837 , 2024. 3 [30] Team Wan, Ang Wang, Baole Ai, Bin Wen, Chaojie Mao, Chen-Wei Xie, Di Chen, Feiwu Yu, Haiming Zhao, Jianxiao Yang, et al. Wan: Open and advanced large-scale video gener-ative models. arXiv preprint arXiv:2503.20314 , 2025. 2, 4, 6, 7, 11, 15 [31] Xiang Wang, Hangjie Yuan, Shiwei Zhang, Dayou Chen, Jiu-niu Wang, Yingya Zhang, Yujun Shen, Deli Zhao, and Jingren Zhou. Videocomposer: Compositional video synthesis with motion controllability. Advances in Neural Information Pro-cessing Systems , 36:7594–7611, 2023. 3 [32] Zhou Wang, Alan C Bovik, Hamid R Sheikh, and Eero P Simoncelli. Image quality assessment: from error visibility to structural similarity. IEEE transactions on image processing ,13(4):600–612, 2004. 6, 13 [33] Zhouxia Wang, Ziyang Yuan, Xintao Wang, Yaowei Li, Tian-shui Chen, Menghan Xia, Ping Luo, and Ying Shan. Mo-tionctrl: A unified and flexible motion controller for video generation. In ACM SIGGRAPH 2024 Conference Papers ,pages 1–11, 2024. 3 [34] Mengjiao Yang, Yilun Du, Kamyar Ghasemipour, Jonathan Tompson, Dale Schuurmans, and Pieter Abbeel. Learn-ing interactive real-world simulators. arXiv preprint arXiv:2310.06114 , 1(2):6, 2023. 3 [35] Tianwei Yin, Micha ¨el Gharbi, Taesung Park, Richard Zhang, Eli Shechtman, Fredo Durand, and Bill Freeman. Improved distribution matching distillation for fast image synthesis. 
+
+Advances in neural information processing systems , 37:47455– 47487, 2024. 6, 13 [36] Tianwei Yin, Qiang Zhang, Richard Zhang, William T Free-man, Fredo Durand, Eli Shechtman, and Xun Huang. From slow bidirectional to fast autoregressive video diffusion mod-els. In Proceedings of the Computer Vision and Pattern Recog-nition Conference , pages 22963–22974, 2025. 2, 3, 5, 6, 12 [37] Zhengdi Yu, Stefanos Zafeiriou, and Tolga Birdal. Dyn-hamr: Recovering 4d interacting hand motion from a dynamic cam-era. In Proceedings of the Computer Vision and Pattern Recognition Conference , pages 27716–27726, 2025. 3 [38] Lvmin Zhang, Anyi Rao, and Maneesh Agrawala. Adding conditional control to text-to-image diffusion models. In 
+
+Proceedings of the IEEE/CVF international conference on computer vision , pages 3836–3847, 2023. 3 [39] Richard Zhang, Phillip Isola, Alexei A Efros, Eli Shechtman, and Oliver Wang. The unreasonable effectiveness of deep features as a perceptual metric. In Proceedings of the IEEE conference on computer vision and pattern recognition , pages 586–595, 2018. 6, 13 
+
+10 Supplementary Material 
+
+## Overview 
+
+This supplementary provides additional details and results that support the main paper. Sec. A describes the backbone, conditioning design, and training/inference settings. Sec. B details our monocular auto-annotation pipeline for hand meshes and camera trajectories. Sec. C expands the autoregressive distillation procedure. Sec. D defines datasets and metrics, and reports extended quantitative comparisons and ablations. Sec. E reports runtime measurements of the full pipeline (Table 9). Sec. F presents qualitative comparisons (Figures 7–13). Sec. G presents qualitative results on challenging long-horizon cases (Figure 14). Sec. H reports free-space gesture generation under camera motion (Figures 15 and 16). 
+
+## A. Implementation Details 
+
+A.1. Backbone and Latent Representation 
+
+We build upon Wan2.1-1.3B-Control [ 30 ], a flow-matching video diffusion transformer operating in a VAE latent space. The VAE applies 8× spatial and 4× temporal downsampling, producing latent channels C=16 . Unless otherwise specified, we use an empty text prompt for all experiments to isolate the effect of hand and camera conditioning. 
+
+A.2. Dual-Pathway Input Conditioning 
+
+Latents. Let z(τ) ∈ RC×T ×H′×W ′
+
+denote the noisy video latent at diffusion timestep τ. We encode the rendered hand-control video {St }Nt=1 into 
+
+zh = Enc ({St }Nt=1) ∈ RC×T ×H′×W ′
+
+. (11) We encode the reference scene image only at the first latent index and pad the rest with zeros: 
+
+zr = Enc (Iscene ), 0, . . . , 0 ∈ RC×T ×H′×W ′
+
+. (12) The transformer input is the channel concatenation 
+
+zin = [ z(τ); zh; zr] ∈ R3C×T ×H′×W ′
+
+. (13) 
+
+A.3. Camera Control Injection 
+
+Temporal packing. Per-frame Pl ¨ucker-ray maps are Pt ∈ R6×H×W . Since the VAE compresses time by 4×, each latent time index aggregates four consecutive frames. Let ℓ ∈ { 0, . . . , T − 1} denote the latent-time index. We pack four consecutive Pl¨ ucker-ray maps into a 24-channel tensor: 
+
+P(ℓ) 
+
+> pack
+
+= P4ℓ; P4ℓ+1; P4ℓ+2; P4ℓ+3
+
+ ∈ R24 ×H×W , (14) with edge padding by repeating the last available frame when 4 ℓ+k exceeds the sequence length. 
+
+Adapter architecture. A lightweight camera adapter acam maps Ppack to the patch-token grid. Concretely, it applies PixelUnshuffle( 8) for spatial compression, a Conv2D layer aligned with the patch size/stride, and a residual block to output token-aligned embeddings. 
+
+Injection. Camera embeddings are added to patch tokens: 
+
+h0 = Emb patch (zin ) + acam (Ppack ), (15) which empirically yields more stable viewpoint conditioning than channel concatenation. 
+
+A.4. LoRA Fine-tuning 
+
+We apply LoRA [ 13 ] (rank 256, α=256 ) to the query, key, value projections and the feed-forward layers of all transformer blocks. This enables efficient adaptation while preserving the pretrained prior of Wan2.1-1.3B-Control. 11 A.5. Training Schedule and Hyperparameters 
+
+Training uses bf16 mixed precision on 8 × NVIDIA A100-80GB GPUs. 
+
+Stage 1: camera-adapter pretraining. We train only the camera adapter with the transformer backbone frozen for ∼10K steps using learning rate 1 ×10 −4.
+
+Stage 2: joint fine-tuning. We jointly fine-tune the camera adapter and LoRA parameters for ∼100K iterations. We use AdamW with learning rate 1×10 −4, (b1, b2) = ( 0.9, 0.999 ), weight decay 0.03, ε = 10 −10 , and gradient clipping 0.05. We sample 41-frame clips at 480p (short side, aspect ratio preserved) with batch size 8 (1 per GPU). We retain training samples where at least 30% of frames contain non-empty hand control signals. 
+
+A.6. Inference Settings 
+
+Bidirectional diffusion teacher. We use a flow-matching Euler scheduler with 50 sampling steps, set the text prompt to empty, and generate 81-frame sequences at 480p with original aspect ratio. 
+
+AR generator. The distilled AR generator produces B=3 frames per block using Ns=4 denoising steps, and uses KV caching to keep per-block cost approximately constant as the rollout length increases. We set the text prompt to empty and generate sequences at 384p with original aspect ratio. 
+
+## B. Auto-Annotation Pipeline 
+
+Training requires paired hand geometry and camera motion signals, which are typically unavailable for in-the-wild egocentric videos. We therefore recover both from monocular videos and use them as pseudo-labels for conditioning. 
+
+B.1. Hand Control Signal Extraction 
+
+We extract hand controls through detection, temporal stabilization, mesh reconstruction, and rendering. 
+
+Detection. A YOLO-based hand detector predicts per-frame bounding boxes with left/right classification. We retain the highest-confidence detection for each class per frame and enlarge boxes by 1 .2× to provide context for reconstruction. 
+
+Temporal stabilization (rule-based). We apply lightweight heuristics that are fast enough for large-scale processing: (i) 
+
+Overlap filtering : when left/right detections have IoU > 0.5, we retain only the higher-confidence one. (ii) Short-gap interpolation : we linearly interpolate brief missing segments when re-appearance is spatially close to the last valid position. (iii) Edge filter : interpolation is skipped when either endpoint box falls within 10% of the image boundary to avoid spurious extrapolation near entry/exit events. After interpolation, we re-run the overlap filter to remove newly introduced duplicates. 
+
+Mesh reconstruction. We run HaMeR [ 22 ] per frame to estimate MANO [ 24 ] parameters and obtain per-hand vertices 
+
+V ht ∈ R778 ×3.
+
+Projection and rendering. We project meshes using estimated intrinsics and render a composite control signal consisting of a filled silhouette plus a wireframe overlay. Left/right hands are color-coded to preserve identity under overlap. This representation specifies intended geometry while leaving visibility/occlusion to be inferred from the scene context. 
+
+B.2. Camera Pose Estimation and Pl ¨ ucker-Ray Embeddings 
+
+We estimate per-frame camera parameters using Depth Anything V3 [ 19 ] in streaming mode, which processes videos in overlapping chunks and aligns consecutive chunks via SIM3 transformations computed over the shared overlap region. During training, we use DA3-Nested-Giant-Large-1.1 with chunk size 120 and overlap 60 for maximum accuracy. At inference time, we switch to DA3-Base with chunk size 12 and overlap 3 (yielding 9 effective output frames per chunk) for speed. We normalize trajectories relative to the first frame before computing Pl ¨ucker-ray coordinates. Depth is used only for pose recovery and is not provided to the generator. 
+
+## C. Autoregressive Distillation Details 
+
+We distill the bidirectional diffusion teacher into a causal AR generator following CausVid [36] with self-forcing [14]. 
+
+C.1. ODE Pretraining 
+
+We generate teacher trajectories by solving the probability-flow ODE from noise to data and train the student to match these trajectories. This initializes the student before distribution matching. 12 Table 5. Properties of datasets used for evaluation. HOT3D provides realistic head motion from augmented-reality glasses. ARCTIC emphasizes objects with state changes. HOI4D contributes category-level object diversity.                          
+
+> Dataset Object Types Interaction Complexity Scene Diversity Camera Motion
+> HOT3D [3] 33 rigid household objects Daily manipulation tasks Varied indoor layouts Large-amplitude head motion (mugs, bottles, tools) (kitchen, office, living room) with diverse lighting (natural glasses-wearer motion) ARCTIC [9] 11 objects Bimanual dexterous manipulation Controlled MoCap environment Predominantly static viewpoints (scissors, laptops, phones) with state changes (open/close) with consistent background (8 fixed + 1 egocentric camera) HOI4D [21] 800+ objects (16 categories) Functionality-oriented tasks 610 distinct indoor rooms Moderate egocentric motion (rigid and articulated) (54 distinct task types) with cluttered backgrounds (task-focused movement)
+
+C.2. Asymmetric Distribution Matching 
+
+The AR generator produces blocks autoregressively. Let GAR  
+
+> θ
+
+denote the AR generator: ˆIt:t+B = GAR  
+
+> θ
+
+({I1, . . . , It−1}, St:t+B,Ct:t+B), (16) where B=3 and St:t+B denotes the rendered hand-control frames for the current block. The frozen teacher supervises via distribution matching distillation (DMD) [35]: 
+
+LDMD = Et,τ
+
+h
+
+∥vstudent ( ˆIt , τ) − vteacher (It , τ)∥22
+
+i
+
+, (17) where v denotes the velocity field prediction. We freeze the camera adapter during distillation to preserve learned viewpoint conditioning. 
+
+C.3. Self-Forcing 
+
+Self-forcing reduces exposure bias by occasionally replacing ground-truth history with student-generated history during training: ˜It =
+
+(
+
+IGT  
+
+> t
+
+with probability 1 − p,
+
+ˆIstudent  
+
+> t
+
+with probability p, (18) where p is annealed from 0 to 0.5. This improves stability for long-horizon rollouts. 
+
+C.4. Inference with KV Caching 
+
+The AR generator produces video block-wise and caches key/value states from previous blocks as context. This supports arbitrary-length rollouts with approximately constant throughput per block. 
+
+## D. Evaluation Protocol and Additional Results 
+
+This section specifies datasets, metric definitions, and extended quantitative results. 
+
+D.1. Datasets 
+
+We evaluate on three egocentric hand–object interaction datasets spanning complementary conditions. Table 5 summarizes their properties. For evaluation, we segment test sequences into 81-frame clips. Before computing metrics, we resize generated and ground-truth clips to the same spatial resolution (short side 480 by default, with aspect ratio preserved) to ensure consistent evaluation. 
+
+D.2. Metrics 
+
+We report eight metrics for realism, fidelity, temporal coherence, and 3D consistency. 
+
+FVD. Fr´ echet Video Distance (FVD) [25] measures distributional similarity using I3D features (lower is better). 
+
+DINO. DINO similarity [6] measures semantic alignment using ViT features (higher is better). 
+
+PSNR, SSIM, and LPIPS. We report PSNR, SSIM [32], and LPIPS [39] for frame-wise fidelity. 
+
+Flow-ERR. We compute optical flow using RAFT [ 27 ] and report an average flow error between generated and ground-truth sequences (lower is better). 13 Depth-ERR and Cam-ERR. We estimate depth and camera trajectories using Depth Anything V3 [ 19 ]. Depth-ERR measures depth-map discrepancy, and Cam-ERR measures viewpoint consistency via per-pixel Pl ¨ucker-ray embeddings (lower is better for both). 
+
+D.3. Quantitative Comparison with Baselines 
+
+Table 6 reports per-dataset results for Hand2World (bidirectional teacher) and Hand2World-AR (distilled AR generator) together with four monocular baselines. Hand2World ranks first across all metrics on all three datasets. Hand2World-AR remains close to the teacher while consistently outperforming prior methods. 
+
+ARCTIC. ARCTIC emphasizes articulated objects with state changes, requiring the model to track geometry evolution over time. Hand2World achieves an FVD of 218.76, substantially outperforming all baselines. InterDyn achieves the best baseline FVD at 908.32 by conditioning on dense hand masks that provide per-frame spatial structure, yet it lacks explicit camera modeling, leading to viewpoint drift and elevated Depth-ERR of 27.23. Mask2IV requires pre-specified object trajectory masks as input, constraining its generative flexibility for dynamic state changes. CosHand generates individual images rather than temporally coherent video, which limits its ability to model continuous state transitions. The backbone Wan2.1-1.3B-Control, without dedicated hand or camera conditioning, cannot effectively control the interaction dynamics. By projecting the full 3D hand mesh and injecting Pl ¨ucker-ray camera embeddings, Hand2World preserves articulation detail regardless of occlusion while disentangling viewpoint from hand motion, reducing Cam-ERR to 0.07 from the baseline range of 0.12–0.14. 
+
+HOT3D. HOT3D features large-amplitude head motion and stresses viewpoint control. None of the baselines include explicit camera modeling, which produces floating backgrounds under large ego-motion. The backbone Wan2.1-1.3B-Control achieves the best baseline FVD at 349.89, while mask-based methods InterDyn and Mask2IV achieve higher FVD of 540.76 and 550.49—their 2D masks shift with head motion, introducing additional spatial inconsistency beyond the lack of camera control. Hand2World reduces FVD to 106.20. The benefit of explicit camera conditioning is most visible in Cam-ERR: all baselines remain between 0.33 and 0.38, reflecting uncorrected viewpoint drift, while Hand2World achieves 0.13. Flow-ERR and Depth-ERR improve in parallel, confirming that Pl ¨ucker-ray injection stabilizes both background geometry and temporal dynamics under large head motion. 
+
+HOI4D. HOI4D introduces diverse object categories across 610 rooms, stressing generalization in cluttered environments. Hand2World achieves an FVD of 251.05, outperforming all baselines. The diversity of scenes highlights different characteristics of each conditioning strategy. CosHand attains competitive per-frame PSNR of 18.60 through its mask-based conditioning but generates individual images without temporal modeling, yielding an FVD of 1090.31. InterDyn and Mask2IV benefit from spatial mask conditioning and achieve moderate Depth-ERR of 14.19 and 13.96, but without camera control their perceptual quality remains limited, with LPIPS of 0.38 and 0.44 compared to 0.19 for Hand2World. Hand2World maintains both perceptual quality and viewpoint consistency, achieving Cam-ERR of 0.04 and Depth-ERR of 7.98, benefiting from the object-agnostic nature of 3D hand mesh conditioning and explicit camera control. 
+
+Teacher vs. student. At the 81-frame horizon, Hand2World-AR remains close to the bidirectional teacher across datasets. For example, on HOT3D, FVD increases from 106.20 to 112.90, while Cam-ERR changes only from 0.13 to 0.14. Across ARCTIC and HOI4D, the AR generator preserves camera consistency to within 0.01 Cam-ERR of the teacher, indicating that causal distillation largely retains both visual quality and viewpoint control. 
+
+D.4. Quantitative Ablation Studies 
+
+Table 7 reports ablation on ARCTIC, HOT3D, and HOI4D. We evaluate explicit camera conditioning via the camera adapter, the wireframe overlay used in the hand-control rendering, and temporal stabilization in our monocular auto-annotation pipeline. 
+
+Explicit camera conditioning is the primary contributor. Removing the camera adapter yields the largest degradation across all datasets. FVD increases from 218.76 to 815.14 on ARCTIC, from 106.20 to 438.82 on HOT3D, and from 251.05 to 632.58 on HOI4D, corresponding to 3.7 ×, 4.1 ×, and 2.5 × higher FVD. This change also substantially harms 3D consistency. Cam-ERR increases from 0.07 to 0.13 on ARCTIC, from 0.13 to 0.29 on HOT3D, and from 0.04 to 0.07 on HOI4D. Depth-ERR increases from 15.37 to 23.51 on HOT3D and from 7.98 to 10.42 on HOI4D. Temporal and perceptual metrics deteriorate in parallel, with HOT3D Flow-ERR increasing from 40.06 to 64.42 and LPIPS increasing from 0.32 to 0.44. Overall, the results show that an explicit camera pathway is critical for disentangling viewpoint change from interaction dynamics, which stabilizes background geometry under head motion. 
+
+Wireframe rendering provides consistent but modest gains. Removing the wireframe overlay leads to a smaller yet consistent drop. FVD increases from 218.76 to 223.29 on ARCTIC, from 106.20 to 108.05 on HOT3D, and from 251.05 to 255.15 on HOI4D. DINO similarity and PSNR also decrease slightly, as shown by HOT3D dropping from 0.91 to 0.90 and from 18.79 to 18.58. These trends suggest that the wireframe complements the silhouette by exposing articulation structure, 14 Table 6. Quantitative comparison on ARCTIC, HOT3D, and HOI4D test sets. Best results are bold .                                                                                                                                                         
+
+> Dataset Method FVD ↓DINO ↑PSNR ↑SSIM ↑LPIPS ↓Flow-ERR ↓Depth-ERR ↓Cam-ERR ↓
+> ARCTIC CosHand [26] 1400.68 0.79 12.41 0.63 0.55 78.87 22.51 0.14 InterDyn [2] 908.32 0.80 12.43 0.63 0.53 72.20 27.23 0.13 Mask2IV [17] 1083.62 0.78 11.47 0.62 0.55 70.45 31.34 0.12 Wan2.1-1.3B-Control [30] 1038.53 0.75 12.81 0.62 0.49 63.71 22.66 0.13
+> Hand2World-AR (Ours) 232.40 0.88 14.55 0.67 0.41 46.10 17.02 0.07 Hand2World (Ours) 218.76 0.88 14.93 0.67 0.39 44.43 16.14 0.07
+> HOT3D CosHand [26] 786.07 0.84 15.97 0.50 0.47 82.72 35.74 0.34 InterDyn [2] 540.76 0.81 13.47 0.42 0.58 68.46 43.22 0.38 Mask2IV [17] 550.49 0.77 13.11 0.35 0.61 71.99 32.76 0.37 Wan2.1-1.3B-Control [30] 349.89 0.78 15.87 0.51 0.47 68.81 24.73 0.33
+> Hand2World-AR (Ours) 112.90 0.89 18.25 0.57 0.34 41.85 15.59 0.14
+> Hand2World (Ours) 106.20 0.91 18.79 0.59 0.32 40.06 15.37 0.13
+> HOI4D CosHand [26] 1090.31 0.87 18.60 0.73 0.35 81.88 21.97 0.11 InterDyn [2] 668.35 0.87 16.91 0.70 0.38 61.24 14.19 0.08 Mask2IV [17] 710.92 0.86 15.43 0.69 0.44 67.83 13.96 0.09 Wan2.1-1.3B-Control [30] 603.25 0.80 17.07 0.70 0.37 60.26 17.50 0.15
+> Hand2World-AR (Ours) 263.40 0.91 20.95 0.75 0.21 38.90 8.55 0.05
+> Hand2World (Ours) 251.05 0.93 21.57 0.76 0.19 37.25 7.98 0.04
+
+Table 7. Complete ablation study across ARCTIC, HOT3D, and HOI4D. We ablate the camera adapter (Pl ¨ucker-ray injection), wireframe overlay, temporal interpolation, boundary (edge) filtering, and overlap filtering. Best results are bold .
+
+Dataset Configuration FVD ↓ DINO ↑ PSNR ↑ SSIM ↑ LPIPS ↓ Flow-ERR ↓ Depth-ERR ↓ Cam-ERR ↓
+
+ARCTIC w/o Camera Adapter 815.14 0.84 12.66 0.62 0.47 64.64 21.85 0.13 w/o Wireframe 223.29 0.87 14.78 0.67 0.39 44.86 16.14 0.08 w/o Interpolation 231.09 0.87 14.75 0.67 0.39 45.02 16.48 0.08 w/o Edge Filter 219.15 0.87 14.76 0.67 0.39 44.88 16.25 0.08 w/o Overlap Filter 219.75 0.87 14.78 0.67 0.39 44.94 16.35 0.08 
+
+Full Model 218.76 0.88 14.93 0.67 0.39 44.43 16.14 0.07 
+
+HOT3D w/o Camera Adapter 438.82 0.86 16.36 0.51 0.44 64.42 23.51 0.29 w/o Wireframe 108.05 0.90 18.58 0.59 0.32 40.13 15.35 0.13 
+
+w/o Interpolation 111.19 0.90 18.52 0.59 0.32 40.28 15.65 0.13 
+
+w/o Edge Filter 106.29 0.89 18.56 0.59 0.33 40.22 15.45 0.13 
+
+w/o Overlap Filter 106.47 0.90 18.60 0.59 0.32 40.39 15.57 0.13 Full Model 106.20 0.91 18.79 0.59 0.32 40.06 15.37 0.13 
+
+HOI4D w/o Camera Adapter 632.58 0.92 19.83 0.74 0.26 46.17 10.42 0.07 w/o Wireframe 255.15 0.93 21.48 0.76 0.20 37.69 7.98 0.04 
+
+w/o Interpolation 265.47 0.92 21.34 0.75 0.20 37.58 8.10 0.04 
+
+w/o Edge Filter 251.15 0.92 21.27 0.76 0.20 37.56 8.08 0.04 
+
+w/o Overlap Filter 252.06 0.92 21.40 0.76 0.20 37.65 8.09 0.04 Full Model 251.05 0.93 21.57 0.76 0.19 37.25 7.98 0.04 
+
+improving controllability for finger configurations beyond the hand outline. The benefit is most evident for self-occluded poses such as palm-facing or fist configurations, where the silhouette boundary alone is ambiguous across different finger states and the wireframe edges provide structural cues to resolve the intended articulation. We note that on HOT3D, Depth-ERR is marginally lower without the wireframe (15.35 vs. 15.37); this difference is within noise and does not affect the overall trend. 
+
+Temporal stabilization is mainly driven by short-gap interpolation. Among the stabilization components, short-gap interpolation contributes the most. Disabling interpolation increases FVD from 218.76 to 231.09 on ARCTIC, from 106.20 to 111.19 on HOT3D, and from 251.05 to 265.47 on HOI4D. In contrast, removing edge filtering or overlap filtering has a minor effect, with FVD changing by at most 0.5% across all datasets. This matches their role in suppressing occasional boundary jitter and duplicate detections during large-scale auto-annotation. 15 Table 8. Autoregressive generation across ARCTIC, HOT3D, and HOI4D. Hand2World-AR matches the teacher closely at 81 frames and degrades gradually as the rollout length increases.                                                                                                                       
+
+> Dataset Attention Len FVD ↓DINO ↑PSNR ↑SSIM ↑LPIPS ↓Flow-ERR ↓Depth-ERR ↓Cam-ERR ↓
+> ARCTIC Bidirectional 81 218.76 0.88 14.93 0.67 0.39 44.43 16.14 0.07
+> Autoregressive 81 232.40 0.88 14.55 0.67 0.41 46.10 17.02 0.07
+> Autoregressive 162 264.20 0.88 13.53 0.66 0.48 49.01 18.72 0.12 Autoregressive 324 331.71 0.86 12.45 0.63 0.52 54.71 20.99 0.17 HOT3D Bidirectional 81 106.20 0.91 18.79 0.59 0.32 40.06 15.37 0.13
+> Autoregressive 81 112.90 0.89 18.25 0.57 0.34 41.85 15.59 0.14 Autoregressive 162 292.73 0.86 16.98 0.55 0.42 47.26 16.10 0.16 Autoregressive 324 418.64 0.80 15.40 0.50 0.50 54.46 18.82 0.27 HOI4D Bidirectional 81 251.05 0.93 21.57 0.76 0.19 37.25 7.98 0.04
+> Autoregressive 81 263.40 0.91 20.95 0.75 0.21 38.90 8.55 0.05 Autoregressive 162 559.80 0.89 19.47 0.74 0.29 46.81 9.52 0.06 Autoregressive 324 805.34 0.82 17.46 0.73 0.37 54.23 12.57 0.10
+
+Table 8 evaluates the AR generator beyond the 81-frame training horizon. Hand2World-AR matches the teacher closely at 81 frames and degrades gradually as the rollout length increases. 
+
+## E. Runtime Analysis 
+
+We benchmark inference speed on 324-frame sequences at 544 ×384 resolution using a single A100-80GB GPU. Hand reconstruction (HaMeR) and camera estimation (Depth Anything V3) run in parallel. The AR generator uses KV caching to keep throughput approximately constant as the rollout length increases. Table 9 reports the runtime breakdown.    
+
+> Table 9. Runtime breakdown of the full Hand2World pipeline. Throughput is measured in frames per second (FPS) on 324-frame sequences at 544 ×384 resolution using a single A100-80GB GPU. Hand reconstruction and camera estimation run in parallel. The AR generator is the throughput bottleneck.
+
+Hand Reconstruction + Camera Estimation AR Generator Overall 
+
+25.0 13.7 8.9 
+
+## F. Qualitative Results 
+
+Each figure shows the reference scene image (first column) and representative frames (subsequent columns). Rows correspond to methods. GT is the ground-truth video. We highlight three recurring failure modes aligned with the main paper motivation: (i) state/interaction inconsistency (incorrect object state, unstable contacts, or appearance collapse), (ii) viewpoint inconsistency under head motion (background drift, incorrect rotation, or photometric instability), and (iii) hand pose misalignment (generated hands that deviate from the input gesture trajectory or fall out of temporal synchronization with the intended motion). 
+
+F.1. Box opening and closing 
+
+Figures 7 and 8 show bimanual box manipulation, where the model must track an articulated state change—lid angle, interior visibility, and hinge geometry—over the full sequence. This is challenging because the box interior is entirely absent from the reference image. Generating it requires a strong generative prior coupled with temporally consistent state tracking. In Figure 7, PlayerOne produces a temporally misaligned opening progression with an increasingly shifted viewpoint from Frame 40 onward, likely due to the allocentric-to-egocentric viewpoint mismatch in its training data. CosHand and Mask2IV introduce structural artifacts on the lid at later frames, suggesting that mask-based conditioning conflates hand motion with object state and struggles to sustain a coherent opening trajectory. In Figure 8, PlayerOne exhibits poorly aligned hand poses and progressive viewpoint divergence at Frames 60–80, while Wan2.1-1.3B-Control degrades into severe background artifacts—without dedicated hand conditioning, the model cannot attribute scene changes to hand interaction versus viewpoint shift. Hand2World follows the GT state transition more closely, preserving the lid angle and interior appearance throughout and maintaining stable background geometry. 16 F.2. Laptop opening and closing 
+
+Figures 9 and 10 show laptop manipulation, where opening reveals entirely new visual content (keyboard and screen) that was not present in the reference image. The thin profile of the laptop demands precise articulation control: small angular errors in the lid propagate into large visual discrepancies. In Figure 9, CosHand, InterDyn, and Mask2IV fail to produce a recognizable open state, keeping the laptop surface largely flat throughout the sequence. This suggests that 2D mask conditioning, which encodes only the visible hand extent, provides insufficient articulation cues to drive a progressive opening trajectory. PlayerOne begins opening but shows misaligned hand positions from Frame 20 and progressive viewpoint drift. In Figure 10, CosHand generates severe visual artifacts by Frame 80, and Wan2.1-1.3B-Control completely degrades by the end of the sequence. Hand2World produces a coherent opening trajectory with visible keyboard structure at Frames 60–80, and maintains a clean closed state at the end, consistent with GT. 
+
+F.3. Object appearance fidelity under interaction 
+
+Figure 11 shows a patterned storage box being closed. The repeating high-frequency surface pattern is sensitive to any spatial distortion or temporal inconsistency, even subtle artifacts might go unnoticed on a uniform surface become immediately visible on textured regions. This case therefore serves as a stress test for both conditioning fidelity and interaction understanding. CosHand and InterDyn gradually lose the surface pattern as the interaction progresses, with the texture washing out or shifting across frames. This degradation is most pronounced near the hand–object boundary, where mask-based conditioning introduces spatial artifacts that propagate temporally and corrupt adjacent texture regions. Moreover, neither method completes the closing action: the box lid remains in a similar position throughout the sequence. Wan2.1-1.3B-Control preserves the pattern initially but produces structural distortion of the box geometry at Frames 60–80, also failing to close the box. Hand2World is the only method that correctly closes the box while preserving both the surface pattern and box geometry, as its 3D mesh conditioning provides hand articulation cues without spatially corrupting the underlying texture. Figure 12 shows cup grasping, where the hand must grip the handle precisely and the cup moves between near and far positions relative to the camera. This demands robust and precise hand control: the fingers must wrap around the narrow handle throughout the sequence, and the cup’s identity—shape, color, and material—must remain consistent as its apparent scale changes with depth. When the cup moves close to the camera, it occludes a large portion of the background, which the model must generate correctly upon the cup’s retreat. CosHand, InterDyn, and Wan2.1-1.3B-Control produce blurred or artifact-laden cup appearances, and the generated cup trajectories fail to match the intended near–far motion. Mask2IV shows severe visual degradation as the cup approaches the camera. Hand2World maintains a consistent cup identity across depth changes, renders the handle grasp faithfully, and recovers a plausible background behind the cup as it moves away. 
+
+F.4. Large viewpoint changes 
+
+Figure 13 presents the same clip used in the camera ablation (Figure 4 of the main paper), now comparing all baselines. The camera pans rightward from the initial desk view to reveal the whiteboard, then reverses leftward back toward the desk. This non-monotonic trajectory is a stress test for viewpoint control: the model must generate new background content during the rightward sweep and maintain consistency when returning to previously seen regions. CosHand and InterDyn remain near the initial desk view, confirming that without explicit camera conditioning these methods tend to keep the background static rather than following the intended trajectory. Mask2IV attempts some camera movement but produces severe motion blur and visual artifacts from Frame 40 onward, with black regions appearing by Frame 80. Wan2.1-1.3B-Control shows extreme degradation: heavy motion blur begins at Frame 40, and by Frame 60 the scene is almost entirely washed out with no recognizable structure. Hand2World follows the rightward-then-leftward pan faithfully, revealing the whiteboard by Frames 40–60 and returning toward the desk, closely matching the GT. 17 Figure 7. Box opening. The model must generate unseen interior content as the lid opens and maintain consistent hinge geometry across frames (Sec. F.1). 
+
+18 Figure 8. Box closing. The reverse trajectory requires tracking the lid angle from open to closed while preserving the interior appearance established during opening (Sec. F.1). 
+
+19 Figure 9. Laptop opening. The thin lid profile amplifies angular errors, and the keyboard and screen must be generated as entirely new content (Sec. F.2). 
+
+20 Figure 10. Laptop closing. Baselines that failed to open the laptop in Figure 9 also fail to produce a coherent closing trajectory (Sec. F.2). 
+
+21 Figure 11. Closing a patterned storage box. The high-frequency surface texture exposes any spatial distortion or temporal inconsistency, and only Hand2World completes the closing action (Sec. F.3). 
+
+22 Figure 12. Cup grasping with near–far depth variation. Precise handle grip control and consistent cup identity across scale changes are required, along with plausible background generation behind the occluding cup (Sec. F.3). 
+
+23 Figure 13. Large rightward-then-leftward head pan. The camera sweeps from a desk view to the whiteboard and reverses back, testing both novel-view generation and return consistency. This is the same clip as the camera ablation in Figure 4 of the main paper (Sec. F.4). 
+
+24 G. Additional Qualitative Results on Challenging Cases 
+
+Sec. D provides complete ablation studies (Table 7) and autoregressive length scaling results (Table 8). Here we further visualize challenging long-horizon autoregressive rollouts in Figure 14. 
+
+G.1. Challenging Cases 
+
+Figure 14 reports long-horizon rollouts on challenging scenarios. Rows 1–2 emphasize unseen state/content generation : the reference image contains only the closed-book state, while the rollout requires opening and maintaining page content over time. Rows 3–4 emphasize extreme viewpoint changes and scale variation : the camera undergoes substantial rotation and the manipulated object alternates between close-up and far views. Across these cases, Hand2World-AR maintains coherent interaction dynamics and a viewpoint-consistent background over extended horizons.    
+
+> Figure 14. Four challenging Hand2World-AR rollouts at approximately 4×the training clip length (160 frames). Rows 1–2: book manipulation, where the model must generate unseen page content as the book is opened and flipped. Rows 3–4: cup and container interaction with extreme viewpoint rotation and large scale variation as objects move close to and away from the camera.
+
+## H. Free-Space Gesture Generation 
+
+We evaluate on free-space mid-air gestures where the user’s hands do not touch any object. As discussed in Sec. 3.3 of the main paper, this setting introduces a train–test distribution shift for mask-based methods because free-space gestures produce complete hand masks that differ from the partial masks seen during training. We present two examples that combine this distribution shift with additional challenges: viewpoint change (Figure 15) and motion blur (Figure 16). 
+
+H.1. Free-space gestures under viewpoint change 
+
+In Figure 15, the input gesture stream (top row) drives a box-opening motion while the camera pans rightward and then reverses leftward. This non-monotonic viewpoint trajectory tests two capabilities simultaneously: whether the generated hands remain photorealistic under the mask distribution shift, and whether the synthesized box and hand positions track the viewpoint reversal without spatial drift. CosHand generates a box that partially opens but produces increasingly unnatural hand poses from Frame 40 onward, with the fingers losing contact with the box surface and the opening progression becoming temporally inconsistent. InterDyn and Mask2IV generate a box but fail to produce a clear opening trajectory—the box orientation shifts across frames without a coherent lid-opening progression, and the hands drift spatially relative to the box as the viewpoint reverses. Wan2.1-1.3B-Control produces persistent orange-tinted hand color throughout the sequence, a direct symptom of the mask distribution shift: receiving a complete hand mask at inference, the model generates unnatural skin tones it never encountered during training with occluded hands. The box remains largely closed. Hand2World is the only method that produces a coherent opening trajectory with a visible interior at Frames 60–80, maintains natural hand appearance with consistent skin tone, and keeps the hands spatially aligned with the box throughout the viewpoint reversal. 25 H.2. Free-space gestures under motion blur 
+
+In Figure 16, the driving stream contains severe motion blur around Frames 40–80 caused by rapid head rotation, compounding the free-space distribution shift with degraded input quality. This is a particularly challenging setting because the model must extract reliable hand articulation cues from blurred input frames while simultaneously handling a viewpoint change. CosHand generates a box at Frame 20 but loses spatial consistency as the blur intensifies—by Frame 60 the box orientation has shifted substantially, and while the lid appears partially raised, the opening progression is inconsistent across frames. InterDyn and Mask2IV keep the box largely closed throughout the sequence, with the hands drifting spatially and decoupling from the intended opening motion. Without explicit camera conditioning, these methods cannot separate hand displacement from the viewpoint-induced parallax caused by the rapid head rotation. Wan2.1-1.3B-Control keeps the box closed and exhibits persistent hand color distortion, with red-tinted skin visible throughout the sequence. Hand2World produces a clear opening trajectory—the lid progressively rises and a plausible interior becomes visible by Frame 60—while maintaining natural hand appearance and stable background despite the blurred driving input.  
+
+> Figure 15. Free-space box opening with non-monotonic camera pan. The camera pans rightward then reverses leftward, requiring consistent hand placement and box state under a changing viewpoint trajectory (Sec. H.1).
+
+26 Figure 16. Free-space box opening under severe motion blur. The driving stream contains heavy blur around Frames 40–60 from rapid head rotation, compounding the distribution shift with degraded input quality (Sec. H.2). 
+
+27

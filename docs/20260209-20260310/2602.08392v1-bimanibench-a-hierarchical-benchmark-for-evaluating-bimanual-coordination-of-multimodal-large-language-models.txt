@@ -1,0 +1,863 @@
+Title: BiManiBench: A Hierarchical Benchmark for Evaluating Bimanual Coordination of Multimodal Large Language Models
+
+URL Source: https://arxiv.org/pdf/2602.08392v1
+
+Published Time: Tue, 10 Feb 2026 02:53:08 GMT
+
+Number of Pages: 38
+
+Markdown Content:
+# BiManiBench: A Hierarchical Benchmark for Evaluating Bimanual Coordination of Multimodal Large Language Models 
+
+## Xin Wu 1∗, Zhixuan Liang 2∗, Yue Ma 3,4B , Mengkang Hu 2, Zhiyuan Qin 4, Xiu Li 1B 
+
+> 1
+
+## Tsinghua University 2 The University of Hong Kong  
+
+> 3
+
+## HKUST 4 Beijing Innovation Center of Humanoid Robotics 
+
+## https://bimanibench.github.io/ 
+
+## Abstract 
+
+Multimodal Large Language Models (MLLMs) have signifi-cantly advanced embodied AI, and using them to benchmark robotic intelligence has become a pivotal trend. However, ex-isting frameworks remain predominantly confined to single-arm manipulation, failing to capture the spatio-temporal coordination required for bimanual tasks like lifting a heavy pot. To address this, we introduce BiManiBench, a hier-archical benchmark evaluating MLLMs across three tiers: fundamental spatial reasoning, high-level action planning, and low-level end-effector control. Our framework isolates unique bimanual challenges, such as arm reachability and kinematic constraints, thereby distinguishing perceptual hal-lucinations from planning failures. Analysis of over 30 state-of-the-art models reveals that despite high-level reasoning proficiency, MLLMs struggle with dual-arm spatial ground-ing and control, frequently resulting in mutual interference and sequencing errors. These findings suggest the current paradigm lacks a deep understanding of mutual kinematic constraints, highlighting the need for future research to focus on inter-arm collision-avoidance and fine-grained temporal sequencing. 
+
+## 1. Introduction 
+
+Recent advances in Multimodal Large Language Models (MLLMs) have propelled Embodied AI. With strong percep-tion and reasoning, these foundation models enable agents to interpret complex instructions and interact with physi-cal environments in sophisticated ways [ 2, 29 ]. Broadly, MLLM applications in Embodied AI span a wide spectrum, including their use as both direct controllers for autonomous agents and, crucially, as robust benchmarks for evaluating robotic performance. Early work primarily employed LLMs for task decomposition [ 41 , 42 ], while the integration of visual modalities has extended MLLMs toward more holis-tic embodied control, spanning object recognition, spatial reasoning, and action generation [81, 101]. Despite this progress, existing evaluation frameworks re-main predominantly confined to single-arm manipulation scenarios. While benchmarks such as ALFWorld [ 80 ] and VLABench [ 107 ] are instrumental, they overlook bimanual capabilities essential for realistic tasks. Bimanual manipu-lation is more than parallel single-arm actions. It demands rigorous spatio-temporal synchronization and dynamic role assignment to prevent self-collision and kinematic singu-larities [ 83 ]. These complexities are further compounded by the visual hallucination inherent in MLLMs that mod-els frequently misjudge spatial reachability or incorrectly assign arm roles, leading to immediate execution failures that single-arm benchmarks cannot detect. Consequently, the absence of a dedicated platform obscures these critical failure modes, stalling the development of versatile agents capable of human-like physical coordination. To address this gap, we introduce BiManiBench, a com-prehensive benchmark for systematically evaluating MLLMs in dual-arm manipulation (Fig. 1). Unlike prior benchmarks that focus on a single abstraction level, BiManiBench adopts a hierarchical evaluation framework with three tiers: (1) Dual-Arm Spatial Reasoning, assessing workspace aware-ness and correct left-right arm assignment; (2) High-Level Action Planning, evaluating long-horizon reasoning under diverse coordination modes, including independent parallel and sequential collaborative manipulation; (3) Low-Level End-Effector Control, testing fine-grained continuous con-trol (16-DoF) and precise bimanual synchronization. To support evaluation, we design a vision-driven agent framework with action chunking, improving efficiency and temporal coherence. To mitigate action lag, we propose a Task-Adaptive Execution Truncation mechanism, balancing open-loop efficiency with closed-loop robustness by allow-ing timely replanning when kinematic constraints or colli-sions arise. Using BiManiBench, we evaluate over 30 state-of-the-art 
+
+> arXiv:2602.08392v1 [cs.RO] 9 Feb 2026
+
+# BiManiBench        
+
+> RIGHT LEFT
+> Sparse Clustered Dense
+> 3 Task Settings
+> Independent Parallel Manipulation
+> Blocks_ranking_size Stack_bowls_three
+> 6 Tasks in Total
+> Sequential Collaborative Manipulation
+> Handover_block Place_bread_skillet
+> 8 Tasks in Total
+> Blocks_cross_shape Blocks_tower Place_cans_plasticbox Put_bottles_dustbin
+> [
+> "[ -0.3495, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.20706, 0.02441, 0.94, 0.33541, -0.62249, 0.33541, 0.62249, 1.0 ]",
+> "[ -0.3495, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.20706, 0.02441, 0.88, 0.33541, -0.62249, 0.33541, 0.62249, 0.0 ]"
+> ]
+
+Dual-Arm 16-Dimensional Continuous Pose 
+
+[𝑥𝑥 , 𝑦𝑦 , 𝑧𝑧 , 𝑞𝑞 𝑥𝑥 , 𝑞𝑞 𝑦𝑦 , 𝑞𝑞 𝑧𝑧 , 𝑔𝑔𝑔𝑔𝑔𝑔𝑔𝑔𝑔𝑔𝑔𝑔𝑔𝑔 ] Per Arm  
+
+> Stack_blocks_two Place_burger_fries Place_object_scale
+> Grab_roller
+> 5 Tasks in Total
+> Place_bread_skillet
+
+Tier2. High-Level Action Planning (Logical Reasoning) 
+
+Tier3. Low-Level End-Effector Control (Direct Pose Control) 
+
+Tier1. Dual-Arm Spatial Reasoning (Base Capability) 
+
+> [{ "object": "blue_block", "use_arm": "LEFT"},
+> {"object": "red_block", "use_arm": "RIGHT"}, …]
+
+Object-Wise Arm Assignment (Left / Right) 
+
+> Output Format
+> [
+> {…, "action_name": "grasp_actor", "parameters":
+> {"actor": "red_block", "arm_tag": "right", …}},
+> {…, "action_name": "move_by_displacement",
+> "parameters": {"arm_tag": "right","z": 0.1, …}}
+> ]
+> Discrete, Parameterized Atomic Action Primitives
+> Output Format
+> Output Format
+
+Figure 1. Overview of BiManiBench. A hierarchical framework evaluating MLLMs across three tiers: spatial reasoning, high-level action planning, and low-level continuous control. 
+
+MLLMs, including proprietary models ( e.g. , GPT-5, Gemini-2.5-Pro, Claude-4-sonnet) and open-source models ( e.g. ,InternVL3, Qwen2.5-VL). The Model details are showed in Appendix B. Our results reveal three key findings: (1) Spa-tial Reasoning is Fragile: Despite general spatial awareness, stochastic hallucinations frequently disrupt precise arm allo-cation, causing immediate execution failures even when the high-level plan is correct. (2) Control Lags Behind Planning: While capable of high-level strategic reasoning, MLLMs struggle with the precise, continuous vision-based control required for dual-arm actuation. (3) Information Overload in Limited-Capacity Models: We find that incorporating auxiliary visual inputs is not a universal remedy for occlu-sion. While state-of-the-art models successfully leverage multi-view data to disambiguate complex scenes, smaller models lack the requisite reasoning bandwidth to process multiple visual streams concurrently. Consequently, the addi-tional visual input introduces distracting noise that disrupts their decision-making process, causing a paradoxical drop in success rates compared to single-view settings. To bridge the gaps, future research should focus on integrating inter-arm kinematic constraints and specialized action heads for collision-free temporal sequencing. Our contributions can be summarized as threefold: (1) We propose BiManiBench, the first hierarchical benchmark tailored to evaluating MLLMs in dual-arm manipulation. (2) We introduce a principled evaluation protocol and a tax-onomy of bimanual coordination modes, together with a vision-driven agent framework featuring adaptive execution. (3) We provide a comprehensive empirical analysis of mod-ern MLLMs, identifying key failure modes and outlining future directions for multi-arm embodied agents. 
+
+## 2. Related Work 
+
+2.1. MLLMs for Embodied Agents 
+
+The integration of Large Language Models (LLMs) into embodied systems has evolved from high-level semantic planning to fine-grained low-level control. Early approaches leveraged LLMs purely as semantic planners [ 41 , 42 , 102 ,105 , 106 ], decomposing abstract instructions into primitives executed by pre-defined skills. With the advent of Multi-modal LLMs (MLLMs), agents have gained the ability to process visual feedback directly. Recent frameworks, such as those evaluated in EmbodiedBench [100 ], demonstrate that while MLLMs excel at high-level semantic tasks ( e.g. , object identification, reasoning), they struggle significantly with low-level continuous control and spatial grounding [ 45 , 101 ]. Unlike prior works that use MLLMs to generate code poli-cies [ 54 ] or value functions [ 43 ], our work evaluates the MLLM’s ability to act as a unified ”brain” that simultane-ously manages high-level coordination and low-level trajec-tory constraints in dual-arm settings. 
+
+2.2. Benchmarks for Robotic Manipulation 
+
+Benchmarking plays a pivotal role in standardizing progress in embodied intelligence. Existing benchmarks can be cate-gorized by their task scope and primary objective: 
+
+High-Level and Single-Arm Benchmarks. Early bench-marks primarily focused on symbolic reasoning. Environ-ments such as VirtualHome [ 76 ] and ALFWorld [ 80 ] evalu-ate an agent’s ability to decompose instructions but abstract away physical actuation. Subsequent work shifted toward physics-grounded manipulation, including VLMbench [ 109 ], VLABench [ 107 ], and the manipulation subset of Embod-iedBench [ 100 ]. While these platforms evaluate perception-to-action pipelines, they are predominantly designed for single-arm manipulation and fail to capture inter-arm con-straints—such as collision avoidance and synchronized hold-ing—which are critical for realistic deployment. 
+
+Bimanual Manipulation Benchmarks. To address dual-arm complexities, specialized environments have emerged. 
+
+TWIN [ 35 ] introduces bimanual tasks with varying de-grees of coupling but focuses primarily on Reinforcement Learning (RL) and Imitation Learning (IL). More recently, 
+
+RoboTwin [19 , 71 ] introduced a scalable data generation framework with extensive domain randomization to facilitate the training of robust visuomotor policies ( e.g. , ACT). It of-fers a rich suite of high-fidelity tasks built on SAPIEN [98]. While we leverage the high-quality task assets and interac-tion APIs provided by RoboTwin as our simulation backend, our objective differs fundamentally. Whereas RoboTwin and TWIN are designed to generate data for training poli-cies from scratch, BiManiBench is tailored to evaluate the zero-shot reasoning and planning capabilities of off-the-shelf MLLMs. 
+
+2.3. Challenges in Dual-Arm Coordination 
+
+Beyond benchmark design, prior studies have analyzed the intrinsic difficulties of dual-arm manipulation. Dual-arm manipulation introduces complexity classes distinct from single-arm settings, necessitating precise spatio-temporal coordination [83]. 
+
+Taxonomy of Coordination: As categorized in TWIN 
+
+[ 35 ], bimanual tasks range from decoupled parallel execu-tion ( e.g. , picking two separate objects) to tightly coupled physical collaboration ( e.g. , handing over an object or col-laborative lifting). 
+
+The MLLM Gap: While traditional control theory addresses these via inverse kinematics and motion plan-ning, MLLM-based agents face unique challenges. Primary among these is the spatial hallucination problem [ 55 ], where models misinterpret the relative positions of left and right end-effectors in egocentric views. Furthermore, MLLMs often struggle to maintain ”role consistency” over long hori-zons [ 93 ], inadvertently switching acting arms during syn-chronized tasks. Our benchmark isolates these failure modes, moving beyond simple success rates to analyze specific deficits in coordination reasoning. 
+
+## 3. Problem Formulation 
+
+We employ two distinct scoring protocols tailored to the nature of the tasks: Success Rate (SR) for Manipulation Tasks: For both High-Level Action Planning and Low-Level End-Effector Control tasks, we report the standard Success Rate. A trial is considered successful (Score = 100) only if the final state satisfies the programmatic verification of goal conditions ( e.g. , object-gripper contact, target region occupancy); otherwise, it is failed (Score = 0). Gaussian-Weighted Spatial Score for Reasoning Tasks: For the Dual-Arm Spatial Reasoning task, a binary accuracy metric is insufficient due to the ambiguity near the workspace center (the decision boundary between left and right arms). To ad-dress this, we introduce a Gaussian-Weighted Spatial Score. For each target object i, the score Si is calculated based on the distance di = |xpos |of the object from the center line:             
+
+> Si=
+> (
+> 100 ,if apred =agt
+> 100 ·exp  −d2
+> i/(2 σ2),otherwise (1)
+
+where the ground truth is strictly determined by the sign of the x-coordinate. This formulation applies a soft penalty mechanism: incorrect predictions near the boundary (where 
+
+di ≈ 0) retain a high partial score, reflecting the inherent ambiguity, while distinct errors far from the center are pe-nalized heavily. The final score is the average over all target objects in the scene. 
+
+## 4. Benchmark Building 
+
+4.1. Tasks Settings 
+
+To thoroughly assess MLLMs’ performance across diverse dual-arm manipulation tasks, we introduce BiManiBench, a benchmark comprising three distinct evaluation forms. To better evaluate MLLMs’ capabilities in dual-arm manipula-tion, we enhanced specific dual-arm tasks within existing simulators and designed additional scenarios to support com-prehensive assessments. Below is an introduction to the three different task forms. 
+
+Dual-Arm Spatial Reasoning. Dual-Arm Spatial Rea-soning assesses the agent’s fundamental spatial awareness. Given a visual observation of the workspace, the model must determine the optimal manipulator (left or right arm) to execute a grasp. This evaluation is motivated by a critical challenge dis-tinct from single-arm manipulation: the necessity for dy-namic arm assignment. In expansive workspaces ( e.g. , a long tabletop), each manipulator operates under strict kine-matic constraints and limited reachability. Consequently, incorrect arm selection is not merely a suboptimal strategy but a potential failure mode; forcing a grasp with the wrong arm can lead to kinematic singularities, unreachable targets, or physical collisions, thereby degrading execution perfor-mance and compromising hardware safety. Thus, the ability to accurately map spatial locations to the appropriate effector is a prerequisite for robust bimanual control. 
+
+High-Level Action Planning. High-Level Action Plan-ning evaluates the agent’s logical reasoning and decompo-sition capabilities in long-horizon tasks. The model must act as a strategic planner and be responsible for outputting a logical sequence of atomic action primitives ( e.g. , cate-gorizing objects into containers). In this setting, the model functions as a high-level planner, outputting a sequence of atomic action primitives ( e.g. , Pick, Place) and correspond-ing parameters, while the simulator handles the low-level motion execution. 
+
+Low-Level End-Effector Control. Low-Level End-Effector Control presents the highest level of difficulty, de-manding precise motor control without intermediate prim-itives. The agent must directly output continuous 16-dimensional actions at each step—comprising 7-DoF end-effector pose (position and quaternion rotation) and 1-DoF gripper state for both arms—requiring it to manage detailed trajectory generation and bimanual coordination simultane-ously. 
+
+4.2. Dual-arm Task Coordination Taxonomy 
+
+Beyond the fundamental spatial reasoning, we categorize the manipulation tasks into three distinct modes based on the level of inter-arm coordination required. These modes eval-uate the MLLM’s ability to handle workspace constraints, temporal synchronization, and logical dependencies. 
+
+Independent Parallel Manipulation. In this mode, the two arms execute distinct sub-tasks that do not share a target object but share the same workspace. The core challenges lie in collision avoidance between the arms and optimal arm allocation (assigning the correct arm based on workspace reachability) to ensure efficient parallel execution without interference. 
+
+Synchronous Collaborative Manipulation. This mode requires the two arms to actuate simultaneously to manip-ulate a single shared object ( e.g. , dual-arm lifting). While the task logic is relatively straightforward, it demands pre-cise temporal synchronization. This mode is exclusively evaluated in the Low-Level End-Effector Control tier to test fine-grained coordination. 
+
+Sequential Collaborative Manipulation. This mode involves tasks with strict temporal dependencies, where one arm’s action serves as a prerequisite for the other. Examples include handovers or holding a container with one hand while the other places an object inside. The agent must understand the logical sequence of the dual-arm workflow. 
+
+4.3. Vision-Driven Agent Structure Design 
+
+4.3.1. Agent Input 
+
+The inputs to the agent include the image of the current step, which may consist of both a first-person and a third-person view due to possible occlusions during manipulation, the language instruction, the history of environment interactions, and task-specific auxiliary information. Details regarding two types of view are in Appendix E. Details of input prompt are in Appendix F. 
+
+4.3.2. Task Planner 
+
+At each planning step, the agent: (1) generates a textual description of the current visual input; (2) reasons about how to use the available information to achieve the goal based on the image input and the history of interactions; (3) formulates a language-based plan; and (4) converts it into an executable plan in the required format. All outputs are structured in JSON format. Unlike previous methods that restrict agents to single-step planning, our framework supports multi-step action gener-ation (Action Chunking), allowing the MLLM to predict a sequence of consecutive actions in a single inference step. This approach enhances inference efficiency and encourages temporal consistency. However, effective manipulation heavily relies on precise, real-time auxiliary state information provided by the simu-lator. During the execution of a long action sequence, the environment state evolves dynamically after the initial steps, causing a discrepancy between the current world state and the outdated state observation used to plan the later actions in the sequence. This leads to ’action lag’ or state-action misalignment, where subsequent actions become invalid or hazardous. To mitigate this, we implement a Task-Adaptive Execu-tion Truncation mechanism. We define a specific maximum execution limit (max chunk size) for each task. Regardless of the predicted sequence length, the system only executes the first k actions (where k is the task-specific threshold) be-fore halting to re-observe the environment and replan. This strategy balances the efficiency of sequential execution with the safety of closed-loop feedback. Output 
+
+Low-Level End-Effector Control 
+
+High-Level Action Planning 
+
+Task Instruction Input 
+
+> You are … Your Task is to … The action format is ...
+
+Spatial Planner 
+
+(VLM) 
+
+Task Instruction Input 
+
+> You are … Your Task is to … The action format is ...
+
+Skill Set (Grasp, Place, Move, etc.) Input 
+
+3 Steps Interaction History Input        
+
+> Step 0, actionList: […], action_feedback: Action Failed: target red_block is too far, left arm can not finish this 'grasp' action ….
+> Step 1, actionList: […], action_feedback: succeed, ….
+> Step 2, actionList: […], action_feedback: succeed, ….
+
+High-Level Planner 
+
+(VLM) 
+
+Low-Level Planner 
+
+(VLM) 
+
+Score 
+
+Calculation 
+
+Environment 
+
+Interaction 
+
+Not finished 
+
+Update Input 
+
+Visual State Description 
+
+The table has three blocks: a red block, a green block, and a blue block. The red block is the largest … 
+
+Reasoning and Reflection 
+
+The previous actions attempted to grasp and place the red block… To complete the task, I need to correctly identify and … 
+
+Language Plan 
+
+First, I will use the right arm to grasp red block … Then, I will use the left arm … Finally, I will use the left arm again to … 
+
+Executable Plan 
+
+[{…, "action_name": "grasp_actor", "parameters": {"actor": "red_block", "arm_tag": "right", …}}, 
+
+{…,"action_name": …}…] 
+
+Visual State Description 
+
+The table has three blocks: a red block, a green block, and a blue block. The red block is the largest … 
+
+Reasoning and Reflection 
+
+The previous actions attempted to grasp and place the red block… To complete the task, I need to correctly identify and … 
+
+Language Plan 
+
+First, I will use the right arm to grasp red block … Then, I will use the left arm … Finally, I will use the left arm again to … 
+
+Executable Plan 
+
+["[ -0.349, -0.252, 1.08, 0.707, 0, 0, 0.707, 1.0, 0.207, 0.024, 0.94, 0.3354, -0.6225, 0.3354, 0.6225, 1.0 ]", "[ -0.349, -0.252, …]", …] 
+
+Environment 
+
+Interaction 
+
+Not Finished 
+
+Update Input 
+
+Task-specific auxiliary information Input  
+
+> Now […] is ideal middle pos for red block. And […] is functional point of … In parameters of PLACE, you should specify dis = 0 ...
+
+Executable Plan 
+
+[{ "object": "blue_block", "use_arm": "LEFT"}, 
+
+{"object": "red_block", "use_arm": "RIGHT"}, …] 
+
+Visual State Description 
+
+Three colored cubes are on the table: a blue block near the left side, a green block slightly left of center, and a red block on the right side … 
+
+Next Scenario 
+
+Task Success 
+
+Or 
+
+Max Step 
+
+Next Scenario 
+
+Task Success 
+
+Or 
+
+Max Step 
+
+Output Example Input 
+
+Main View 
+
+Third View 
+
+Main View Observation Input 
+
+Observation Input 
+
+Main View Observation Input 
+
+Task Instruction Input 
+
+> You are … Your Task is to … The action format is ...
+
+Task-specific auxiliary information Input 
+
+> Now the pose of left arm is … The position of block1 is … The ideal pos for block1 to be placed is … The initial pos of left arm is …
+
+3 Steps Interaction History Input 
+
+> Step 0, actionList: […], action_feedback: succeed, ….
+> Step 1, actionList: […], action_feedback: succeed, ….
+> Step 2, actionList: […], action_feedback: succeed, ….
+
+Dual-Arm Spatial Reasoning 
+
+Output 
+
+Output Figure 2. The vision-driven agent framework for BiManiBench. This architecture facilitates a structured cycle of multimodal perception, iterative reasoning, and tiered action formulation for bimanual manipulation. See Section 4.3 for further implementation details. 
+
+## 5. Experiments 
+
+5.1. Experiment Settings 
+
+General Settings. To ensure statistical reliability, we con-duct 100 evaluation episodes for every task in the benchmark. Across these episodes, we implement visual and physical domain randomization, varying background textures, light-ing conditions, and initial object poses to assess the agent’s generalization capabilities. 
+
+Dual-Arm Spatial Reasoning Settings. In the Dual-Arm Spatial Reasoning tier, we use distinct colored cubes in three configurations: (1) Sparse Setting , with three cubes; (2) 
+
+Dense Setting , with five cubes to increase complexity; and (3) Cluttered Setting , which adds random distractor objects 
+
+to test robustness against visual noise. We evaluate 30 models include open-source models and closed-source models in this tier. 
+
+High-Level Action Planning Settings. The High-Level Action Planning tier comprises 14 tasks, designed to eval-uate diverse manipulation capabilities. Aligning with our coordination taxonomy, these tasks are categorized into two primary groups: Independent Parallel Manipulation (where arms operate in the same workspace without direct depen-dency) and Sequential Collaborative Manipulation (where tasks require strict temporal logic between arms). In this setting, the MLLM functions as a strategic planner rather than a motor controller. We define a library of 7 parameterized action primitives ( e.g. , Grasp, Place, Move, Back), where each action requires specific arguments (such as target object ID or coordinate offsets) to be valid. The execution pipeline is API-based: the MLLM outputs the action name and parameters, which are then interpreted and executed by the simulator’s internal motion planner. This abstraction allows us to isolate and evaluate the model’s logical reasoning and task planning capabilities without the interference of low-level control noise. We evaluate 28 models include open-source models and closed-source models in this tier. 
+
+Low-Level End-Effector Control Settings. The Low-Level End-Effector Control tier consists of 5 distinct tasks designed to test the limits of fine-grained bimanual control. The tasks cover full spectrum of our coordination taxonomy, evaluating capabilities ranging from optimal single-arm se-lection to complex Independent Parallel, Sequential Collabo-rative, and Synchronous Collaborative Manipulation. We adopt a continuous end-effector control scheme with a 16-dimensional action space. At each timestep, the agent outputs a concatenated vector for both arms (8 dimensions per arm), defined as [x, y, z, q w, q x, q y , q z , gripper state ].This vector controls the end-effector’s 3D translation, rota-tional orientation (via quaternions), and gripper actuation. Given the difficulty of estimating precise 6-DoF poses solely from visual observations, we decouple perception from con-trol to ensure fair evaluation. The simulator calculates the target object’s ground-truth pose and the optimal grasping quaternion, which are provided to the model as auxiliary textual input. This allows the evaluation to focus on the MLLM’s ability to generate stable control trajectories and coordinate bimanual movements. We evaluate 7 models include open-source models and closed-source models in this tier. 
+
+5.2. Benchmark Results 
+
+5.2.1. Dual-Arm Spatial Reasoning Result 
+
+Table 1 details the performance across different model fam-ilies. Several key observations regarding spatial reasoning and visual robustness can be drawn: 
+
+Performance Disparity and Scaling Trends: Overall, closed-source models maintain a dominant lead, establish-ing a high performance ceiling and demonstrating superior consistency across all test scenarios. Within the open-source landscape, a clear scaling effect is visible, where larger pa-rameter counts generally translate to more accurate spatial judgment. However, an ”efficiency peak” is observed among certain mid-sized models (27b+), which perform competi-tively against significantly larger or even proprietary models. This suggests that for specialized tasks like dual-arm reach-ability analysis, architectural optimizations and the quality of vision-language alignment can be as influential as raw parameter scale. 
+
+Robustness Against Scene Complexity: The transition from sparse to cluttered environments serves as a critical stress test for the robustness of spatial grounding. While high-performing models exhibit resilience to increased ob-ject density, many models—particularly smaller-scale open-source versions—suffer a noticeable performance degrada-tion when distractor objects are introduced. This decline in accuracy under visual noise reveals a common fragility in current MLLMs: the difficulty in maintaining precise object-to-arm allocation when the workspace becomes crowded. These results underscore that achieving reliable bimanual coordination in realistic, unstructured environments remains a significant hurdle for embodied agents. 
+
+Table 1. Dual-Arm Spatial Reasoning Results. We report the success scores across three scenario settings: Sparse, Dense, and Cluttered. ”Avg.” represents the overall mean performance.                                                                                                                         
+
+> Task scenario settings Models Sparse Dense Cluttered Avg. Open-source Vision Language Models (70b+)
+> Qwen3-VL-235B-A22B-Instruct 86.82 93.50 90.33 90.22 Llama-4-Scout-17B-16E-Instruct 85.49 87.75 86.16 86.47 InternVL3-78B 92.80 97.07 90.16 93.34 InternVL2.5-78B 87.21 86.45 89.37 87.68
+> Open-source Vision Language Models (27b+)
+> InternVL3-38B 81.82 92.13 89.85 87.94 InternVL3.5-38B 89.48 91.45 86.75 89.23 InternVL2.5-38B 79.16 85.47 85.99 83.54 Ovis2-34B 94.78 92.78 90.45 92.67 Qwen3-VL-32B-Instruct 94.47 95.77 91.77 94.00 Qwen2.5-VL-32B-Instruct 85.16 86.08 87.38 86.21 Qwen3-VL-30B-A3B-Instruct 85.50 91.13 88.98 88.54 Gemma-3-27b-it 92.40 81.12 85.78 86.43
+> Open-source Vision Language Models (7b+)
+> Ovis2-16B 94.07 91.74 88.00 91.27 Gemma-3-12b-it 80.09 57.17 70.22 69.16 Llama-3.2-11B-Vision-Instruct 54.64 53.62 54.01 54.09 Ovis2.5-9B 72.79 78.12 73.13 74.68 InternVL3-8B 79.53 69.79 86.79 78.70 InternVL2.5-8B 87.48 78.96 81.81 82.75 Qwen2.5-VL-7B-Instruct 75.20 65.83 79.34 73.46
+> Closed-source Vision Language Models
+> Gemini-2.5-pro 96.14 96.77 92.12 95.01 Gemini-2.5-flash 95.77 96.76 92.88 95.13 Gemini-2.0-flash 95.45 98.69 92.00 95.38 GPT-5 94.73 95.13 92.97 94.28 GPT-4.1 93.43 92.48 91.76 92.55 GPT-4o 89.02 91.13 87.10 89.08 Claude-sonnet-4.5 96.12 94.78 92.23 94.38 Claude-sonnet-4 94.13 94.46 92.88 93.82 Claude-sonnet-3.7 93.46 95.11 91.94 93.51 GLM-4.5V 91.48 97.77 93.00 94.08
+
+5.2.2. High-Level Action Planning Result 
+
+Table 3 presents the success rates for high-level action plan-ning, categorized into Independent Parallel and Sequential Collaborative manipulation tasks. The results underscore the challenge imposed by long-horizon reasoning and multi-step collaboration. (1) Reasoning Gap in Closed-source Models: Similar to spatial tasks, closed-source models dom-inate the high-level planning landscape, but the gap here reflects reasoning depth rather than just visual perception. Gemini-2.5-Pro secures the top spot with a Total Avg. of 70.21 %, followed closely by GPT-5 (67.00%) and Gemini-2.5-flash (61.50%). Notably, GPT-5 achieves perfect scores (100%) in specific sub-tasks like Rank2 and Place3 , demon-strating superior logical chain maintenance. In contrast, the best open-source model, Qwen3-VL-235B-A22B, trails by Table 2. Low-Level Manipulation Performance. We report the 
+
+success rate (%) on specific atomic tasks. The rightmost column shows the average success rate. Detailed task descriptions are provided in Appendix C.3.                                                    
+
+> Tasks Models Place8 Place9 Place10 Grab1 Stack3 Avg. Open-source Vision Language Models
+> Qwen3-VL-235B-A22B-Instruct 41 28 946 225.20 Llama-4-Scout-17B-16E-Instruct 10029 06.00 InternVL3-78B 850 079 127.60 Gemma-3-27b-it 813 3706.20
+> Closed-source Vision Language Models
+> Claude-sonnet-4.5 17 13 689 225.40 GPT-5 66 83 50 79 56 66.80 Gemini-2.5-Pro 82 61 39 81 38 60.20 Gemini-2.5-flash 74 48 13 84 49 53.60
+> (a) GPT-5 (b) Gemini-2.5-Pro
+
+Figure 3. Comparison of error type distributions. Analysis of failure modes for (a) GPT-5 and (b) Gemini-2.5-Pro. Inner rings represent primary error categories (Perceptual vs. Planning), while outer rings detail specific failure modes. Detailed definitions are provided in Appendix D. 
+
+approximately 16 percentage points (54.21%), highlight-ing that complex action scheduling remains a bottleneck for open-weight models. (2) Non-monotonic Scaling in Open-source Models: A compelling anomaly is observed in the open-source category: larger parameter counts do not guarantee better planning performance. The mid-sized InternVL3-38B achieves a Total Avg. of 52.86%, signifi-cantly outperforming its larger counterpart InternVL3-78B (43.36%) and performing nearly on par with the massive Qwen3-VL-235B-A22B (54.21% ). Similarly, Qwen3-VL-32B-Instruct (52.50%) surpasses the larger 70b+ variants. This suggests that for high-level planning, architectural ef-ficiency and instruction-following alignment may be more critical than raw model size, or that larger models suffer more from hallucination in multi-step protocols. 
+
+5.2.3. Low-Level End-Effector Control Result 
+
+Table 2 reports success rates for low-level atomic manipula-tion tasks. Unlike high-level planning, these tasks demand precise visual grounding and fine-grained control. (1) Gap in Precision Control: A sharp dichotomy exists between top-tier closed-source models and open-source counterparts. GPT-5 leads with 66.80, followed by Gemini-2.5-Pro at 60.20%. In contrast, top open-source model InternVL3-78B achieves only 27.60%. This >30% gap suggests that while open-source models have improved in reasoning, they still lack the spatial understanding required for precise actuation. 
+
+(2) Performance Divergence in Proprietary Models: No-tably, Claude-sonnet-4.5 scores 25.40%, on par with open-source Qwen3-VL-235B (25.20%), despite its reasoning reputation. This anomaly highlights that general intelligence does not automatically translate to embodied proficiency. Furthermore, InternVL3-78B slightly outperforms the larger Qwen3-VL-235B, reinforcing that model architecture and resolution are more pivotal than parameter scale for visual-motor tasks. 
+
+5.3. Impact of Multi-View Observation 
+
+We investigate the impact of incorporating a third-person perspective, hypothesizing that it helps mitigate object oc-clusion inherent in the primary ego-centric view. Our results in Table 4 reveal that the efficacy of this addition depends heavily on model capacity. State-of-the-art models ( e.g. ,Gemini-2.5-Pro) successfully leveraged the auxiliary view to resolve visual ambiguity caused by occlusion, significantly boosting the success rate on the complex place9 task from 0.39 to 0.55. Conversely, weaker models ( e.g. , Gemma3-27B) struggled to integrate the multi-view information; for them, the additional input likely acted as visual noise rather than a valid signal, leading to performance degradation. This suggests that while the third-person view offers critical spa-tial details, utilizing it to handle occlusion requires robust multi-view reasoning capabilities. 
+
+5.4. Error Analysis 
+
+We analyzed failure modes for GPT-5 and Gemini-2.5-Pro, excluding environmental noise. As shown in Fig. 3, GPT-5’s bottleneck is primarily perceptual (54%), largely driven by Task State Estimation Misjudgment (39%), though it also shows a notable inability to adhere to prompt-specified exe-cution parameters (Action Parameter Inconsistency, 23%). Conversely, Gemini-2.5-Pro follows prompt constraints more reliably but is significantly more limited by complex planning logic (56%); its main hurdles are Action Sequenc-ing (31%) and Bimanual Conflict (24%), indicating deeper struggles with the temporal and spatial synchronization es-sential for dual-arm coordination. We provide detailed defi-nitions for each error category in Appendix D. 
+
+## 6. Conclusion 
+
+We introduce BiManiBench, a hierarchical benchmark for evaluating vision-driven MLLMs in dual-arm manipulation. Our experiments reveal that while current MLLMs show promise in strategic planning, they suffer from unstable spa-tial grounding and lack the precise synchronization required Table 3. Benchmark Results under the High-Level Action Planning. We report the success rate (%) for both independent parallel and sequential collaborative manipulation tasks. Detailed task descriptions are provided in Appendix C.2. 
+
+Independent Parallel Manipulation Tasks Sequential Collaborative Manipulation Tasks Models Avg. Place1 Place2 Rank1 Rank2 Stack1 Stack2 Avg. Hand1 Hand2 Hand3 Place3 Place4 Place5 Place6 Place7 Total Avg. Open-source Vision Language Models (70b+) 
+
+Qwen3-VL-235B-A22B-Instruct 58.67 36 1 75 90 83 67 50.88 96 63 86 92 5 17 2 46 54.21 Llama-4-Scout-17B-16E-Instruct † 10.67 20 0 7 37 0 0 29.75 81 9 60 64 4 12 0 8 21.57 InternVL3-78B 56.33 72 7 69 81 39 70 33.63 9 5 9 26 96 4 23 0 16 43.36 InternVL2.5-78B 47.83 56 22 73 76 27 33 29.51 80 0 84 33 1 13 0 25 37.36 Qwen2.5-VL-72B-Instruct 28.60 16 0 / 88 3 36 37.25 74 42 85 59 4 32 0 2 33.92 
+
+Open-source Vision Language Models (27b+) 
+
+InternVL3.5-38B 41.50 72 0 6 81 52 38 33.13 94 11 18 93 12 8 0 29 36.71 InternVL3-38B 57.50 71 0 79 77 58 60 49.38 63 67 90 97 1 44 0 33 52.86 InternVL2.5-38B 45.33 1 0 83 70 62 56 33.00 92 11 84 3 7 47 0 20 38.29 Ovis2-34B 45.50 80 2 77 82 1 31 31.75 96 3 14 94 10 27 0 10 37.64 Qwen3-VL-32B-Instruct 54.67 41 16 88 75 40 68 50.88 93 63 75 96 14 36 8 22 52.50 Qwen2.5-VL-32B-Instruct 52.67 62 7 93 88 24 42 50.13 94 55 88 95 7 49 0 13 51.21 Qwen3-VL-30B-A3B-Instruct 19.83 7 0 61 23 15 13 26.25 51 1 54 51 5 44 0 4 23.50 Gemma-3-27b-it 27.17 62 0 51 26 0 24 19.50 10 24 66 38 1 11 0 6 22.79 
+
+Open-source Vision Language Models (7b+) 
+
+Ovis2-16B 27.50 67 0 25 32 38 3 24.88 72 0 1 97 4 25 0 0 26.00 Gemma-3-12b-it 20.33 83 0 5 34 0 0 13.88 32 28 36 1 1 4 0 9 16.64 Llama-3.2-11B-Vision-Instruct 6.50 1 0 23 15 0 0 20.63 68 5 8 69 1 14 0 0 14.57 Ovis2.5-9B 17.83 41 0 47 16 0 3 28.75 78 14 71 33 7 27 0 0 24.07 InternVL3-8B 13.83 55 0 16 3 6 3 10.38 0 1 71 0 0 11 0 0 11.86 InternVL2.5-8B 2.67 2 0 13 1 0 0 1.25 0 9 0 0 1 0 0 0 1.86 Qwen2.5-VL-7B-Instruct 1.67 3 0 4 2 1 0 1.25 1 0 6 0 3 0 0 0 1.43 
+
+Closed-source Vision Language Models 
+
+Gemini-2.5-Pro 71.33 77 22 88 99 62 80 69.38 94 60 83 94 74 35 63 52 70.21 Gemini-2.5-flash 67.17 60 36 82 93 64 68 59.00 78 28 78 94 61 35 45 53 62.50 Gemini-2.0-flash 62.83 72 43 87 94 43 38 41.25 67 33 81 87 15 33 3 11 50.50 GPT-5 76.67 64 50 92 100 86 68 59.75 69 24 86 90 71 17 58 63 67.00 GPT-4.1 78.50 81 40 87 100 86 77 42.88 47 46 88 96 7 18 1 40 58.14 GPT-4o 52.33 68 22 50 74 37 63 45.50 88 60 85 95 5 16 0 15 48.43 Claude-sonnet-4 67.00 57 31 68 97 82 67 46.63 92 32 83 97 37 20 1 11 55.36 Claude-sonnet-3.7 69.00 68 39 66 96 86 59 45.00 95 32 84 92 32 12 1 12 55.29  
+
+> †Llama-4-Scout-17B-16E-Instruct is a Mixture-of-Experts model with 109B total parameters and 17B activated parameters per forward pass.
+
+Table 4. Ablation on the impact of third-person view. We report success rate (%) as (Base / +Third View). 
+
+Tasks Models Place8 Grab1 Place9 Open-source Vision Language Models 
+
+InternVL3-78B 50 / 43 79 / 73 0 / 1 Gemma3-27B 13 / 4 7 / 6 3 / 0 
+
+Closed-source Vision Language Models 
+
+Gemini-2.5-Pro 61 / 51 81 / 87 39 / 55 Gemini-2.5-Flash 48 / 47 84 / 87 13 / 12 GPT-5 83 / 78 79 / 84 50 / 46 
+
+for bimanual coordination. Specifically, these deficits fre-quently manifest as inter-arm collisions and sequencing er-rors during execution, even when the underlying high-level logic is correct. By pinpointing these specific failure modes, we hope our benchmark guides future research toward de-veloping MLLMs with more robust and reliable physical reasoning for complex bimanual actuation. 
+
+Limitations. A primary limitation is that our evaluation is simulation-based, which may not fully capture real-world physical nuances. While covering various coordination modes, task diversity excludes non-rigid or dynamic objects. Additionally, MLLM inference latency hinders real-time bimanual control, remaining a challenge for practical deploy-ment. Future work will expand task complexity and explore efficient architectures to bridge the reasoning-actuation gap. 
+
+## Impact Statement 
+
+This work aims to advance vision-driven embodied AI by evaluating the fundamental capabilities and limitations of MLLMs in complex dual-arm manipulation. By uncovering the core reasoning and coordination gaps in current models, we provide a foundation for developing more versatile bi-manual robotic agents. There are many potential societal consequences of our work, none of which we feel must be specifically highlighted here. In addition, a discussion of possible future directions is provided in Appendix A. 
+
+## References 
+
+[1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ah-mad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal Anadkat, et al. Gpt-4 technical report. arXiv preprint arXiv:2303.08774 ,2023. S1 [2] Michael Ahn, Anthony Brohan, Noah Brown, Yevgen Cheb-otar, Omar Cortes, Byron David, Chelsea Finn, Chuyuan Fu, Keerthana Gopalakrishnan, Karol Hausman, et al. Do as i can, not as i say: Grounding language in robotic affordances. 
+
+arXiv preprint arXiv:2204.01691 , 2022. 1 [3] anthropic. Claude 3.7 sonnet and claude code. https: //www.anthropic.com/news/claude-3-7-so nnet , 2025. S1 [4] anthropic. Introducing claude 4. https://www.anth ropic.com/news/claude-4 , 2025. S1 [5] anthropic. Claude sonnet 4.5. https://www.anthro pic.com/claude/sonnet , 2025. [6] Jinze Bai, Shuai Bai, Shusheng Yang, Shijie Wang, Sinan Tan, Peng Wang, Junyang Lin, Chang Zhou, and Jingren Zhou. Qwen-vl: A versatile vision-language model for understanding, localization, text reading, and beyond. arXiv preprint arXiv:2308.12966 , 2023. S2 [7] Shuai Bai, Yuxuan Cai, Ruizhe Chen, Keqin Chen, Xionghui Chen, Zesen Cheng, Lianghao Deng, Wei Ding, Chang Gao, Chunjiang Ge, Wenbin Ge, Zhifang Guo, Qidong Huang, Jie Huang, Fei Huang, Binyuan Hui, Shutong Jiang, Zhaohai Li, Mingsheng Li, Mei Li, Kaixin Li, Zicheng Lin, Jun-yang Lin, Xuejing Liu, Jiawei Liu, Chenglong Liu, Yang Liu, Dayiheng Liu, Shixuan Liu, Dunjie Lu, Ruilin Luo, Chenxu Lv, Rui Men, Lingchen Meng, Xuancheng Ren, Xingzhang Ren, Sibo Song, Yuchong Sun, Jun Tang, Jian-hong Tu, Jianqiang Wan, Peng Wang, Pengfei Wang, Qiuyue Wang, Yuxuan Wang, Tianbao Xie, Yiheng Xu, Haiyang Xu, Jin Xu, Zhibo Yang, Mingkun Yang, Jianxin Yang, An Yang, Bowen Yu, Fei Zhang, Hang Zhang, Xi Zhang, Bo Zheng, Humen Zhong, Jingren Zhou, Fan Zhou, Jing Zhou, Yuanzhi Zhu, and Ke Zhu. Qwen3-vl technical report, 2025. [8] Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun Tang, Humen Zhong, Yuanzhi Zhu, Mingkun Yang, Zhao-hai Li, Jianqiang Wan, Pengfei Wang, Wei Ding, Zheren Fu, Yiheng Xu, Jiabo Ye, Xi Zhang, Tianbao Xie, Zesen Cheng, Hang Zhang, Zhibo Yang, Haiyang Xu, and Jun-yang Lin. Qwen2.5-vl technical report. arXiv preprint arXiv:2502.13923 , 2025. S2 [9] Suneel Belkhale, Tianli Ding, Ted Xiao, Pierre Sermanet, Quon Vuong, Jonathan Tompson, Yevgen Chebotar, De-bidatta Dwibedi, and Dorsa Sadigh. Rt-h: Action hierarchies using language. arXiv preprint arXiv:2403.01823 , 2024. [10] Kevin Black, Noah Brown, Danny Driess, Adnan Esmail, Michael Equi, Chelsea Finn, Niccolo Fusai, Lachy Groom, Karol Hausman, Brian Ichter, et al. π0: A vision-language-action flow model for general robot control. arXiv preprint arXiv:2410.24164 , 2024. [11] Rishi Bommasani, Drew A. Hudson, Ehsan Adeli, Russ Altman, Simran Arora, Sydney von Arx, Michael S. Bern-stein, Jeannette Bohg, Antoine Bosselut, Emma Brun-skill, Erik Brynjolfsson, Shyamal Buch, Dallas Card, Ro-drigo Castellon, Niladri Chatterji, Annie Chen, Kathleen Creel, Jared Quincy Davis, Dora Demszky, Chris Donahue, Moussa Doumbouya, Esin Durmus, Stefano Ermon, John Etchemendy, Kawin Ethayarajh, Li Fei-Fei, Chelsea Finn, Trevor Gale, Lauren Gillespie, Karan Goel, Noah Goodman, Shelby Grossman, Neel Guha, Tatsunori Hashimoto, Peter Henderson, John Hewitt, Daniel E. Ho, Jenny Hong, Kyle Hsu, Jing Huang, Thomas Icard, Saahil Jain, Dan Jurafsky, Pratyusha Kalluri, Siddharth Karamcheti, Geoff Keeling, Fereshte Khani, Omar Khattab, Pang Wei Koh, Mark Krass, Ranjay Krishna, Rohith Kuditipudi, Ananya Kumar, Faisal Ladhak, Mina Lee, Tony Lee, Jure Leskovec, Isabelle Lev-ent, Xiang Lisa Li, Xuechen Li, Tengyu Ma, Ali Malik, Christopher D. Manning, Suvir Mirchandani, Eric Mitchell, Zanele Munyikwa, Suraj Nair, Avanika Narayan, Deepak Narayanan, Ben Newman, Allen Nie, Juan Carlos Niebles, Hamed Nilforoshan, Julian Nyarko, Giray Ogut, Laurel Orr, Isabel Papadimitriou, Joon Sung Park, Chris Piech, Eva Portelance, Christopher Potts, Aditi Raghunathan, Rob Re-ich, Hongyu Ren, Frieda Rong, Yusuf Roohani, Camilo Ruiz, Jack Ryan, Christopher R ´e, Dorsa Sadigh, Shiori Sagawa, Keshav Santhanam, Andy Shih, Krishnan Srini-vasan, Alex Tamkin, Rohan Taori, Armin W. Thomas, Flo-rian Tram `er, Rose E. Wang, William Wang, Bohan Wu, Jiajun Wu, Yuhuai Wu, Sang Michael Xie, Michihiro Ya-sunaga, Jiaxuan You, Matei Zaharia, Michael Zhang, Tianyi Zhang, Xikun Zhang, Yuhui Zhang, Lucia Zheng, Kaitlyn Zhou, and Percy Liang. On the opportunities and risks of foundation models, 2022. [12] Anthony Brohan, Yevgen Chebotar, Chelsea Finn, Karol Hausman, Alexander Herzog, Daniel Ho, Julian Ibarz, Alex Irpan, Eric Jang, Ryan Julian, et al. Do as i can, not as i say: Grounding language in robotic affordances. In Conference on robot learning , pages 287–318. PMLR, 2023. [13] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Sub-biah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakan-tan, Pranav Shyam, Girish Sastry, Amanda Askell, Sand-hini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel Ziegler, Jeffrey Wu, Clemens Winter, Chris Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. Language models are few-shot learners. In Advances in Neural Information Pro-cessing Systems , pages 1877–1901. Curran Associates, Inc., 2020. [14] Matthew Chang, Gunjan Chhablani, Alexander Clegg, Mikael Dallaire Cote, Ruta Desai, Michal Hlavac, Vladimir Karashchuk, Jacob Krantz, Roozbeh Mottaghi, Priyam Parashar, et al. Partnr: A benchmark for planning and reasoning in embodied multi-agent tasks. arXiv preprint arXiv:2411.00081 , 2024. [15] Boyuan Chen, Zhuo Xu, Sean Kirmani, Brain Ichter, Dorsa Sadigh, Leonidas Guibas, and Fei Xia. Spatialvlm: Endow-ing vision-language models with spatial reasoning capabili-ties. In Proceedings of the IEEE/CVF Conference on Com-puter Vision and Pattern Recognition , pages 14455–14465, 2024. [16] Chubin Chen, Sujie Hu, Jiashu Zhu, Meiqi Wu, Jintao Chen, Yanxun Li, Nisha Huang, Chengyu Fang, Jiahong Wu, Xi-angxiang Chu, et al. Taming preference mode collapse via directional decoupling alignment in diffusion reinforcement learning. arXiv preprint arXiv:2512.24146 , 2025. S1 [17] Chubin Chen, Jiashu Zhu, Xiaokun Feng, et al. S 2-guidance: Stochastic self guidance for training-free enhancement of diffusion models. arXiv preprint arXiv:2508.12880 , 2025. S1 [18] Junting Chen, Yao Mu, Qiaojun Yu, Tianming Wei, Silang Wu, Zhecheng Yuan, Zhixuan Liang, Chao Yang, Kaipeng Zhang, Wenqi Shao, et al. Roboscript: Code generation for free-form manipulation tasks across real and simulation. 
+
+arXiv preprint arXiv:2402.14623 , 2024. [19] Tianxing Chen, Zanxin Chen, Baijun Chen, Zijian Cai, Yibin Liu, Zixuan Li, Qiwei Liang, Xianliang Lin, Yiheng Ge, Zhenyu Gu, et al. Robotwin 2.0: A scalable data gen-erator and benchmark with strong domain randomization for robust bimanual robotic manipulation. arXiv preprint arXiv:2506.18088 , 2025. 3 [20] Tianxing Chen, Kaixuan Wang, Zhaohui Yang, Yuhao Zhang, Zanxin Chen, Baijun Chen, Wanxi Dong, Ziyuan Liu, Dong Chen, Tianshuo Yang, et al. Benchmarking gen-eralizable bimanual manipulation: Robotwin dual-arm col-laboration challenge at cvpr 2025 meis workshop. arXiv preprint arXiv:2506.23351 , 2025. [21] Yaran Chen, Wenbo Cui, Yuanwen Chen, Mining Tan, Xinyao Zhang, Dongbin Zhao, and He Wang. Robogpt: an intelligent agent of making embodied long-term decisions for daily instruction tasks. arXiv preprint arXiv:2311.15649 ,2023. [22] Zhe Chen, Weiyun Wang, Yue Cao, Yangzhou Liu, Zhang-wei Gao, Erfei Cui, Jinguo Zhu, Shenglong Ye, Hao Tian, Zhaoyang Liu, et al. Expanding performance boundaries of open-source multimodal models with model, data, and test-time scaling. arXiv preprint arXiv:2412.05271 , 2024. [23] Zhe Chen, Weiyun Wang, Hao Tian, Shenglong Ye, Zhang-wei Gao, Erfei Cui, Wenwen Tong, Kongzhi Hu, Jiapeng Luo, Zheng Ma, et al. How far are we to gpt-4v? closing the gap to commercial multimodal models with open-source suites. arXiv preprint arXiv:2404.16821 , 2024. [24] Zhe Chen, Jiannan Wu, Wenhai Wang, Weijie Su, Guo Chen, Sen Xing, Muyan Zhong, Qinglong Zhang, Xizhou Zhu, Lewei Lu, et al. Internvl: Scaling up vision foundation models and aligning for generic visual-linguistic tasks. In 
+
+Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition , pages 24185–24198, 2024. S2 [25] Zhili Cheng, Yuge Tu, Ran Li, Shiqi Dai, Jinyi Hu, Shengding Hu, Jiahao Li, Yang Shi, Tianyu Yu, Weize Chen, et al. Embodiedeval: Evaluate multimodal llms as embodied agents. arXiv preprint arXiv:2501.11858 , 2025. [26] Cheng Chi, Zhenjia Xu, Siyuan Feng, Eric Cousineau, Yilun Du, Benjamin Burchfiel, Russ Tedrake, and Shuran Song. Diffusion policy: Visuomotor policy learning via action diffusion. The International Journal of Robotics Research ,44(10-11):1684–1704, 2025. [27] Jae-Woo Choi, Youngwoo Yoon, Hyobin Ong, Jaehong Kim, and Minsu Jang. Lota-bench: Benchmarking language-oriented task planners for embodied agents. arXiv preprint arXiv:2402.08178 , 2024. [28] Gheorghe Comanici, Eric Bieber, Mike Schaekermann, Ice Pasupat, Noveen Sachdeva, Inderjit Dhillon, Marcel Blis-tein, Ori Ram, Dan Zhang, Evan Rosen, et al. Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities. arXiv preprint arXiv:2507.06261 , 2025. S1 [29] Danny Driess, Fei Xia, Mehdi S. M. Sajjadi, Corey Lynch, Aakanksha Chowdhery, Brian Ichter, Ayzaan Wahid, Jonathan Tompson, Quan Vuong, Tianhe Yu, Wenlong Huang, Yevgen Chebotar, Pierre Sermanet, Daniel Duck-worth, Sergey Levine, Vincent Vanhoucke, Karol Hausman, Marc Toussaint, Klaus Greff, Andy Zeng, Igor Mordatch, and Pete Florence. Palm-e: An embodied multimodal lan-guage model. In arXiv preprint arXiv:2303.03378 , 2023. 1[30] Yilun Du, Mengjiao Yang, Pete Florence, Fei Xia, Ayzaan Wahid, Brian Ichter, Pierre Sermanet, Tianhe Yu, Pieter Abbeel, Joshua B. Tenenbaum, Leslie Kaelbling, Andy Zeng, and Jonathan Tompson. Video language planning, 2023. [31] Zane Durante, Qiuyuan Huang, Naoki Wake, Ran Gong, Jae Sung Park, Bidipta Sarkar, Rohan Taori, Yusuke Noda, Demetri Terzopoulos, Yejin Choi, et al. Agent ai: Survey-ing the horizons of multimodal interaction. arXiv preprint arXiv:2401.03568 , 2024. [32] Zipeng Fu, Tony Z Zhao, and Chelsea Finn. Mobile aloha: Learning bimanual mobile manipulation with low-cost whole-body teleoperation. arXiv preprint arXiv:2401.02117 ,2024. [33] Jensen Gao, Bidipta Sarkar, Fei Xia, Ted Xiao, Jiajun Wu, Brian Ichter, Anirudha Majumdar, and Dorsa Sadigh. Physi-cally grounded vision-language models for robotic manipu-lation. In 2024 IEEE International Conference on Robotics and Automation (ICRA) , pages 12462–12469. IEEE, 2024. [34] Google. Gemini 2.0 flash. https://docs.cloud.g oogle.com/vertex-ai/generative-ai/docs/ models/gemini/2-0-flash , 2025. S1 [35] Markus Grotz, Mohit Shridhar, Yu-Wei Chao, Tamim As-four, and Dieter Fox. Twin: Two-handed intelligent bench-mark for bimanual manipulation. In 2025 IEEE Interna-tional Conference on Robotics and Automation (ICRA) ,pages 7945–7951. IEEE, 2025. 3 [36] Jiayuan Gu, Fanbo Xiang, Xuanlin Li, Zhan Ling, Xiqiang Liu, Tongzhou Mu, Yihe Tang, Stone Tao, Xinyue Wei, Yunchao Yao, et al. Maniskill2: A unified benchmark for generalizable manipulation skills. arXiv preprint arXiv:2302.04659 , 2023. [37] Mengkang Hu, Tianxing Chen, Qiguang Chen, Yao Mu, Wenqi Shao, and Ping Luo. Hiagent: Hierarchical work-ing memory management for solving long-horizon agent tasks with large language model. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 32779–32798, 2025. [38] Mengkang Hu, Tianxing Chen, Yude Zou, Yuheng Lei, Qiguang Chen, Ming Li, Yao Mu, Hongyuan Zhang, Wenqi Shao, and Ping Luo. Text2world: Benchmarking large lan-guage models for symbolic world model generation. arXiv preprint arXiv:2502.13092 , 2025. [39] Haoxu Huang, Fanqi Lin, Yingdong Hu, Shengjie Wang, and Yang Gao. Copa: General robotic manipulation through spatial constraints of parts with foundation models. In 2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) , pages 9488–9495. IEEE, 2024. [40] Shijie Huang, Yiren Song, Yuxuan Zhang, Hailong Guo, Xueyin Wang, Mike Zheng Shou, and Jiaming Liu. Photodoodle: Learning artistic image editing from few-shot pairwise data. arXiv preprint arXiv:2502.14397 , 2025. S1 [41] Wenlong Huang, Pieter Abbeel, Deepak Pathak, and Igor Mordatch. Language models as zero-shot planners: Extract-ing actionable knowledge for embodied agents. In Interna-tional conference on machine learning , pages 9118–9147. PMLR, 2022. 1, 2 [42] Wenlong Huang, Fei Xia, Ted Xiao, Harris Chan, Jacky Liang, Pete Florence, Andy Zeng, Jonathan Tompson, Igor Mordatch, Yevgen Chebotar, et al. Inner monologue: Em-bodied reasoning through planning with language models. 
+
+arXiv preprint arXiv:2207.05608 , 2022. 1, 2 [43] Wenlong Huang, Chen Wang, Ruohan Zhang, Yunzhu Li, Jiajun Wu, and Li Fei-Fei. Voxposer: Composable 3d value maps for robotic manipulation with language models. arXiv preprint arXiv:2307.05973 , 2023. 3 [44] Wenlong Huang, Fei Xia, Dhruv Shah, Danny Driess, Andy Zeng, Yao Lu, Pete Florence, Igor Mordatch, Sergey Levine, Karol Hausman, et al. Grounded decoding: Guiding text generation with grounded models for embodied agents. Ad-vances in Neural Information Processing Systems , 36:59636– 59661, 2023. [45] Wenlong Huang, Chen Wang, Yunzhu Li, Ruohan Zhang, and Li Fei-Fei. Rekep: Spatio-temporal reasoning of rela-tional keypoint constraints for robotic manipulation. arXiv preprint arXiv:2409.01652 , 2024. 3 [46] brian ichter, Anthony Brohan, Yevgen Chebotar, Chelsea Finn, Karol Hausman, Alexander Herzog, Daniel Ho, Julian Ibarz, Alex Irpan, Eric Jang, Ryan Julian, Dmitry Kalash-nikov, Sergey Levine, Yao Lu, Carolina Parada, Kanishka Rao, Pierre Sermanet, Alexander T Toshev, Vincent Van-houcke, Fei Xia, Ted Xiao, Peng Xu, Mengyuan Yan, Noah Brown, Michael Ahn, Omar Cortes, Nicolas Sievers, Clay-ton Tan, Sichun Xu, Diego Reyes, Jarek Rettinghouse, Jor-nell Quiambao, Peter Pastor, Linda Luu, Kuang-Huei Lee, Yuheng Kuang, Sally Jesmonth, Nikhil J. Joshi, Kyle Jeffrey, Rosario Jauregui Ruano, Jasmine Hsu, Keerthana Gopalakr-ishnan, Byron David, Andy Zeng, and Chuyuan Kelly Fu. Do as i can, not as i say: Grounding language in robotic affordances. In Proceedings of The 6th Conference on Robot Learning , pages 287–318. PMLR, 2023. [47] Stephen James, Zicong Ma, David Rovick Arrojo, and An-drew J Davison. Rlbench: The robot learning benchmark & learning environment. IEEE Robotics and Automation Letters , 5(2):3019–3026, 2020. [48] Moo Jin Kim, Karl Pertsch, Siddharth Karamcheti, Ted Xiao, Ashwin Balakrishna, Suraj Nair, Rafael Rafailov, Ethan Foster, Grace Lam, Pannag Sanketi, et al. Openvla: An open-source vision-language-action model. arXiv preprint arXiv:2406.09246 , 2024. [49] Eric Kolve, Roozbeh Mottaghi, Winson Han, Eli VanderBilt, Luca Weihs, Alvaro Herrasti, Matt Deitke, Kiana Ehsani, Daniel Gordon, Yuke Zhu, et al. Ai2-thor: An interactive 3d environment for visual ai. arXiv preprint arXiv:1712.05474 ,2017. [50] Zhiqian Lan, Yuxuan Jiang, Ruiqi Wang, Xuanbing Xie, Rongkui Zhang, Yicheng Zhu, Peihang Li, Tianshuo Yang, Tianxing Chen, Haoyu Gao, et al. Autobio: A simulation and benchmark for robotic automation in digital biology laboratory. arXiv preprint arXiv:2505.14030 , 2025. [51] Chengshu Li, Fei Xia, Roberto Mart ´ın-Mart ´ın, Michael Lin-gelbach, Sanjana Srivastava, Bokui Shen, Kent Vainio, Cem Gokmen, Gokul Dharan, Tanish Jain, et al. igibson 2.0: Object-centric simulation for robot learning of everyday household tasks. arXiv preprint arXiv:2108.03272 , 2021. [52] Chengshu Li, Ruohan Zhang, Josiah Wong, Cem Gokmen, Sanjana Srivastava, Roberto Mart ´ın-Mart ´ın, Chen Wang, Gabrael Levine, Michael Lingelbach, Jiankai Sun, et al. Behavior-1k: A benchmark for embodied ai with 1,000 everyday activities and realistic simulation. In Conference on Robot Learning , pages 80–93. PMLR, 2023. [53] Manling Li, Shiyu Zhao, Qineng Wang, Kangrui Wang, Yu Zhou, Sanjana Srivastava, Cem Gokmen, Tony Lee, Erran Li Li, Ruohan Zhang, et al. Embodied agent interface: Bench-marking llms for embodied decision making. Advances in Neural Information Processing Systems , 37:100428–100534, 2024. [54] Jacky Liang, Wenlong Huang, Fei Xia, Peng Xu, Karol Hausman, Brian Ichter, Pete Florence, and Andy Zeng. Code as policies: Language model programs for embodied control. 
+
+arXiv preprint arXiv:2209.07753 , 2022. 3 [55] Hanchao Liu, Wenyuan Xue, Yifei Chen, Dapeng Chen, Xiutian Zhao, Ke Wang, Liping Hou, Rongjun Li, and Wei Peng. A survey on hallucination in large vision-language models. arXiv preprint arXiv:2402.00253 , 2024. 3 [56] Songming Liu, Lingxuan Wu, Bangguo Li, Hengkai Tan, Huayu Chen, Zhengyi Wang, Ke Xu, Hang Su, and Jun Zhu. Rdt-1b: a diffusion foundation model for bimanual manipulation. arXiv preprint arXiv:2410.07864 , 2024. [57] Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu Gu, Hangliang Ding, Kaiwen Men, Kejuan Yang, et al. Agentbench: Evaluating llms as agents. arXiv preprint arXiv:2308.03688 , 2023. [58] Xiao Liu, Tianjie Zhang, Yu Gu, Iat Long Iong, Yifan Xu, Xixuan Song, Shudan Zhang, Hanyu Lai, Xinyi Liu, Han-lin Zhao, et al. Visualagentbench: Towards large multi-modal models as visual foundation agents. arXiv preprint arXiv:2408.06327 , 2024. [59] Shiyin Lu, Yang Li, Qing-Guo Chen, Zhao Xu, Weihua Luo, Kaifu Zhang, and Han-Jia Ye. Ovis: Structural em-bedding alignment for multimodal large language model. 
+
+arXiv:2405.20797 , 2024. S2 [60] Shiyin Lu, Yang Li, Yu Xia, Yuwei Hu, Shanshan Zhao, Yanqing Ma, Zhichao Wei, Yinglun Li, Lunhao Duan, Jian-shan Zhao, Yuxuan Han, Haijun Li, Wanying Chen, Junke Tang, Chengkun Hou, Zhixing Du, Tianli Zhou, Wenjie Zhang, Huping Ding, Jiahe Li, Wen Li, Gui Hu, Yiliang Gu, Siran Yang, Jiamang Wang, Hailong Sun, Yibo Wang, Hui Sun, Jinlong Huang, Yuping He, Shengze Shi, Weihong Zhang, Guodong Zheng, Junpeng Jiang, Sensen Gao, Yi-Feng Wu, Sijia Chen, Yuhui Chen, Qing-Guo Chen, Zhao Xu, Weihua Luo, and Kaifu Zhang. Ovis2.5 technical report. 
+
+arXiv:2508.11737 , 2025. S2 [61] Yue Ma, Yingqing He, Xiaodong Cun, Xintao Wang, Siran Chen, Xiu Li, and Qifeng Chen. Follow your pose: Pose-guided text-to-video generation using pose-free videos. In 
+
+Proceedings of the AAAI Conference on Artificial Intelli-gence , pages 4117–4125, 2024. S1 [62] Yue Ma, Hongyu Liu, Hongfa Wang, Heng Pan, Yingqing He, Junkun Yuan, Ailing Zeng, Chengfei Cai, Heung-Yeung Shum, Wei Liu, et al. Follow-your-emoji: Fine-controllable and expressive freestyle portrait animation. In SIGGRAPH Asia 2024 Conference Papers , pages 1–12, 2024. [63] Yue Ma, Kunyu Feng, Zhongyuan Hu, Xinyu Wang, Yucheng Wang, Mingzhe Zheng, Xuanhua He, Chenyang Zhu, Hongyu Liu, Yingqing He, et al. Controllable video generation: A survey. arXiv preprint arXiv:2507.16869 ,2025. [64] Yue Ma, Kunyu Feng, Xinhua Zhang, Hongyu Liu, David Junhao Zhang, Jinbo Xing, Yinhan Zhang, Ayden Yang, Zeyu Wang, and Qifeng Chen. Follow-your-creation: Empowering 4d creation through video inpainting. arXiv preprint arXiv:2506.04590 , 2025. S1 [65] Yue Ma, Yingqing He, Hongfa Wang, Andong Wang, Leqi Shen, Chenyang Qi, Jixuan Ying, Chengfei Cai, Zhifeng Li, Heung-Yeung Shum, et al. Follow-your-click: Open-domain regional image animation via motion prompts. In Proceed-ings of the AAAI Conference on Artificial Intelligence , pages 6018–6026, 2025. [66] Yue Ma, Yulong Liu, Qiyuan Zhu, Ayden Yang, Kunyu Feng, Xinhua Zhang, Zhifeng Li, Sirui Han, Chenyang Qi, and Qifeng Chen. Follow-your-motion: Video motion transfer via efficient spatial-temporal decoupled finetuning. arXiv preprint arXiv:2506.05207 , 2025. S1 [67] Yue Ma, Zexuan Yan, Hongyu Liu, Hongfa Wang, Heng Pan, Yingqing He, Junkun Yuan, Ailing Zeng, Chengfei Cai, Heung-Yeung Shum, et al. Follow-your-emoji-faster: Towards efficient, fine-controllable, and expressive freestyle portrait animation. arXiv preprint arXiv:2509.16630 , 2025. S1 [68] Meta AI. Llama 3.2: Revolutionizing edge ai and vision with open, customizable models. https://ai.meta. com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/ , 2024. S2 [69] Meta AI. The llama 4 herd: The beginning of a new era of natively multimodal ai innovation. https://ai.meta. com/blog/llama-4-multimodal-intelligen ce/ , 2025. S2 [70] Yao Mu, Qinglong Zhang, Mengkang Hu, Wenhai Wang, Mingyu Ding, Jun Jin, Bin Wang, Jifeng Dai, Yu Qiao, and Ping Luo. Embodiedgpt: Vision-language pre-training via embodied chain of thought. Advances in Neural Information Processing Systems , 36:25081–25094, 2023. [71] Yao Mu, Tianxing Chen, Zanxin Chen, Shijia Peng, Zhiqian Lan, Zeyu Gao, Zhixuan Liang, Qiaojun Yu, Yude Zou, Mingkun Xu, et al. Robotwin: Dual-arm robot benchmark with generative digital twins. In Proceedings of the Com-puter Vision and Pattern Recognition Conference , pages 27649–27660, 2025. 3 [72] Soroush Nasiriany, Abhiram Maddukuri, Lance Zhang, Adeet Parikh, Aaron Lo, Abhishek Joshi, Ajay Man-dlekar, and Yuke Zhu. Robocasa: Large-scale simulation of everyday tasks for generalist robots. arXiv preprint arXiv:2406.02523 , 2024. [73] OpenAI. Hello gpt-4o. https://openai.com/index /hello-gpt-4o/ , 2024. S1 [74] OpenAI. Introducing gpt-4.1 in the api. https://open ai.com/index/gpt-4-1/ , 2025. [75] OpenAI. Introducing gpt-5. https://openai.com/i ndex/introducing-gpt-5/ , 2025. S1 [76] Xavier Puig, Kevin Ra, Marko Boben, Jiaman Li, Tingwu Wang, Sanja Fidler, and Antonio Torralba. Virtualhome: Simulating household activities via programs. In Proceed-ings of the IEEE conference on computer vision and pattern recognition , pages 8494–8502, 2018. 3 [77] Krishan Rana, Jesse Haviland, Sourav Garg, Jad Abou-Chakra, Ian Reid, and Niko Suenderhauf. Sayplan: Ground-ing large language models using 3d scene graphs for scal-able robot task planning. arXiv preprint arXiv:2307.06135 ,2023. [78] Vipula Rawte, Swagata Chakraborty, Agnibh Pathak, Anub-hav Sarkar, SM Towhidul Islam Tonmoy, Aman Chadha, Amit Sheth, and Amitava Das. The troubling emergence of hallucination in large language models-an extensive def-inition, quantification, and prescriptive remediations. In 
+
+Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing , pages 2541–2573, 2023. [79] Mohit Shridhar, Jesse Thomason, Daniel Gordon, Yonatan Bisk, Winson Han, Roozbeh Mottaghi, Luke Zettlemoyer, and Dieter Fox. Alfred: A benchmark for interpreting grounded instructions for everyday tasks. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 10740–10749, 2020. [80] Mohit Shridhar, Xingdi Yuan, Marc-Alexandre C ˆot ´e, Yonatan Bisk, Adam Trischler, and Matthew Hausknecht. Alfworld: Aligning text and embodied environments for interactive learning. arXiv preprint arXiv:2010.03768 , 2020. 1, 3 [81] Mohit Shridhar, Lucas Manuelli, and Dieter Fox. Cliport: What and where pathways for robotic manipulation. In 
+
+Conference on robot learning , pages 894–906. PMLR, 2022. 1[82] Ishika Singh, Valts Blukis, Arsalan Mousavian, Ankit Goyal, Danfei Xu, Jonathan Tremblay, Dieter Fox, Jesse Thomason, and Animesh Garg. Progprompt: Generating situated robot task plans using large language models. arXiv preprint arXiv:2209.11302 , 2022. [83] Christian Smith, Yiannis Karayiannidis, Lazaros Nalpan-tidis, Xavi Gratal, Peng Qi, Dimos V Dimarogonas, and Danica Kragic. Dual arm manipulation—a survey. Robotics and Autonomous systems , 60(10):1340–1353, 2012. 1, 3 [84] Chan Hee Song, Jiaman Wu, Clayton Washington, Brian M Sadler, Wei-Lun Chao, and Yu Su. Llm-planner: Few-shot grounded planning for embodied agents with large language models. In Proceedings of the IEEE/CVF international conference on computer vision , pages 2998–3009, 2023. [85] Yiren Song, Xiaokang Liu, and Mike Zheng Shou. Diffsim: Taming diffusion models for evaluating visual similarity. 
+
+arXiv preprint arXiv:2412.14580 , 2024. S1 [86] Yiren Song, Cheng Liu, and Mike Zheng Shou. Omnicon-sistency: Learning style-agnostic consistency from paired stylization data. arXiv preprint arXiv:2505.18445 , 2025. S1 [87] Andrew Szot, Alexander Clegg, Eric Undersander, Erik Wijmans, Yili Zhao, John Turner, Noah Maestre, Mustafa Mukadam, Devendra Singh Chaplot, Oleksandr Maksymets, et al. Habitat 2.0: Training home assistants to rearrange their habitat. Advances in neural information processing systems ,34:251–266, 2021. [88] Andrew Szot, Max Schwarzer, Harsh Agrawal, Bogdan Ma-zoure, Rin Metcalf, Walter Talbott, Natalie Mackraz, R De-von Hjelm, and Alexander T Toshev. Large language mod-els as generalizable policies for embodied tasks. In The Twelfth International Conference on Learning Representa-tions , 2023. [89] Gemma Team, Aishwarya Kamath, Johan Ferret, Shreya Pathak, Nino Vieillard, Ramona Merhej, Sarah Perrin, Ta-tiana Matejovicova, Alexandre Ram ´e, Morgane Rivi `ere, et al. Gemma 3 technical report. arXiv preprint arXiv:2503.19786 ,2025. S2 [90] Octo Model Team, Dibya Ghosh, Homer Walke, Karl Pertsch, Kevin Black, Oier Mees, Sudeep Dasari, Joey Hejna, Tobias Kreiman, Charles Xu, et al. Octo: An open-source generalist robot policy. arXiv preprint arXiv:2405.12213 ,2024. [91] V Team, Wenyi Hong, Wenmeng Yu, Xiaotao Gu, Guo Wang, Guobing Gan, Haomiao Tang, Jiale Cheng, Ji Qi, Junhui Ji, Lihang Pan, Shuaiqi Duan, Weihan Wang, Yan Wang, Yean Cheng, Zehai He, Zhe Su, Zhen Yang, Ziyang Pan, Aohan Zeng, Baoxu Wang, Bin Chen, Boyan Shi, Changyu Pang, Chenhui Zhang, Da Yin, Fan Yang, Guoqing Chen, Jiazheng Xu, Jiale Zhu, Jiali Chen, Jing Chen, Jinhao Chen, Jinghao Lin, Jinjiang Wang, Junjie Chen, Leqi Lei, Letian Gong, Leyi Pan, Mingdao Liu, Mingde Xu, Mingzhi Zhang, Qinkai Zheng, Sheng Yang, Shi Zhong, Shiyu Huang, Shuyuan Zhao, Siyan Xue, Shangqin Tu, Shengbiao Meng, Tianshu Zhang, Tianwei Luo, Tianxiang Hao, Tianyu Tong, Wenkai Li, Wei Jia, Xiao Liu, Xiaohan Zhang, Xin Lyu, Xinyue Fan, Xuancheng Huang, Yanling Wang, Yadong Xue, Yanfeng Wang, Yanzi Wang, Yifan An, Yifan Du, Yim-ing Shi, Yiheng Huang, Yilin Niu, Yuan Wang, Yuanchang Yue, Yuchen Li, Yutao Zhang, Yuting Wang, Yu Wang, Yux-uan Zhang, Zhao Xue, Zhenyu Hou, Zhengxiao Du, Zihan Wang, Peng Zhang, Debing Liu, Bin Xu, Juanzi Li, Minlie Huang, Yuxiao Dong, and Jie Tang. Glm-4.5v and glm-4.1v-thinking: Towards versatile multimodal reasoning with scalable reinforcement learning, 2025. S2 [92] Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Mandlekar, Chaowei Xiao, Yuke Zhu, Linxi Fan, and Anima Anandku-mar. Voyager: An open-ended embodied agent with large language models. arXiv preprint arXiv:2305.16291 , 2023. [93] Junyang Wang, Yiyang Zhou, Guohai Xu, Pengcheng Shi, Chenlin Zhao, Haiyang Xu, Qinghao Ye, Ming Yan, Ji Zhang, Jihua Zhu, et al. Evaluation and analysis of hal-lucination in large vision-language models. arXiv preprint arXiv:2308.15126 , 2023. 3 [94] Peng Wang, Shuai Bai, Sinan Tan, Shijie Wang, Zhihao Fan, Jinze Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Yang Fan, Kai Dang, Mengfei Du, Xuancheng Ren, Rui Men, Dayiheng Liu, Chang Zhou, Jingren Zhou, and Jun-yang Lin. Qwen2-vl: Enhancing vision-language model’s perception of the world at any resolution. arXiv preprint arXiv:2409.12191 , 2024. S2 [95] Weiyun Wang, Zhe Chen, Wenhai Wang, Yue Cao, Yangzhou Liu, Zhangwei Gao, Jinguo Zhu, Xizhou Zhu, Lewei Lu, Yu Qiao, and Jifeng Dai. Enhancing the reason-ing ability of multimodal large language models via mixed preference optimization. arXiv preprint arXiv:2411.10442 ,2024. [96] Weiyun Wang, Zhangwei Gao, Lixin Gu, Hengjun Pu, Long Cui, Xingguang Wei, Zhaoyang Liu, Linglin Jing, Sheng-long Ye, Jie Shao, et al. Internvl3. 5: Advancing open-source multimodal models in versatility, reasoning, and efficiency. 
+
+arXiv preprint arXiv:2508.18265 , 2025. S2 [97] Kun Wu, Chengkai Hou, Jiaming Liu, Zhengping Che, Xi-aozhu Ju, Zhuqin Yang, Meng Li, Yinuo Zhao, Zhiyuan Xu, Guang Yang, et al. Robomind: Benchmark on multi-embodiment intelligence normative data for robot manipula-tion. arXiv preprint arXiv:2412.13877 , 2024. [98] Fanbo Xiang, Yuzhe Qin, Kaichun Mo, Yikuan Xia, Hao Zhu, Fangchen Liu, Minghua Liu, Hanxiao Jiang, Yifu Yuan, He Wang, et al. Sapien: A simulated part-based interactive environment. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 11097– 11107, 2020. 3 [99] Junlin Xie, Zhihong Chen, Ruifei Zhang, Xiang Wan, and Guanbin Li. Large multimodal agents: A survey. arXiv preprint arXiv:2402.15116 , 2024. [100] Rui Yang, Hanyang Chen, Junyu Zhang, Mark Zhao, Cheng Qian, Kangrui Wang, Qineng Wang, Teja Venkat Koripella, Marziyeh Movahedi, Manling Li, et al. Embodiedbench: Comprehensive benchmarking multi-modal large language models for vision-driven embodied agents. arXiv preprint arXiv:2502.09560 , 2025. 2, 3 [101] Yijun Yang, Tianyi Zhou, Kanxue Li, Dapeng Tao, Lusong Li, Li Shen, Xiaodong He, Jing Jiang, and Yuhui Shi. Em-bodied multi-modal agent trained by an llm from a parallel textworld. In Proceedings of the IEEE/CVF conference on computer vision and pattern recognition , pages 26275– 26285, 2024. 1, 3 [102] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R Narasimhan, and Yuan Cao. React: Synergizing reasoning and acting in language models. In The eleventh international conference on learning representations , 2022. 2[103] Jusheng Zhang, Kaitong Cai, Yijia Fan, Ningyuan Liu, and Keze Wang. MAT-agent: Adaptive multi-agent training optimization. In The Thirty-ninth Annual Conference on Neural Information Processing Systems , 2025. S1 [104] Jusheng Zhang, Kaitong Cai, Yijia Fan, Jian Wang, and Keze Wang. Cf-vlm:counterfactual vision-language fine-tuning, 2025. [105] Jusheng Zhang, Yijia Fan, Wenjun Lin, Ruiqi Chen, Haoyi Jiang, Wenhao Chai, Jian Wang, and Keze Wang. GAM-agent: Game-theoretic and uncertainty-aware collaboration for complex visual reasoning. In The Thirty-ninth An-nual Conference on Neural Information Processing Systems ,2025. 2 [106] Jusheng Zhang, Zimeng Huang, Yijia Fan, Ningyuan Liu, Mingyan Li, Zhuojie Yang, Jiawei Yao, Jian Wang, and Keze Wang. KABB: Knowledge-aware bayesian bandits for dynamic expert coordination in multi-agent systems. In 
+
+Forty-second International Conference on Machine Learn-ing , 2025. 2, S1 [107] Shiduo Zhang, Zhe Xu, Peiju Liu, Xiaopeng Yu, Yuan Li, Qinghui Gao, Zhaoye Fei, Zhangyue Yin, Zuxuan Wu, Yu-Gang Jiang, et al. Vlabench: A large-scale benchmark for language-conditioned robotics manipulation with long-horizon reasoning tasks. In Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 11142– 11152, 2025. 1, 3 [108] Tony Z Zhao, Vikash Kumar, Sergey Levine, and Chelsea Finn. Learning fine-grained bimanual manipulation with low-cost hardware. arXiv preprint arXiv:2304.13705 , 2023. [109] Kaizhi Zheng, Xiaotong Chen, Odest Chadwicke Jenkins, and Xin Wang. Vlmbench: A compositional benchmark for vision-and-language manipulation. In Advances in Neural Information Processing Systems , pages 665–678. Curran Associates, Inc., 2022. 3 [110] Jinguo Zhu, Weiyun Wang, Zhe Chen, Zhaoyang Liu, Shen-glong Ye, Lixin Gu, Hao Tian, Yuchen Duan, Weijie Su, Jie Shao, et al. Internvl3: Exploring advanced training and test-time recipes for open-source multimodal models. arXiv preprint arXiv:2504.10479 , 2025. S2 [111] Yuke Zhu, Josiah Wong, Ajay Mandlekar, Roberto Mart ´ın-Mart ´ın, Abhishek Joshi, Soroush Nasiriany, and Yifeng Zhu. robosuite: A modular simulation framework and benchmark for robot learning. arXiv preprint arXiv:2009.12293 , 2020. [112] Brianna Zitkovich, Tianhe Yu, Sichun Xu, Peng Xu, Ted Xiao, Fei Xia, Jialin Wu, Paul Wohlhart, Stefan Welker, Ayzaan Wahid, et al. Rt-2: Vision-language-action models transfer web knowledge to robotic control. In Conference on Robot Learning , pages 2165–2183. PMLR, 2023. A. Future Research Directions 
+
+While BiManiBench provides a comprehensive framework for evaluating MLLM-based agents in dual-arm manipulation, it also highlights several critical bottlenecks that remain unresolved. To further advance the field of bimanual embodied AI, we outline several promising research directions. • Bridging the Sim-to-Real Gap. BiManiBench is currently simulation-based, utilizing high-fidelity physical engines such as SAPIEN. However, real-world deployment introduces complexities including sensor noise, varied lighting conditions, and mechanical wear that are difficult to fully simulate. Future research should explore transferring MLLM-derived strategies to physical bimanual robots, leveraging techniques such as domain randomization, residual learning, and sim-to-real adaptation to ensure robust performance in unstructured physical environments. • Handling Deformable and Dynamic Objects. The current benchmark primarily focuses on rigid-body manipulation ( e.g. ,blocks, cups, and cans). In real-world settings, many bimanual tasks—such as folding clothes, tying cables, or handling liquids—involve non-rigid or deformable objects. These tasks require agents to model complex physical dynamics and maintain real-time coordination. Incorporating such objects would challenge MLLMs to move beyond simple geometric reasoning toward a more nuanced understanding of material physics. • Optimizing Multi-View and Heterogeneous Information Fusion. Our empirical results indicate that smaller MLLMs often suffer from information overload when processing multiple visual streams, leading to degraded success rates. A key future direction is the development of more efficient multi-modal architectures or attention mechanisms that can selectively fuse information from ego-centric and third-person views without introducing distracting noise, thereby improving spatial grounding and resolving occlusions. • Enhancing Real-Time Control and Latency Mitigation. A significant hurdle for MLLM-based agents [ 103 – 106 ] is inference latency, which limits the high-frequency closed-loop control ( e.g. , > 50 Hz) required for precision bimanual manipulation. Future work could investigate model distillation, action chunking with temporal ensembles, or hybrid architectures that combine high-level MLLM planning with low-level, high-speed reactive controllers to mitigate action lag and enable smoother synchronization. • Human-Robot Bimanual Collaboration. Beyond fully autonomous operation, a natural extension is evaluating MLLMs in scenarios involving human-robot bimanual collaboration. In such settings, the agent must coordinate with a human partner, requiring not only kinematic reasoning but also social awareness, intent recognition, and safe physical interaction. This direction moves the field toward more versatile robotic assistants capable of human-like collaboration. • Predictive World Modeling via Video Generation. Current MLLM-based agents primarily operate in a reactive manner, selecting actions based on instantaneous observations. However, effective bimanual manipulation often requires foresight into long-horizon dynamics. A promising direction is to incorporate video generation [ 16 , 17 , 40 , 61 –64 , 66 , 67 , 85 , 86 ] as a form of predictive world modeling, where agents synthesize future visual trajectories conditioned on candidate actions. Such imagination-based simulation enables agents to evaluate multiple strategies before execution, improving planning robustness, safety, and sample efficiency. Integrating action-conditioned video generation with MLLMs may thus provide a scalable mechanism for temporal reasoning and decision-making in complex embodied environments. By addressing these directions, the community can bridge the current gap between high-level strategic planning and precise physical actuation, ultimately unlocking the full potential of bimanual embodied agents. 
+
+## B. Model Details 
+
+In this section, we provide a detailed overview of the Multimodal Large Language Models (MLLMs) employed in our evaluation. We selected a diverse set of models ranging from state-of-the-art proprietary systems to open-source models of various parameter scales. 
+
+GPT, Gemini, and Claude Closed-Source Model Series For proprietary closed-source models, we assess the leading systems from OpenAI, Google, and Anthropic. The GPT series evaluation includes the flagship GPT-5 , GPT-4.1 , and the efficient GPT-4o [ 1, 73 –75 ]. From Google, we test the Gemini family, specifically Gemini-2.5-Pro , Gemini-2.5-flash , and 
+
+Gemini-2.0-flash [28 , 34 ]. The Anthropic lineup features the Sonnet variants: Claude-sonnet-4.5 , Claude-sonnet-4 , and 
+
+Claude-sonnet-3.7 [3, 4]. 
+
+Qwen-VL Series We evaluate multiple iterations of the Qwen-VL family, covering both the Qwen3 and Qwen2.5 generations. Specifically, we test the large-scale Qwen3-VL-235B-A22B-Instruct , along with the medium-sized Qwen3-VL-32B-Instruct and the mixture-of-experts (MoE) based Qwen3-VL-30B-A3B-Instruct . From the previous generation, we include Qwen2.5-VL-72B-Instruct , Qwen2.5-VL-32B-Instruct , and the lightweight Qwen2.5-VL-7B-Instruct [6–8, 94]. 
+
+InternVL Series The InternVL family represents a significant portion of our open-source benchmarks. Our evaluation includes the latest InternVL3 series (78B, 38B, and 8B variants) and the InternVL3.5-38B model. We also compare these against the widely used InternVL2.5 lineup, encompassing the 78B, 38B, and 8B versions to analyze performance across different model capacities [24, 96, 110]. 
+
+Llama, Gemma, Ovis and GLM Series We also include other prominent open-weight models. The Llama series is represented by the advanced Llama-4-Scout-17B-16E-Instruct and the lightweight Llama-3.2-11B-Vision-Instruct [ 68 , 69 ]. Google’s open models are tested using Gemma-3-27b-it and Gemma-3-12b-it [89 ] Additionally, we evaluate the Ovis family, including Ovis2-34B , Ovis2-16B , and Ovis2.5-9B [ 59 , 60 ]. And we also include GLM-4.5V as a representative model from the GLM family to ensure a comprehensive coverage of current high-performance MLLMs [91]. 
+
+> Table 1. Full names of MLLMs used in our experiments.
+
+Model Name Creator Full Name GPT-5 OpenAI gpt-5-2025-08-07 GPT-4.1 OpenAI gpt-4.1-2025-04-14 GPT-4o OpenAI gpt-4o Gemini-2.5-Pro Google gemini-2.5-Pro Gemini-2.5-flash Google gemini-2.5-flash Gemini-2.0-flash Google gemini-2.0-flash Claude-sonnet-4.5 Anthropic claude-sonnet-4-5-20250929 Claude-sonnet-4 Anthropic claude-sonnet-4-20250514 Claude-sonnet-3.7 Anthropic claude-3-7-sonnet-20250219 Qwen3-VL-235B-A22B-Instruct Qwen Qwen/Qwen3-VL-235B-A22B-Instruct Qwen3-VL-32B-Instruct Qwen Qwen/Qwen3-VL-32B-Instruct Qwen3-VL-30B-A3B-Instruct Qwen Qwen/Qwen3-VL-30B-A3B-Instruct Qwen2.5-VL-72B-Instruct Qwen Qwen/Qwen2.5-VL-72B-Instruct Qwen2.5-VL-32B-Instruct Qwen Qwen/Qwen2.5-VL-32B-Instruct Qwen2.5-VL-7B-Instruct Qwen Qwen/Qwen2.5-VL-7B-Instruct InternVL3.5-38B OpenGVLab OpenGVLab/InternVL3 5-38B InternVL3-78B OpenGVLab OpenGVLab/InternVL3-78B InternVL3-38B OpenGVLab OpenGVLab/InternVL3-38B InternVL3-8B OpenGVLab OpenGVLab/InternVL3-8B InternVL2.5-78B OpenGVLab OpenGVLab/InternVL2 5-78B InternVL2.5-38B OpenGVLab OpenGVLab/InternVL2 5-38B InternVL2.5-8B OpenGVLab OpenGVLab/InternVL2 5-8B Llama-4-Scout-17B Meta meta-llama/Llama-4-Scout-17B-16E-Instruct Llama-3.2-11B-Vision-Instruct Meta meta-llama/Llama-3.2-11B-Vision-Instruct Gemma-3-27b-it Google google/gemma-3-27b-it Gemma-3-12b-it Google google/gemma-3-12b-it Ovis2-34B AIDC-AI AIDC-AI/Ovis2-34B Ovis2-16B AIDC-AI AIDC-AI/Ovis2-16B Ovis2.5-9B AIDC-AI AIDC-AI/Ovis2.5-9B GLM-4.5V ZhipuAI glm-4.5v C. Task Details 
+
+C.1. Dual-Arm Spatial Reasoning 
+
+Examples Dual-Arm Spatial Reasoning Example 
+
+{
+
+"visual_state_description": "There are five colored blocks red blue black green and yellow placed on a green surface. The red and blue blocks are on the left side, the black block is in the center, the green block is slightly right of center, and the yellow block is on the far right. The left robotic arm is closer to the red and blue blocks, while the right robotic arm is closer to the yellow block. The black and green blocks are near the center and can be reached by either arm but are slightly closer to the left and right arms respectively.", 
+
+"results": [{ "object": "red_block", "use_arm": "LEFT"}, 
+
+{"object": "green_block", "use_arm": "RIGHT"}, 
+
+{"object": "blue_block", "use_arm": "LEFT"}, 
+
+{"object": "yellow_block", "use_arm": "RIGHT"}, 
+
+{"object": "black_block", "use_arm": "LEFT"}] 
+
+}
+
+Score ：100/100 
+
+Figure 1. High-quality reasoning example. Dual-Arm Spatial Reasoning Example 
+
+{
+
+"visual_state_description": "The image shows a first-person perspective from a dual-arm robot. There are two white robotic arms, one on the left and one on the right. In front of the robot is a brown table with three colored cubes. A red cube is located on the left side of the table, a green cube is in the center, and a blue cube is on the right side.", 
+
+"results": [{"object": "red_block","use_arm": "LEFT"}, 
+
+{"object": "green_block","use_arm": "LEFT"}, 
+
+{"object": "blue_block","use_arm": "RIGHT"} 
+
+]
+
+}
+
+Score ：66.96/100 
+
+Figure 2. Average-quality reasoning example with spatial ambiguity. Dual-Arm Spatial Reasoning Example 
+
+{
+
+"visual_state_description": "The image shows a table surface with no clearly visible blocks or target objects between the two robotic arms. The center area appears empty and there are no distinguishable colored blocks present on the tabletop.", 
+
+"results": [ 
+
+{"object": "red_block","use_arm": "LEFT"}, 
+
+{"object": "green_block","use_arm": "LEFT"}, 
+
+{"object": "blue_block","use_arm": "LEFT"} 
+
+]
+
+}
+
+Score ：33.33/100 
+
+Figure 3. Low-quality reasoning example with significant visual hallucination. 
+
+C.2. High-Level Action Planning 
+
+Task Introduction 
+
+The task ID, full name, and description (instructions provided to the planner) are shown in Table 2. 
+
+Manipulator Allocation Feedback and Truncation Mechanism 
+
+In the High-Level Action Planning tier, successful task completion relies on both logical sequencing and correct arm assignment based on workspace reachability. To ensure a rigorous evaluation of the model’s logical reasoning and temporal planning capabilities without them being disproportionately bottlenecked by fundamental spatial reasoning failures (Tier 1), we implement an automated Manipulator Allocation Feedback and Truncation mechanism at the interface layer. Table 2. List of 14 High-Level Action Planning Manipulation Tasks 
+
+ID Full Task Name Description 
+
+Independent Parallel Manipulation Tasks 
+
+Place1 place cans plasticbox Use dual arm to pick and place cans into plasticbox. Place2 blocks cross shape There are five blocks on the table, the color of the blocks is random, move the blocks to the center of the table, and arrange them to a cross shape. The red block should be on the left. The black block should be on the center. The blue block should be on the right. The green should be inside. The yellow should be closest to you. Ranking1 blocks ranking size There are three blocks on the table, the color of the blocks is random, move the blocks to the center of the table, and arrange them from largest to smallest, from left to right. Ranking2 blocks ranking rgb Place the red block, green block, and blue block in the order of red, green, and blue from left to right, placing in a row. Stack1 stack blocks three There are three blocks on the table, the color of the blocks is red, green and blue, move the blocks to the center of the table, and stack the blue block on the green block, and the green block on the red block. Stack2 stack bowls three Ttack the three bowls on top of each other. 
+
+Sequential Collaborative Manipulation Tasks 
+
+Handover1 handover mic Use one arm to grasp the microphone on the table and handover it to the other arm. Handover2 handover block Use the left arm to grasp the red block on the table, handover it to the right arm and place it on the blue pad. Handover3 hanging mug Use left arm to pick the mug on the table, rotate the mug and put the mug down in the middle of the table, use the right arm to pick the mug and hang it onto the rack. Place3 place burger fries Use dual arm to pick the hamburg and frenchfries and put them onto the tray. Place4 place object basket Use one arm to grab the target object and put it in the basket, then use the other arm to grab the basket, and finally move the basket slightly away. Place5 place bread skillet If there is one bread on the table, use one arm to grab the bread and put it into the skillet. Place6 blocks tower There are four blocks on the table, the color of the blocks is random, move the blocks to the center of the table, and stack them to a block tower from largest to smallest, from bottom to top. Place7 put bottles dustbin Use arms to grab the bottles and put them into the dustbin to the left of the table. During the execution pipeline, the interface layer intercepts the model’s structured JSON output, specifically the arm tag parameter (“left” or “right”). The system verifies the validity of this assignment against the simulator’s ground-truth kinematic constraints and object reachability. If the model selects an execution arm that is kinematically unable to reach the target or likely to cause a singularity, the system truncates the action before physical execution. Instead of terminating the episode as a failure, the environment provides a closed-loop textual feedback to the model ( e.g. , “Action failed: Action Failed: target green block is too far, right arm can not finish this ‘grasp’ action! Please use another arm!”). This allows the agent to re-observe the state and replan its execution strategy within the same episode. The primary motivation for this mechanism is to decouple Tier 1 (Spatial Reasoning) from Tier 2 (High-Level Planning). By providing an automated “guardrail” for arm allocation, we can more accurately assess whether an MLLM understands the logical dependencies of complex tasks—such as the sequential requirements in Handover block or Place bread skillet—rather than penalizing its planning performance solely due to a one-time spatial miscalculation. It is important to note that this truncation mechanism is not exhaustive. It primarily targets clear kinematic violations and reachability issues. More nuanced errors—such as “model illusions” during complex bimanual coordination or subtle workspace overlaps—may still bypass the filter. Consequently, a small percentage of End-Effector Allocation Errors remains present in our final Error Analysis, providing a realistic reflection of the coupling between spatial awareness and high-level planning in dual-arm scenarios. 
+
+Skills Set Grasp Skill ( grasp actor ) Picks up a specified object using the selected arm. 
+
+⋄ Parameters: actor : target object to grasp; arm tag : arm selection; pre grasp dis : distance to the pre-grasp waypoint (default 0.1 m); grasp dis : approach distance from the pre-grasp pose (default 0 m); gripper pos : gripper closing position (default fully closed); contact point id (optional): indices of candidate contact points. 
+
+⋄ Description: The arm first moves to a pre-grasp position offset from the object, then approaches the grasp pose and closes the gripper. If no contact point is specified, the grasp point is selected automatically. 
+
+Place Skill ( place actor ) Places a currently held object at a specified target pose. 
+
+⋄ Parameters: actor : grasped object; arm tag : arm holding the object; target pose : target position and orientation (recommended as xyz + quaternion); pre dis : pre-placement offset distance (default 0.1 m); dis : final placement distance (default 0.02 m); is open : whether to open the gripper after placement. 
+
+⋄ Optional arguments: alignment strategy ( free , align , auto ); alignment axes; pre-placement direction. 
+
+⋄ Description: The arm moves the object to a pre-placement pose, optionally aligns it with the target orientation, then performs a guarded approach to the final placement pose and releases the object if specified. 
+
+Relative Motion ( move by displacement ) Moves the end-effector along relative directions. 
+
+⋄ Parameters: arm tag : arm selection; x, y, z: Cartesian displacement in meters; quat (optional): target orientation; 
+
+move axis : reference frame ( world or arm ). 
+
+⋄ Description: Translates the end-effector by the specified displacement under the chosen reference frame, with optional orientation control. 
+
+Absolute Motion ( move to pose ) Moves the end-effector to an absolute target pose. 
+
+⋄ Parameters: arm tag : arm selection; target pose : absolute position and orientation. 
+
+⋄ Description: Plans and executes a collision-aware trajectory to reach the target pose. 
+
+Gripper Control ( open gripper / close gripper ) Opens or closes the gripper of the specified arm. 
+
+⋄ Parameters: arm tag : arm selection; pos : gripper position (0 for fully closed, 1 for fully open). 
+
+Home Reset ( back to origin ) Returns the arm to its predefined initial configuration. 
+
+⋄ Parameters: arm tag : arm to reset. 
+
+⋄ Description: Moves the arm back to a safe home pose to clear the workspace. Examples High-Level Action Planning Success Example 
+
+> {
+> "visual_state_description": "I can see a tall red block near the left-middle of the table and a blue square pad on the right side of the table. The left and right grippers are both at their origin positions and open. There are other small items scattered, so lifting after grasp is necessary to avoid collision.",
+> "reasoning_and_reflection": "This is the first step of the task. I should use the left arm to grasp the red block, lift it to avoid hitting nearby objects, and then place it at the middle initial position for handover without opening. After that, the right arm will grasp it, the left will open and return to origin, and finally the right arm will place the block onto the blue pad using the provided target pose.",
+> "language_plan": "1) Use left arm to grasp the red block with suitable pre grasp distance and contact points. 2) Lift the block slightly upward. 3) Place the block to the middle initial pose [0, 0, 0.9, 0, 1, 0, 0] with gripper kept closed (is_open False), constrain free, pre_dis 0 and dis 0. 4) Use right arm to grasp the block at the middle position. 5) Open left gripper and raise then send left arm back to origin. 6) Use right arm to place the block onto the blue pad target pose with align constrain and pre_dis along fp.",
+> "executable_plan": […...]}
+
+Action: Grasp (left)  Action: Move Up (left)  Action: Place (left)  Action: Grasp (right) 
+
+Action: Open Gripper (left)  Action: Move up (left)  Action: Back to original (left)  Action: Place (left) 
+
+Task Success 
+
+1 2 3 4
+
+5 6 7 8
+
+Visual Process of Executable Plan 
+
+Task ：Handover_block  Instruction: if there is one bread on the table, use one arm to grab the bread and put it into the skillet. 
+
+Figure 4. High-Level Action Planning Success example of Gemini-2.5-Pro: Handover block. 
+
+Output Step 1: 
+
+{
+
+"visual state description": "I can see a tall red block near the left-middle of the table and a blue square pad on the right side of the table. The left and right grippers are both at their origin positions and open. There are other small items scattered, so lifting after grasp is necessary to avoid collision.", 
+
+"reasoning and reflection": "This is the first step of the task. I should use the left arm to grasp the red block, lift it to avoid hitting nearby objects, and then place it at the middle initial position for handover without opening. After that, the right arm will grasp it, the left will open and return to origin, and finally the right arm will place the block onto the blue pad using the provided target pose.", 
+
+"language plan": "1) Use left arm to grasp the red block with suitable pre grasp distance and contact points. 2) Lift the block slightly upward. 3) Place the block to the middle initial pose [0, 0, 0.9, 0, 1, 0, 0] with gripper kept closed (is_open False), constrain free, pre_dis 0 and dis 0. 4) Use right arm to grasp the block at the middle position. 5) Open left gripper and raise then send left arm back to origin. 6) Use right arm to place the block onto the blue pad target pose with align constrain and pre_dis along fp.", 
+
+"executable plan": [{"action_id": "2.2", "action_name": "grasp_actor", "parameters": {"actor": "block", "arm_tag": "left", "pre_grasp_dis": 0.07, "grasp_dis": 0, "gripper_pos": 0, "contact_point_id": [0, 1, 2, 3] }}, {"action_id": "2.4", "action_name": "move_by_displacement", "parameters": {"arm_tag": "left", "x": 0, "y": 0, "z": 0.08, "move_axis": "world" }}, {"action_id": "2.3", "action_name": "place_actor", "parameters": {"actor": "block", "arm_tag": "left", "target_pose": [0, 0, 0.9, 0, 1, 0, 0], "functional_point_id": 0, "pre_dis": 0, "dis": 0, "is_open": false, "kwargs": {"constrain": "free", "pre_dis_axis": "fp" }}}, {"action_id": "2.2", "action_name": "grasp_actor", "parameters": {"actor": "block", "arm_tag": "right", "pre_grasp_dis": 0.07, "grasp_dis": 0, "gripper_pos": 0, "contact_point_id": [4, 5, 6, 7] }}, {"action_id": "2.7", "action_name": "open_gripper", "parameters": {"arm_tag": "left", "pos": 1}}, {"action_id": "2.4", "action_name": "move_by_displacement", "parameters": {"arm_tag": "left", "x": 0, "y": 0, "z": 0.06, "move_axis": "world" }}, {"action_id": "2.8", "action_name": "back_to_origin", "parameters": {"arm_tag": "left" }}, {"action_id": "2.3", "action_name": "place_actor", "parameters": {"actor": "block", "arm_tag": "right", "target_pose": [0.238135, 0.160577, 0.730889, 0, 1, 0, 0], "functional_point_id": 0, "pre_dis": 0.05, "dis": 0, "is_open": true, "kwargs": {"constrain": "align", "pre_dis_axis": "fp" }}}]}
+
+Listing 1. Planner Output of High-Level Action Planning Success example: Handover block. High-Level Action Planning Failed Example 
+
+{
+
+"visual_state_description": "There is one bread near the center-right of the table and a skillet near the center-left. The left arm is close to the skillet and the right arm is close to the bread. Both grippers appear free and not holding any objects.", 
+
+"reasoning_and_reflection": "In the previous attempt, I tried to grasp the skillet using the left arm but the system reported that the target skillet is too far for the left arm, so that grasp failed. Then I attempted to grasp the bread with the right arm without first securing and positioning the skillet, which does not follow the required sequence. To complete this two arm task, I must grasp the objects with the nearest arm to each object, lift to avoid collisions, move the skillet to its target pose, then grasp and place the bread onto the functional point on the skillet.", 
+
+"language_plan": "I will grasp the skillet with the nearest right arm, lift it slightly, and move it to the specified right-arm target pose. I will then send the left arm back to origin to avoid interference. Next, I will grasp the bread with the nearest right arm or left arm depending on proximity; here the right arm will hold the skillet so I will use the left arm to grasp the bread, lift it a little to avoid collisions, and place it onto the functional point on the skillet.", 
+
+"executable_plan": [ 
+
+]} 
+
+{"action_id": "2.8", 
+
+"action_name": "back_to_origin", 
+
+"parameters": { 
+
+"arm_tag": "right"} 
+
+}, 
+
+{"action_id": "2.4", 
+
+"action_name": "move_by_ 
+
+displacement", 
+
+"parameters": { 
+
+"arm_tag": "left", 
+
+"z": 0.06, 
+
+"move_axis": "arm"} 
+
+}, 
+
+{"action_id": "2.2", 
+
+"action_name": "grasp_actor", 
+
+"parameters": { 
+
+"actor": "skillet", 
+
+"arm_tag": "right", 
+
+"pre_grasp_dis": 0.1, 
+
+"gripper_pos": 0} 
+
+}, 
+
+{"action_id": "2.4", 
+
+"action_name": "move_by_displacement", 
+
+"parameters": { 
+
+"arm_tag": "right", 
+
+"z": 0.08, 
+
+"move_axis": "arm"} 
+
+}, 
+
+{"action_id": "2.5", 
+
+"action_name": "move_to_pose", 
+
+"parameters": { 
+
+"arm_tag": "right", 
+
+"target_pose": [0.1, -0.05, 0.9352448340528695, 0, 0.707, 0, -0.707]} 
+
+}, 
+
+{"action_id": "2.2", 
+
+"action_name": "grasp_actor", 
+
+"parameters": { 
+
+"actor": "bread", 
+
+"arm_tag": "left", 
+
+"pre_grasp_dis": 0.12} 
+
+}, 
+
+{"action_id": "2.3", 
+
+"action_name": "place_actor", 
+
+"parameters": { 
+
+"actor": "bread", 
+
+"arm_tag": "left", 
+
+"target_pose": …… 
+
+}} 
+
+Action Failed Wrong Planning 
+
+1 2 3 4 5 6 7
+
+Task ：Place_bread_skillet  Instruction: use the left arm to grasp the red block on the table, handover it to the right arm and place it on the blue pad. 
+
+Figure 5. High-Level Action Planning Failed example of GPT-5: Place bread skillet. C.3. Low-Level End-Effector Control 
+
+Task Introduction 
+
+The task ID, full name, and description (instructions provided to the planner) are shown in Table 3. 
+
+Table 3. List of 5 Low-Level End-Effector Control Manipulation Tasks 
+
+ID Full Task Name Class Description 
+
+Place8 place object scale Independent Manipulation (single arm) Use one arm to grab the object and put it on the scale. Place9 place burger fries Sequential Collaborative Manipulation Use dual arm to pick the hamburg and frenchfries and put them onto the tray. Place10 place bread skillet Sequential Collaborative Manipulation If there is one bread on the table, move skillet to center and use one arm to grab the bread and put it into the skillet. Grab1 grab roller Synchronous Collaborative Manipulation Use both arms to grab the roller on the table and lift it to z > 0.8(m). Stack3 stack blocks two Independent Parallel Ma-nipulation There are two blocks on the table, the color of the blocks is red, green, move the blocks to the center of the table, and stack the blocks. 
+
+Examples Low-Level End-Effector Control Success Example           
+
+> 1234
+> 5678
+> Task ：stack_blocks_two Instruction: stack the blocks on the center of table
+> 910 11 12
+> 13
+
+Task Success 
+
+Figure 6. Low-Level End-Effector Control Success example of GPT-5: Stack blocks two. Output Step 1: 
+
+{
+
+"visual state description": "There are two cubes on the table: a red cube (block1) at approximately x=-0.199, y=-0.071 and a green cube (block2) at approximately x=-0.174, y=0.029. Both are on the left side of the table relative to the robot. The left and right end effectors are at their origin poses above the table edges with grippers open.", 
+
+"reasoning and reflection": "Both cubes are on the left side, so the left arm should pick the nearer one first. The red cube (block1) at y=-0.071 is slightly closer to the target center y=-0.13, so I will grasp block1 with the left arm, place it at center as the bottom block, then move the left arm up and back to origin to avoid collision. Next, I will use the left arm again for block2 because it is still on the left side, while keeping the right arm parked high at origin so it does not interfere. Grasp orientations for blocks must use the provided quaternions. When placing at center, use orientation [0.5,-0.5,0.5,0.5]. Heights: approach above at safe z about 0.95 to 1.0, then lower to grasp around object height plus gripper offset (0.73949 + 0.162 ≈
+
+0.90149, use 0.9). For placing bottom block, target z should be 0.7244852714832615 + 0.162 =0.88649; use 0.8865. For stacking top block, target z should be 0.7744852714832615 + 0.162 =0.93649; use 0.9365. I will close gripper to pick, move to center, release, then raise and repeat for the second block. Keep right arm high and at origin throughout.", 
+
+"language plan": "1) Left arm move above block1, descend, close to grasp. 2) Lift and place at center as bottom, release. 3) Raise left arm to 1.08 and move back to origin. 4) Move left arm again above block2, grasp. 5) Move to center above placed block and place on top, release. 6) Raise and return to origin. Right arm stays high and open to avoid collision.", 
+
+"executable plan": ["[-0.20, -0.07, 0.98, 0.64743, -0.2843, 0.64743, 0.2843, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[-0.20, -0.07, 0.90, 0.64743, -0.2843, 0.64743, 0.2843, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[-0.20, -0.07, 0.90, 0.64743, -0.2843, 0.64743, 0.2843, 0.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[-0.01, -0.13, 0.98, 0.5, -0.5, 0.5, 0.5, 0.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[0.0, -0.13, 0.8865, 0.5, -0.5, 0.5, 0.5, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[0.0, -0.13, 0.98, 0.5, -0.5, 0.5, 0.5, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[-0.3495, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[-0.174, 0.029, 0.98, 0.56669, -0.42293, 0.56669, 0.42293, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[-0.174, 0.029, 0.90, 0.56669, -0.42293, 0.56669, 0.42293, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[-0.174, 0.029, 0.90, 0.56669, -0.42293, 0.56669, 0.42293, 0.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[0.0, -0.13, 0.98, 0.5, -0.5, 0.5, 0.5, 0.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[0.0, -0.13, 0.9365, 0.5, -0.5, 0.5, 0.5, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[0.0, -0.13, 1.02, 0.5, -0.5, 0.5, 0.5, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]", "[-0.3495, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.3505, -0.2523, 0.94049, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]" ]}
+
+Output Step 2: 
+
+{
+
+"visual state description": "A dual-arm robot is above a table with two blocks: a green block near the left arm at approximately [-0.174, 0.029, 0.739] and a red block near the center-right at approximately [0.002, -0.124, 0.739]. The left gripper appears close to the green block and the gripper is open. The right arm is parked high around [0.3505, -0.2523, 1.08] and is open.", 
+
+"reasoning and reflection": "The goal is to move both blocks to the table center at [0, -0.13] and stack them. The action history shows multiple approach and open/close attempts but no successful grasp or placement; both actions were successful in execution but did not complete the task because the grippers likely did not close on the blocks at the correct height and orientation, and there was no sequence that moved and released at the center. The current positions indicate the green block is under the left arm and the red block is slightly in front of center. To avoid collisions, I will use the left arm to pick the green block (block2) with quat [0.56668, -0.42293, 0.56668, 0.42293]. I will use the right arm to pick the red block (block1) with quat [0.49911, -0.50089, 0.49911, 0.50089]. When placing at the center, I will use orientation [0.5, -0.5, 0.5, 0.5]. I must account for the 0.162 m gripper height offset and place the bottom block gripper z at 0.7244852715 + 0.162 = 0.88649, and the top block gripper zat 0.7744852715 + 0.162 = 0.93649. I will first stack the green block as the bottom using the left arm, then stack the red block on top using the right arm. I will keep the non-operating arm raised and away to avoid collision.", 
+
+"language plan": "1. Left arm: move above green block, lower, close to grasp, raise. Move to center at [0, -0.13], set orientation for placing, lower to z=0.88649, open to place as bottom, raise and move back to origin high. 2. Right arm: move above red block, lower, close to grasp, raise . Move above center, lower to z=0.93649 to place on top of the green block, open, raise and move back to origin high. Both arms will maintain safe z>=1.05 when moving across the table to avoid collision.", 
+
+"executable plan": ["[-0.174, 0.029, 0.98, 0.56668, -0.42293, 0.56668, 0.42293, 1.0, 0.3505, -0.2523, 1.08, 0.70711, 0.00003, -0.00003, 0.70711, 1.0]", "[-0.174, 0.029, 0.90, 0.56668, -0.42293, 0.56668, 0.42293, 1.0, 0.3505, -0.2523, 1.08, 0.70711, 0.00003, -0.00003, 0.70711, 1.0]", "[-0.174, 0.029, 0.90, 0.56668, -0.42293, 0.56668, 0.42293, 0.0, 0.3505, -0.2523, 1.08, 0.70711, 0.00003, -0.00003, 0.70711, 1.0]", "[0.0, -0.13, 1.05, 0.5, -0.5, 0.5, 0.5, 0.0, 0.3505, -0.2523, 1.08, 0.70711, 0.00003, -0.00003, 0.70711, 1.0]", "[0.0, -0.13, 0.88649, 0.5, -0.5, 0.5, 0.5, 0.0, 0.3505, -0.2523, 1.08, 0.70711, 0.00003, -0.00003, 0.70711, 1.0]", "[0.0, -0.13, 0.88649, 0.5, -0.5, 0.5, 0.5, 1.0, 0.3505, -0.2523, 1.08, 0.70711, 0.00003, -0.00003, 0.70711, 1.0]", "[-0.3495, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.3505, -0.2523, 1.10, 0.70711, 0.00003, -0.00003, 0.70711, 1.0]", "[0.002, -0.124, 0.98, 0.49911, -0.50089, 0.49911, 0.50089, 1.0, 0.3505, -0.2523, 1.10, 0.70711, 0.00003, -0.00003, 0.70711, 1.0]", "[0.002, -0.124, 0.90, 0.49911, -0.50089, 0.49911, 0.50089, 1.0, 0.3505, -0.2523, 1.10, 0.70711, 0.00003, -0.00003, 0.70711, 1.0]", "[0.002, -0.124, 0.90, 0.49911, -0.50089, 0.49911, 0.50089, 1.0, 0.3505, -0.2523, 1.10, 0.70711, 0.00003, -0.00003, 0.70711, 0.0]", "[0.0, -0.13, 1.05, 0.5, -0.5, 0.5, 0.5, 1.0, 0.0, -0.13, 1.05, 0.5, -0.5, 0.5, 0.5, 0.0]", "[0.0, -0.13, 0.93649, 0.5, -0.5, 0.5, 0.5, 1.0, 0.0, -0.13, 0.93649, 0.5, -0.5, 0.5, 0.5, 0.0]", "[0.0, -0.13, 0.93649, 0.5, -0.5, 0.5, 0.5, 1.0, 0.0, -0.13, 0.93649, 0.5, -0.5, 0.5, 0.5, 1.0]", "[-0.3495, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.3505, -0.2523, 1.08, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]" ]}
+
+Listing 2. Planner output for a dual-arm stacking task Low-Level End-Effector Control Failed Example  
+
+> Task ：place_burger_fries Instruction: Use dual arm to pick the hamburger and French fries and put them onto the tray.
+> {"visual_state_description": "I can see a burger, a tray, and a French Fries container on the table. The burger is on the left, the French Fries container is on the right, and the brown tray is in the middle. The grippers are positioned above the objects but not close enough to grasp them.",
+> "reasoning_and_reflection": "It's the beginning of the task. The assistant info provides the functional points for placing the objects. I will use the left arm to grasp the burger and the right arm to grasp the French Fries. The burger is closer to the left gripper, so I will grasp it first. The French Fries is further away, so I will grasp it after placing the burger into the tray. I need to ensure the grippers are positioned correctly above the objects before lowering them to grasp.",
+> "language_plan": "I will use both arms to grab the burger and French Fries first. Then, I will lift them up to avoid collision with the brown tray. After that, I will place the burger and French Fries on the brown tray. I will place the burger first, raise the arm a little to avoid collision, and then make the left arm back to origin in case of collision with another arm. After that, I will grasp the French Fries and place it on the brown tray.",
+> "executable_plan": [ "[-0.27327, -0.11434, 0.872, 0.707, 0, 0.707, 0, 1.0, 0.25912, -0.09796, 0.892, 0.5, -0.5, 0.5, 0.5, 1.0]",
+> "[-0.27327, -0.11434, 0.872, 0.707, 0, 0.707, 0, 0.0, 0.25912, -0.09796, 0.892, 0.5, -0.5, 0.5, 0.5, 0.0]",
+> "[-0.0684, -0.13716, 0.872, 0.707, 0, 0.707, 0, 0.0, 0.06299, -0.15329, 0.892, 0.5, -0.5, 0.5, 0.5, 0.0]",
+> "[-0.0684, -0.13716, 0.94049, 0.707, 0, 0.707, 0, 0.0, 0.06299, -0.15329, 0.94049, 0.5, -0.5, 0.5, 0.5, 0.0]",
+> "[-0.3495, -0.2523, 0.94049, 0.707, 0, 0.707, 0, 0.0, 0.3505, -0.2523, 0.94049, 0.5, -0.5, 0.5, 0.5, 0.0]"]}
+
+1 2 3 4 5
+
+> Direct moving End-Effector without lifting caused collision with tray.
+
+Figure 7. Low-Level End-Effector Control Failed example of InternVL3-78B: Place burger fries. 
+
+## D. Error Analysis 
+
+We first divide the errors we encounter into two main categories: environmental errors and model output errors. 
+
+D.1. Environmental Errors 
+
+One type of environmental error occurs when the robotic arm’s actual behavior fails to meet the documentation’s expectations when the model calls relevant APIs through the simulation environment interface. This problem is not caused by the decision-making layer model, but rather by a flaw in the internal function settings of the simulation environment at the execution layer. Since different tasks involve different calls to the simulation environment interface, the probability of this type of error varies across tasks. However, within the same task, the occurrence of this type of error is independent of the specific model used by the decision-making layer, occurring with approximately the same probability for all models. An example is grasp problem. In the simulation environment, all objects are generated with one face always pointing vertically upwards. If an object is hit by a collision, this face may turn in another direction. For a geometrically symmetrical cube, this should not affect its grasping ability. However, because the simulation environment implicitly depends on the object’s orientation when calling the grasping function, the grasping action cannot be completed when the object’s orientation changes. Another type is the scene randomization problem in certain episodes. When randomizing the scene using a random seed, some interfering objects are generated in inappropriate locations, severely interfering with normal operation. Since all models use the same random seed and scene for each episode during testing, all models will encounter the scene randomization problem and will be unable to complete the task in some task episodes. 
+
+D.2. Model Output Errors 
+
+We categorize model output errors into three types: Perceptual Reasoning Error, Strategic Planning Error, and Format Error. Since Format Error only occurs in models with a small number of parameters(usually less than 10B), our analysis focuses on the following two core categories: 
+
+1) Perceptual Reasoning Error. This category focuses on inference errors following visual observation. It reflects the model’s failure to correctly understand the ”current state.” It is further divided into: • State Estimation Misjudgment. This error primarily occurs when the model makes inferences based on current observations, encountering problems in inferring the state and progress of the current task. An example is when the model, after having already placed a block in the target location, continues to repeatedly grab and place that block without addressing other unfinished tasks. • End-Effector Allocation Error. This error primarily arises when the model, based on current observations, encounters problems in determining whether to use the left or right actuator in the current state. This issue stems from insufficient spatial capabilities in a dual-arm environment, or significant model illusion during the end-effector allocation process in dual-arm scenarios. This capability was tested within the first part of our Dual-Arm Spatial Reasoning section. Therefore, to better evaluate the model’s capabilities in other areas, we automatically truncated most incorrect End-Effector Allocation cases in the interface layer between the model output and the simulation environment, providing feedback to the model that the current end-effector cannot complete the action until the model adopts the correct end-effector. However, this automatic truncation cannot capture all incorrect End-Effector Allocation scenarios; therefore, some End-Effector Allocation Errors will still occur, affecting dual-arm operation tasks under High-Level Action Planning. • Physical Attribute Misreasoning. This error mainly occurs when the model makes inferences based on current observations, and it has a problem in inferring the size of objects. It mainly appears in two tasks that require determining the size of blocks. 
+
+2) Strategic Planning Error. This category involves errors in the subsequent action sequence planning, even if the environment is correctly perceived. It includes: • Action Sequencing Error. This error primarily stems from the model’s failure to output the correct action sequence when planning actions, based on the specific task requirements or the task flow hinted at in the assistant info. A typical example is in dual-arm manipulation tasks: after grasping an object, the end effector must be raised before placing it, and after placement, the end effector must be raised again before the robotic arm returns to its original position; otherwise, the end effector’s movement may collide with other objects on the table. This error also frequently occurs in object-transfer tasks, where the order of actions is crucial. If the model fails to output the correct action sequence, the transfer will fail. • Bimanual Conflict/Collision. This error primarily stems from the model’s failure to consider the conflict between the two robotic arms during action planning. This leads to collisions or disruptions in action execution due to these conflicts. This error is often accompanied by a State Estimation Misjudgment Error because the model’s previous output may not have properly positioned the robotic arms. If problems arise in inferring the current task’s state and progress, and the robotic arms are not properly positioned beforehand, subsequent action execution is prone to Bimanual Conflict/Collision. • Action Parameter Inconsistency. This error occurs because the model failed to output task-specific action parameters when formatting the action output in JSON format. In a task, the parameters that should be set for different scenarios and types of actions are usually indicated in the prompt; however, some models still occasionally produce incorrect action parameter outputs. 
+
+## E. Visual Observation Setup 
+
+In our experiments, the agent receives visual inputs from different perspectives depending on the task configuration. In High-Level Action Planning, we provide images from both perspectives to the MLLM planner. In Low-Level End-Effector Control, we primarily utilize only the ego-centric view , while the third-person view is investigated in our ablation study. Fig 8 illustrates the comparison between these two observation modes. • Ego-centric View (Primary): Mounted on the robot’s end-effector (or head), providing detailed visual feedback for precise manipulation but suffering from occlusion when the gripper is close to the object. • Third-person View: A fixed external camera that provides a global overview of the workspace. This view is crucial for resolving spatial ambiguities ( e.g. , occlusion) and is used as a default input for High-Level Action Planning. However, it introduces two challenges for visual reasoning: 1. Reduced Object Resolution: Due to the greater camera distance, manipulable objects occupy fewer pixels compared to the ego-centric view. 2. Spatial Inversion: The perspective creates a counter-intuitive visual reversal where the robot’s physical right arm 
+
+appears on the left side of the image, and the left arm on the right .For models with limited capabilities, these factors can act as visual interference rather than helpful context, potentially leading to the performance degradation observed in our Ablation Study. 
+
+## F. Prompt Template 
+
+F.1. Dual-Arm Spatial Reasoning Prompt Template 
+
+This is the prompt template for sparse and cluttered settings in Dual-Arm Spatial Reasoning. The dense setting is nearly the same, except for the final output example, as it involves five blocks. (a) Ego-centric View (Primary) (b) Third-person View (Auxiliary) 
+
+Figure 8. Visualization of Observation Space. The left panel (a) shows the ego-centric view subject to occlusion during interaction. The right panel (b) displays the third-person view, which provides global context and is utilized to mitigate occlusion in High-level planning and select Low-level tasks. 
+
+You are a dual-arm robot manipulation assistant. You are designed to finish dual-arm manipulation task. However, now you just need to analyze the given observation image and decide which arm (left or right) should perform the grasping action. The observation image will contain two robotic arms and some objects on a table. You need to analyze the observation image and determine which robotic arm should be used to grasp some given objects. Your output should be json format and clearly indicate: VISUAL_STATE_DESCRIPTION (describe what you see) and RESULTS. RESULTS should be a array. Every item in array is a json object which contain OBJECT and its USE_ARM. !!! Json format is strict. When generating content for JSON strings, avoid using any contractions or abbreviated forms (like ’s, ’re, ’ve, ’ll, ’d, n’t) that use apostrophes. Instead, write out full forms (is, are, have, will, would, not) to prevent parsing errors in JSON. Please do not output any other thing more than the above-mentioned JSON, do not include json code fences. !!! And do not output any quotation marks in JSON text content (in visual_state_description no quote), like red_block. You can use RED_BLOCK or (red_block) instead. Else json object cannot be loaded successfully. Pay attention to make your output JSON identifiable. # This is a output example for this task ((LEFT OR RIGHT) means you should choose one): {visual_state_description: (INDICATE WHAT YOU SEE IN PICTURE AND DESCRIBE THE APPROXIMATE LOCATION OF THE BLOCKS, LIKE ON THE LEFT PART OR RIGHT PART), results: [ {object: red_block, use_arm: (LEFT OR RIGHT) }, {object: green_block, use_arm: (LEFT OR RIGHT) }, {object: blue_block, use_arm: (LEFT OR RIGHT) }]}
+
+Listing 3. Prompt Template for Dual-Arm Spatial Reasoning 
+
+F.2. High-Level Action Planning Prompt Template 
+
+This is a high-level action planning prompt template for the blocks ranking rgb task. The following prompt is used at the beginning of each task execution. 
+
+The task name is blocks_ranking_rgb, the description and the goal of the task is as follows: <Place> the red block, green block, and blue block <in the order> of red, green, and blue from left to right, <placing in a row>. You are a robot that can interact with objects in a simulated environment. Your task is to follow the instructions provided to you and complete the task successfully. You will be given a series of actions to perform, and you must execute them in the correct order to achieve the goal. You will also be provided with a set of observations that will help you understand the current state of the environment and the objects within it. Use these observations to inform your actions and make decisions about how to proceed. Your ultimate goal is to successfully complete the task by following the instructions and achieving the desired outcome. Remember to pay attention to the details of the task and the observations provided, as they will guide you in making the right choices. !!! You are a dual-arm robot. Please note: When making a plan, do not let your two hands collide with each other. When you do not need to use one of your hands, please let it return to its original position to avoid a collision that may cause the plan to fail. !!!!! Assistant info (Very Important to provide some key info): This is a two arm task. You must use both arms(left and right) to finish the task. The main steps of this task: 1. grasp blocks with nearest arm. 2. raise your hand in case of collision with other objects 3. place one block to ideal position, raise the arm first and then make arm back to origin 4. repeat steps above and place another blocks to ideal positions. In parameter (actor), you must output red_block, green_block or blue_block to represent blocks in different colors. !!!! Now [-0.08868774943139059, -0.19668158161348412, 0.737351797170751, 0, 1, 0, 0] is the target_pose of red_block, [0.0016719173640308265, -0.19668158161348412, 0.737351797170751, 0, 1, 0, 0] is the target_pose of green_block and [0.08271717895684488, -0.19668158161348412, 0.737351797170751, 0, 1, 0, 0] is the target_pose of blue_block. You can use them *directly* in the target_pose of place_actor() function. It’s 7-dim. You can also try to use the first 3 dimensions for the target_pose. You must raise the robot arm a certain distance to move the object or execute place command, otherwise it may hit something if it moves directly close to the table surface. But you should not raise the arm too high, otherwise the object may fall off or the raise action will fail. You can use the action ’back_to_origin’ to return the arm to the origin position. !!! Besides, if you don’t need arm right now, *please make arm back to origin* in dual arm tasks. Else it may block actions of another arm. !!!NOTE: In parameters of PLACE_ACTOR() function, you must specify the functional_point_id = 0 and constrain=’align’, else the place action will be failed!!! And you are recommended to set pre_grasp_dis=0.09 and grasp_dis=0.03 to make it easier to success. When you make arm back to origin, you should raise the arm first to avoid collision with other objects on the table. The images in every observation are the current state of the environment, involving the image from head_camera, front_camera, third_view_camera, and the example image of the task to help you make decisions. The output json format should be {’visual_state_description’:str, ’reasoning_and_reflection’:str, ’language_plan’:str, ’executable_plan’: str} The fields in above JSON follows the purpose below: 1. visual_state_description is for description of current state from the visual image, and you should describe the gripper state by your eyes. 2. reasoning_and_reflection is for summarizing the history of interactions and any available environmental feedback. Additionally, provide reasoning as to why the last action or plan failed and did not finish the task, 3. language_plan is for describing the following action to achieve the user instruction. 4. executable_plan is an json array that contains the next action to achieve the user instruction. Every item of the json array is a json object that contains the action id (2.2 to 2.9) and the according action name. Additionally, you must provide the parameters for the action function. The instruction for the action function and parameters is as follows: Action list is following, action id from 2.2 to 2.9: {"2.2": {"name": "grasp_actor", "description": "Pick up a specified object using the selected arm.", "parameters": {"actor": "The object to grasp.", "arm_tag": "Which arm to use.", "pre_grasp_dis": "Pre-grasp distance (default 0.1 meters), the arm will move to this position first.", "grasp_dis": "Grasping distance (default 0 meters), the arm moves from the pre-grasp position to this position and then closes the gripper.", "gripper_pos": "Gripper closing position (default 0, fully closed).", "contact_point_id": "Optional list of contact point IDs; if not provided, the best grasping point is selected automatically." }, "returns": "tuple[ArmTag, list[Action]]", "example": "self.move(self.grasp_actor(self.cup, arm_tag=arm_tag, pre_grasp_dis=0.1, contact_point_id=[0, 2][int(arm_tag==’left’)]))" }, "2.3": {"name": "place_actor", "description": "Places a currently held object at a specified target pose.", "parameters": {"actor": "The currently held object.", "arm_tag": "The arm holding the object.", "target_pose": "Target position/orientation, length 3 or 7 (xyz + optional quaternion).", "functional_point_id": "Optional ID of the functional point; aligns this point to the target if provided. Please don’t provide. It will be ignored. Use target_pose to finish this action task.", "pre_dis": "Pre-place distance (default 0.1 meters).", "dis": "Final placement distance (default 0.02 meters).", "is_open": "Whether to open the gripper after placing (default True).", "kwargs": {"constrain": "Alignment strategy: ’free’, ’align’, or ’auto’ (default).", "align_axis": "Vectors in world coordinates to align with.", "actor_axis": "Second object axis used for alignment (default [1, 0, 0]).", "actor_axis_type": "Whether actor_axis is relative to ’actor’ or ’world’ (default ’actor’).", "pre_dis_axis": "Direction of pre-placement offset: ’grasp’, ’fp’, or custom vector." }}, "returns": "tuple[ArmTag, list[Action]]", "example": "self.move(self.place_actor(actor=self.current_actor, target_pose= target_pose, arm_tag=arm_tag, functional_point_id=0, pre_dis=0.1, dis=0.02, pre_dis_axis=’fp’))" }, "2.4": {"name": "move_by_displacement", "description": "Moves the end-effector of the specified arm along relative directions and sets its orientation.", "parameters": {"arm_tag": "The arm to control.", "x": "Displacement along x-axis (meters).", "y": "Displacement along y-axis (meters).", "z": "Displacement along z-axis (meters).", "quat": "Optional quaternion specifying the target orientation.", "move_axis": "’world’ or ’arm’; defines coordinate system (default ’world’)." }, "returns": "tuple[ArmTag, list[Action]]", "example": "self.move(self.move_by_displacement(arm_tag=arm_tag, z=0.07, move_axis=’ world’))" }, "2.5": {"name": "move_to_pose", "description": "Moves the end-effector of the specified arm to a specific absolute pose.", "parameters": {"arm_tag": "The arm to control.", "target_pose": "Absolute pose (xyz + optional quaternion)." }, "returns": "tuple[ArmTag, list[Action]]", "example": "self.move(self.move_to_pose(arm_tag=arm_tag, target_pose=target_pose))" }, "2.6": {"name": "close_gripper", "description": "Closes the gripper of the specified arm.", "parameters": {"arm_tag": "Which arm’s gripper to close.", "pos": "Gripper position (0 = fully closed)." }, "returns": "tuple[ArmTag, list[Action]]", "example": "self.move(self.close_gripper(arm_tag=arm_tag))" }, "2.7": {"name": "open_gripper", "description": "Opens the gripper of the specified arm.", "parameters": {"arm_tag": "Which arm’s gripper to open.", "pos": "Gripper position (1 = fully open)." }, "returns": "tuple[ArmTag, list[Action]]", "example": "self.move(self.open_gripper(arm_tag=arm_tag))" }, "2.8": {"name": "back_to_origin", "description": "Returns the specified arm to its predefined initial position.", "parameters": {"arm_tag": "The arm to return to origin." }, "returns": "tuple[ArmTag, list[Action]]", "example": "self.move(self.back_to_origin(arm_tag=ArmTag(’right’)))" }, "2.9": {"name": "get_arm_pose", "description": "Gets the current pose of the end-effector of the specified arm.", "parameters": {"arm_tag": "Which arm to query." }, "returns": "list[float]", "example": "pose = self.get_arm_pose(ArmTag(’left’))" }}!!! When generating content for JSON strings, avoid using any contractions or abbreviated forms (like ’s, ’re, ’ve, ’ll, ’d, n’t) that use apostrophes. Instead, write out full forms (is, are, have, will, would, not) to prevent parsing errors in JSON. Please do not output any other thing more than the above-mentioned JSON, do not include ‘‘‘json and ‘‘‘!!!. !!! And do not output any ""(quotation marks) in JSON content like "can_right", you can use can_right or (can_right) instead. Else json object can’t be loaded successfully and the action will be empty. # This is a proper output template example: {OUTPUT_EXAMPLE} 
+
+Listing 4. Prompt Template for High-Level Action Planning: Blocks ranking rgb 
+
+Depending on the task state, the prompt is constructed conditionally. Specifically, when prior execution steps are available, feedback from the three most recent actions is appended to the prompt; otherwise, this component is omitted. 
+
+The 3-steps action history: Step 1, actionList [{’action_id’: ’2.2’, ’action_name’: ’grasp_actor’, ’parameters’: {’ actor’: ’red_block’, ’arm_tag’: ’right’, ’pre_grasp_dis’: 0.09, ’grasp_dis’: 0.03}}, {’ action_id’: ’2.4’, ’action_name’: ’move_by_displacement’, ’parameters’: {’arm_tag’: ’ right’, ’z’: 0.1, ’move_axis’: ’world’}}, {’action_id’: ’2.3’, ’action_name’: ’place_actor’, ’parameters’: {’actor’: ’red_block’, ’arm_tag’: ’right’, ’target_pose’: [-0.08000283043448461, -0.14068537547170237, 0.7190565302370682, 0, 1, 0, 0], ’functional_point_id’: 0, ’constrain’: ’align’, ’pre_dis’: 0.09, ’dis’: 0.03}}, {’ action_id’: ’2.4’, ’action_name’: ’move_by_displacement’, ’parameters’: {’arm_tag’: ’ right’, ’z’: 0.1, ’move_axis’: ’world’}}, {’action_id’: ’2.8’, ’action_name’: ’back_to_origin’, ’parameters’: {’arm_tag’: ’right’}}], action_feedback:Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Step 2, actionList [{’action_id’: ’2.2’, ’action_name’: ’grasp_actor’, ’parameters’: {’ actor’: ’green_block’, ’arm_tag’: ’right’, ’pre_grasp_dis’: 0.09, ’grasp_dis’: 0.03}}, {’action_id’: ’2.4’, ’action_name’: ’move_by_displacement’, ’parameters’: {’arm_tag’: ’right’, ’z’: 0.1, ’move_axis’: ’world’}}, {’action_id’: ’2.3’, ’action_name’: ’place_actor’, ’parameters’: {’actor’: ’green_block’, ’arm_tag’: ’right’, ’target_pose’: [-0.006194052012989204, -0.14068537547170237, 0.7190565302370682, 0, 1, 0, 0], ’functional_point_id’: 0, ’constrain’: ’align’, ’pre_dis’: 0.09, ’dis’: 0.03}}, {’ action_id’: ’2.4’, ’action_name’: ’move_by_displacement’, ’parameters’: {’arm_tag’: ’ right’, ’z’: 0.1, ’move_axis’: ’world’}}, {’action_id’: ’2.8’, ’action_name’: ’back_to_origin’, ’parameters’: {’arm_tag’: ’right’}}], action_feedback:Action failed: Action Failed: target green_block is too far, right arm can not finish this ’grasp’ action! Please use another arm! Step 3, actionList [{’action_id’: ’2.2’, ’action_name’: ’grasp_actor’, ’parameters’: {’ actor’: ’green_block’, ’arm_tag’: ’left’, ’pre_grasp_dis’: 0.09, ’grasp_dis’: 0.03}}, {’action_id’: ’2.4’, ’action_name’: ’move_by_displacement’, ’parameters’: {’arm_tag’: ’ left’, ’z’: 0.1, ’move_axis’: ’world’}}, {’action_id’: ’2.3’, ’action_name’: ’place_actor’, ’parameters’: {’actor’: ’green_block’, ’arm_tag’: ’left’, ’target_pose’: [-0.006194052012989204, 0.14068537547170237, 0.7190565302370682, 0, 1, 0, 0], ’functional_point_id’: 0, ’constrain’: ’align’, ’pre_dis’: 0.09, ’dis’: 0.03}}, {’ action_id’: ’2.4’, ’action_name’: ’move_by_displacement’, ’parameters’: {’arm_tag’: ’ left’, ’z’: 0.1, ’move_axis’: ’world’}}, {’action_id’: ’2.8’, ’action_name’: ’back_to_origin’, ’parameters’: {’arm_tag’: ’left’}}, {’action_id’: ’2.2’, ’action_name ’: ’grasp_actor’, ’parameters’: {’actor’: ’blue_block’, ’arm_tag’: ’right’, ’pre_grasp_dis’: 0.09, ’grasp_dis’: 0.03}}, {’action_id’: ’2.4’, ’action_name’: ’move_by_displacement’, ’parameters’: {’arm_tag’: ’right’, ’z’: 0.1, ’move_axis’: ’ world’}}, {’action_id’: ’2.3’, ’action_name’: ’place_actor’, ’parameters’: {’actor’: ’ blue_block’, ’arm_tag’: ’right’, ’target_pose’: [0.08393771486567518, 0.14068537547170237, 0.7190565302370682, 0, 1, 0, 0], ’functional_point_id’: 0, ’ constrain’: ’align’, ’pre_dis’: 0.09, ’dis’: 0.03}}, {’action_id’: ’2.4’, ’action_name ’: ’move_by_displacement’, ’parameters’: {’arm_tag’: ’right’, ’z’: 0.1, ’move_axis’: ’ world’}}, {’action_id’: ’2.8’, ’action_name’: ’back_to_origin’, ’parameters’: {’ arm_tag’: ’right’}}], action_feedback:Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Considering the above interaction history and the current image state, to achieve the human instruction: ’<Place> the red block, green block, and blue block <in the order> of red, green, and blue from left to right, <placing in a row>.’, you are supposed to output in json. You need to describe current visual state from the image, summarize interaction history and environment feedback and reason why the last action or plan failed and did not finish the task, output your new plan to achieve the goal from current state. At the end, output the actions. 
+
+Listing 5. 3-steps feedback prompt template for High-Level Action Planning: Blocks ranking rgb 
+
+We also provide output examples in image form to assist the model with action planning. Figure 9. High-Level Action Planning example in img form: Blocks ranking rgb. 
+
+F.3. Low-Level End-Effector Controlling Prompt Template 
+
+You are a robot manipulation assistant. Your task is to follow the instruction and move objects using **End-Effector Pose Control mode** for a dual-arm robot. The action format is: ‘‘‘ [left_end_effector_pose (xyz + quaternion) + left_gripper + right_end_effector_pose (xyz + quaternion) + right_gripper] ‘‘‘ !!!NOTE: Please control the float number in output to be within 5 digits. ### Parameter Explanation: 1. **xyz** The position of the end-effector in the world coordinate system (unit: meters). Example : ‘[0.2, 0.3, 0.1]‘. 2. **quaternion (qx, qy, qz, qw)** The orientation of the end-effector, represented as a quaternion. The first three values ‘(qx, qy, qz)‘ describe the rotation axis (a unit vector), and the last value ‘ qw‘ is the cosine of half the rotation angle: [q = [\sin(\theta/2) \cdot u_x,; \sin(\theta/2) \cdot u_y,; \sin(\theta/2) \cdot u_z,; \ cos(\theta/2)] ]**Example**: A 90(*@\textdegree@*) rotation around the z-axis is: [[0.0, 0.0, \sin(90(*@\textdegree@*)/2), \cos(90(*@\textdegree@*)/2)] = [0.0, 0.0, 0.7071, 0.7071] ]We use a **right-handed coordinate system**: if you point your right thumb along the positive axis, the curl of your fingers indicates the positive rotation direction. Thus, looking **from the positive z-axis downward**, a +90(*@\textdegree@*) rotation is ** counterclockwise**. 3. **Coordinate System Convention** In the environment visualization: * Right side = positive x-axis * Into the screen = positive y-axis * Upward = positive z-axis 4. **gripper (open/close state)** Range ‘[0, 1]‘: * ‘0‘ = fully closed * ‘1‘ = fully open * e.g., ‘0.5‘ = half open. ---### Action Example: Scenario: An apple is located at ‘[0.2, 0.3, 0.0]‘. * **Action 1** ‘‘‘ [0.2, 0.3, 0.15, 0.5, -0.5, 0.5, 0.5, 1.0, 0.5, 0.3, 0.1, 0.0, 0.5, -0.5, 0.5, 0.5] ‘‘‘ Explanation: Move the left hand above the apple. * **Action 2** ‘‘‘ [0.2, 0.3, 0.08, 0.5, -0.5, 0.5, 0.5, 1.0, 0.5, 0.3, 0.1, 0.0, 0.5, -0.5, 0.5, 0.5] ‘‘‘ Explanation: Lower the left hand to grasp the apple. * **Action 3** ‘‘‘ [0.2, 0.3, 0.08, 0.5, -0.5, 0.5, 0.5, 0, 0.5, 0.3, 0.1, 0.0, 0.5, -0.5, 0.5, 0.5] ‘‘‘ Explanation: Close the left gripper to pick up the apple. ---!!! When generating content for JSON strings, avoid using any contractions or abbreviated forms (like ’s, ’re, ’ve, ’ll, ’d, n’t) that use apostrophes. Instead, write out full forms (is, are, have, will, would, not) to prevent parsing errors in JSON. Please do not output any other thing more than the above-mentioned JSON, do not include ‘‘‘json and ‘‘‘!!!. !!! And do not output any ""(quotation marks) in JSON content like "can_right", you can use can_right or (can_right) instead. Else json object can’t be loaded successfully and the action will be empty. !!! you must control your output length within 3000 tokens. Else the output will be cut off and the action will be empty. And output nothing else except the json format below. !!! The max step you can manipulate is limited, so try your best to use dual arm at the same time to finish the task. And try to output more than an action in every output. # This is a proper output template example: {"visual_state_description": "(INDICATE WHAT YOU SEE IN PICTURE.)", "reasoning_and_reflection": "(DESCRIBE YOUR THOUGHT ACCORDING TO OBSERVATION AND ASSISTANT INFO. DETERMINE WHICH STEP THE TASK HAS REACHED. THINKING THE IDEA TO FINISH THE TASK. DESCRIBE ARM TO USE TO PLACE EVERY OBJECT ACCORDING TO YOUR OBSERVATION)", "language_plan": "(DESCRIBE YOUR PLAN TO FINISH THE TASK WITH LANGUAGE)", "executable_plan": ["[-0.25, -0.09, 0.98, 0.5, -0.5, 0.5, 0.5, 1.0, 0.22, -0.083, 0.98, 0.5, -0.5, 0.5, 0.5, 1.0]", "[-0.25, -0.09, 0.9, 0.5, -0.5, 0.5, 0.5, 1.0, 0.22, -0.07, 0.98, 0.5, -0.5, 0.5, 0.5, 1.0]", "[-0.25, -0.09, 0.9, 0.5, -0.5, 0.5, 0.5, 0.0, 0.22, -0.07, 0.9, 0.5, -0.5, 0.5, 0.5, 1.0]", "[-0.25, -0.09, 1.0, 0.5, -0.5, 0.5, 0.5, 0.0, 0.22, -0.07, 0.9, 0.5, -0.5, 0.5, 0.5, 0.0]" ]}!!!!! Assistant info (Very Important to provide some key info): This is a two arm task. You must use both arms(left and right) to finish the task. The main steps of this task: 1.move grippers above the object(use nearest arm to grasp object on the same side) 2.lower the gripper to prepare to grasp the objects 3.close the gripper to grasp the object 4.raise the arm and keep gripper close 5.move arm above the target position and keep gripper close 6.release the gripper and place object to proper positions 7.raise arm and move arm back to origin 8.choose the proper arm to grasp another object next and follow steps above Now the left arm pose is [-3.4950e-01 -2.5230e-01 9.4049e-01 7.0711e-01 -1.0000e-05 1.0000e-05 7.0711e-01] and the right arm pose is [ 3.5050e-01 -2.5230e-01 9.4049e-01 7.0711e-01 -1.0000e-05 1.0000e-05 7.0711e-01]. Now the positions of block1 is [-0.19881 -0.07057 0.73949] and of block2 is [-0.17402 0.02905 0.73949]. You should judge the position of two blocks and use proper arm to grasp. When you try to grasp block1, you should set q or quat=[ 0.64743 -0.2843 0.64743 0.2843 ]. When you try to grasp block2, you should set quat=[ 0.56669 -0.42293 0.56669 0.42293]. However, you are recommended to set quat = [0.5, -0.5, 0.5, 0.5] when you place block to center. The center target position(x,y) is [0, -0.13]. Your target is to stack two blocks. When you place the bottom block, its ideal pos of z is 0.7244852714832615. But this isn’t the gripper pos which you manipulate or control. There’s a distance difference between the gripper’s center position and its lowest point, meaning the gripper’s height is approximately 0.162m. So when you place the bottom block, you should add 0.162 in z, which will be the final proper z-pos. And when you place the second block on top, its ideal pos of z is 0.7744852714832615(5 cm higher than bottom block). And you should also add 0.162 in z when you control gripper pos. If you don’t add 0.162m in z of pos, there will be some errors about arm’s action and your instruction will fail. NOTE: The initial arm pose of left arm is [-3.4950e-01 -2.5230e-01 9.4049e-01 7.0711e-01 -1.0000e-05 1.0000e-05 7.0711e-01] and of right arm is [ 3.5050e-01 -2.5230e-01 9.4049e-01 7.0711e-01 -1.0000 e-05 1.0000e-05 7.0711e-01]. You can use these poses to make arm back to origin. The original gripper state is open or 1. This will be important in this task!!! Raise arm high enough first (z>=1.05m) and then make arm back to origin when you don’t need it, otherwise it will block the actions of another arm!!!!! So raise arm high enough(1.05 or 1.1m) and then make arm back to origin if you don’t need it now!!! !!!!!!NOTE: There’s a distance difference between the gripper’s center position and its lowest point, meaning the gripper’s height is approximately 0.162m. You can’t lower the gripper too low. For example, if the object’s height (z) is 0.738m, and you should output a pose with a lowest point of 0.9m, you need to add 0.162 and set z=0.9 to prevent the gripper from hitting the table and causing damage. In other words, when you output a pose with a z value of 1m, the lowest point is 0.838m,. This involves some calculations. In the action, you must calculate and output the final result in advance, rather than outputting the expression for me to calculate. Note that your output is directly submitted to the environment for interaction, so make sure your output conforms to the format requirements! If you output like 0.738+0.162, this will be illegal. When you manipulate the arm to place center, you are recommended to set q or orientation( last 4-dim)=[0.5,-0.5,0.5,0.5] in most cases. This will point the grippers downwards and can open gripper left-right for easier placing. When you manipulate the arm to grasp blocks, you should set q or quat according to the assistant info above. Since there is a certain error in the End-Effector Pose Control mode (maybe several millimeters), please do not trust the information provided in the assistant info too much. If the observation shows obvious deviation, please move it in a more appropriate direction based on the position provided in the assistant info (for example, add 0.1 (m) to the positive direction of the y-axis). Don’t output too many actions in an output. The position of object will change when your former actions are executed. Make plan based on the latest observation. NOTE: To avoid a fight between two robotic arms, please consider whether the two will collide when operating the robotic arms. If there is a possibility of collision, operate one robotic arm first, move it away after the operation, and then operate the other robotic arm. {OUTPUT_EXAMPLE} 
+
+Listing 6. Prompt Template for Low-Level End-Effector Controlling: Stacks blocks two 
+
+Depending on the task state, the prompt is constructed conditionally. Specifically, when prior execution steps are available, feedback from the three most recent actions is appended to the prompt; otherwise, this component is omitted. 
+
+The 3-steps action history: Step 0, actionList [’[-0.19881, -0.07057, 0.94049, 0.64743, -0.2843, 0.64743, 0.2843, 1.0, 0.35050, -0.25230, 0.94049, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’, ’[-0.19881, -0.07057, 0.73949, 0.64743, -0.2843, 0.64743, 0.2843, 1.0, 0.35050, -0.25230, 0.94049, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’, ’[-0.19881, -0.07057, 0.73949, 0.64743, -0.2843, 0.64743, 0.2843, 0.0, 0.35050, -0.25230, 0.94049, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’, ’[-0.19881, -0.07057, 1.05, 0.64743, -0.2843, 0.64743, 0.2843, 0.0, 0.35050, -0.25230, 0.94049, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’, ’[0.0, -0.13, 1.05, 0.5, -0.5, 0.5, 0.5, 0.0, 0.35050, -0.25230, 0.94049, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’, ’[0.0, -0.13, 0.88649, 0.5, -0.5, 0.5, 0.5, 0.0, 0.35050, -0.25230, 0.94049, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’, ’[0.0, -0.13, 0.88649, 0.5, -0.5, 0.5, 0.5, 1.0, 0.35050, -0.25230, 0.94049, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’, ’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.35050, -0.25230, 0.94049, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’, ’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, -0.17402, 0.02905, 0.94049, 0.56669, -0.42293, 0.56669, 0.42293, 1.0]’], action_feedback:Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Step 1, actionList [’[ -0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, -0.00823, -0.14638, 1.05, 0.47029, -0.52805, 0.47029, 0.52805, 1.0]’, ’[ -0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, -0.00823, -0.14638, 0.90149, 0.47029, -0.52805, 0.47029, 0.52805, 1.0]’, ’[ -0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, -0.00823, -0.14638, 0.90149, 0.47029, -0.52805, 0.47029, 0.52805, 0.0]’, ’[ -0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, -0.00823, -0.14638, 1.05, 0.47029, -0.52805, 0.47029, 0.52805, 0.0]’, ’[ -0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.0, -0.13, 1.05, 0.5, -0.5, 0.5, 0.5, 0.0]’, ’[ -0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.0, -0.13, 0.88649, 0.5, -0.5, 0.5, 0.5, 0.0]’, ’[ -0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.0, -0.13, 0.88649, 0.5, -0.5, 0.5, 0.5, 1.0]’, ’[ -0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.35050, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’], action_feedback: Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Step 2, actionList [’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.01411, -0.1228, 1.05, 0.52283, -0.47608, 0.52283, 0.47608, 1.0]’, ’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.01411, -0.1228, 0.90149, 0.52283, -0.47608, 0.52283, 0.47608, 1.0]’, ’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.01411, -0.1228, 0.90149, 0.52283, -0.47608, 0.52283, 0.47608, 0.0]’, ’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.01411, -0.1228, 1.05, 0.52283, -0.47608, 0.52283, 0.47608, 0.0]’, ’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.0, -0.13, 1.05, 0.5, -0.5, 0.5, 0.5, 0.0]’, ’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.0, -0.13, 0.88649, 0.5, -0.5, 0.5, 0.5, 0.0]’, ’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.0, -0.13, 0.88649, 0.5, -0.5, 0.5, 0.5, 1.0]’, ’[-0.34950, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0, 0.35050, -0.25230, 1.05, 0.70711, -0.00001, 0.00001, 0.70711, 1.0]’], action_feedback:Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Action succeeded. Considering the above interaction history and the current image state, to achieve the human instruction: ’there are two blocks on the table, the color of the blocks is <red, green>, <move the blocks to the center of the table>, and stack the blocks.’, you are supposed to output in json. You need to describe current visual state from the image, summarize interaction history and environment feedback and reason why the last action or plan failed and did not finish the task, output your new plan to achieve the goal from current state. At the end, output the actions. 
+
+Listing 7. 3-steps feedback prompt template for Low-Level End-Effector Controlling: Stack blocks two

@@ -1,0 +1,1380 @@
+Title: Steerable Vision-Language-Action Policies for Embodied Reasoning and Hierarchical Control
+
+URL Source: https://arxiv.org/pdf/2602.13193v1
+
+Published Time: Mon, 16 Feb 2026 02:11:13 GMT
+
+Number of Pages: 27
+
+Markdown Content:
+# Steerable Vision-Language-Action Policies for Embodied Reasoning and Hierarchical Control 
+
+William Chen 1, Jagdeep Singh Bhatia 1, Catherine Glossop 1, Nikhil Mathihalli 1, Ria Doshi 2, Andy Tang 2,Danny Driess 3, Karl Pertsch 3, Sergey Levine 11U.C. Berkeley, 2Stanford University, 3Physical Intelligence 3. drop the banana                      
+
+> on the plate
+> High Level VLM:
+> The carrot is already on
+> the plate . The robot must
+> now go to the banana.
+> To avoid confusing the
+> banana with the yellow
+> duck toy, apointing and
+> motion command is best.
+> Put all the food
+> on the plate
+> 2. move along [x 1y1],
+> [x 2y2],[x 3y3]
+> 1. move back to the
+> banana at [xy]
+
+1. 
+
+3. 
+
+2.                                                     
+
+> banana [x y]
+> [x3y3]
+> [x 2y2]
+> [x1y1]
+> -Wipe with cloth
+> -Lift the duck
+> -Grasp the carrot on
+> the plate
+> -Move right
+> -Rotate clockwise
+> and grasp
+> -Open grippe r
+> Subtasks Atomic Motions
+> -Move from [x 1y1]
+> to [x 2y2]
+> -Go along [x 1y1],
+> [x 2y2], [x 3y3]
+> -Grasp at <carrot
+> pixel position>
+> -Reach for <banana
+> pixel position>
+> Points Traces
+> New Detailed Steering Command Styles
+> Task -level Commands
+> Old “Standard” Language
+> -Pu tthe carrot on
+> the cloth
+> -Wipe the table with
+> the towe l
+> -Put the banana next
+> to the duck
+> -Stack the plate on
+> the towel
+
+Fig. 1: We propose Steerable Policies : vision-language-action models that can robustly follow a wide range of detailed commands (green boxes on right), going beyond usual task language to include instructions such as motions or pixel coordinates of the gripper and objects. The flexibility afforded by Steerable Policies enables substantially improved transfer of VLMs’ pretrained reasoning, semantic knowledge, and in-context learning skills to generalist robotic control in hierarchical systems. 
+
+Abstract —Pretrained vision-language models (VLMs) can make semantic and visual inferences across diverse settings, providing valuable common-sense priors for robotic control. However, effectively grounding this knowledge in robot behaviors remains an open challenge. Prior methods often employ a hierar-chical approach where VLMs reason over high-level commands to be executed by separate low-level policies, e.g., vision-language-action models (VLAs). The interface between VLMs and VLAs is usually natural language task instructions , which fundamentally limits how much VLM reasoning can steer low-level behavior. We thus introduce Steerable Policies: VLAs trained on rich synthetic commands at various levels of abstraction, like subtasks, motions, and grounded pixel coordinates. By improving low-level controllability, Steerable Policies can unlock pretrained knowledge in VLMs, enabling improved task generalization. We demonstrate this benefit by controlling our Steerable Policies with both a learned high-level embodied reasoner and an off-the-shelf VLM prompted to reason over command abstractions via in-context learning. Across extensive real-world manipulation experiments, these two novel methods outperform prior embodied reasoning VLAs and VLM-based hierarchical baselines, including on challenging generalization and long-horizon tasks. Website: steerable-policies.github.io 
+
+I. I NTRODUCTION 
+
+A long-standing goal of robotics is to develop generalist 
+
+policies that can follow open-ended commands to perform a wide range of tasks. However, scaling robot data collection remains expensive, motivating the use of pretrained foundation vision-language models (VLMs) as a source of semantic and perceptual knowledge. Prior works often employ a hierarchy, where a high-level VLM reasons over task instructions and is-sues commands to a separate, language-conditioned low-level policy [1, 2]. However, effectively bringing VLM capabilities to bear for solving general robotics tasks is challenging, as doing so requires grounding their pretrained knowledge in robot behaviors. This raises a fundamental question: how can we best unlock and leverage the generalization capabilities of pretrained foundation models for robotics? 
+
+We posit that a major bottleneck in transferring these capabilities is insufficient policy steerability . Put simply, no matter how good a VLM is at determining robot behaviors needed for solving tasks, its reasoning abilities are wasted if the robot’s policy cannot execute them. For example, the VLM might infer that an object needs to be grasped in a particular location, but this inference is only useful if the policy can understand commands specifying that location. Even powerful policies, such as vision-language-action models (VLA), have limited ability to follow diverse commands due to dataset limitations, where labels are often too formulaic, homogeneous, and imprecise to specify the full range of behaviors needed for solving new tasks [3]. These drawbacks make standard task-level language derived from dataset labels a poor interface for VLMs to control robot policies. One insight is that steerability can be improved by augment-ing existing datasets with more detailed synthetic language. Robot datasets already implicitly contain rich semantics, inter-actions, and behaviors, far beyond what is described in their sparse task labels. For example, a policy which learns to “wipe 
+
+> arXiv:2602.13193v1 [cs.RO] 13 Feb 2026
+
+the table with the towel on the left” tacitly learns what towels look like, how to grasp them, and how to move left – all of which can be leveraged for other tasks, like “hang the towel on the hook.” Training on more descriptive commands could aid the policy flexibly invoke these skills for solving new tasks. However, na¨ ıvely densifying task descriptions is insufficient for generalization and composition. For example, expanding the descriptions of existing behaviors would struggle to teach the policy the names of fundamentally out-of-distribution objects. Still, the policy may be able to grasp these novel objects, due to their physical similarity to objects the policy 
+
+has learned to interact with. A generalizable way to induce these behaviors is by prompting with grounded features, like pixel coordinates, as they can specify behaviors and concepts that are otherwise difficult to communicate to the policy (e.g., 
+
+"grasp at <novel object’s position>" ). Not only are grounded features easily extracted for training, but modern VLMs are also trained to output them, thereby allowing these VLMs to transfer their pretrained knowledge to robotics. We thus introduce Steerable Policies : robotic foundation models that follow a much wider range of commands than standard VLAs. Beyond typical “task-level” commands (e.g., 
+
+"put the carrot in the pot" ), we train VLAs to accept more detailed inputs, such as subtasks ( "reach for the carrot" ) or low-level atomic motions ( "move left and close the gripper" ). We also include commands with grounded features, such as gripper traces ( "move along 
+
+[x1, y 1], [x2, y 2], ... ") or points ("grasp the object at 
+
+[x, y ]"). Finally, we include prompts that compose all these modalities ( "move right from [x1, y 1] to put the mushroom on the plate at [x2, y 2]"). These steering commands are synthetically generated by a scalable pipeline that automati-cally parses and labels robot data. See Fig. 1 for more. Compared to past hierarchical methods [1], Steerable Poli-cies vastly expand the interface between low-level robot behaviors and high-level VLM skills, allowing high-level reasoners to flexibly choose instructions at the right level of abstraction for generalization and compositionality. We show this by proposing and evaluating two ways for VLMs to control our Steerable Policies, instantiated on a real-world Bridge WidowX setup [4, 5]. First, we show that VLMs can be fine-tuned into effective high-level models for instructing Steerable Policies by producing chain-of-thought reasonings (CoT [6, 7]) followed by steering commands. This outperforms past reasoning VLAs [8, 9], indicating that it makes especially good use of embodied reasoning data. Second, we show how Steerable Policies can better apply the in-context learning 
+
+skills of API-based off-the-shelf VLMs. We find that these VLMs can apply in-context learning over past observations and commands to further improve robot behaviors by choosing commands of the correct level of abstraction. This is a novel functionality afforded by our Steerable Policies, which leads to significant performance gains over standard baselines. In summary, we show that improving VLA steerability is critical to facilitate transfer of VLM capabilities to robotics. We do this by introducing (1) Steerable Policies: VLAs that can be prompted at many levels of abstraction to perform diverse manipulation skills; and (2) novel methods for us-ing VLMs’ embodied reasoning and in-context learning to hierarchically control our VLA to solve challenging tasks. We demonstrate that the steerability of low-level VLAs sig-nificantly improves the use of high-level VLMs’ pretrained capabilities, resulting in better robot generalization. Note that our proposed methods are agnostic to VLA architectural choices; in principle, steerability can be broadly applied to improve robotic capabilities. II. R ELATED WORKS 
+
+Vision-language-action models. As in vision and language, robotics has moved towards using large foundation mod-els [10]. A popular method is to fine-tune general VLMs into 
+
+vision-language-action policies (VLAs) [11, 12], transferring the base VLM’s comprehensive pretrained representations to learn robot tasks from demonstrations. Prior works explore many variations of this recipe, such as altering action rep-resentations [11–17] or training VLAs to perform embodied reasoning [8, 9, 18]. Our approach differs from such works in that we aim to improve policy steerability via augmentation of language prompts, with the end goal of making better use of foundation model capabilities in hierarchical approaches. 
+
+Training for steerability. Past works often improve policy steerability by training on synthetic language labels that are more diverse [19], detailed [20, 21], or composable [22, 23]. They can also be trained on non-text steering modalities, like gripper traces [24, 25] or visual marks [26]. In contrast, our method trains on many input types, rather than finding a one-size-fits-all steering modality. Additionally, all our steering commands are expressed in text tokens, allowing our VLA to interface with generative VLMs more easily than other models trained on many prompt modalities, such as OmniVLA [27]. Similar to our method, MolmoAct trains on standard text with gripper trace CoTs, enabling inference-time steering via two modalities (changing either the trace or the language) [28]. However, unlike our work, they limit language steering to task-level prompts only (no other abstractions, like subtasks, motions, or points, as we use). Additionally, MolmoAct’s gripper trace steering can only be used in conjunction with text commands, which can be a drawback when text introduces adverse biases (e.g., if the policy systematically misidentifies an object by name). This disadvantage is not shared by our policy. In summary, the core novelty of our Steerable Policies is that they accept steering commands spanning a spectrum of abstractions, not just one or two, as MolmoAct and other prior works do. In particular, giving high-level VLMs the flexibility to choose how to steer the low-level VLAs is necessary for improved generalization. We find in Sec. VI-A that this is critical for performance, as the effectiveness of different steering abstractions depends heavily on the task setting. 
+
+Synthetic data for model controllability. Our method of training policies on synthetic language parallels a trend in text-to-image generation: while image corpora often contain the Observation   
+
+> Action
+> “Put the toothbrush
+> on the towel”
+> High -level
+> Policy
+> Low -level
+> Steerable VLA
+> tt+N
+> Steerable Command:
+> “Move right to [x y]”
+
+Fig. 2: The hierarchical policy inference loop, where a high-level model sends commands to the low-level Steerable Policy. diversity needed for detailed image generation, the accompa-nying captions are too imprecise for fine-grained text control-lability, necessitating detailed synthetic labels [29]. Similarly, our core insight is that robot datasets already contain diverse behaviors, but their text labels are too sparse, biased, and succinct to induce desirable actions for novel tasks . While steerability in the image domain is valuable for aligning with user preferences, we aim to make VLAs more steerable to better interface with high-level policies, enabling improved use of their pretrained capabilities for solving new control tasks. 
+
+Hierarchical robot learning. One way to improve gen-eralization is to hierarchically decompose robot tasks into atomic skills [30]. These techniques broadly divide action prediction into fast, reactive control and slow, methodical reasoning/planning, akin to the System I and II model of human cognition [31]. In robot learning, these methods either are trained end-to-end (e.g., policies with an intermediate “chain-of-thought reasoning” [8, 16, 28, 32]) or, as we focus on in Sec. V, are factorized into separate models [1, 33, 2, 24]. Several works use off-the-shelf VLMs as the high-level policy [1, 34–41], while others finetune them to improve their alignment with a given domain or low-level policy [33, 42– 44, 24, 28, 45, 46]. However, these works usually select a 
+
+single modality to interface between high and low levels, such as subtask-level language prompts [1, 36, 37, 44, 45, 39, 35, 38, 43, 46] or grounded representations [24, 28]. Steerable Policies enable a fundamentally new capability absent from these works: the ability to reason about and choose which abstraction to use for steering VLAs. This not only yields high performance (Sec. VI-A), but also provides novel ways to apply broad VLM capabilities – scene understanding, reasoning, and in-context learning – to robotics (Sec. VI-C). Of course, non-steerable VLAs only accept a single type of (usually text) prompt, and do not reap the same benefits. III. P RELIMINARIES 
+
+Vision-language-action models. Given task prompt l and observations o (e.g., proprioception and images), behavioral cloning (BC) learns a policy π(·| o, l ) that solves tasks by matching the behavior distribution of expert demonstrators. 
+
+Vision-language-action models are pretrained vision-language models fine-tuned into π. Our Steerable Policy (Sec. IV) is a VLA, though trained to accept diverse steering modalities. 
+
+Hierarchical policies. One way to improve the general-ization of learned policies is with hierarchical methods. This factorizes robot instruction-following into two steps: first, a high-level policy takes the overall task l and observation o
+
+to output an appropriate intermediate subtask, plan, or goal 
+
+g; then, the low-level policy samples actions a conditioned on g and o. This is the framework we adopt (Fig. 2): our Steerable Policy acts as the low-level controller (where g are steering commands), while we explore the novel high-level policy capabilities they enable in Sec. V. IV. S TEERABLE VISION -L ANGUAGE -A CTION POLICIES 
+
+We now introduce Steerable Policies. We propose train-ing VLAs on steering commands that span many abstrac-tions, such as subtasks, motions, or grounded coordinates (Sec. IV-A). After generating them at scale (Sec. IV-B), these prompts randomly replace the standard task-level labels used for BC. Training on steering commands yields a policy that can execute diverse compositional skills when prompted via a range of modalities (Sec. VI-A), in contrast to past works that use single steering inputs [24, 25, 22]. This section solely focuses on training low-level Steerable Policies; then, in Sec. V, we discuss how to use these VLAs with high-level 
+
+policies that perform embodied reasoning or apply zero-shot VLM capabilities to choose appropriate steering commands. 
+
+A. Styles of Steering Commands 
+
+To obtain VLAs that can exhibit diverse behavior when instructed with a wide range of abstractions, we train on a diverse mix of different command styles , satisfying several desiderata: commands should be (1) versatile for inducing a range of generalizable behaviors for solving novel tasks; (2) conducive to being issued by human operators, high-level reasoners, and in-context learning VLMs; and (3) scalable for synthetic labeling – i.e., they can be automatically generated using foundation models from robot trajectories. The cate-gories of steering commands that we train on are as follows. See Fig. 1 and App. A for more examples. 1) Task-level : The default labels used for training VLAs. They allow Steerable Policies to also solve tasks that standard VLAs can. E.g., "put the carrot in the pot" .2) Subtask-level : These help compose existing semantic skills for novel tasks. E.g., "reach for the carrot" .3) Atomic motions : These let the VLA follow granular move-ments in language, without referencing the semantic con-tents of the scene. E.g., "move left" or "open gripper" .4) Gripper traces : These provide a list of pixels for the gripper to follow. E.g., "move from [x1, y 1] to [x2, y 2]".5) Points : These indicate positions of objects or locations of interest. E.g., "lift above <pot position>" or "grasp at <carrot position>" . This is subtly distinct from gripper trace commands, as pointing does not necessarily indicate the exact pixels the gripper must move to, merely visual positions relevant to the task. 6) Combination : Hybrids of these styles. E.g., "move left from [x, y ] to the carrot at <carrot position>" .Generate steering commands using:                                          
+
+> task | motions | gripper coords | bboxes
+> Reach for carrot:
+> -Go right to the carrot
+> -Reach for the carrot at
+> <carrot bbox>
+> -Move right and down
+> -Gofrom [x 1y1],[x 2y2],
+> [x 3y3]
+> Firmly grasp carrot:
+> ...
+> (2) Generate diverse steering commands for
+> all subtasks
+> Rationalize why these commands
+> are good for each subtask start
+> Task: put the carrot on the towel.
+> The robot isn’t holding anything, so
+> it should reach for the carrot.
+> The carrot is on the table, down and
+> to the right of the robot.
+> àIt thus should move right.
+> (3) Generate rationalizations to
+> explain the steering commands
+> (1) Annotate robot trajectories with embodied reasoning features and subtasks.
+> Molmo, DETR, SAM
+> Task: “Put the carrot on the towel
+> àSubtask Decomposition:
+> 1. reach for carrot
+> 2. firmly grasp carrot
+> 3. lift above towel
+> 4. drop carrot on towel
+> Gemini
+
+Fig. 3: Our automated pipeline for annotating robot data with synthetic steering commands at scale. 1: We use a suite of foundation models to extract subtasks and grounded features (bounding boxes, motions, and gripper traces) from each trajectory. 2: We query a VLM to generate diverse steering commands for training Steerable Policies. These commands may reference features extracted in the first step, which we provide in the prompt. 3: To train high-level embodied reasoners, we also generate rationalizations for why particular commands are appropriate for given observations (Sec. V-A). The last three styles can reference 2D visual pixel coordinates, which VLMs can easily specify [47, 18]. They also allow fine-grained steering when language is insufficient: e.g., the policy might fail to pick up some out-of-distribution object specified by name, but would succeed if told to "pick up the object at [x, y ]". Likewise, if there are multiple of instances an object (making language underspecified), the policy can determine the correct one to interact with from a pointing command. 
+
+B. Generating Steering Commands at Scale 
+
+The default task commands found in large robot datasets are usually human-annotated. While this yields the gold standard in terms of data quality, acquiring these labels at scale is expensive and labor-intensive, especially when language com-mands reference grounded features, such as pixel coordinates. We thus turn to synthetically-generated annotations. Our pipeline for producing steering commands is shown in Fig. 3. We first extract grounded features from a robot dataset, then compile them into subtasks. Specifically, we follow Zawalski et al. [8] to programmatically extract motion language, then use Molmo to extract task-relevant object names and map them to segmentation masks [47]. Next, we use SAM2 to track and propagate these masks across the entire trajectory video [48], thereby producing temporally-consistent open-vocabulary bounding boxes. Separately, we call DETR to extract the robot’s gripper traces [49]. Finally, given the overall task, motions, and objects, we query Gemini 2.0 [50] to break the episode into semantic subtasks. After grounded feature extraction and subtask decompo-sition, we query Gemini again to restate each subtask into equivalent steering commands of all styles in Sec. IV-A). Gripper traces, motions, and object centroids are provided 1. The toothbrush isn’t on the towel.                       
+
+> 2. The robot must move to the toothbrush.
+> 3. Based on obs +comman dhistory ,it
+> reached for the wrong object when told
+> to “ move to toothbrush, ” so let’s
+> point instead.
+> In -context Learning VLM
+> Reason about:
+> 1. The scene.
+> 2. How to progress
+> the task .
+> 3. The abstraction
+> to prompt the
+> robot with .
+> System Prompt Task
+> Move right to [x y]
+> The toothbrush is
+> on the table, not
+> the towel. Thus ,
+> the robo tshould
+> move right and
+> down to reach it.
+> Emb. Reasoner
+> Move right to [x y]
+> Task
+> + history
+> (a) (b)
+
+Fig. 4: Our two novel high-level policies (Sec. V). (a) fine-tunes a VLM into an embodied reasoner that issues steering commands, while (b) queries an off-the-shelf VLM to deter-mine appropriate commands via in-context reasoning. in the prompt, as these grounded features are useful for generating some steering commands. This pipeline allows us to expand from 38k “standard” Bridge task-level language labels to 206k subtasks and nearly 2M total steering commands. See App. A for full details and all prompts used. The generated commands are used to train Steerable Policies by simply replacing the standard language during BC with a corresponding steering command (sampled uniformly at random across all commands for each frame). The resulting VLA can thus follow all command styles in Sec. IV-A nec-essary to produce generalizable behaviors, which we confirm in Sec. VI-A. In particular, we show that different command styles are suited to different tasks and situations, suggesting Steerable Polices generalize better. Indeed, we also find that choosing steering commands intelligently yields a substantial performance boost over a non-steerable baseline. V. H IERARCHICAL METHODS WITH STEERABLE POLICIES 
+
+To fully realize the benefits of Steerable Policies, they must be integrated with VLMs that understand their affordances. We introduce two high-level VLM policies that effectively leverage semantic knowledge and physical reasoning to issue steering commands. First, we investigate how embodied CoT reasoning training can aid lightweight open-source VLMs to leverage their pretrained representations for controlling Steerable Policies. Second, we use the zero-shot in-context learning abilities of off-the-shelf VLMs for multi-step robotic problem-solving. Both methods are depicted in Fig. 4. 
+
+A. Training High-level Embodied Reasoners 
+
+Our first method trains a high-level embodied reasoning model to decompose tasks into steering commands, as shown in Fig. 4 (a). Specifically, we fine-tune a VLM to output appropriate steering commands for accomplishing a given task based on a task instruction and the current observation. Note that our command generation pipeline (Sec. IV-B) provides a mapping from tasks to appropriate commands, yielding the exact supervision necessary to train this model. To make better use of the base VLMs’ reasoning abilities and improve generalization, we also produce post-hoc ratio-nales for why each command is appropriate. For each subtask in every trajectory, we query Gemini with its starting frame, asking the VLM to explain why that subtask is needed to make progress (Fig. 3). See App. A-B for the full prompt used and more details. We then train the high-level policy via next-token prediction to reason about what the robot should do in each frame. During inference, the model autoregressively predicts a reasoning followed by a corresponding steering command, which our Steerable Policy follows for N = 5 environment steps before re-querying the high-level reasoner. We expect this approach to be particularly effective for three main reasons. First, as the high-level reasoner’s learning objective (mapping from task language to natural language reasonings and steering commands) is similar to the base VLM’s pretraining objective, we expect it to readily transfer its generalizable representations to this new task. Second, since the low-level VLA only attends to steering commands, it learns fewer spurious biases between the task, reasoning, and action, compared to most unfactorized end-to-end models. Finally, since the high-level reasoner is queried less frequently than the VLA, it speeds up inference compared to standard embodied reasoning, even without any compilation techniques [51, 52]. 
+
+B. In-context Reasoning for Choosing Steering Abstractions 
+
+Steerable Policies also enable a novel functionality: they permit many command styles, letting high-level models choose 
+
+which level of abstraction is best for inducing behaviors that progress a given task. Thus, in addition to reasoning about 
+
+what the robot should do, hierarchical systems using Steerable Policies have the added dimension of reasoning about how to get the robot to do it. Our approach in Sec. V-A fine-tunes a model to map tasks to steering commands, but not necessarily those of the optimal style. Doing so requires (1) intuition about the strengths and weaknesses of each command style and (2) the ability to learn when each style is effective on the fly. We thus hypothesize that off-the-shelf VLMs would excel at selecting command styles, due to their zero-shot proficiency with in-context learning and reasoning. We test this idea with the implementation shown in Fig. 4 (b). We query an API-based off-the-shelf VLM with the robot’s observation and an overall task. The VLM is told to issue commands to our Steerable Policy, based on examples of all the command styles and brief descriptions of their strengths and weaknesses. The model receives a history of images and executed commands in context, is asked to (1) parse the current scene, (2) determine what the robot should do next, and (3) reason about the best level of abstraction for commanding the policy. Finally, it predicts a steering command for the Steerable Policy to follow for N = 20 steps before the high-level VLM is re-queried. See App. B for more details. Beyond emitting steering commands at a range of abstrac-tion styles, our approach has several key innovations. Most significantly, the VLM can use in-context learning to adapt its command choices, since it receives a sequential history of past observations and commands it has chosen. After selecting a steering abstraction, the VLM can observe the robot’s resulting behavior, then adjust the abstraction or command as needed. Critically, because in-context data points are produced by the VLM, it does not need hand-crafted examples of robot behaviors. Note that as in-context learning is used here to predict steering commands, not robot actions, the VLM’s task is thus akin to the “standard” vision-language in-context learning that VLMs are known to excel at. This obviates domain-specialized training or structured scene descriptions needed in prior robot in-context learning works [53, 54]. Another benefit of our approach is that the VLM can use its scene understanding in conjunction with descriptions of each command style to reason about optimal steering abstractions. For instance, the VLM might produce visual inferences such as “the scene is cluttered,” leading to the selection of a pointing or motion command which allows for improved specificity. Naturally, as the above benefits stem from choosing steering abstractions, they are not applicable to prior methods where VLMs control standard policies that accept only a single conditioning modality (e.g., task language [11, 12, 22] or traces [24–26]). Only Steerable Policies can bring these VLM capabilities to bear for robotic problem-solving. VI. E XPERIMENTS 
+
+Research questions. We now evaluate our Steerable Poli-cies, both individually and as part of our two hierarchical control methods. We aim to answer: (1) Can steering com-mands effectively induce diverse compositional behaviors in Steerable Policies, yielding improved task performance? (2) 
+
+How can Steerable Policies enable trained high-level VLMs to leverage embodied reasoning data for generalization? (3) How can Steerable Policies let us better apply in-context learning, scene understanding, and reasoning competencies in off-the-shelf VLMs for solving long-horizon tasks? 
+
+Experimental setup. We train a Steerable Policy on the Bridge WidowX real-world robot manipulation dataset [4, 5, 55], allowing for evaluations consistent with past generalist policies [56, 12, 8, 9]. Following these works, we adapt the OpenVLA codebase to train our Steerable Policy (and our embodied reasoner) with the standard Prismatic VLM 7B architecture [57, 12], but modified to map steering commands 
+
+(rather than standard task labels) and third-person RGB obser-vations to end effector actions. See App. F for more details. For experiments in Sec. VI-A and Sec. VI-B, we measure performance over common generalization axes [12, 8, 9]: in-distribution, motion, spatial, and semantic generalization. When evaluating our in-context learning high-level policy formulation in Sec. VI-C, we additionally include unseen longer-horizon tasks. See App. C for full task details. 
+
+A. Diverse Steering Commands Induce Performant and Compositional Behaviors in Steerable Policies 
+
+To improve the performance of learned hierarchical systems, the underlying policies must respond to a wider range of com-mands beyond standard task-level language. Our first experi-ment evaluates whether our proposed steering commands are “Reach for the mushroom”            
+
+> (1) User intervenes during rollout to give new steerable command
+> (3) Resume with new command
+> “Move the
+> mushroom from
+> <1> to the bowl
+> at <2> ”
+> (2) Fill in placeholders
+> Click to fill
+> in <1> and <2> :
+> “Move the
+> mushroom from
+> [x 1y1]to the
+> bowl at [x 2y2]”
+
+Fig. 5: Interactive interface for querying humans for oracle steering commands. 1: The operator can interrupt the rollout to issue a new steering command. To facilitate giving commands with pixel coordinates, they can add textual placeholder mark-ers. 2: If any are given, a GUI is opened displaying the current robot observation, allowing the user to click to fill the markers in. 3: Finally, the rollout resumes with the new command. In-Dist. Motion Gen.    
+
+> 0
+> 25
+> 50
+> 75
+> 100
+> Success Rate  (%)
+> Average
+> Spatial Gen. Semantic Gen.
+> 0
+> 25
+> 50
+> 75
+> 100
+> Success  Rate  (%)  Allowed
+> Command Style
+> Task
+> Subtask
+> Atomic Motion
+> Traces/Points
+> Any Style
+> (Unablated)
+
+Fig. 6: Allowing the oracle human user to issue any command style to our Steerable Policy nearly saturates performance on Bridge. By restricting the user to each style alone, we find each one is suited to different task types. All individual styles are better than directly providing the standard task-level language that is used by regular VLAs. Error bars denote ±1StdErr. sufficiently expressive to induce the compositional behaviors necessary for Steerable Policies to solve a range of novel tasks. Specifically, we establish an achievable upper bound on performance by having a human act as an “oracle” high-level policy. This experiment serves as a didactic proof of existence showing that, given human-level scene understanding and reasoning, steering commands enable a Steerable Policy to attain high task performance. Following Shi et al. [33], the user may intervene by modifying the policy’s free-form steering command as needed (Fig. 5). However, they must wait ≥ 2
+
+seconds between interventions to reflect practical hierarchical systems that query the high-level policy less frequently than the low-level. This also prevents the user from “fully teleop-erating” the robot by repeatedly changing the command. We additionally repeat this experiment while restricting the user to a single command style at a time, including the ‘task-level” prompts used by standard VLAs. This isolates whether individual steering modalities are sufficient for strong performance, and clarifies when each style is most effective. Our results demonstrate that a human oracle issuing unrestricted steering commands can solve all tasks at nearly 100% success rate (Fig. 6). Even when constrained to a single command style, the user consistently outperforms task-level language alone. Additionally, we find that no single style dominates across settings: each exhibits complementary strengths and weaknesses. Optimal performance empirically requires access to a spectrum of prompt abstraction, supporting the claim that no one-size-fits-all steering modality exists. We observe several trends for when each style is effective. First, trace/point commands dominate in semantic general-ization, as pointing allows the policy to know which out-of-distribution objects to interact with, even if it fails to identify them by name. Next, atomic motion commands are best in tasks that reference spatial relations. When following motion commands, the policy remains on a manifold of “reasonable” actions – e.g., when prompted to “move left,” it servos left 
+
+towards an object , rather than moving left unconditionally (see App. E-B for more examples). As a result, when using a single steering modality, motions are the most effective. Finally, while task/subtask commands never perform best in any evaluation, they are especially reliable for in-distribution 
+
+parts of an overall task (e.g., reaching for non-novel objects). Overall, we find our Steerable Policy to be both responsive to different command styles and highly performant, partic-ularly when given suitable steering commands leveraging 
+
+all command styles. However, selecting effective commands requires reasoning about the task, the scene, and the VLA’s capabilities. This motivates the novel hierarchical methods presented in Sec. V, which we evaluate below. 
+
+B. Steerable Policies Enable VLMs to Effectively Use Embodied Reasoning Training 
+
+We now evaluate if fine-tuning a VLM into a high-level policy is an effective way to leverage embodied reasoning to control a Steerable Policy. Since our method involves fine-tuning the high-level to produce embodied reasonings and intermediate goals, we compare against three prior methods that use reasoning data to improve VLAs: Embodied Chain-of-Thought Reasoning VLA (ECoT) [8] and the two vari-ants of ECoT-Lite , which learn representations from robot reasonings, but do not generate them during inference [9]. We also compare against an equivalent “standard” OpenVLA 
+
+policy that does not reason [12]. Finally, we include a non-reasoning ablation, where the fine-tuned VLM outputs steering commands directly. All methods are evaluated on the same Bridge tasks used in ECoT-Lite, which were chosen to probe several axes of generalization. For fairness, all policies share the same architecture and training demonstrations, differing only in how embodied reasoning is incorporated. As shown in Fig. 7, our approach outperforms all baselines .The gains are most pronounced on motion and semantic Average            
+
+> 0
+> 25
+> 50
+> 75
+> 100
+> Success Rate (%)
+> In-Dist. In-Dist. Challenge Motion Gen. Spatial Gen. Semantic Gen.
+> Standard
+> OpenVLA
+> ECoT-Lite:
+> Reasoning Dropout
+> ECoT-Lite:
+> Reasoning Pre-training Full ECoT
+> Steerable Policy +
+> Learned High-level
+> (Non-reasoning Ablation)
+> Steerable Policy +
+> Embodied Reasoner (Ours)
+
+Fig. 7: Our approach of controlling our Steerable Policy with a learned high-level embodied reasoning model outperforms four baselines: the equivalent standard Bridge OpenVLA [12], the Reasoning Pretraining and Dropout ECoT-Lite methods [9], and full Embodied Chain-of-Thought Reasoning [8]. Error bars denote ±1StdErr. We adopt the same Bridge task suite as ECoT-Lite [9], enabling a direct comparison with other methods for training VLAs with embodied reasoning data. Average            
+
+> 0
+> 25
+> 50
+> 75
+> 100
+> Task Progression (%)
+> Long Horizon 1Long Horizon 2 Motion Gen. Spatial Gen. Semantic Gen.
+> Standard
+> OpenVLA SayCan-like Steerable Policy + In-context
+> Learning VLM (Non-reasoning Ablation)
+> Steerable Policy +
+> In-context Learning VLM (Ours)
+
+Fig. 8: In-context learning VLMs can effectively select abstractions for instructing our Steerable Policy. Error bars denote 
+
+±1StdErr. Steerability allows VLMs to better apply their reasoning and in-context learning skills, in ways the standard SayCan-like paradigm (where the VLM interfaces with a VLA via subtasks alone) fails to take advantage of (Sec. VI-C). To better highlight these capabilities, we measure task progression on challenging multi-step Bridge tasks. generalization tasks, likely because atomic motion, trace, and pointing commands allow the generalizable reasoner to reliably control the Steerable Policy under distribution shift. 
+
+Fine-tuned high-level VLMs benefit from reasoning. 
+
+While not as effective as our full approach, ablating reasoning from our method still greatly outperforms standard OpenVLA and is on-par with ECoT-Lite, despite being trained on the same robot interactions. This suggests that there are perfor-mance benefits to hierarchical control schemes with Steerable Policies over end-to-end policies, even if the high-level is not explicitly trained to reason . Still, we find that embodied reasoning is important for generalization and performance. Note that VLMs’ off-the-shelf reasoning abilities can be used to achieve the same benefit, which we discuss below. 
+
+C. Steerable Policies Unlock In-context Reasoning in VLMs 
+
+Finally, we investigate if off-the-shelf VLMs can better use their in-context reasoning faculties when interfacing with Steerable Policies. We define a distinct suite of multi-step tasks that demand reasoning over long-horizon executions. See App. C-C for task details and rubrics. The key advantage of using Steerable Policies is that they allow high-level VLMs to reason about and flexibly choose the best abstraction for prompting low-level VLAs. Our primary baseline is therefore a SayCan-like [1] method, representing a standard approach where an off-the-shelf VLM commands the VLA through subtask language alone. For fairness, this baseline uses the same history and system prompt as our method, differing only in that the VLM is restricted to a single level of steering abstraction. We expect this to hinder the impact of in-context reasoning, lowering performance. We also include a standard Bridge OpenVLA comparison to assess if our tasks are sufficiently challenging for non-hierarchical policies. Finally, to isolate the role of explicit reasoning, we include a non-reasoning ablation where the VLM outputs steering commands without any intermediate generation. All hierarchical methods use Gemini 3.0 [50] as the VLM; more details and prompts for all methods are shown in App. B. As shown in Fig. 8, our approach universally outperforms OpenVLA and SayCan-like baselines. Since the latter differs only in being restricted to subtask-level prompts, the perfor-mance gap primarily reflects the benefit of allowing the VLM to access the full spectrum of steering abstractions during in-context reasoning. Our method also outperforms the non-reasoning ablation, though the gap is smaller. This suggests that, while explicit reasoning is helpful, in-context learning VLMs are already adept at issuing effective steering com-mands without intermediate “thinking.” We further observe that using in-context reasoning to steer our VLA leads to several qualitative advantages, shown below and in Fig. 9. 
+
+In-context learning enables corrective steering. Even when the VLM initially picks poor steering commands, we find it can use in-context learning to improve commands by changing the abstraction level. This is especially salient when a command leads to an error (Fig. 9a) or is ineffective and fails to progress the task (Fig. 9b). In either case, the VLM reasons over history to learn the affordances of the VLA and change its prompting strategy to complete the task. A previous attempt using a position -based    
+
+> command failed to target the correct banana.
+> I will now use a different level of
+> abstraction , atomic motion commands, to
+> guide the robot toward the right side of the
+> workspace to ensure it approaches the
+> correct object.
+> move right and down to the banana on the right
+> Put the banana on the right on the plate
+
+(a) The VLM uses in-context learning to “discover” what steering abstraction is best. A pointing command leads to incorrect behavior, so the VLM employs a motion command instead. High -level & combination commands have been           
+
+> attempted without lifting the object.
+> Since the gripper is already well -
+> positioned above the mushroom, a position
+> command will help re -calculate a more
+> precise grasp to ensure the mushroom is
+> actually secured before lifting.
+> pick up the object at [x, y]
+> Put all the food in the blue pot and stuffed toys in the tan pot
+> [x y]
+
+(b) The VLM uses in-context learning to adjust the abstraction when task progress stalls. Subtask ( "lift the mushroom up" ) and motion ("move down and close gripper onto the mushroom" ) commands were ineffective, so the VLM points instead. The robot missed the hammer which is further                    
+
+> right . This is arecurring issue where the
+> robot confuses the target w/ the vegetable.
+> Since the robot is too low & targeting the
+> wrong item, an atomic motion command to move
+> right and up will clear the current object
+> and reposition for the correct target.
+> move right and up to the hammer handle
+> Put the hammer on the towel
+
+(c) The VLM demonstrates fine-grained semantic and physical un-derstanding to issue a corrective command. Since the gripper is       
+
+> centered over the
+> blue pot & away from
+> the items, a
+> position command is
+> most efficient to
+> direct the robot to
+> a specific target.
+> Since the robot is
+> already precisely
+> aligned with the
+> banana, a high -level
+> instruction is the
+> most efficient and
+> reliable way to
+> execute the grasp.
+> Put all the food in the blue pot and stuffed toys in the tan pot
+> move above [x y] grasp the banana
+> [x y]
+
+(d) Given an observation, the VLM reasons about which steering abstraction is most appropriate, based on each one’s strengths. 
+
+Fig. 9: Example reasonings when using an in-context learning VLM for controlling our Steerable Policies. 
+
+Steerability better applies VLM understanding. Inter-facing with a Steerable Policy allows the VLM to translate its scene understanding and in-context history into actionable corrections that are difficult to induce in a standard VLA accepting task-level language alone. In Fig. 9c, the VLM uses 
+
+semantic understanding to observe that the robot grasps the wrong object when instructed to reach for the hammer. It further reasons with granular physical understanding, recog-nizing that the end effector must have sufficient clearance to disengage the current object and move above the correct one. It uses this understanding in conjunction with past behavioral and semantic failure modes to ground its final steering com-mand: "move right and up to the hammer handle" .Crucially, the VLM often cannot capitalize on such insights with subtask commands alone. A common failure mode of the SayCan-like baseline is that, even when the VLM correctly diagnoses errors, subtasks lack the specificity required to resolve them. In the same example (Fig. 9c), the VLM may recognize that the robot has confused a mushroom for the hammer and issue "drop the mushroom" . However, since a non-steerable VLA cannot understand motion commands such as "move up and right" , the VLM can only reissue the subtask command "reach for the hammer" , causing the robot to repeat the same mistake. In short, even if the VLM has the capacity for nuanced scene understanding, it cannot act on this knowledge with subtask commands alone, requiring a low-level Steerable Policy instead (see App. E-C). 
+
+VLMs can reason about steering abstractions. Beyond reasoning about what the robot should do, VLMs can also reason about how to best induce the desired behavior (i.e., what steering style to use). In Fig. 9d, when reaching for a banana in a cluttered scene, the VLM determines that a pointing command is the least ambiguous option and issues 
+
+"move above <banana position>" . After observing that the robot is correctly above the banana, it switches to a higher-level instruction, "grasp the banana" . This demonstrates that VLMs can dynamically select and sequence steering abstractions based on the current state. VII. D ISCUSSION AND FUTURE WORK 
+
+We introduce Steerable Policies: VLAs that support a wide range of command abstractions including subtasks, motions, and grounded pixel coordinates. We show how improved steerability enables better transfer of VLM capabilities into robotics by (1) fine-tuning high-level VLMs on embodied reasoning data to solve generalization tasks with our Steerable Policy, and (2) using the in-context learning abilities of off-the-shelf VLMs for multi-step robotic problem-solving. The steerability of our VLA comes from the diversity of behaviors within its data. Training on steering commands simply allows these skills to be induced with the right com-mand style. Conversely, “narrow” datasets are not conducive to training Steerable Policies. For example, LIBERO [58] is not 
+
+very diverse: provided trajectories are unimodal [59] and each task’s starting states are minimally randomized; even minor perturbations degrade performance [9]. While policy steering in LIBERO can optimize a narrow behavior prior [60], it remains challenging to use steering for solving wholly new or heavily-randomized tasks, as we do in Bridge. Consequently, our approach cannot easily be applied to LIBERO due to deficiencies in the dataset’s behavioral diversity. Still, as robot datasets have trended toward scaling their behavioral diversity, we expect Steerable Policies to only increase in applicability. The compositionality afforded by steering also becomes more important as task complexity increases, e.g., in open-world settings. To support this, VLMs require an even better grasp of the affordances provided by Steerable Policies. Beyond zero-shot prompting, VLMs could learn these affordances via reinforcement learning, as rollouts would allow models to elucidate when each steering style is effective. This may also provide the data needed for cross-task in-context learning, where the VLM transfers its understanding of affordances to new situations. We hope that Steerable Policies will represent a step toward finally bringing the “disembodied” capabilities of VLMs to the physical world. ACKNOWLEDGEMENTS 
+
+We thank Qiyang Li for assistance with the teaser diagram. We also thank members of the RAIL Lab for insightful discus-sions. This research was partly supported by ONR N00014-25-1-2060, NSF IIS-2246811, and DARPA ANSR, with addi-tional support from Google and the NVIDIA Academic Grant Program. REFERENCES 
+
+[1] Michael Ahn, Anthony Brohan, Noah Brown, Yevgen Chebotar, Omar Cortes, Byron David, Chelsea Finn, Chuyuan Fu, Keerthana Gopalakrishnan, Karol Haus-man, Alex Herzog, Daniel Ho, Jasmine Hsu, Julian Ibarz, Brian Ichter, Alex Irpan, Eric Jang, Rosario Jauregui Ruano, Kyle Jeffrey, Sally Jesmonth, Nikhil J Joshi, Ryan Julian, Dmitry Kalashnikov, Yuheng Kuang, Kuang-Huei Lee, Sergey Levine, Yao Lu, Linda Luu, Carolina Parada, Peter Pastor, Jornell Quiambao, Kanishka Rao, Jarek Ret-tinghouse, Diego Reyes, Pierre Sermanet, Nicolas Siev-ers, Clayton Tan, Alexander Toshev, Vincent Vanhoucke, Fei Xia, Ted Xiao, Peng Xu, Sichun Xu, Mengyuan Yan, and Andy Zeng. Do as i can, not as i say: Grounding language in robotic affordances, 2022. [2] Lucy Xiaoyang Shi, Brian Ichter, Michael Equi, Liyiming Ke, Karl Pertsch, Quan Vuong, James Tanner, Anna Walling, Haohuan Wang, Niccolo Fusai, Adrian Li-Bell, Danny Driess, Lachy Groom, Sergey Levine, and Chelsea Finn. Hi robot: Open-ended instruction following with hierarchical vision-language-action models, 2025. URL https://arxiv.org/abs/2502.19417. [3] Selma Wanna, Agnes Luhtaru, Jonathan Salfity, Ryan Barron, Juston Moore, Cynthia Matuszek, and Mitch Pryor. Limited linguistic diversity in embodied ai datasets, 2026. URL https://arxiv.org/abs/2601.03136. [4] Frederik Ebert, Yanlai Yang, Karl Schmeckpeper, Bernadette Bucher, Georgios Georgakis, Kostas Dani-ilidis, Chelsea Finn, and Sergey Levine. Bridge data: Boosting generalization of robotic skills with cross-domain datasets, 2021. [5] Homer Walke, Kevin Black, Abraham Lee, Moo Jin Kim, Max Du, Chongyi Zheng, Tony Zhao, Philippe Hansen-Estruch, Quan Vuong, Andre He, Vivek Myers, Kuan Fang, Chelsea Finn, and Sergey Levine. Bridgedata v2: A dataset for robot learning at scale. In Conference on Robot Learning (CoRL) , 2023. [6] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc Le, and Denny Zhou. Chain-of-thought prompting elicits reason-ing in large language models, 2023. [7] Takeshi Kojima, Shixiang Shane Gu, Machel Reid, Yu-taka Matsuo, and Yusuke Iwasawa. Large language models are zero-shot reasoners, 2023. [8] Michał Zawalski, William Chen, Karl Pertsch, Oier Mees, Chelsea Finn, and Sergey Levine. Robotic control via embodied chain-of-thought reasoning. In Conference on Robot Learning , 2024. [9] William Chen, Suneel Belkhale, Suvir Mirchandani, Oier Mees, Danny Driess, Karl Pertsch, and Sergey Levine. Training strategies for efficient embodied reasoning, 2025. [10] Rishi Bommasani, Drew A. Hudson, Ehsan Adeli, Russ Altman, Simran Arora, Sydney von Arx, Michael S. Bernstein, Jeannette Bohg, Antoine Bosselut, Emma Brunskill, Erik Brynjolfsson, Shyamal Buch, Dallas Card, Rodrigo Castellon, Niladri Chatterji, Annie Chen, Kathleen Creel, Jared Quincy Davis, Dora Demszky, Chris Donahue, Moussa Doumbouya, Esin Durmus, Stefano Ermon, John Etchemendy, Kawin Ethayarajh, Li Fei-Fei, Chelsea Finn, Trevor Gale, Lauren Gillespie, Karan Goel, Noah Goodman, Shelby Grossman, Neel Guha, Tatsunori Hashimoto, Peter Henderson, John He-witt, Daniel E. Ho, Jenny Hong, Kyle Hsu, Jing Huang, Thomas Icard, Saahil Jain, Dan Jurafsky, Pratyusha Kalluri, Siddharth Karamcheti, Geoff Keeling, Fereshte Khani, Omar Khattab, Pang Wei Koh, Mark Krass, Ran-jay Krishna, Rohith Kuditipudi, Ananya Kumar, Faisal Ladhak, Mina Lee, Tony Lee, Jure Leskovec, Isabelle Levent, Xiang Lisa Li, Xuechen Li, Tengyu Ma, Ali Malik, Christopher D. Manning, Suvir Mirchandani, Eric Mitchell, Zanele Munyikwa, Suraj Nair, Avanika Narayan, Deepak Narayanan, Ben Newman, Allen Nie, Juan Carlos Niebles, Hamed Nilforoshan, Julian Nyarko, Giray Ogut, Laurel Orr, Isabel Papadimitriou, Joon Sung Park, Chris Piech, Eva Portelance, Christopher Potts, Aditi Raghunathan, Rob Reich, Hongyu Ren, Frieda Rong, Yusuf Roohani, Camilo Ruiz, Jack Ryan, Christo-pher R´ e, Dorsa Sadigh, Shiori Sagawa, Keshav San-thanam, Andy Shih, Krishnan Srinivasan, Alex Tamkin, Rohan Taori, Armin W. Thomas, Florian Tram` er, Rose E. Wang, William Wang, Bohan Wu, Jiajun Wu, Yuhuai Wu, Sang Michael Xie, Michihiro Yasunaga, Jiaxuan You, Matei Zaharia, Michael Zhang, Tianyi Zhang, Xikun Zhang, Yuhui Zhang, Lucia Zheng, Kaitlyn Zhou, and Percy Liang. On the opportunities and risks of foundation models, 2022. [11] Anthony Brohan, Noah Brown, Justice Carbajal, Yevgen Chebotar, Xi Chen, Krzysztof Choromanski, Tianli Ding, Danny Driess, Avinava Dubey, Chelsea Finn, Pete Flo-rence, Chuyuan Fu, Montse Gonzalez Arenas, Keerthana Gopalakrishnan, Kehang Han, Karol Hausman, Alexan-der Herzog, Jasmine Hsu, Brian Ichter, Alex Irpan, Nikhil Joshi, Ryan Julian, Dmitry Kalashnikov, Yuheng Kuang, Isabel Leal, Lisa Lee, Tsang-Wei Edward Lee, Sergey Levine, Yao Lu, Henryk Michalewski, Igor Mordatch, Karl Pertsch, Kanishka Rao, Krista Reymann, Michael Ryoo, Grecia Salazar, Pannag Sanketi, Pierre Sermanet, Jaspiar Singh, Anikait Singh, Radu Soricut, Huong Tran, Vincent Vanhoucke, Quan Vuong, Ayzaan Wahid, Stefan Welker, Paul Wohlhart, Jialin Wu, Fei Xia, Ted Xiao, Peng Xu, Sichun Xu, Tianhe Yu, and Brianna Zitkovich. Rt-2: Vision-language-action models transfer web knowl-edge to robotic control, 2023. [12] Moo Jin Kim, Karl Pertsch, Siddharth Karamcheti, Ted Xiao, Ashwin Balakrishna, Suraj Nair, Rafael Rafailov, Ethan Foster, Pannag Sanketi, Quan Vuong, Thomas Kollar, Benjamin Burchfiel, Russ Tedrake, Dorsa Sadigh, Sergey Levine, Percy Liang, and Chelsea Finn. Openvla: An open-source vision-language-action model. 2024. [13] Karl Pertsch, Kyle Stachowicz, Brian Ichter, Danny Driess, Suraj Nair, Quan Vuong, Oier Mees, Chelsea Finn, and Sergey Levine. Fast: Efficient action tok-enization for vision-language-action models, 2025. URL https://arxiv.org/abs/2501.09747. [14] Suneel Belkhale and Dorsa Sadigh. Minivla: A better vla with a smaller footprint, 2024. URL https://ai.stanford. edu/blog/minivla/. [15] Kevin Black, Noah Brown, Danny Driess, Adnan Es-mail, Michael Equi, Chelsea Finn, Niccolo Fusai, Lachy Groom, Karol Hausman, Brian Ichter, Szymon Jakubczak, Tim Jones, Liyiming Ke, Sergey Levine, Adrian Li-Bell, Mohith Mothukuri, Suraj Nair, Karl Pertsch, Lucy Xiaoyang Shi, James Tanner, Quan Vuong, Anna Walling, Haohuan Wang, and Ury Zhilinsky. π0:A vision-language-action flow model for general robot control, 2024. URL https://arxiv.org/abs/2410.24164. [16] Physical Intelligence, Kevin Black, Noah Brown, James Darpinian, Karan Dhabalia, Danny Driess, Adnan Es-mail, Michael Equi, Chelsea Finn, Niccolo Fusai, Manuel Y. Galliker, Dibya Ghosh, Lachy Groom, Karol Hausman, Brian Ichter, Szymon Jakubczak, Tim Jones, Liyiming Ke, Devin LeBlanc, Sergey Levine, Adrian Li-Bell, Mohith Mothukuri, Suraj Nair, Karl Pertsch, Allen Z. Ren, Lucy Xiaoyang Shi, Laura Smith, Jost To-bias Springenberg, Kyle Stachowicz, James Tanner, Quan Vuong, Homer Walke, Anna Walling, Haohuan Wang, Lili Yu, and Ury Zhilinsky. π0.5: a vision-language-action model with open-world generalization, 2025. [17] Moo Jin Kim, Chelsea Finn, and Percy Liang. Fine-tuning vision-language-action models: Optimizing speed and success, 2025. URL https://arxiv.org/abs/2502. 19645. [18] Gemini Robotics Team, Saminda Abeyruwan, Joshua Ainslie, Jean-Baptiste Alayrac, Montserrat Gonzalez Arenas, Travis Armstrong, Ashwin Balakrishna, Robert Baruch, Maria Bauza, Michiel Blokzijl, Steven Bo-hez, Konstantinos Bousmalis, Anthony Brohan, Thomas Buschmann, Arunkumar Byravan, Serkan Cabi, Ken Caluwaerts, Federico Casarini, Oscar Chang, Jose En-rique Chen, Xi Chen, Hao-Tien Lewis Chiang, Krzysztof Choromanski, David D’Ambrosio, Sudeep Dasari, Todor Davchev, Coline Devin, Norman Di Palo, Tianli Ding, Adil Dostmohamed, Danny Driess, Yilun Du, Debidatta Dwibedi, Michael Elabd, Claudio Fantacci, Cody Fong, Erik Frey, Chuyuan Fu, Marissa Giustina, Keerthana Gopalakrishnan, Laura Graesser, Leonard Hasenclever, Nicolas Heess, Brandon Hernaez, Alexander Herzog, R. Alex Hofer, Jan Humplik, Atil Iscen, Mithun George Jacob, Deepali Jain, Ryan Julian, Dmitry Kalashnikov, M. Emre Karagozler, Stefani Karp, Chase Kew, Jerad Kirkland, Sean Kirmani, Yuheng Kuang, Thomas Lampe, Antoine Laurens, Isabel Leal, Alex X. Lee, Tsang-Wei Edward Lee, Jacky Liang, Yixin Lin, Sharath Maddi-neni, Anirudha Majumdar, Assaf Hurwitz Michaely, Robert Moreno, Michael Neunert, Francesco Nori, Car-olina Parada, Emilio Parisotto, Peter Pastor, Acorn Poo-ley, Kanishka Rao, Krista Reymann, Dorsa Sadigh, Ste-fano Saliceti, Pannag Sanketi, Pierre Sermanet, Dhruv Shah, Mohit Sharma, Kathryn Shea, Charles Shu, Vikas Sindhwani, Sumeet Singh, Radu Soricut, Jost Tobias Springenberg, Rachel Sterneck, Razvan Surdulescu, Jie Tan, Jonathan Tompson, Vincent Vanhoucke, Jake Varley, Grace Vesom, Giulia Vezzani, Oriol Vinyals, Ayzaan Wahid, Stefan Welker, Paul Wohlhart, Fei Xia, Ted Xiao, Annie Xie, Jinyu Xie, Peng Xu, Sichun Xu, Ying Xu, Zhuo Xu, Yuxiang Yang, Rui Yao, Sergey Yaroshenko, Wenhao Yu, Wentao Yuan, Jingwei Zhang, Tingnan Zhang, Allan Zhou, and Yuxiang Zhou. Gemini robotics: Bringing ai into the physical world, 2025. URL https://arxiv.org/abs/2503.20020. [19] Catherine Glossop, William Chen, Arjun Bhorkar, Dhruv Shah, and Sergey Levine. Cast: Counterfactual labels improve instruction following in vision-language-action models, 2025. URL https://arxiv.org/abs/2508.13446. [20] Ted Xiao, Harris Chan, Pierre Sermanet, Ayzaan Wahid, Anthony Brohan, Karol Hausman, Sergey Levine, and Jonathan Tompson. Robotic skill acquisition via instruc-tion augmentation with vision-language models, 2022. [21] Laura Smith, Alex Irpan, Montserrat Gonzalez Arenas, Sean Kirmani, Dmitry Kalashnikov, Dhruv Shah, and Ted Xiao. Steer: Flexible robotic manipulation via dense language grounding, 2024. URL https://arxiv.org/abs/ 2411.03409. [22] Jesse Zhang, Karl Pertsch, Jiahui Zhang, and Joseph J. Lim. Sprint: Scalable policy pre-training via language instruction relabeling, 2024. URL https://arxiv.org/abs/ 2306.11886. [23] Corey Lynch, Ayzaan Wahid, Jonathan Tompson, Tianli Ding, James Betker, Robert Baruch, Travis Armstrong, and Pete Florence. Interactive language: Talking to robots in real time, 2022. [24] Yi Li, Yuquan Deng, Jesse Zhang, Joel Jang, Marius Memmel, Raymond Yu, Caelan Reed Garrett, Fabio Ramos, Dieter Fox, Anqi Li, Abhishek Gupta, and Ankit Goyal. Hamster: Hierarchical action models for open-world robot manipulation, 2025. URL https://arxiv.org/ abs/2502.05485. [25] Jiayuan Gu, Sean Kirmani, Paul Wohlhart, Yao Lu, Montserrat Gonzalez Arenas, Kanishka Rao, Wenhao Yu, Chuyuan Fu, Keerthana Gopalakrishnan, Zhuo Xu, Priya Sundaresan, Peng Xu, Hao Su, Karol Hausman, Chelsea Finn, Quan Vuong, and Ted Xiao. Rt-trajectory: Robotic task generalization via hindsight trajectory sketches, 2023. URL https://arxiv.org/abs/2311.01977. [26] Ruijie Zheng, Yongyuan Liang, Shuaiyi Huang, Jianfeng Gao, Hal Daum´ e III, Andrey Kolobov, Furong Huang, and Jianwei Yang. Tracevla: Visual trace prompting en-hances spatial-temporal awareness for generalist robotic policies, 2025. URL https://arxiv.org/abs/2412.10345. [27] Noriaki Hirose, Catherine Glossop, Dhruv Shah, and Sergey Levine. Omnivla: An omni-modal vision-language-action model for robot navigation, 2025. URL https://arxiv.org/abs/2509.19480. [28] Jason Lee, Jiafei Duan, Haoquan Fang, Yuquan Deng, Shuo Liu, Boyang Li, Bohan Fang, Jieyu Zhang, Yi Ru Wang, Sangho Lee, Winson Han, Wilbert Pumacay, An-gelica Wu, Rose Hendrix, Karen Farley, Eli VanderBilt, Ali Farhadi, Dieter Fox, and Ranjay Krishna. Molmoact: Action reasoning models that can reason in space, 2025. URL https://arxiv.org/abs/2508.07917. [29] James Betker, Gabriel Goh, Li Jing, Tim Brooks, Jian-feng Wang, Linjie Li, LongOuyang, Juntang Zhuang, Joyce Lee, Yufei Guo, Wesam Manassra, Prafulla Dhari-wal, Casey Chu, Yunxin Jiao, and Aditya Ramesh. Im-proving image generation with better captions. 2023. [30] Caelan Reed Garrett, Rohan Chitnis, Rachel Holladay, Beomjoon Kim, Tom Silver, Leslie Pack Kaelbling, and Tom´ as Lozano-P´ erez. Integrated task and motion plan-ning, 2020. [31] Daniel Kahneman. Thinking, fast and slow . Farrar, Straus and Giroux, 2011. [32] Jyh-Jing Hwang, Runsheng Xu, Hubert Lin, Wei-Chih Hung, Jingwei Ji, Kristy Choi, Di Huang, Tong He, Paul Covington, Benjamin Sapp, Yin Zhou, James Guo, Dragomir Anguelov, and Mingxing Tan. Emma: End-to-end multimodal model for autonomous driving, 2024. URL https://arxiv.org/abs/2410.23262. [33] Lucy Xiaoyang Shi, Zheyuan Hu, Tony Z. Zhao, Archit Sharma, Karl Pertsch, Jianlan Luo, Sergey Levine, and Chelsea Finn. Yell at your robot: Improving on-the-fly from language corrections, 2024. [34] Boyi Li, Philipp Wu, Pieter Abbeel, and Jitendra Malik. Interactive task planning with language models, 2025. URL https://arxiv.org/abs/2310.10645. [35] Dhruv Shah, Blazej Osinski, Brian Ichter, and Sergey Levine. Lm-nav: Robotic navigation with large pre-trained models of language, vision, and action, 2022. URL https://arxiv.org/abs/2207.04429. [36] Wenlong Huang, Pieter Abbeel, Deepak Pathak, and Igor Mordatch. Language models as zero-shot planners: Extracting actionable knowledge for embodied agents, 2022. URL https://arxiv.org/abs/2201.07207. [37] Wenlong Huang, Fei Xia, Ted Xiao, Harris Chan, Jacky Liang, Pete Florence, Andy Zeng, Jonathan Tompson, Igor Mordatch, Yevgen Chebotar, Pierre Sermanet, Noah Brown, Tomas Jackson, Linda Luu, Sergey Levine, Karol Hausman, and Brian Ichter. Inner monologue: Embodied reasoning through planning with language models, 2022. [38] Andy Zeng, Maria Attarian, Brian Ichter, Krzysztof Choromanski, Adrian Wong, Stefan Welker, Federico Tombari, Aveek Purohit, Michael Ryoo, Vikas Sind-hwani, Johnny Lee, Vincent Vanhoucke, and Pete Flo-rence. Socratic models: Composing zero-shot multimodal reasoning with language, 2022. [39] Danny Driess, Fei Xia, Mehdi S. M. Sajjadi, Corey Lynch, Aakanksha Chowdhery, Brian Ichter, Ayzaan Wahid, Jonathan Tompson, Quan Vuong, Tianhe Yu, Wenlong Huang, Yevgen Chebotar, Pierre Sermanet, Daniel Duckworth, Sergey Levine, Vincent Vanhoucke, Karol Hausman, Marc Toussaint, Klaus Greff, Andy Zeng, Igor Mordatch, and Pete Florence. Palm-e: An embodied multimodal language model, 2023. [40] Jesse Zhang, Jiahui Zhang, Karl Pertsch, Ziyi Liu, Xiang Ren, Minsuk Chang, Shao-Hua Sun, and Joseph J. Lim. Bootstrap your own skills: Learning to solve new tasks with large language model guidance, 2023. URL https: //arxiv.org/abs/2310.10021. [41] Huy Ha, Pete Florence, and Shuran Song. Scaling up and distilling down: Language-guided robot skill acquisition, 2023. [42] Suneel Belkhale, Tianli Ding, Ted Xiao, Pierre Sermanet, Quon Vuong, Jonathan Tompson, Yevgen Chebotar, De-bidatta Dwibedi, and Dorsa Sadigh. Rt-h: Action hierar-chies using language, 2024. [43] Yi Yang, Jiaxuan Sun, Siqi Kou, Yihan Wang, and Zhijie Deng. Lohovla: A unified vision-language-action model for long-horizon embodied tasks, 2025. URL https://arxiv.org/abs/2506.00411. [44] Markus Peschl, Pietro Mazzaglia, and Daniel Dijkman. From code to action: Hierarchical learning of diffusion-vlm policies, 2025. URL https://arxiv.org/abs/2509. 24917. [45] Huang Fang, Mengxi Zhang, Heng Dong, Wei Li, Zixuan Wang, Qifeng Zhang, Xueyun Tian, Yucheng Hu, and Hang Li. Robix: A unified model for robot interaction, reasoning and planning, 2025. URL https://arxiv.org/abs/ 2509.01106. [46] Tao Jiang, Tianyuan Yuan, Yicheng Liu, Chenhao Lu, Jianning Cui, Xiao Liu, Shuiqi Cheng, Jiyang Gao, Huazhe Xu, and Hang Zhao. Galaxea open-world dataset and g0 dual-system vla model, 2025. URL https://arxiv.org/abs/2509.00576. [47] Matt Deitke, Christopher Clark, Sangho Lee, Rohun Tri-pathi, Yue Yang, Jae Sung Park, Mohammadreza Salehi, Niklas Muennighoff, Kyle Lo, Luca Soldaini, Jiasen Lu, Taira Anderson, Erin Bransom, Kiana Ehsani, Huong Ngo, YenSung Chen, Ajay Patel, Mark Yatskar, Chris Callison-Burch, Andrew Head, Rose Hendrix, Favyen Bastani, Eli VanderBilt, Nathan Lambert, Yvonne Chou, Arnavi Chheda, Jenna Sparks, Sam Skjonsberg, Michael Schmitz, Aaron Sarnat, Byron Bischoff, Pete Walsh, Chris Newell, Piper Wolters, Tanmay Gupta, Kuo-Hao Zeng, Jon Borchardt, Dirk Groeneveld, Crystal Nam, So-phie Lebrecht, Caitlin Wittlif, Carissa Schoenick, Oscar Michel, Ranjay Krishna, Luca Weihs, Noah A. Smith, Hannaneh Hajishirzi, Ross Girshick, Ali Farhadi, and Aniruddha Kembhavi. Molmo and pixmo: Open weights and open data for state-of-the-art vision-language mod-els, 2024. URL https://arxiv.org/abs/2409.17146. [48] Nikhila Ravi, Valentin Gabeur, Yuan-Ting Hu, Rong-hang Hu, Chaitanya Ryali, Tengyu Ma, Haitham Khedr, Roman R¨ adle, Chloe Rolland, Laura Gustafson, Eric Mintun, Junting Pan, Kalyan Vasudev Alwala, Nicolas Carion, Chao-Yuan Wu, Ross Girshick, Piotr Doll´ ar, and Christoph Feichtenhofer. Sam 2: Segment anything in images and videos, 2024. URL https://arxiv.org/abs/2408. 00714. [49] Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander Kirillov, and Sergey Zagoruyko. End-to-end object detection with transform-ers, 2020. URL https://arxiv.org/abs/2005.12872. [50] Gemini Team. Gemini: A family of highly capable multimodal models, 2024. [51] William Chen, Michał Zawalski, Karl Pertsch, Oier Mees, Chelsea Finn, and Sergey Levine. Tensorrt-openvla, 2025. URL https://github.com/rail-berkeley/ tensorrt-openvla. [52] NVIDIA. Tensorrt-llm. https://github.com/NVIDIA/ TensorRT-LLM?tab=readme-ov-file, 2024. [53] Letian Fu, Huang Huang, Gaurav Datta, Lawrence Yun-liang Chen, William Chung-Ho Panitch, Fangchen Liu, Hui Li, and Ken Goldberg. In-context imitation learning via next-token prediction. arXiv preprint arXiv:2408.15980 , 2024. [54] Yida Yin, Zekai Wang, Yuvan Sharma, Dantong Niu, Trevor Darrell, and Roei Herzig. In-context learning enables robot action prediction in llms, 2025. URL https://arxiv.org/abs/2410.12782. [55] Embodiment Collaboration, Abby O’Neill, Abdul Rehman, Abhiram Maddukuri, Abhishek Gupta, Abhishek Padalkar, Abraham Lee, Acorn Pooley, Agrim Gupta, Ajay Mandlekar, Ajinkya Jain, Albert Tung, Alex Bewley, Alex Herzog, Alex Irpan, Alexander Khazatsky, Anant Rai, Anchit Gupta, Andrew Wang, Andrey Kolobov, Anikait Singh, Animesh Garg, Aniruddha Kembhavi, Annie Xie, Anthony Brohan, Antonin Raffin, Archit Sharma, Arefeh Yavary, Arhan Jain, Ashwin Balakrishna, Ayzaan Wahid, Ben Burgess-Limerick, Beomjoon Kim, Bernhard Sch¨ olkopf, Blake Wulfe, Brian Ichter, Cewu Lu, Charles Xu, Charlotte Le, Chelsea Finn, Chen Wang, Chenfeng Xu, Cheng Chi, Chenguang Huang, Christine Chan, Christopher Agia, Chuer Pan, Chuyuan Fu, Coline Devin, Danfei Xu, Daniel Morton, Danny Driess, Daphne Chen, Deepak Pathak, Dhruv Shah, Dieter B¨ uchler, Dinesh Jayaraman, Dmitry Kalashnikov, Dorsa Sadigh, Edward Johns, Ethan Foster, Fangchen Liu, Federico Ceola, Fei Xia, Feiyu Zhao, Felipe Vieira Frujeri, Freek Stulp, Gaoyue Zhou, Gaurav S. Sukhatme, Gautam Salhotra, Ge Yan, Gilbert Feng, Giulio Schiavi, Glen Berseth, Gregory Kahn, Guanzhi Wang, Hao Su, Hao-Shu Fang, Haochen Shi, Henghui Bao, Heni Ben Amor, Henrik I Christensen, Hiroki Furuta, Homer Walke, Hongjie Fang, Huy Ha, Igor Mordatch, Ilija Radosavovic, Isabel Leal, Jacky Liang, Jad Abou-Chakra, Jaehyung Kim, Jaimyn Drake, Jan Peters, Jan Schneider, Jasmine Hsu, Jeannette Bohg, Jeffrey Bingham, Jeffrey Wu, Jensen Gao, Jiaheng Hu, Jiajun Wu, Jialin Wu, Jiankai Sun, Jianlan Luo, Jiayuan Gu, Jie Tan, Jihoon Oh, Jimmy Wu, Jingpei Lu, Jingyun Yang, Jitendra Malik, Jo˜ ao Silv´ erio, Joey Hejna, Jonathan Booher, Jonathan Tompson, Jonathan Yang, Jordi Salvador, Joseph J. Lim, Junhyek Han, Kaiyuan Wang, Kanishka Rao, Karl Pertsch, Karol Hausman, Keegan Go, Keerthana Gopalakrishnan, Ken Goldberg, Kendra Byrne, Kenneth Oslund, Kento Kawaharazuka, Kevin Black, Kevin Lin, Kevin Zhang, Kiana Ehsani, Kiran Lekkala, Kirsty Ellis, Krishan Rana, Krishnan Srinivasan, Kuan Fang, Kunal Pratap Singh, Kuo-Hao Zeng, Kyle Hatch, Kyle Hsu, Laurent Itti, Lawrence Yunliang Chen, Lerrel Pinto, Li Fei-Fei, Liam Tan, Linxi ”Jim” Fan, Lionel Ott, Lisa Lee, Luca Weihs, Magnum Chen, Marion Lepert, Marius Memmel, Masayoshi Tomizuka, Masha Itkina, Mateo Guaman Castro, Max Spero, Maximilian Du, Michael Ahn, Michael C. Yip, Mingtong Zhang, Mingyu Ding, Minho Heo, Mohan Kumar Srirama, Mohit Sharma, Moo Jin Kim, Naoaki Kanazawa, Nicklas Hansen, Nicolas Heess, Nikhil J Joshi, Niko Suenderhauf, Ning Liu, Norman Di Palo, Nur Muhammad Mahi Shafiullah, Oier Mees, Oliver Kroemer, Osbert Bastani, Pannag R Sanketi, Patrick ”Tree” Miller, Patrick Yin, Paul Wohlhart, Peng Xu, Peter David Fagan, Peter Mitrano, Pierre Sermanet, Pieter Abbeel, Priya Sundaresan, Qiuyu Chen, Quan Vuong, Rafael Rafailov, Ran Tian, Ria Doshi, Roberto Mart’in-Mart’in, Rohan Baijal, Rosario Scalise, Rose Hendrix, Roy Lin, Runjia Qian, Ruohan Zhang, Russell Mendonca, Rutav Shah, Ryan Hoque, Ryan Julian, Samuel Bustamante, Sean Kirmani, Sergey Levine, Shan Lin, Sherry Moore, Shikhar Bahl, Shivin Dass, Shubham Sonawani, Shuran Song, Sichun Xu, Siddhant Haldar, Siddharth Karamcheti, Simeon Adebola, Simon Guist, Soroush Nasiriany, Stefan Schaal, Stefan Welker, Stephen Tian, Subramanian Ramamoorthy, Sudeep Dasari, Suneel Belkhale, Sungjae Park, Suraj Nair, Suvir Mirchandani, Takayuki Osa, Tanmay Gupta, Tatsuya Harada, Tatsuya Matsushima, Ted Xiao, Thomas Kollar, Tianhe Yu, Tianli Ding, Todor Davchev, Tony Z. Zhao, Travis Armstrong, Trevor Darrell, Trinity Chung, Vidhi Jain, Vincent Vanhoucke, Wei Zhan, Wenxuan Zhou, Wolfram Burgard, Xi Chen, Xiangyu Chen, Xiaolong Wang, Xinghao Zhu, Xinyang Geng, Xiyuan Liu, Xu Liangwei, Xuanlin Li, Yansong Pang, Yao Lu, Yecheng Jason Ma, Yejin Kim, Yevgen Chebotar, Yifan Zhou, Yifeng Zhu, Yilin Wu, Ying Xu, Yixuan Wang, Yonatan Bisk, Yoonyoung Cho, Youngwoon Lee, Yuchen Cui, Yue Cao, Yueh-Hua Wu, Yujin Tang, Yuke Zhu, Yunchu Zhang, Yunfan Jiang, Yunshuang Li, Yunzhu Li, Yusuke Iwasawa, Yutaka Matsuo, Zehan Ma, Zhuo Xu, Zichen Jeff Cui, Zichen Zhang, Zipeng Fu, and Zipeng Lin. Open x-embodiment: Robotic learning datasets and rt-x models, 2024. [56] Octo Model Team, Dibya Ghosh, Homer Walke, Karl Pertsch, Kevin Black, Oier Mees, Sudeep Dasari, Joey Hejna, Charles Xu, Jianlan Luo, Tobias Kreiman, You Liang Tan, Lawrence Yunliang Chen, Pannag Sanketi, Quan Vuong, Ted Xiao, Dorsa Sadigh, Chelsea Finn, and Sergey Levine. Octo: An open-source generalist robot policy. In Proceedings of Robotics: Science and Systems ,Delft, Netherlands, 2024. [57] Siddharth Karamcheti, Suraj Nair, Ashwin Balakrishna, Percy Liang, Thomas Kollar, and Dorsa Sadigh. Pris-matic vlms: Investigating the design space of visually-conditioned language models, 2024. [58] Bo Liu, Yifeng Zhu, Chongkai Gao, Yihao Feng, Qiang Liu, Yuke Zhu, and Peter Stone. Libero: Benchmarking knowledge transfer for lifelong robot learning, 2023. URL https://arxiv.org/abs/2306.03310. [59] Xueyang Zhou, Yangming Xu, Guiyao Tie, Yongchao Chen, Guowen Zhang, Duanfeng Chu, Pan Zhou, and Lichao Sun. Libero-pro: Towards robust and fair eval-uation of vision-language-action models beyond memo-rization, 2025. URL https://arxiv.org/abs/2510.03827. [60] Andrew Wagenmaker, Mitsuhiko Nakamoto, Yunchu Zhang, Seohong Park, Waleed Yagoub, Anusha Naga-bandi, Abhishek Gupta, and Sergey Levine. Steering your diffusion policy with latent space reinforcement learning, 2025. URL https://arxiv.org/abs/2506.15799. [61] Lucas Beyer, Andreas Steiner, Andr´ e Susano Pinto, Alexander Kolesnikov, Xiao Wang, Daniel Salz, Maxim Neumann, Ibrahim Alabdulmohsin, Michael Tschan-nen, Emanuele Bugliarello, Thomas Unterthiner, Daniel Keysers, Skanda Koppula, Fangyu Liu, Adam Gryc-ner, Alexey Gritsenko, Neil Houlsby, Manoj Ku-mar, Keran Rong, Julian Eisenschlos, Rishabh Kabra, Matthias Bauer, Matko Boˇ snjak, Xi Chen, Matthias Min-derer, Paul Voigtlaender, Ioana Bica, Ivana Balazevic, Joan Puigcerver, Pinelopi Papalampidi, Olivier Henaff, Xi Xiong, Radu Soricut, Jeremiah Harmsen, and Xiaohua Zhai. Paligemma: A versatile 3b vlm for transfer, 2024. URL https://arxiv.org/abs/2407.07726. [62] Prafulla Dhariwal and Alex Nichol. Diffusion models beat gans on image synthesis, 2021. URL https://arxiv. org/abs/2105.05233. [63] Jonathan Ho and Tim Salimans. Classifier-free diffusion guidance, 2022. [64] Yanwei Wang, Lirui Wang, Yilun Du, Balakumar Sun-daralingam, Xuning Yang, Yu-Wei Chao, Claudia Perez-D’Arpino, Dieter Fox, and Julie Shah. Inference-time policy steering through human interactions, 2024. [65] Mitsuhiko Nakamoto, Oier Mees, Aviral Kumar, and Sergey Levine. Steering your generalists: Improving robotic foundation models via value guidance. Confer-ence on Robot Learning (CoRL) , 2024. [66] Kevin Frans, Seohong Park, Pieter Abbeel, and Sergey Levine. Diffusion guidance is a controllable policy improvement operator, 2025. URL https://arxiv.org/abs/ 2505.23458. [67] Xiang Lisa Li and Percy Liang. Prefix-tuning: Opti-mizing continuous prompts for generation, 2021. URL https://arxiv.org/abs/2101.00190. [68] Jacky Kwok, Christopher Agia, Rohan Sinha, Matt Foutter, Shulu Li, Ion Stoica, Azalia Mirhoseini, and Marco Pavone. Robomonkey: Scaling test-time sampling and verification for vision-language-action models, 2025. URL https://arxiv.org/abs/2506.17811. [69] Maximilian Du and Shuran Song. Dynaguide: Steering diffusion policies with active dynamic guidance. In Pro-ceedings of the 39th Conference on Neural Information Processing Systems (NeurIPS) , 2025. [70] Yilin Wu, Ran Tian, Gokul Swamy, and Andrea Bajcsy. From foresight to forethought: Vlm-in-the-loop policy steering via latent alignment, 2025. URL https://arxiv. org/abs/2502.01828. [71] Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, Dan Bikel, Lukas Blecher, Cristian Canton Ferrer, Moya Chen, Guillem Cucurull, David Esiobu, Jude Fernan-des, Jeremy Fu, Wenyin Fu, Brian Fuller, Cynthia Gao, Vedanuj Goswami, Naman Goyal, Anthony Hartshorn, Saghar Hosseini, Rui Hou, Hakan Inan, Marcin Kardas, Viktor Kerkez, Madian Khabsa, Isabel Kloumann, Artem Korenev, Punit Singh Koura, Marie-Anne Lachaux, Thibaut Lavril, Jenya Lee, Diana Liskovich, Yinghai Lu, Yuning Mao, Xavier Martinet, Todor Mihaylov, Pushkar Mishra, Igor Molybog, Yixin Nie, Andrew Poulton, Jeremy Reizenstein, Rashi Rungta, Kalyan Saladi, Alan Schelten, Ruan Silva, Eric Michael Smith, Ranjan Sub-ramanian, Xiaoqing Ellen Tan, Binh Tang, Ross Taylor, Adina Williams, Jian Xiang Kuan, Puxin Xu, Zheng Yan, Iliyan Zarov, Yuchen Zhang, Angela Fan, Melanie Kambadur, Sharan Narang, Aurelien Rodriguez, Robert Stojnic, Sergey Edunov, and Thomas Scialom. Llama 2: Open foundation and fine-tuned chat models, 2023. [72] Maxime Oquab, Timoth´ ee Darcet, Th´ eo Moutakanni, Huy Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fer-nandez, Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, Mahmoud Assran, Nicolas Ballas, Wojciech Galuba, Russell Howes, Po-Yao Huang, Shang-Wen Li, Ishan Misra, Michael Rabbat, Vasu Sharma, Gabriel Synnaeve, Hu Xu, Herv´ e Jegou, Julien Mairal, Patrick Labatut, Armand Joulin, and Piotr Bojanowski. Di-nov2: Learning robust visual features without supervi-sion, 2024. [73] Xiaohua Zhai, Basil Mustafa, Alexander Kolesnikov, and Lucas Beyer. Sigmoid loss for language image pre-training, 2023. APPENDIX ASYNTHETIC GENERATIONS IN BRIDGE 
+
+A. Generating Subtasks and Steering Commands 
+
+We present the Gemini [50] prompts for extracting subtasks in Fig. 19. This decomposes each Bridge episode into subtasks, as Zawalski et al. [8] did. These subtasks are used in con-junction with bounding boxes, gripper trace coordinates, and motions (discussed below) in the prompt shown in Fig. 20 to produce the steering commands used for training our Steerable Policy. The result is that each episode is divided into subtasks, and for each subtask, it has a list of corresponding steering commands (of all the command styles discussed in Sec. IV-A). Note that all pixel coordinates are normalized from 0 to 255, labeled as bracketed tuples (first number represents column from the left and second row from the top, with [0 , 0] being the top-right corner). 
+
+B. Generating Rationalizations 
+
+Once we have a subtask decomposition of each trajectory in Bridge, we can produce rationalizations for explaining why each subtask is appropriate for their corresponding starting frames. We do this by again querying Gemini 2.0, giving it each subtask’s initial observation, the overall and past subtasks, and the current subtask for it to explain post-hoc. See Fig. 21 for the full prompt. This attaches a rationale for each subtask in each episode. 
+
+C. Extracting Embodied Features 
+
+Our pipeline for extracting object and gripper coordinates follows three stages. First, we identify relevant objects in each scene using the 
+
+MolmoE-1B-0924 model [47]. The model is prompted with a natural language description of the robot task and instructed to return a list of up to four objects in the scene, excluding the robot itself. The prompt follows the format: “The robot task is {task name }. Briefly provide a list of up to 4 objects in the scene (ignore the robot), including the ones in the task. Don’t add any additional text.” 
+
+Next, we use Molmo-7B-D-0924 to predict the coordinates of each identified object in the first image of the trajec-tory [47]. To extend these localizations across time, we apply the Segment Anything Model (SAM 2 [48]) to propagate the object points throughout the trajectory, producing temporally consistent segmentation masks. For gripper coordinates, we manually annotated 100 images from the Bridge dataset with gripper positions. A lightweight DETR model was trained on this data and then used to label gripper centroids across all images in the dataset. In a final post-processing step, we apply a simple heuristic to filter out task-irrelevant objects by checking whether object names appear in the task description. All object and gripper coordinates are then converted into the <loc> format expected by the PaliGemma model [61]. Finally, the segmentation masks are tokenized using PaliGemma’s vector quantization tokenizer to generate <loc><seg> token sequences. APPENDIX BDETAILS ON HIERARCHICAL METHODS WITH IN-CONTEXT 
+
+LEARNING OFF -THE -S HELF FOUNDATION VLM S
+
+We now give further details on the in-context learning high-level VLM experiments. All hierarchical methods in this experimental suite are instantiated with Gemini 3.0 [50]. 
+
+A. Our Approach and Non-reasoning Ablation 
+
+The full VLM prompt for our approach is provided in Fig. 22. The VLM is given a task description, an explanation of all steering command styles with in context examples, and a history of past commands and observations. The model is encouraged to reason in-context before providing a final steerable command to instruct our low-level steerable policy. This steerable command is run for N = 20 steps before the VLM is re-queried. Note that for grounded steering styles, the policy is allowed to provide keypoints, for example, "move <carrot on left> to <plate>" . Within each angle brackets, the policy may describe a single point in the scene. These descriptions are converted into coordinates, for example, "move [x1, y 1] to 
+
+[x2, y 2]" by another Gemini 3.0 call as described in Fig. 25. In our final approach, we allow the policy to output pointing commands, but not grounded gripper traces, as the VLM performs poorly at providing them. In our approach, the VLM is instructed to explicitly reason and is additionally allocated a budget of 1024 thinking tokens through the Gemini API [50]. Our non-reasoning baseline uses the exact same prompt, except that it is told not to reason, and is provided a thinking budget of 0 thinking tokens. We find that the model listens to these instructions and does not reason. Notably, our non-reasoning baseline still has access to an explanation of all steering command styles with in context examples, and a history of past commands and observations to make inferences. The full prompt for our ablation can be found in Fig. 23. 
+
+B. SayCan-like Baseline 
+
+The SayCan-like baseline uses the exact same prompt structure as our full approach, with the only change being that it only has an explanation and in-context examples of subtask-level steering commands. The model is still provided with a 1024 token thinking budget and is told to explicitly reason about the scene and provided history. The full prompt for this baseline is described in Fig. 24. APPENDIX CEXPERIMENTAL TASK DETAILS 
+
+The experiments in Sec. VI are broadly divided into several generalization splits: 1) In-distribution: “standard” tasks, akin to those in Bridge [4, 5]. We expect a VLA trained on Bridge to be proficient at these. 2) Motion Generalization: Involves standard tasks but with non-standard poses (e.g., placing objects high up). Split Task Standard OpenVLA ECoT-Lite Variants Full ECoT Steerable Policy + Embodied Reasoner (Ours) Reasoning Dropout Reasoning Pre-training Non-reasoning Ablation Full Approach In Dist.                                                                               
+
+> Put the [mushroom / corn / egpplant] in the [pot / bowl] 72.2 72.2 88.9 88.9 72.2 88.9
+> Place the [spoon / carrot] [in / on] the [plate / towel] 75.0 66.7 91.7 91.7 66.7 91.7 In Dist. Challenge
+> Put the [broccoli / spoon / cube] on the towel (all objects are green) 16.7 66.7 66.7 83.3 66.7 66.7 Put the [green / pink] spoon on the [plate / towel] 87.5 62.5 37.5 75.0 62.5 75.0
+> Motion Gen.
+> Put the [carrot / mushroom] [on / in] the [plate / pot] (target is high up) 8.3 25.0 33.3 58.3 83.3 83.3 Spatial Gen.
+> Put the [banana / tomato] in the [left / right] bowl 91.7 75.0 83.3 91.7 91.7 100
+> Put the [green / orange] toy in the [left / right] pot 50.0 75.0 87.5 75.0 62.5 87.5
+> Move the [mushroom / carrot] to the [left / right] of the [other object] 62.5 100 100 75.0 75.0 87.5
+> Semantic Gen.
+> Put the watermelon on the towel 083.3 83.3 66.7 50.0 66.7 Put the toothbrush on the plate 33.3 50.0 83.3 66.7 50.0 100
+> Put the screw in the bowl 33.3 16.7 66.7 66.7 50.0 83.3
+> Reach for the [ketchup / wrench / mallet] 11.1 22.2 066.7 33.3 66.7 Aggregate 50.5 ±4.7 60.4 ±4.6 69.4 ±4.4 77.5 ±4.0 66.7 ±4.5 84.6 ±3.4
+
+TABLE I: Full numerical results of the embodied reasoning methods on the task suite defined by Chen et al. [9]. Numbers represent success percentage, ±StdErr. Equivalent to the data in Fig. 7. 
+
+Split Task Standard OpenVLA SayCan-Like Steerable Policy + In-context Learning VLM(Ours) Non-reasoning Ablation Full Approach Long Horizon 1 
+
+Make the mushroom the only obj. on the plate 35.0 70.0 80.0 100 Make the blue block the only obj. on the plate 30.0 65.0 90.0 80.0 
+
+Long Horizon 2 
+
+Put all the food in the blue pot and stuffed toys in the tan pot 50.0 36.7 53.3 66.7 Put all the food in the white bowl and stuffed animals in the green bowl 43.3 63.3 80.0 76.7 
+
+Motion Gen. 
+
+Stack the pots 45.0 85.0 55.0 95.0 Stack the pots on the towel 40.0 60.0 90.0 65.0 
+
+Spatial Gen. 
+
+Put the banana on the [left / right] on the plate 60.0 80.0 90.0 100 Put the white and blue stuffed animal in the bowl on the [left / right] 80.0 90.0 100 100 
+
+Semantic Gen. 
+
+Put the hammer on the towel 40.0 60.0 70.0 80.0 Put the screw on the plate 60.0 30.0 70.0 80.0 
+
+Aggregate 48 ±5.1 64 ±5.5 78 ±4.0 84 ±3.7 
+
+TABLE II: Full numerical results of the in-context learning methods on our new multi-step task suite. Numbers represent average task progression (graded with a rubric that decomposes each task into steps), ±StdErr. Equivalent to the data in Fig. 8. Task Prompts Rubric Success / Fail Long Horizon 1               
+
+> 1. Make the mushroom the only object on the plate 1. Interacted with object on plate -2. Make the blue block the only object on the plate 2. Plate object no longer on plate 3. Pick up correct object 4. Put down correct object in correct location
+> Long Horizon 2
+> 1. Put all food in blue pot and stuffed animals in tan pot 1. Pick up object 1 -2. Put all food in white bowl and stuffed animals in green bowl 2. Put object 1 in correct container 3. Pick up object 2 4. Put object 2 in correct container 5. Pick up object 3 6. Put object 3 in correct container
+> Motion Gen.
+> 1. Stack the pots 1. Pick up pot 1 -2. Stack the pots on the towel 2. Stack 1 complete 3. Pick up pot 2 4. Stack 2 complete
+> Spatial Gen. 1. Put the banana on the [right/left] on the plate 1. Pick up correct object -2. Put the white and blue stuffed animal in the [left/right] bowl 2. Put down correct object in correct location
+> Semantic Gen. 1. Move the hammer to the towel 1. Pick up correct object -2. Move the screw to the plate 2. Put down correct object in correct location
+
+TABLE III: Evaluation Rubric for In-context Learning VLM Experiments. Trials for each task are divided between two prompts. Each trial is scored by a multi-step rubric, and each step is graded by success/fail. Task progress is the average number of successes in a trial. For spatial generalization tasks, we do an equal number of trials with either “left” or “right” in the prompt. 3) Spatial Generalization: Tasks involving spatial relation (e.g., “place in the pot on the left”). 4) Semantic Generalization: Involves out-of-distribution ob-jects, whose names do not appear in the Bridge dataset. These splits are used for the human oracle experiments and the embodied reasoner experiments. The off-the-shelf VLM experiments instead use two sets of long-horizon tasks in lieu of the in-distribution ones. In total, we run over 650 robot rollout episodes across our three evaluation suites. 
+
+A. Human Oracle Experiments 
+
+The human oracle experiments use the same task splits as the embodied reasoner experiments discussed below. However, they involve different sets of actual tasks, so as to evaluate oracle steering capabilities on a wider range of settings. See Fig. 13 for example initial states. 
+
+B. Embodied Reasoner Experiments 
+
+The tasks for evaluating our hierarchical embodied reasoner are the same as those used for evaluating ECoT-Lite [9]. This allows us to compare against other methods for leveraging embodied reasoning data for training VLAs. See Fig. 14 for example initial states and Table I for detailed task perfor-mance. 
+
+C. In-context Learning VLM Experiments 
+
+For the in-context learning VLM experiments, we change out all tasks to include more multi-step ones, as they are more suited to evaluating hierarchical systems’ generalization. We replace the in-distribution split with two long-horizon tasks, which involve composing many in-distribution behaviors. Ad-ditionally, our motion generalization tasks now involves a novel task behavior, though again requires challenging (multi-step) motions to solve. See Fig. 15 for example initial states and Table II for full results. Each trial of each task is graded based on the rubric in Table III. Each task has two prompts, and trials for each task are divided equally among prompts. Rubrics are graded based on success/fail, and the average number of successes per trial is the final task progress number we report. The policy being evaluated does not need to complete rubric items in order. However, it is penalized for undoing task progress: e.g., the policy may receive credit for putting an object in the correct location, but that credit is revoked if the policy later removes the object. The only exception to this rule is that the policy always gets and maintains credit for interacting with or picking up an object for the first time. The policy is run for 20 high-level steps ( 25 for Long Horizon 2), and is only terminated early only if all entries in rubric are completed correctly. APPENDIX DADDITIONAL ILLUSTRATIVE EXAMPLES 
+
+A. Example Steering Commands 
+
+We include numerous example steering commands in Fig. 10. The diagram is just for visualization purposes, while the text examples are taken exactly from our training data. 
+
+B. Example Full Reasoning Traces for High-level Embodied Reasoner 
+
+See Fig. 16 for examples of reasoning traces produced by our embodied reasoning high-level VLM. 
+
+C. Example Full Reasoning Traces for In-context Learning VLM Methods 
+
+We present the example reasoning traces from our in-context learning VLM method (Sec. V-B) in Fig. 17. These are the full, unparaphrased versions of the examples in Fig. 9. - Put the carrot on            
+
+> the towel
+> -Wipe the table from
+> left to right
+> -Put the banana on
+> the plate
+> -Move the yellow duck
+> toy to the left side
+> of the table
+> Tasks
+
+Standard Commands                             
+
+> -Wipe with the cloth
+> -Lift the yellow duck
+> -Grasp the carrot on
+> the plate
+> -Move from [x 1y1] to
+> [x 2y2]
+> -Mov ealong [x 1y1],
+> [x 2y2], [x 3y3]
+> -Grasp at <carrot
+> pixel position>
+> -Reach for <banana
+> pixel position>
+> -Move right and down
+> -Rotate clockwise and
+> grasp
+> -Open grippe r
+> Subtasks
+> Atomic Motions Points Traces
+> [x3y3]
+> [x 2y2]
+> [x1y1]
+> carrot [x y]
+> banan a[x y]
+
+Our New Steering Commands reach and grasp cloth (top right)                                                          
+
+> -reach and grasp cloth (top right)
+> -move to the cloth at [144, 123] and close the gripper
+> -move to [184, 64], [180, 95], [166, 142] and then
+> grasp the cloth
+> -unfold the cloth from top right to bottom left
+> -move towards [144, 123] and grasp
+> move the food item to the left
+> -move left with gripper.
+> -move the food item to the lower left side of the
+> table
+> -move the food item to the left.
+> -move the gripper to the left.
+> -move the food item to the left, passing [104, 137],
+> [90, 118], [66, 96], [48, 90].
+> grasp bottom of the cloth
+> -move gripper down to the bottom of the cloth at
+> location [76, 160]
+> -unfold the cloth from bottom to top
+> -move gripper near the cloth at location [78, 162]
+> -move to the bottom of the cloth and grasp
+> -move to location [71, 115] and close gripper
+> release the cup
+> -move to [131, 102], [137, 110], [148, 107] and open
+> gripper
+> -open gripper
+> -open the gripper
+> -open gripper at [131, 102]
+> -flip cup upright
+> reach and grasp broccoli
+> -move to the broccoli at [72, 106] and grasp it
+> -reach to the broccoli at [72, 106] and then move down
+> to [64, 78] to grab it
+> -move to [62, 73] and grasp the broccoli
+> -reach for the broccoli
+> -move to the broccoli at [72, 106]
+> grasp object
+> -moved to the side
+> -close the gripper around the object
+> -close gripper
+> -close gripper at [116, 65]
+> -grasp the object
+> approach the drawer
+> -move to [143, 88], near the drawer at [128, 64]
+> -move along [82, 78], [97, 97], [121, 134], [147,
+> 143], [178, 118] toward the drawer's handle
+> -move forward and then left toward the drawer at [140,
+> 98]
+> -move to [183, 124] near the drawer at [140, 98]
+> -close the drawer
+> move the object above the drawer
+> -move up and down above the drawer
+> -move the object to above the drawer
+> -move the object around [195, 135], towards the drawer
+> at [158, 96]
+> -position the object above the drawer
+> -move the object around [196, 135], [197, 134], [192,
+> 122], [195, 131], [195, 128]
+> release the pot
+> -move the pot in front of yellow cloth
+> -open the gripper near [158, 107] after moving it to
+> in front of the yellow cloth
+> -release the pot
+> -release the pot near the yellow cloth
+> -open the gripper at [179, 91], [180, 92], [180, 94],
+> [182, 98], [183, 102]...
+> grasp the spray in the pot
+> -grasp the spray in the pot
+> -grasp the spray near the pot at [123, 156]
+> -close the gripper on the spray
+> -move down and grasp the spray
+> -move down to [110, 149] and close the gripper
+
+Fig. 10: Example steering commands . All labels and points in the image are purely for visualization, and do not appear on the actual robot training data images. The list on the bottom is exactly extracted from our training dataset, with bold representing the subtasks and the dashed list representing the corresponding diverse steering commands. Each subtask typically has more than 5 corresponding steering commands, but we limit to that many for readability. 
+
+For full examples of the equivalent reasoning traces from the SayCan-like baseline, see Fig. 18 and the associated discussion in App. E-C. APPENDIX EFURTHER DISCUSSIONS 
+
+A. Steering in Robot Learning 
+
+We take steering or guidance to mean the broad class of techniques for controlling the outputs of a generative model. As discussed in Sec. II, we specifically consider the case of improving steerability by altering the training strategy. This contrasts with a broad set of works that aim to do steering at inference time, or otherwise without modifying the weights of some pretrained policy. For completeness, we briefly discuss them here. These approaches usually aim to produce samples that are in-distribution while optimizing some criteria such as a classifier score [62], the likelihood under an unconditional distribution [63], the similarity to a reference output [64], or a Q-function [65, 60, 66]. The method for optimizing these criteria also varies, including linearly mixing denoising vector fields [62, 63], optimizing input noise or embeddings [60, 67, 64], or parallelizable sample-and-rank through a scoring function or dynamics model [64, 65, 68–70]. Move down Move left Move right 
+
+Fig. 11: Examples of what we deem the manifold of “rea-sonable” actions, where underspecified commands (especially atomic motions) induce specific intelligent behaviors, based on the observed state. Solid arrows are these “reasonable” actions, while the dotted arrow is what the command would look like without conditioning on the image (i.e., akin to controlling the end effector with a game pad and holding a single direction down). Left: Rather than moving straight down, the empty gripper would move down towards an object it would grasp. 
+
+Middle: once an object is grasped, telling the robot to move left causes it to infer where to place it (in the case, the towel, which is left of the gripper). Right: However, this can be ineffective if there are multiple reasonable behaviors. If the robot is commanded to "move right" , it could reach for the carrot or the cube. 
+
+B. The Manifold of “Reasonable” Actions 
+
+Throughout our experiments, we notice a prevalent qualita-tive trend in how our Steerable Policy responds to underspec-ified commands, especially atomic motions. When given such a command, the robot does not just move in that direction, but does so while heavily considering the state of the robot and scene. For example, when given the (rather underspecified) command "move left" , it will typically move left and down ,towards objects that it can interact with. If the gripper is already grasping something, the robot might instead move left and up , towards a container that the object can be placed in. Finally, if told “open gripper” while near a container, the robot may first move the gripper above it before releasing. See Fig. 11 for illustrations. In other words, atomic motion commands seem to cause the policy to sample from the distribution of actions aligned with the commanded direction, but marginalized over all “reasonable” tasks that involve moving that way. The VLA can estimate what tasks can be done in a particular scene by attending to the visual observation. Then, when given a motion (e.g., "move left" ), it can estimate which of those tasks are likely accomplished by moving left, and then take actions aligned with one or more of those tasks. Intuitively, this arises from common correlations in the training data: if the gripper is empty and a possible steering command for that frame is to 
+
+"move left" , then the Bridge episode likely involves moving left and down to grasp something. We informally describe this as sticking to the manifold of “reasonable” actions. The qualitative implication is that giving an atomic motion command often results in intelligent motions, rather than “blindly” moving in the commanded way – explaining how atomic motions end up being the best single steering modality in the human oracle experiments from Sec. VI-A, despite motions being vague and the human only being able to issue new commands every two seconds. Naturally, this can be a blessing or a curse. While "move left" might cause the robot to pick up an object of interest, it can also get “confused” when there are multiple objects to the left, as that command could reasonably cause the policy to pick up either one. Of course, other steering command styles are able to supplement these behaviors, further motivating both training on many steering command styles and applying VLM capabilities to intuit when each style is most appropriate, as we propose. 
+
+C. Why are Subtask Commands Insufficient? 
+
+Standard hierarchical approaches command the low-level policy with tasks and subtasks alone [1]. However, these steering modalities are too unspecific to reliably induce gen-eralizable behaviors. We show an example of this in Fig. 18, drawn directly from our multi-step evaluation tasks. While the high-level VLM knows what the robot should do, subtasks alone are not a viable interface to “convey” this behavior to the low-level VLA. Instead, every time the VLM emits "grasp the screw" , the VLA fails to recognize what the screw is, and grasps some distractor object instead. While the VLM can tell the policy to drop that incorrect object, it cannot reliably fix this behavior, as subtasks are not flexible enough. This motivates our introduction of diverse steering command – if one command style fails, then using a different steering modalitiy might work instead (in this case, intuitively telling the Steerable Policy to "move up and left" 
+
+instead of "grasp the screw" would likely work). APPENDIX FTRAINING DETAILS 
+
+A. Steerable Policy Training 
+
+We train our Steerable Policy by adapting the OpenVLA codebase [12]. We use all provided default hyperparameters used for training the model on the Bridge dataset (see Fig. 12). Following past works [8, 9], we train for 80k steps at batch size 256, split across 8x H100 GPUs on a single compute node. We use the DINOv2-SigLIP image encoder and Llama2 7b LLM version of Prismatic VLM as the base pretrained VLM for our policy [71–73, 57]. The main alteration to the training pipeline is that, for each frame, we identify which subtask in the overall episode it corresponds to. Then, we uniformly randomly sample a command from a list containing the overall task language provided by Bridge (to support task-level command), the subtask language, and any corresponding steering commands we generate. Otherwise, we use the standard next-token prediction loss used for training OpenVLA. This also means the Steerable Policy expresses robot actions via naive discretization: as introduced by Brohan et al. [11], this discretizes each of the                                              
+
+> "action tokenizer": "action tokenizer", "base vlm": "prism-dinosiglip-224px+7b", "data mix": "bridge", "enable gradient checkpointing": true, "enable mixed precision training": true, "epochs": 1000, "expected world size": 8, "freeze llm backbone": false, "freeze vision backbone": false, "global batch size": 256, "image sequence len": 1, "learning rate": 2e-05, "lr scheduler type": "constant", "max grad norm": 1.0, "max steps": null, "per device batch size": 32, "reduce in full precision": true, "save every nsteps": 25000, "shuffle buffer size": 256000, "train strategy": "fsdp-full-shard", "type": "prism-dinosiglip-224px+mx-bridge", "unfreeze last llm layer": false, "use wrist image": false, "vla id": "prism-dinosiglip-224px+mx-bridge", "warmup ratio": 0.0, "weight decay": 0.0
+
+Fig. 12: Hyperparameters for training both the Steerable Policy and high-level embodied reasoner, taken from the OpenVLA parameter logging files (as both are trained by adapting the OpenVLA codebase). 
+
+seven action dimensions into 256 bins, which correspond to the 256 least-used tokens in Llama’s vocabulary. 
+
+B. High-level Embodied Reasoner Training 
+
+The high-level embodied reasoner is similarly instantiated by training with an altered version of the OpenVLA codebase, using the same hyperparameters as our policy (see Fig. 12). However, rather than mapping from observations and task lan-guage to actions, we instead use standard next-token prediction loss to train the VLM to predict a rationale/reasoning followed by an appropriate steering command. That is, for each training frame, we look up the corresponding subtask and rationale. Then, we also get the list of steering commands paired with that subtask, and sample one at random. Finally, we train the policy to receive the image and task language (represented as tokens), and output the rationale and the sampled command autoregressively. Our non-reasoning ablation is trained identically, just with the rationale supervision removed (so it learns to map ob-servations and task language directly to steering commands, without intermediate reasoning generations). Put the carrot on the towel Put the [corn / mushroom] in 
+
+the [pot / bowl] Open the drawer Put the corn in the bowl 
+
+Put the mallet on the towel Put the screwdriver on the 
+
+towel Put the screw in the pot Put the toothbrush on the 
+
+plate 
+
+Put the pot lid on the towel Move the cube to the [left / 
+
+right] of the corn 
+
+Put the tomato in the [left / 
+
+right] pan Fig. 13: Example starting states for the tasks for the didactic experiment wherein a human operator acts as the high-level policy. Put the [mushroom / corn / 
+
+eggplant] in the [pot / bowl] 
+
+Place the [spoon / carrot] on 
+
+the [plate / towel] 
+
+Put the [broccoli / spoon / 
+
+cube] on the towel 
+
+Put the [green / pink] spoon 
+
+on the plate 
+
+Put the [green / pink] spoon 
+
+on the towel 
+
+Put the [carrot / mushroom] in 
+
+the pot 
+
+Put the [carrot / mushroom] on 
+
+the plate 
+
+Put the [banana / tomato] in 
+
+the [left / right] bowl 
+
+Put the [green / orange] toy 
+
+in the [left / right] pot 
+
+Move the [mushroom / carrot] 
+
+to the [left / right] of the 
+
+[other one] 
+
+Put the watermelon on the 
+
+towel 
+
+Put the toothbrush on the 
+
+towel Put the screw in the bowl Reach for the [ketchup / 
+
+mallet / wrench] Fig. 14: Example starting states for the tasks for evaluating embodied reasoning VLAs , reproduced with permission from Chen et al. [9] (as we reuse their task suite). Make the mushroom the only 
+
+object on the plate 
+
+Put all the food in the 
+
+blue pot and stuffed toys 
+
+in the tan pot 
+
+Stack the pots 
+
+Put the banana on the 
+
+[left / right] on the 
+
+plate 
+
+Put the hammer on the 
+
+towel 
+
+Make the blue block the 
+
+only object on the plate 
+
+Put all the food in the 
+
+white and stuffed toys in 
+
+the green bowl 
+
+Stack the pots on the 
+
+towel 
+
+Put the white and blue 
+
+stuffed animal in the bowl 
+
+on the [left / right] 
+
+Move the screw to the 
+
+plate 
+
+Fig. 15: Example starting states for the multi-step tasks for evaluating in-context learning high-level VLMs. RATIONALE: The robot needs 
+
+to put the broccoli on the 
+
+towel. Currently, the 
+
+robot's gripper is near the 
+
+yellow pot and positioned 
+
+above the broccoli. To grasp 
+
+the broccoli, the robot 
+
+needs to move the gripper 
+
+down until it is surrounding 
+
+the broccoli. After moving 
+
+down, the robot should close 
+
+the gripper to grasp the 
+
+broccoli. The robot should 
+
+then move up to lift the 
+
+broccoli. 
+
+RATIONALE: The robot needs 
+
+to put the broccoli on the 
+
+towel. Currently, the 
+
+broccoli is on the table and 
+
+the gripper is near the 
+
+plate. To pick up the 
+
+broccoli, the robot needs to 
+
+move the gripper towards it. 
+
+The broccoli is to the left 
+
+and slightly forward of the 
+
+gripper. Therefore, the 
+
+robot should move forward 
+
+and left to reach the 
+
+broccoli. It should then 
+
+move down to grasp it. 
+
+RATIONALE: The robot is 
+
+currently grasping the 
+
+broccoli, so it should now 
+
+lift it. The broccoli is 
+
+currently on the table, and 
+
+the robot must move it up to 
+
+lift it. Thus, the robot 
+
+should move its gripper up. 
+
+RATIONALE: The robot is 
+
+holding the broccoli. The 
+
+towel is on the table, to 
+
+the right and below the 
+
+broccoli. Thus, the robot 
+
+must move the broccoli 
+
+towards the towel by moving 
+
+its gripper to the right and 
+
+down. 
+
+close the gripper at 
+
+[126, 64] 
+
+move the broccoli to the 
+
+towel at [160, 210] 
+
+lift the broccoli 
+
+move to the broccoli at 
+
+[136, 87] 
+
+Put the broccoli on the towel 
+
+RATIONALE: The robot needs 
+
+to place the watermelon on 
+
+the towel. The robot's 
+
+gripper is currently empty, 
+
+and the watermelon is 
+
+the object to the left of 
+
+the gripper. To pick up the 
+
+watermelon, the robot must 
+
+move its gripper to the left 
+
+and up and then down to 
+
+grasp the object. The robot 
+
+should move left and up, 
+
+then left, then left and 
+
+down, then down. 
+
+RATIONALE: The robot is 
+
+currently near the 
+
+watermelon. The gripper is 
+
+positioned above the 
+
+watermelon, suggesting it's 
+
+in the right location to 
+
+grasp it. To grasp the 
+
+watermelon, the 
+
+gripper needs to close. 
+
+RATIONALE: The robot is 
+
+currently holding the 
+
+watermelon. The towel is on 
+
+the table, and the robot is 
+
+currently holding the 
+
+watermelon above the towel. 
+
+To place the watermelon on 
+
+the towel, the robot should 
+
+first move down to place the 
+
+watermelon on the towel. 
+
+Then, it should open the 
+
+gripper to release the 
+
+watermelon, and finally move 
+
+up to prevent collision. 
+
+RATIONALE: The robot is 
+
+currently holding the 
+
+watermelon with its gripper. 
+
+The towel is on the right 
+
+side of the robot. Thus, the 
+
+robot should move the 
+
+watermelon to the right 
+
+towards the towel. To avoid 
+
+collisions, the robot should 
+
+first move up, then right, 
+
+then down. 
+
+move to [130, 75], 
+
+[126, 59], [120, 47], 
+
+[104, 36] 
+
+open the gripper to place 
+
+the object 
+
+move the gripper along 
+
+[35, 92], [70, 86], [120, 
+
+110], [145, 120], [164, 
+
+133] towards the towel 
+
+close the gripper to grasp 
+
+the watermelon 
+
+Put the watermelon on the towel Fig. 16: Examples of embodied reasonings produced by our fine-tuned VLM , taken from rollouts for the evaluations in Sec. VI-B. 1: The current scene shows the robot's gripper positioned over a brown and 
+
+white object at the bottom of the frame, having missed the hammer which is 
+
+located further to the right. This is a recurring issue where the robot 
+
+confuses the target object with the vegetable in the foreground. 
+
+2: The robot needs to move further to the right to align itself with the 
+
+hammer handle before attempting another grasp. 
+
+3: Previous commands using high -level names, position tags <>, and 
+
+specific motion directions like "right and down" have consistently 
+
+resulted in the robot targeting the wrong object. Since the robot is 
+
+currently too low and targeting the wrong item, an atomic motion command 
+
+to move strictly right and slightly up will help clear the current object 
+
+and reposition for the correct target. 
+
+Put the hammer on the 
+
+towel 
+
+move right and up to the hammer handle 
+
+1: The current scene shows the robot arm at the home position with two 
+
+bananas and a plate on the table. This is a reset to the initial state 
+
+after the robot mistakenly targeted the left banana instead of the right 
+
+one. 
+
+2: The robot must now correctly target and move toward the banana located 
+
+on the right side of the plate. 
+
+3: A previous attempt using a position -based command with specific tags 
+
+failed to target the correct banana. Per the instructions, I will now use 
+
+a different level of abstraction, specifically atomic motion commands, to 
+
+guide the robot's movement toward the right side of the workspace to 
+
+ensure it approaches the correct object. 
+
+Put the banana on the 
+
+right on the plate 
+
+move right and down to the banana on the right 
+
+1: The current scene shows the mushroom stuffed animal remaining on the 
+
+table while the corn and banana are already in the white bowl. The robot's 
+
+gripper is positioned directly above the mushroom but failed to secure it 
+
+during the previous lift attempt. 
+
+2: The robot must successfully grasp and lift the mushroom to move it 
+
+toward the green bowl. 
+
+3: Several high -level and combination commands have been attempted without 
+
+successfully lifting the object. Since the gripper is already well -
+
+positioned above the mushroom, a position -based command will help the 
+
+system re -calculate the exact coordinates for a more precise grasp attempt 
+
+to ensure the mushroom is actually secured before lifting. 
+
+Put all the food in the 
+
+blue pot and stuffed toys 
+
+in the tan pot 
+
+pick up the object at [104, 190] 
+
+1: The current scene shows a blue pot, a tan pot, a 
+
+yellow chick stuffed toy, a blue elephant stuffed toy, 
+
+and a banana on a wooden table. The robot's gripper is 
+
+currently positioned open above the blue pot. 
+
+2: The robot needs to move towards one of the objects 
+
+to begin sorting, such as the banana. 
+
+3: Since the gripper is currently centered over the 
+
+blue pot and away from the items, a position -based 
+
+command is the most efficient way to direct the robot 
+
+to a specific target. This will allow the object 
+
+detector to guide the robot directly to the banana for 
+
+the next phase of the task. 
+
+Put all the food in the 
+
+blue pot and stuffed toys 
+
+in the tan pot 
+
+move above [128, 213] 
+
+b The robot's gripper is now positioned directly above 
+
+the banana, having successfully moved from its 
+
+previous position over the blue pot. The other objects 
+
+(blue pot, tan pot, yellow chick, and blue elephant) 
+
+remain in their original locations. 
+
+2: The robot must now grasp the banana to begin moving 
+
+it toward the blue pot. 
+
+3: Since the robot is already precisely aligned with 
+
+the banana, a high -level instruction is the most 
+
+efficient and reliable way to execute the grasp. The 
+
+robot has clearly identified the target object. 
+
+Put all the food in the 
+
+blue pot and stuffed toys 
+
+in the tan pot 
+
+grasp the banana Fig. 17: Examples of in-context reasonings produced by our off-the-shelf VLM for issuing steering commands , taken from rollouts for the evaluations in Sec. VI-C. These are the unparaphrased versions of the examples in Fig. 9 The scene shows a robot 
+
+gripper hovering over a 
+
+mushroom on a wooden table, 
+
+with a screw, a plate, and a 
+
+corn cob also present 
+
+nearby. The robot has not 
+
+yet interacted with the 
+
+screw or the plate .
+
+The robot needs to move its 
+
+gripper to the screw and 
+
+pick it up to begin the 
+
+task .
+
+The current observation 
+
+shows the robot gripper 
+
+holding the yellow corn, 
+
+while the white screw 
+
+remains on the table to the 
+
+left. This indicates the 
+
+previous command to grasp 
+
+the screw was unsuccessful .
+
+The robot must release the 
+
+corn to free its gripper 
+
+before it can attempt to 
+
+grasp the screw again .
+
+In the current observation, 
+
+the robot arm has 
+
+successfully released the 
+
+corn and is now empty, with 
+
+the gripper open above the 
+
+table. The white screw 
+
+remains on the left side of 
+
+the table, while the blue 
+
+plate is positioned in the 
+
+center .
+
+The robot must now move to 
+
+and pick up the white screw 
+
+to proceed with the task of 
+
+moving it to the plate .
+
+The scene shows the robot 
+
+gripper holding the yellow 
+
+corn object on the table, 
+
+while the white screw and 
+
+the blue plate remain in 
+
+their original positions. 
+
+The robot has mistakenly 
+
+grasped the corn instead of 
+
+the screw as previously 
+
+commanded .
+
+The robot must release the 
+
+corn to free its gripper so 
+
+it can move towards and 
+
+grasp the screw .
+
+The current observation 
+
+shows the robot's gripper 
+
+open and positioned above 
+
+the corn, with the screw and 
+
+plate remaining on the 
+
+table. The corn has been 
+
+released, and the robot 
+
+needs to redirect its 
+
+attention to the target 
+
+object .
+
+The robot must now target 
+
+and pick up the screw to 
+
+move it toward the plate .
+
+In the current observation, 
+
+the robot is grasping the 
+
+mushroom instead of the 
+
+screw, while the screw and 
+
+the plate remain in their 
+
+original positions on the 
+
+table .
+
+The robot needs to release 
+
+the mushroom so it can 
+
+proceed to pick up the 
+
+correct object .
+
+The robot has released the 
+
+mushroom, which is now lying 
+
+on the table next to the 
+
+plate. The gripper is open 
+
+and positioned above the 
+
+mushroom, while the screw 
+
+remains on the left side of 
+
+the table .
+
+The robot needs to move its 
+
+gripper to the screw and 
+
+grasp it to proceed with 
+
+moving it to the plate .
+
+Grasp the screw 
+
+0
+
+140 
+
+604020 
+
+120 100 80
+
+Release the corn Grasp the screw Release the corn 
+
+Grasp the screw Grasp the screw Release the mushroom 
+
+The robot is currently 
+
+holding the mushroom with 
+
+its gripper. To move the 
+
+screw to the plate, the 
+
+robot first needs to clear 
+
+its gripper of any other 
+
+objects. 
+
+The robot must release the 
+
+mushroom to proceed with the 
+
+main task. 
+
+Release the mushroom 
+
+Put the screw on the plate Fig. 18: Illustrative example of why VLAs cannot leverage VLMs’ in-context learning, visual understanding, and reasoning well when issued only subtask commands (from the SayCan-like baseline in Sec. VI-C). The high-level VLM reliably detects incorrect behaviors and what the robot should do to progress the task. However, the low-level VLA fails to make use of this when only commanded with subtasks. Instead, when the VLM correctly tells it to "grasp the screw" (which is out-of-distribution), it always mistakes some other object for it, and grasps the mushroom or corn instead. The policy gets stuck in this loop until the episode times out. Due to lack of steerability with subtasks alone, the high-level VLM has no way to fix this behavior. Our Steerable Policies can get unstuck by simply being commanded at some other level of abstraction. I am trying to break robot demonstration trajectories into a list of subtasks. For example: - If the task is "put the mushroom in the pot," the subtasks might be "reach for the mushroom, grasp the mushroom, lift the mushroom, move the mushroom above the pot, and release the mushroom into the pot." - If the task is "wipe the table with the cloth," the subtasks might be "move to the cloth, slide the cloth to the left along the table, slide the cloth to the right along the table, slide the cloth to the left along the table, release the cloth." - If the task is "open the cabinet door," the subtasks might be "move to the cabinet door handle, grasp the handle, pull the door open, swing the arm to the left to open the door, reposition arm to right of door, push cabinet door fully open to the left." - If the task is "pour the cup into the bowl," the subtasks might be "move to the cup, grasp the cup, move above the bowl, rotate to pour the cup." I will provide you with a list of motions (e.g., "move left," "rotate up," "close gripper") and their corresponding timestamps. I have removed consecutive duplicate language motions. I want you to come up with a list of subtasks and then group all the timestamps into those categories. Make sure the subtasks are specific and specify the name of the object that is likely being interacted with. Please reason about the subtask steps first, then give the final answer as a Python dictionary mapping from the subtasks as strings to a list of timestamps corresponding to that task. Additionally, make sure that subtasks are in order: Later subtasks should only contain timestamps after the ones in earlier ones. The only code should be this dictionary All timestamps should be mapped to subtasks. The task is described with the following instruction: "<instruction>" Additionally, an object detector found the following non-comprehensive list of <number of items> items: <list of objects>. The motions are as follows: <step number>: <motion> 
+
+Fig. 19: The prompt for dividing Bridge tasks into subtasks. 
+
+I am trying to label frames of a robot demonstration with various possible instructions. I will give the overall task and a list of all subtasks. Then, for each subtask, I will give a description of each frame, consisting of the timestep, gripper movement, gripper position, and a (possibly incomplete) list of object positions. All positions are pixel coordinates (first number goes right along columns, second number goes down along rows). I want to generate a list of possible instructions for each subtask. These instructions should be at varying levels of abstraction, and should consider information from both the current step and others. For example: Some examples of high-level instructions are: - ’grasp the mushroom in the pot’ - ’wipe the cloth across the table’ - ’move the lid above the pot’ Some examples of low-level motion instructions are: - ’move down and close’ - ’move the cloth left’ - ’pull the drawer handle backward’ Some examples of instructions using object positions: - ’pick up the mushroom at <position of mushroom>’ - ’go to the pot at <position of pot> to grab the mushroom’ Note: The object positions are not always perfect, e.g., if the detector picks up the wrong instance of an object in the scene. In these cases, try to figure out when this is the case based on where the gripper position is. Some examples of instructions using gripper positions: - ’move to <5 gripper positions throughout subtask> and grasp’ - ’move to <gripper position before grasping> and close’ - ’sweep with tool at <4 gripper positions throughout the subtask>’ - ’carry the spatual along <3 gripper positions throughout the subtask>’ Note: When listing positions, use at most 5 of the positions throughout the subtask. Finally, some examples of instructions that combine the above: - ’move down to the mushroom at <position of mushroom> and grasp it’ - ’grab the mushroom at <position of mushroom> and move it to the plate at <position of plate>’ - ’move the stuffed toy along <3 gripper positions throughout the subtask>, toward the box at <position of box>’ (Note how this requires reasoning about gripper and object positions, e.g., how the gripper gets closer to the box’s location) - ’move down to <gripper position before grasping the mushroom> and grab the mushroom at <position of mushroom>’ Give your answer as a Python dictionary mapping from each subtask to a list of possible instructions. Do not include any code other than this dictionary. When referencing gripper and object positions, use the provided specific numerical values (e.g., do NOT say ’<3 gripper position throughout subtask>’, but actually list out the numerical positions). Overall Task: "<instruction>" Subtasks: <list of subtasks> Subtask: <first subtask> <step number>: <motion>, gripper: <gripper pixel coordinates> <object name>: <bounding box center pixel coordinates> 
+
+Fig. 20: The prompt for generating steering commands for Bridge tasks. 
+
+I want my robot to reason about its observation before choosing its behaviors. I have a dataset of demonstrations where the robot arm is solving tasks. I will provide a description of the task, the robot’s observation, text descriptions of the robot’s actions, a plan for what the robot will do, and what the robot’s current subtask likely is. I will also give you the appropriate behaviors the robot should follow. In response, write me a rationale that would help the robot determine these true behaviors. Instructions: - The rationale should be inferable from the current image only, as the robot does not know what subtasks it completed in the past - The robot does not know its past or current appropriate subtask. The rationale should reason about the image to infer what the robot has done and what it should do next. - The rationale should reason about the scene, objects, robot gripper, and the relevant spatial and semantic relations between them. - Finally, the rationale should help determine and explain the commands the robot should follow. This includes the subtask and motions the robot should execute. Guidelines: - I have provided the past subtasks to help you better understand the robot’s state (e.g., if the past subtask was ’grasp the mushroom,’ the robot is likely holding the mushroom). However, they should NOT be directly cited in the rationales. - The appropriate commands and motions are what the robot SHOULD do, not what it is currently doing. - Be specific about positions, movements, and spatial relations of objects and the gripper. For example, if the robot has to move the block on the right side of the table while there are multiple blocks, reason about which one is the block on the right. - Do not start with ’The robot’s task is...’ or similar. The robot task is known. Examples: 1. Task: ’Put the mushroom in the pot.’ ’The robot seems to be holding the mushroom, so it now needs to move it above the pot. The pot seems to be left of the gripper. Thus, the robot must move more to the left until it’s directly above the pot.’ 2. Task: ’Wipe the table.’ ’Wiping the table requires a cloth, which the robot does not seem to be holding. It thus should move to the cloth. As the gripper is to the cloth’s right, it thus should move left and down. 3. Task: ’Move the eggplant in the sink to the plate.’ ’The robot is currently holding the eggplant, which is in the sink, so it must now lift it out toward the plate. The plate is on the countertop next to the sink. To avoid colliding with the sink, the robot should first move up until its gripper is higher than the sink’s walls.’ 4. Task: ’Open the drawer.’ ’To open the drawer, the robot needs to grasp and pull on its handle. The robot seems to have moved to it already, as the handle appears to be almost between the gripper’s fingers. Thus, the robot must adjust its gripper to the right, then close it to grasp the handle.’ 5. Task: ’Place the silver pot on the bottom right stove burner’ ’The robot is holding the pot, so it should now move it to the bottom right burner. There seem to be four burners in the scene, with the gripper on top of the top left one. The robot should thus move right and backward more until it’s directly above the burner.’ Provide a rationale for the following: The robot’s task is: ’<instrution>’ The included image shows the robot’s current observation. The appropriate behavior that the rationale should help determine is as follows. The appropriate current subtask is: ’<current subtask>’. The past subtask(s) were: <list of subtasks> OR This is the first subtask. The appropriate motions and gripper positions throughout this subtask are: <list of motions and gripper positions> 
+
+Fig. 21: The prompt for rationalizing steering commands for Bridge tasks. You are guiding a robot to complete a task by generating a subtask instruction for the robot to follow given an image of the robot’s current observation, and a history of observations and past commands. The robot is trying to accomplish the overall task: ’[task description]’. You should keep the rest of the environment unchanged. Note that all objects required for the task are present (no need to search for objects). There are several kinds of instructions the robot understands, each at a different level of abstraction, detailed below. Sometimes, a high-level instruction is sufficient for the robot to make progress towards solving the task, but other times, a more specific command is required. Below are examples of the kinds of instructions you can generate for the robot. Some examples of High-level instructions are: - ’grasp the mushroom in the pot’ - ’wipe the cloth across the table’ - ’move the lid above the pot’ - ’lift the carrot up’ - ’move towards the stuffed toy’ - ’drop the eggplant in the bowl’ The robot is generally reliable at following high-level commands, especially when interacting with non-novel objects. They can also be used to better understand the scene and robot state, such as by saying ’lift the object’ to ascertain if the robot has actually firmly grasped it. However, these commands may fail when interacting with novel objects, as the robot may not recognize them by name. The robot also may also confuse similar objects with each other (e.g., it may mix up a bowl and pot, or multiple instances of the same kind of object). Some examples of Atomic Motion instructions are: - ’move left’ - ’move right and down’ - ’move down and close’ - ’open the gripper’ - ’move the cloth left’ - ’pull the drawer handle backward’ Motion commands are good for general positioning, such as moving to a pre-grasp pose above the object the robot must interact with. They can also be used for more minor corrections, e.g., ’move up and right above the bowl’ if the gripper is too low. These commands are also appropriate when the task involves spatial reasoning (e.g., tasks that reference left or right) or moving in unconventional ways (e.g., lifting the arm to grasp something on a high shelf). However, these commands are often underspecified, so the robot may reach for the wrong object if simply told ’move to the right and grasp.’ Some examples of Position-based instructions are: - ’pick up the object at <mushroom>’ - ’go to the pot at <pot> to grab the mushroom’ Note, you simply need to specify the object name within angle brackets, e.g., <mushroom>, and a object detector system will fill in the pixel coordinates for you. If there are multiple instances of the object, provide a unique, specific identifier within the brackets to indicate which instance you are referring to, e.g., <mushroom on the left>. Position-based commands are especially helpful for specifying novel objects that the robot fails to recognize by name. They can also be used to clearly specify locations, such as where to place or move objects. However, these commands can be unreliable, as the robot may get confused (e.g., reaching for the wrong object in scenes with clutter or with multiple instances of the same object). The object detector may also fail, especially when objects are occluded. Next, some examples of Combination instructions are: - ’move down to the object at <mushroom> and grasp it’ - ’grab the mushroom at <mushroom on the left> and move it to <plate>’ - ’move the stuffed toy toward the box at <box>’ Combination commands are useful for supplementing the weaknesses of other command types, such as saying ’move right to grasp the object at <object description>’ rather than just ’move right and grasp’ (if there are multiple objects to the right of the robot). However, being too specific may result in out-of-distribution commands, which the robot policy fails to follow. Additionally, less specific commands can be useful for positioning the robot in a location where it’s more likely to succeed. Finally, there is the RESET TO HOME instruction, which causes the robot to return to its home position. You use this if the robot is stuck or interacting with the wrong object. You MUST follow these steps when generating your response: - Step 1: Briefly describe the scene in the current observation, and any important differences from past observations (eg. objects moved, picked up, dropped etc). - Step 2: Briefly describe what must happen next to make progress towards the overall task. - Step 3: Generate a candidate instruction for EACH level of abstraction. - Step 4: Briefly reason about which instruction is most appropriate given the current observation and task progress. - Step 5: Determine the final steerable command for the robot to execute. Only the LAST line of your output will be interpreted as the subtask command. In the LAST line, answer ONLY with the subtask instruction that the robot should execute, and NOTHING ELSE. Note: The robot will ask you for a new instruction after executing for a few steps. If you’ve issued the same type of command more than once without progress, you MUST issue a command at a different level of abstraction. If you previously provided a command with positions <> (without progress), you MAY NOT use positions in the next command. For example: - If you previously tried to pick up the mushroom by specifying the mushroom’s position, but the robot did not reach the mushroom, next time you can explicitly tell the robot to move in a certain direction (eg. move to the right and down). - If the robot reached for the wrong object when you told it to pick up the mushroom at <mushroom on the left>. This time, you should give a command at a different level of abstraction: move left to the mushroom and grasp it. Here are the past observations and commands: Observation: [image] Command: [command] Observation: [image] Command: [command] Observation: [image] Command: [command] ... Current Observation: [image] Based on this observation, generate the next command. Remember the instructions: describe the scene, determine what must happen next, generate steerable commands at EACH level of abstraction, determine the best command, output the best command. Again, the LAST line of your output will be interpreted as the final steerable, subtask command. In the LAST line, answer ONLY with the subtask instruction that the robot should execute, and NOTHING ELSE. 
+
+Fig. 22: Our approach’s Gemini prompt for in-context learning VLM experiments. Note that any text in square brackets (eg. [task description]) in the prompt above is replaced with the corresponding object before the prompt is passed to the VLM. You are guiding a robot to complete a task by generating a subtask instruction for the robot to follow given an image of the robot’s current observation, and a history of observations and past commands. The robot is trying to accomplish the overall task: ’[task description]’. You should keep the rest of the environment unchanged. Note that all objects required for the task are present (no need to search for objects). There are several kinds of instructions the robot understands, each at a different level of abstraction, detailed below. Sometimes, a high-level instruction is sufficient for the robot to make progress towards solving the task, but other times, a more specific command is required. Below are examples of the kinds of instructions you can generate for the robot. Some examples of High-level instructions are: - ’grasp the mushroom in the pot’ - ’wipe the cloth across the table’ - ’move the lid above the pot’ - ’lift the carrot up’ # IMPORTANT: Lifting is generallly good post-grasping - ’move towards the stuffed toy’ - ’drop the eggplant in the bowl’ The robot is generally reliable at following high-level commands, especially when interacting with non-novel objects. They can also be used to better understand the scene and robot state, such as by saying ’lift the object’ to ascertain if the robot has actually firmly grasped it. However, these commands may fail when interacting with novel objects, as the robot may not recognize them by name. The robot also may also confuse similar objects with each other (e.g., it may mix up a bowl and pot, or multiple instances of the same kind of object). Some examples of Atomic Motion instructions are: - ’move left’ - ’move right and down’ - ’move down and close’ - ’open the gripper’ - ’move the cloth left’ - ’pull the drawer handle backward’ Motion commands are good for general positioning, such as moving to a pre-grasp pose above the object the robot must interact with. They can also be used for more minor corrections, e.g., ’move up and right above the bowl’ if the gripper is too low. These commands are also appropriate when the task involves spatial reasoning (e.g., tasks that reference left or right) or moving in unconventional ways (e.g., lifting the arm to grasp something on a high shelf). However, these commands are often underspecified, so the robot may reach for the wrong object if simply told ’move to the right and grasp.’ Some examples of Position-based instructions are: - ’pick up the object at <mushroom>’ - ’go to <pot>’ - ’grasp at <blue cube>’ - ’move above <plate>’ - ’open gripper at <bowl>’ - ’move towards <towel>’ Note, you simply need to specify the object name within angle brackets, e.g., <mushroom>, and a object detector system will fill in the pixel coordinates for you. If there are multiple instances of the object, provide a unique, specific identifier within the brackets to indicate which instance you are referring to, e.g., <mushroom on the left>. Position-based commands are especially helpful for specifying novel objects that the robot fails to recognize by name. They can also be used to clearly specify locations, such as where to place or move objects. However, these commands can be unreliable, as the robot may get confused (e.g., reaching for the wrong object in scenes with clutter or with multiple instances of the same object). The object detector may also fail, especially when objects are occluded. Next, some examples of Combination instructions are: - ’move down to the object at <mushroom> and grasp it’ - ’grab the mushroom at <mushroom on the left> and move it to <plate>’ - ’move the stuffed toy toward the box at <box>’ Combination commands are useful for supplementing the weaknesses of other command types, such as saying ’move right to grasp the object at <object description>’ rather than just ’move right and grasp’ (if there are multiple objects to the right of the robot). However, being too specific may result in out-of-distribution commands, which the robot policy fails to follow. Additionally, less specific commands can be useful for positioning the robot in a location where it’s more likely to succeed. Finally, there is the RESET TO HOME instruction, which causes the robot to return to its home position. You use this if the robot is stuck or interacting with the wrong object. You MUST format your response as follows: ONLY OUTPUT A SINGLE COMMAND AND NOTHING ELSE. YOUR RESPONSE SHOULD ONLY HAVE ONE LINE, WHICH IS THE COMMAND THE ROBOT MUST EXECUTE. Here are the past observations and commands: Observation: [image] Command: [command] Observation: [image] Command: [command] Observation: [image] Command: [command] ... Current Observation: [image] Based on this observation, generate the next command. Again, ONLY OUTPUT A SINGLE LINE, and NOTHING ELSE. 
+
+Fig. 23: Non-reasoning ablation’s Gemini prompt for in-context learning VLM experiments. The only change from the full prompt (Fig. 22) is that the VLM is instructed to answer without producing any thinking tokens. In particular, the VLM is still may output commands leveraging all levels of abstraction, and leverage in-context examples and history of past observations and commands. Note that any text in square brackets (eg. [task description]) in the prompt above is replaced with the corresponding object before the prompt is passed to the VLM. 
+
+You are guiding a robot to complete a task by generating a subtask instruction for the robot to follow given an image of the robot’s current observation, and a history of observations and past commands. The robot is trying to accomplish the overall task: ’[task description]’. You should keep the rest of the environment unchanged. Note that all objects required for the task are present (no need to search for objects). Below are some examples of the kinds of instructions you should generate: - ’grasp the mushroom in the pot’ - ’wipe the cloth across the table’ - ’move the lid above the pot’ You MUST follow these steps when generating your response: - Step 1: Briefly (1-2 sentences) describe the scene in the current observation, and any important differences from past observations (eg. objects moved, picked up, dropped etc). - Step 2: Briefly (1 sentence) describe what must happen next to make progress towards the overall task. - Step 3: Determine the final steerable command (last line) for the robot to execute. Only the LAST line of your output will be interpreted as the subtask command. In the LAST line, answer ONLY with the subtask instruction that the robot should execute, and NOTHING ELSE. Here are the past observations and commands: Observation: [image] Command: [command] Observation: [image] Command: [command] Observation: [image] Command: [command] ... Current Observation: [image] Based on this observation, generate the next command. Remember the instructions: describe the scene, determine what must happen next, and generate a command. Again, the LAST line of your output will be interpreted as the final subtask command. In the LAST line, answer ONLY with the subtask instruction that the robot should execute, and NOTHING ELSE. 
+
+Fig. 24: SayCan-like baseline’s Gemini prompt for in-context learning VLM experiments. The only change from the full prompt (Fig. 22) is that the VLM is instructed to only provide subtask-level instructions. In particular, the VLM is still encouraged to reason in-context from a history of past observations and commands. Note that any text in square brackets (eg. [task description]) in the prompt above is replaced with the corresponding object before the prompt is passed to the VLM. [observation image] What is the pixel coordinate location of the [object name] in the image? The image has width [width] and height [height] Respond with a JSON object with the keys ’x’ and ’y’. 
+
+Fig. 25: Prompt for extracting grounded keypoints from image observations based on a description of a target object. If a VLM instruction contains multiple keypoint descriptions, this prompt is called multiple times. Note that any text in square brackets (eg. [image observation]) in the prompt above is replaced with the corresponding object before the prompt is passed to the VLM.

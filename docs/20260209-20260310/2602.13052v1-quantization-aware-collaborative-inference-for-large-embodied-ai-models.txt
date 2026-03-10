@@ -1,0 +1,1067 @@
+Title: Quantization-Aware Collaborative Inference for Large Embodied AI Models
+
+URL Source: https://arxiv.org/pdf/2602.13052v1
+
+Published Time: Mon, 16 Feb 2026 02:01:17 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+> 1
+
+# Quantization-Aware Collaborative Inference for Large Embodied AI Models 
+
+Zhonghao Lyu, Ming Xiao, Senior Member, IEEE, Mikael Skoglund, Fellow, IEEE, 
+
+M´ erouane Debbah, Fellow, IEEE, and H. Vincent Poor, Life Fellow, IEEE 
+
+Abstract —Large artificial intelligence models (LAIMs) are increasingly regarded as a core intelligence engine for embodied AI applications. However, the massive parameter scale and computational demands of LAIMs pose significant challenges for resource-limited embodied agents. To address this issue, we inves-tigate quantization-aware collaborative inference (co-inference) for embodied AI systems. First, we develop a tractable approx-imation for quantization-induced inference distortion. Based on this approximation, we derive lower and upper bounds on the quantization rate-inference distortion function, characterizing its dependence on LAIM statistics, including the quantization bit-width. Next, we formulate a joint quantization bit-width and computation frequency design problem under delay and energy constraints, aiming to minimize the distortion upper bound while ensuring tightness through the corresponding lower bound. Extensive evaluations validate the proposed distortion approxi-mation, the derived rate-distortion bounds, and the effectiveness of the proposed joint design. Particularly, simulations and real-world testbed experiments demonstrate the effectiveness of the proposed joint design in balancing inference quality, latency, and energy consumption in edge embodied AI systems. 
+
+Index Terms —Large AI model (LAIM), model quantization, collaborative inference (co-inference), embodied AI. 
+
+I. I NTRODUCTION 
+
+A. Research Background and Related Work 
+
+As mobile networks evolve toward artificial intelligence radio access networks (AI-RANs) that natively support edge intelligence [1], [2], embodied AI has emerged as one of the most representative and demanding application paradigms. In embodied AI systems, intelligent agents form a tightly coupled closed-loop among perception, communication, understanding, and action, enabling them to accomplish complex tasks such as navigation, dialogue, and collaboration in dynamic envi-ronments [3]. In recent years, large AI models (LAIMs) have demonstrated remarkable capabilities in visual understanding, language reasoning, and multimodal task processing. As a re-sult, LAIMs are increasingly regarded as the core intelligence engine of embodied systems, providing autonomous platforms with more general and powerful perception-reasoning-action capabilities [4]. 
+
+Z. Lyu, M. Xiao, and M. Skoglund are with the Department of Information Science and Engineering, KTH Royal Institute of Technology, Stockholm, Sweden (e-mail: lzhon@kth.se, mingx@kth.se, skoglund@kth.se). M. Debbah is with the Research Institute for Digital Future, Khalifa University, 127788 Abu Dhabi, UAE (email: merouane.debbah@ku.ac.ae) and also with CentraleSupelec, University Paris-Saclay, 91192 Gif-sur-Yvette, France. H. V. Poor is with the Department of Electrical and Computer Engineering, Princeton University, New Jersey 08544, USA (e-mail: poor@princeton.edu). 
+
+However, embodied intelligence applications typically im-pose stringent requirements on real-time responsiveness, en-ergy efficiency, and reliable inference performance. In this context, the two conventional deployment paradigms for LAIM inference, namely, on-device (agent) deployment [5], [6] and on-cloud deployment [7]–[9], face fundamental limi-tations. On one hand, pure on-device deployment is severely constrained by the limited computation capability, memory capacity, and energy budget of embodied agents, making it difficult to accommodate the massive parameter scale and computational intensity of LAIMs [5], [6]. On the other hand, on-cloud deployment offers abundant computational resources but is highly sensitive to communication network conditions. Moreover, massive concurrent inference requests may cause server-side congestion, making it difficult to guarantee timely response and stable interaction control [9]. Such centralized deployment also raises serious concerns regarding data pri-vacy and security, especially for safety-critical embodied AI applications. To address these challenges, collaborative inference (co-inference) across device, edge, and cloud has emerged as a promising paradigm for supporting LAIM-enabled embod-ied intelligence services. By deploying LAIMs at the net-work edge, embodied agents can perform necessary front-end lightweight processing locally and transmit intermediate features to the edge or cloud for subsequent inference [10]– [15]. Such a co-inference framework effectively alleviates on-device resource bottlenecks, enabling resource-limited agents to access LAIM services. Compared with pure on-cloud deployment, bringing LAIMs closer to data sources allows parts of the computation to be offloaded to agents, thereby better exploiting distributed computational resources while improving privacy preservation. Furthermore, for emerging multimodal inference tasks, transmitting raw sensory data to servers often incurs substantial communication overhead. In contrast, co-inference can reduce communication overhead while improving robustness against channel impairments [16]. This advantage becomes particularly pronounced in multi-agent and agentic AI scenarios [17], where structured rep-resentations facilitate feature-level information fusion across agents at the edge or cloud, leading to more comprehensive situational awareness and enhanced task performance. Existing studies on co-inference can be broadly categorized into two research directions: task-oriented feature encoding and joint task offloading and resource allocation. Task-oriented feature encoding, also referred to as semantic or goal-oriented communications, focuses on transforming raw data into se-
+
+> arXiv:2602.13052v1 [cs.LG] 13 Feb 2026 2
+
+mantic representations prior to transmission, to reduce com-munication overhead while supporting downstream tasks. This paradigm has been applied to multimodal data reconstruction [16], [18], [19], intelligent task execution [20], [21], and multi-task inference services [22]. In parallel, joint task offloading and resource allocation studies aim to partition and dynami-cally assign inference workloads across distributed processing entities according to heterogeneous system resources [23]. Representative works have investigated adaptive co-inference frameworks that respectively optimize data representation and workload partitioning to balance inference performance and resource efficiency under constrained edge environments [24], [25]. Moving toward multi-device settings, [26]–[28] have fur-ther explored information-bottleneck based feature transmis-sion, over-the-air computation, and sensing-communication-computation co-design for multi-view, privacy-preserving, and perceptive co-inference scenarios. However, the above studies mainly focused on regular-scale AI models. For LAIMs, the dramatically increased model scale and computational demand necessitate large-scale sys-tem design strategies. For LAIM-oriented co-inference, [10] has proposed a cloud-edge active co-inference framework, yet neglected the computation capability of edge devices. Subsequently, [11], [12] have investigated multimodal, multi-task, and multi-dialogue LAIM task-offloading and dynamic LAIM splitting schemes using deep reinforcement learning (DRL). Hybrid large-small language model architectures have also been explored to enable selective uplink transmission and cloud invocation for LAIM inference [13]. More recently, LAIM co-inference has also been extended to multi-device multi-server settings with joint device selection and model partitioning [14]. Despite these advances, for LAIM co-inference in embodied AI, the on-agent component still remains fundamentally con-strained by limited resources, rendering model compression indispensable for practical deployment [29]. To this end, several compression techniques have been studied, includ-ing pruning, quantization, and knowledge distillation. Model pruning removes redundant parameters, neurons, or attention heads based on magnitude, sensitivity, or structural crite-ria [15]. Knowledge distillation transfers knowledge from a large teacher model to a compact student model by aligning output distributions or intermediate representations [30]. In contrast, model quantization reduces numerical precision by representing model parameters and activations with low bit-width formats, substantially decreasing storage and compu-tation complexity with relatively low engineering overhead, while maintaining compatibility with standard edge hard-ware. Widely adopted quantization schemes include uniform quantization [31] and nonuniform quantization [32], where quantization levels are uniformly or nonuniformly distributed, respectively. As a result, quantization has emerged as a partic-ularly attractive solution for LAIM co-inference on resource-limited embodied agents. 
+
+B. Motivations and Contributions 
+
+Despite the extensive studies on model quantization algo-rithms, quantization inevitably introduces parameter precision degradation that leads to inference distortion, and a fundamen-tal gap remains in understanding how such distortion scales with the quantization bit-width in a tractable manner. Existing works largely lack a unified theoretical characterization of the quantization-distortion trade-off that can guide system-level optimization. More importantly, from a system perspective, quantization affects not only inference accuracy, but also the computational workload. Meanwhile, computation frequency control at both device and server processors constitutes another critical design degree of freedom (DoF) that determines infer-ence delay and energy consumption. As a result, quantization bit-width and computation frequency become tightly coupled under practical quality-of-service (QoS) constraints. For in-stance, reducing the bit-width can lower computational load at the cost of increased inference distortion, whereas increasing the computation frequency may shorten inference latency but amplify energy consumption. This coupling gives rise to non-trivial inference quality-energy-delay trade-offs, which are par-ticularly important in heterogeneous and resource-constrained embodied AI systems. Balancing these trade-offs calls for quantization-aware distortion characterization and joint model quantization and computation design. However, such issues remain largely unexplored in existing works. Motivated by the above gaps, this paper adopts a unified perspective that bridges theoretical analysis and system-level design, and develops a joint quantization and computation design framework for LAIM-enabled co-inference. Specif-ically, we first construct a quantization-induced distortion metric and perform a rate-distortion analysis to characterize the fundamental relationship between quantization bit-width and inference distortion. Then, we jointly optimize the on-agent quantization bit-width and the computation frequencies under QoS constraints, providing practical design insights for model compression and computation resource management in embodied AI systems. The main contributions are summarized as follows.  
+
+> •
+
+We develop an efficient approximation for quantization-induced inference distortion in LAIMs by explicitly linking parameter-level perturbations to output-level dis-tortion. Building on this approximation, we derive up-per and lower bounds on inference distortion from a rate-distortion theoretic perspective, which fundamentally characterize how inference quality depends on key LAIM statistics, such as the quantization bit-width.  
+
+> •
+
+Leveraging the above analysis, we formulate a joint quantization bit-width and computation frequency opti-mization problem under delay and energy constraints. The objective is to minimize the distortion upper bound while maintaining a tight approximation gap, achieved by jointly maximizing the corresponding lower bound. The problem is non-convex due to the coupling among decision variables, for which we propose an efficient solution.  
+
+> •
+
+Finally, we conduct extensive evaluations to validate both the theoretical analysis and system-level design. The results verify the quantization-induced distortion approximation and the derived rate-distortion bounds. 3
+
+In particular, experiments on multiple LAIMs, datasets, and quantization schemes demonstrate consistent perfor-mance gains in balancing inference quality, latency, and energy consumption. Real-world testbed results further confirm that, even with only coarse-grained frequency configurations, jointly optimizing computation and quan-tization remains crucial for improving LAIM co-inference performance in practical edge embodied AI systems. The remainder of this paper is organized as follows. Section II introduces the system model. Section III approximates the LAIM output distortion. Section IV analyzes the rate-distortion relationship for quantization. Section V jointly designs quan-tization and computation. Section VI reports the evaluation results. Section VII concludes the paper. !"#$%&'% ()'*+   
+
+> !"#$%&"'%()*#+,-. /"0,1,*- 2""+3#04
+> !! !" "! ""
+> !"#$%&'#%&($
+> !%)',-.$/%01'23'2
+> 4*51'23'206(2+0"$%'. 4*5()'*+06(2+0"$%'.
+> Figure 1. The considered LAIM-enabled embodied AI system.
+
+II. S YSTEM MODEL 
+
+We consider a quantization-aware LAIM co-inference em-bodied AI system consisting of one agent and one server, as illustrated in Fig. 1. Specifically, the inference process is divided into two sequential stages. In the first stage, the agent performs partial inference on the input data to extract intermediate embeddings, which are then transmitted to the server. In the second stage, the server completes the remaining inference process based on the received embeddings and returns the final inference results to the agent. 
+
+A. On-agent Inference and Embedding Transmission 
+
+We first describe the on-agent inference process. Let w ∈
+
+Rq denote the parameter vector of the on-agent model, where each parameter is originally stored using b ∈ Z+ bits. To enable efficient inference under resource constraints, the on-agent model is quantized using a reduced bit-width ˆb ∈ B ≜
+
+{1, . . . , B max } ⊂ Z+, where Bmax denotes the maximum allowable bit-width. This quantization results in a lightweight on-agent model ˆw ∈ Rq .Let x denote the input data. The on-agent inference output, i.e., the intermediate embedding, is given by 
+
+o = f (x, ˆw), (1) where f (·) represents the computation function of the quan-tized on-agent model ˆw. The embedding o is then transmitted to the edge server for further processing. 
+
+B. On-server Inference and Result Feedback 
+
+Upon receiving the embedding o, the server executes the remaining inference process. Let v ∈ Rs denote the parameter vector of the on-server model. The final inference output is obtained as 
+
+˜o = ˜f (o, v), (2) where ˜f (·) denotes the computation function of the on-server model v. The server subsequently feeds back the final infer-ence result ˜o to the agent, thereby completing the collaborative inference process. 
+
+C. LAIM Parameter Distribution Modeling 
+
+To facilitate tractable performance analysis, we model the statistical distribution of LAIM parameters. Specifically, we preserve the sign bits of model parameters and quantize only their magnitudes. Denote θ = |w| as the magnitude of the parameter vector w. We assume that the magnitude of each parameter element θ ∈ θ follows an exponential distribution with probability density function (PDF) 
+
+PΘ (θ) = λe −λθ , θ ≥ 0, (3) where λ > 0 is the distribution parameter. This modeling assumption is empirically supported as shown in Fig. 2. Specifically, we consider the following models, ResNet-152 [33], VideoMAE [34], BERT [35], BLIP-2 [36], GIT [37], and GPT-3 [38], which together represent a diverse set of modalities and model families. For each model, we collect the corresponding weights from the pre-trained checkpoints and compute their magnitudes to form the empirical histogram for distribution fitting, where the exponential distribution is used as the candidate model. The empirical distributions of the parameter magnitudes closely match the exponential distribution in Fig. 2, which shows a sharp peak of weight values around zero. Accordingly, we assume that the parameters of a pre-trained LAIM are independently drawn from this distribution. 
+
+D. Inference Delay and Energy Consumption 
+
+We analyze the end-to-end inference latency and energy consumption of the co-inference system. Since LAIM in-ference is typically computation-dominated, we focus on computation-related delay and energy consumption. 
+
+1) Delay Analysis: Let NFLOP denote the number of floating-point operations (FLOPs) required for full-precision on-agent inference. After quantization, we assume that the effective computational workload scales linearly with the quantization bit-width, resulting in a workload of ˆbN FLOP /b .Let f and c denote the clock frequency and the number of FLOPs per CPU cycle of the device processor, respectively. The on-agent inference delay is then given by 
+
+t(ˆb, f ) = ˆbN FLOP 
+
+bf c . (4) Similarly, let ˜NFLOP denote the total computational work-load required for the on-server inference stage. Let ˜f and ˜c4
+
+denote the clock frequency and FLOPs per cycle of the server processor, respectively. The on-server inference delay is 
+
+˜t( ˜f ) = ˜NFLOP 
+
+˜f ˜c . (5) 
+
+2) Energy Consumption Analysis: Let η and ψ denote the power usage effectiveness (PUE) and a chip-dependent power coefficient of the agent, respectively. The energy consumption of on-agent inference is modeled as 
+
+e(ˆb, f ) = η ˆbN FLOP 
+
+bc ψf 2. (6) Similarly, let ˜η and ˜ψ denote the PUE and power coefficient of the server. The energy consumption of on-server inference is given by 
+
+˜e( ˜f ) = ˜ η ˜NFLOP 
+
+˜c ˜ψ ˜f 2. (7) Finally, the total inference computational delay and energy consumption are respectively expressed as 
+
+T (ˆb, f, ˜f ) = t(ˆb, f ) + ˜ t( ˜f ), (8) 
+
+E(ˆb, f, ˜f ) = e(ˆb, f ) + ˜ e( ˜f ). (9) III. M ODEL OUTPUT DISTORTION APPROXIMATION 
+
+To design LAIM co-inference in embodied AI systems, it is essential to characterize the inference output distortion introduced by model quantization. Such a characterization is challenging due to the highly nonlinear structure and depth of LAIMs. Directly analyzing the exact relationship between parameter quantization and inference output distortion is gen-erally intractable. To address this challenge, we start by studying the output distortion of fully connected (FC) deep neural networks (DNNs) under model quantization, which provides explicit insights into how parameter perturbations propagate through layered architectures and affect inference outputs. Then, we extend the discussions to general AI models, including transformer-based LAIMs, to justify the use of a tractable surrogate distortion measurement (i.e., parameter distortion) for subsequent quantization-enabled co-inference analysis and optimization. First, we approximate the output distortion of an L-layer FC DNN under model quantization. Denote W =
+
+{W (1) , . . . , W (L)} as the collection of L layers weight ma-trices, and σ(·) as the activation function. Then, the FC DNN model is expressed as 
+
+f (x, W ) = W (L)σ
+
+
+
+W (L−1) σ  · · · W (1) x
+
+. (10) Then, to facilitate tractable distortion analysis, we introduce the following assumptions on the input data, activation func-tion, and quantization errors. 
+
+Assumption 1 (Normalized input). The input data are normalized such that ∥x∥21 ≤ 1.
+
+Assumption 2 (Activation smoothness). The activation function σ(·) is 1-Lipschitz, i.e., 
+
+∥σ(x) − σ(y)∥1 ≤ ∥ x − y∥1, (11) and satisfies σ(0) = 0 . This assumption holds for widely used activation functions such as ReLU, LeakyReLU, and tanh. 
+
+Assumption 3 (Bounded quantization error). The quanti-zation error of the l-th layer is bounded as 
+
+∥W (l) − ˆW (l)
+
+∥1 ≤ τ (l), (12) where τ (l) depends on the quantization resolution/level. Under these assumptions, we establish the following upper bound on the output distortion induced by model quantization. 
+
+Proposition 3.1: Under Assumptions 1-3, an upper bound on the inference output distortion of an FC DNN induced by model quantization is given by 
+
+∥f (x, W ) − f (x, ˆW )∥1 ≤
+
+> L
+
+X
+
+> l=1
+
+A(l)∥W (l) − ˆW (l)
+
+∥1, (13) where 
+
+A(l) =
+
+> l−1
+
+Y
+
+> j=1
+
+∥W (j)∥1
+
+> L
+
+Y
+
+> k=l+1
+
+ ∥W (k)∥1 + τ (k). (14) 
+
+Proof: See Appendix A. 
+
+Remark 3.1 (Distortion metric): Proposition 3.1 shows that the inference output distortion induced by quantization is upper bounded by a weighted sum of layer-wise parameter distortions. This result establishes a theoretical link between model-level quantization perturbations and task-level inference distortion. Importantly, the multiplicative coefficients A(l)
+
+depend only on the unquantized model parameters and the quantization errors, and are independent of the quantized model parameters. This observation motivates the use of a norm-based pa-rameter distortion as a surrogate metric for inference output distortion. In particular, we omit A(l) and adopt the following distortion function for the subsequent rate-distortion analysis, 
+
+d(W , ˆW )= ∥W − ˆW ∥1=X
+
+> i
+
+|wi − ˆwi|=X
+
+> i
+
+|θi − ˆθi|, (15) where wi, ˆwi, θi, ˆθi are elements of the weight matrix W ,the quantized weight matrix ˆW , the magnitude of the weight matrix Θ = |W |, and the magnitude of the quantized weight matrix ˆΘ = | ˆW |, respectively. 
+
+Remark 3.2 (Extension to General AI Models): The dis-tortion measure in (15) is also applicable to general AI models, including transformer-based LAIMs, where explicit expressions of inference outputs (i.e., f (x, W ) and f (x, ˆW ))and the corresponding quantization-induced distortion are an-alytically intractable due to the model’s high structural com-plexity. To tackle this issue, we approximate the output after quantization f (x, ˆW ) with the first-order Taylor expansion as 
+
+f (x, ˆW ) ≈ f (x, W ) + ∇W f (x, W ) : ( ˆW − W ), (16) where : denotes tensor contraction. Furthermore, we assume the gradient is upper bounded as ∥∇ W f (x, W )∥1 ≤ H by a positive constant H > 0, then the quantization-induced output distortion is approximately upper bounded as 
+
+∥f (x, ˆW ) − f (x, W )∥1 ≤ H∥W − ˆW ∥1. (17) 5
+
+This result indicates that, even for nonlinear and large-scale models, the inference output distortion caused by quantization is related to a norm of the parameter perturbation. Conse-quently, the distortion function in (15) serves as a theoretically justified surrogate for output distortion metric in subsequent rate-distortion analysis, enabling tractable characterization of the relationship between quantization bit-width and LAIM co-inference performance. IV. R ATE -DISTORTION ANALYSIS FOR QUANTIZATION 
+
+This section develops an information-theoretic characteriza-tion of the fundamental trade-off between model quantization bit-width and inference distortion for LAIM co-inference in embodied AI. As discussed in Section III, directly analyzing the exact inference output distortion of LAIMs is intractable. Motivated by Proposition 3.1, we instead study the rate-distortion behavior of the parameter distortion under the as-sumed exponential weight distribution and distortion metric in (15). Furthermore, deriving the exact rate-distortion function under our considered setup is generally non-trivial. Hence, we derive a tractable lower bound and an upper bound on the rate-distortion function, which together provide a com-putable approximation for the rate-distortion relationship. The analyzed bounds are exploited in Section V for quantization-aware system design. 
+
+A. Preliminaries of Rate-distortion Analysis 
+
+We briefly recall the definition of the rate-distortion function and specialize it to model quantization. 
+
+Definition 4.1 (Rate-distortion function [39], [40]): Con-sider a memoryless real-valued source sequence Θ =
+
+{θ1, . . . , θ n}, where each sample θi ∈ R is drawn indepen-dently and identically according to a PDF PΘ . An (n, R )
+
+source code consists of an encoder en : Rn → { 1, . . . , 2nR }
+
+and a decoder gn : {1, . . . , 2nR } → Rn. Let ˆΘ ≜ gn(en(Θ)) 
+
+denote the reconstruction. For a distortion measure d(Θ, ˆΘ) ≜
+
+> 1
+> n
+
+Pni=1 d(θi, ˆθi), the rate-distortion function is defined as 
+
+R(D) = inf     
+
+> PˆΘ|Θ:E[d(Θ,ˆΘ)] ≤D
+
+I(Θ; ˆΘ), (18) where the infimum is over all conditional distributions P ˆΘ|Θ .Accordingly, the distortion-rate function D(R) is defined as the infimum of all D such that (18) does not exceed a given rate R.In the context of model quantization on parameter mag-nitude θ, consistent with the surrogate distortion in (15), we adopt the distortion measurement as d(θ, ˆθ) = |θ − ˆθ|.Then R(D) characterizes the minimum number of bits (bit-width) per model parameter required to achieve an average quantization distortion no larger than D.
+
+B. A Lower Bound on the Rate-distortion function for Quan-tization 
+
+We derive a Shannon-type lower bound on the rate-distortion function under the considered exponential distribu-tion and distortion function in (15). First, we introduce the following lemmas. 
+
+Lemma 4.1: Denote the quantized magnitude of model parameter as ˆΘ ≜ Θ + Z, where Z is the quantization noise. Assume Z is a real-valued random variable with PDF PZ .Then the rate-distortion function is lower bounded by 
+
+R(D) ≥ h(Θ) − Φ( D), (19) where 
+
+Φ( D) ≜ sup   
+
+> PZ:E[|Z|]≤D
+
+h(Z), (20) and h(Θ) denotes the differential entropy of Θ, i.e., 
+
+h(Θ) = −
+
+Z
+
+PΘ (θ) log 2(PΘ (θ)) dθ = log 2(e /λ ). (21) 
+
+Lemma 4.2: Among all Z with finite first absolute moment and satisfying E[|Z|] ≤ D, the differential entropy is maxi-mized by a zero-mean Laplacian distribution ZD with PDF 
+
+PZD (z) = 12D e−| z|/D , for which 
+
+h(ZD ) = log 2(2e D). (22) 
+
+Proof: See Appendix B. 
+
+Proposition 4.1: For the exponentially distributed LAIM parameters with PDF as (3), under the distortion metric 
+
+d(θ, ˆθ) = |θ − ˆθ|, the rate-distortion function is lower bounded by 
+
+R(D) ≥ − log 2(2 λD ) ≜ RL(D). (23) Equivalently, the distortion-rate function is lower bounded by 
+
+D(R) ≥ 1
+
+λ2R+1 ≜ DL(R). (24) 
+
+Remark 4.1: Proposition 4.1 provides a clear relationship between quantization bit-width and distortion. Specifically, (24) shows increasing bit-width generally yields distortion reduction, however, with increased computation workload as well as delay and energy consumption. Thus, it is crucial to design quantization bit-width with computation resources to balance the trade-offs among inference quality, latency, and energy consumption. Second, λ (or equivalently the entropy level of the weight distribution) serves as an indicator of how quantization-sensitive a given model is. Specifically, the parameter λ captures the concentration of model weights near zero. A larger λ implies a sharper peak at zero and hence a smaller bit-width is needed for the same distortion, whereas smaller λ corresponds to a heavier tail and higher distortion sensitivity. This motivates incorporating model statistics into quantization-aware co-inference design. 
+
+C. An Upper Bound on the Rate-distortion Function for Quantization 
+
+We further provide an upper bound on the rate-distortion function as follows. 
+
+Proposition 4.2: For the exponentially distributed LAIM parameters with PDF as (3), under the distortion metric 
+
+d(θ, ˆθ) = |θ − ˆθ|, the rate-distortion function is upper bounded by 
+
+R(D) ≤ log 2
+
+ 1
+
+λD + λD λD + 1 
+
+
+
+≜ RU(D). (25) 6      
+
+>   
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> ! !
+> 
+>  
+
+(a) ResNet-152           
+
+>    
+> 
+> 
+> 
+> 
+> 
+> 
+>    
+> 
+>   
+
+(b) VideoMAE           
+
+>    
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+>    
+> 
+>   
+
+(c) BERT             
+
+>  !  
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> # #
+> 
+> " 
+
+(d) BLIP-2              
+
+>    
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> " "
+> 
+> ! 
+
+(e) GIT             
+
+>    
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+> 
+>    
+> 
+>   
+
+(f) GPT-3 Figure 2. Distribution of the parameter magnitudes of various pre-trained models. 
+
+Equivalently, the distortion-rate function is upper bounded as 
+
+D(R) ≤ 12λ
+
+r
+
+1 + 42R − 1 − 1
+
+!
+
+≜ DU(R). (26) 
+
+Proof: First, we construct a valid test channel and upper bound R(D) by evaluating I(Θ; ˆΘ), i.e., 
+
+R(D) ≤ I(Θ; ˆΘ) = I(Θ; Θ + Z)= h(Θ + Z) − h(Θ + Z|Θ)= h(Θ + Z) − h(Z). (27) By Lemma 4.2, the Laplacian distribution could tighten the upper bound in (27). Thus, we choose Z as a zero-mean Laplacian random variable independent of Θ and satisfying 
+
+E[|Z|] = D. Then we have 
+
+R(D) ≤ log 2
+
+ 2e E[|Θ + Z|] − log 2(2e D). (28) Finally, it remains to compute E[|Θ + Z|] as 
+
+E[|Θ + Z|]=
+
+Z ∞
+
+0
+
+Z ∞−∞ 
+
+|θ + z|fΘ (θ)fZ (z)dzdθ 
+
+=
+
+Z ∞
+
+0
+
+ Z −θ
+
+−∞ 
+
+−(θ + z)2D ez/D dz +
+
+Z 0
+
+−θ
+
+(θ + z)2D ez/D dz 
+
++
+
+Z ∞
+
+0
+
+(θ + z)2D e−z/D dz 
+
+
+
+λe −λθ dθ 
+
+=
+
+Z ∞
+
+0
+
+(θ + De −θ/D )λe −λθ dθ 
+
+= 1
+
+λ + D · λD λD + 1 . (29) Substituting (29) into (28) gives (25), which completes the proof. 
+
+Remark 4.2: The bounds (24) and (26) provide a computable interval DL(R) ≤ D(R) ≤ DU(R) that captures the funda-mental trade-off between quantization bit-width and distortion. This interval is particularly useful for LAIM co-inference system design. It yields a conservative distortion estimate (via DU(R)) and an optimistic distortion floor (via DL(R)), thereby quantifying the quantization-induced inference dis-tortion. In Section V, we will leverage these two bounds for quantization-aware co-inference system design under QoS constraints. V. J OINT QUANTIZATION AND COMPUTATION DESIGN FOR 
+
+LAIM C O-I NFERENCE 
+
+This section jointly designs the quantization bit-width and the computation frequencies for LAIM co-inference in embod-ied AI systems. 
+
+A. Problem Formulation 
+
+We minimize the quantization-induced performance distor-tion using the derived upper bound, while guaranteeing ap-proximation tightness through the corresponding lower bound, subject to the delay and energy constraints of LAIM co-inference. The decision variables include the on-agent quan-tization bit-width ˆb and the computation frequencies of the device and server, i.e., f and ˜f . The resulting optimization problem is formulated as follows: (P1) : min 
+
+ˆb,f, ˜f
+
+DU(ˆb − 1) − DL(ˆb − 1) 7
+
+s.t. T (ˆb, f, ˜f ) ≤ T0, (30a) 
+
+E(ˆb, f, ˜f ) ≤ E0, (30b) 
+
+ˆb ∈ B , (30c) 
+
+0 ≤ f ≤ f max , (30d) 
+
+0 ≤ ˜f ≤ ˜f max , (30e) where T0 and E0 denote the maximum allowable computation delay and energy consumption, respectively. Constraints (30d) and (30e) specify feasible computation frequency ranges, and (30c) enforces the achievable bit-width set. However, in problem (P1), the constraints in (30a) and (30b) are non-convex, due to the close coupling of variables ˆb, f , and ˜f .Furthermore, the integer variable for quantization bit-width 
+
+ˆb makes problem (P1) a mixed-integer non-linear problem (MINLP). Therefore, problem (P1) is highly non-convex and non-trivial to be optimally solved in general. 
+
+Algorithm 1 Algorithm for Solving Problem (P1)  
+
+> 1:
+
+Relax ˆb to ˜b. 
+
+> 2:
+
+Initialize a feasible local point (˜b(0) , ˜b′(0) ). 
+
+> 3:
+
+Set k = 1 . 
+
+> 4:
+
+repeat  
+
+> 5:
+
+Solve problem (P4. k) under ˜b(k−1) and ˜b′(k−1) to obtain the solution ˜b(k)∗, ˜b′(k)∗, f (k)∗, and ˜f (k)∗. 
+
+> 6:
+
+Update ˜b(k), ˜b′(k) ← ˜b(k)∗, ˜b′(k)∗. 
+
+> 7:
+
+Update k ← k + 1 . 
+
+> 8:
+
+until the decrease of the objective value is below athreshold δ. 
+
+> 9:
+
+Obtain (˜b⋆, f ⋆, ˜f ⋆) from the final iteration; Round ˜b⋆ to the nearest value ˆb⋆ in B. 
+
+> 10:
+
+Output (ˆb⋆, f ⋆, ˜f ⋆).
+
+B. Proposed Solution to Problem (P1) 
+
+To handle the discrete variable ˆb, we relax it to a continuous variable ˜b ∈ (1 , B max ]. Then problem (P1) is relaxed to (P2) : min  
+
+> ˜b,f, ˜f
+
+12λ
+
+s
+
+1 + 42˜b−1 − 1 − 1
+
+!
+
+− 1
+
+λ2˜b
+
+s.t. ˜bN FLOP 
+
+bf c + ˜NFLOP 
+
+˜f ˜c ≤ T0, (31a) 
+
+η ˜bN FLOP 
+
+bc ψf 2 + ˜ η ˜NFLOP 
+
+˜c ˜ψ ˜f 2 ≤ E0, (31b) 
+
+1 < ˜b ≤ Bmax , (31c) 
+
+(30 d) and (30 e).
+
+Problem (P2) remains non-convex due to the non-convex objective and the coupled terms in constraints (31a) and (31b). Next, we propose an effective algorithm to solve problem (P2). To deal with the non-convex constraints in (31a) and (31b), we first introduce an auxiliary variable ˜b′ > 0 and rewrite the constraints using ˜b′. Specifically, (P2) is reformu-lated as (P3) : min  
+
+> ˜b, ˜b′,f, ˜f
+
+12λ
+
+s
+
+1 + 42˜b−1 − 1 − 1
+
+!
+
+− 1
+
+λ2˜b
+
+s.t. NFLOP 
+
+˜b′bf c + ˜NFLOP 
+
+˜f ˜c ≤ T0, (32a) 
+
+η NFLOP 
+
+˜b′bc ψf 2 + ˜ η ˜NFLOP 
+
+˜c ˜ψ ˜f 2 ≤ E0, (32b) 
+
+˜b ≤ 1˜b′ , (32c) 
+
+˜b′ > 0, (32d) 
+
+(31 c), (30 d), and (30 e).
+
+In problem (P3), constraints (32a) and (32b) are convex with respect to (w.r.t.) ˜b′, f , and ˜f . However, Problem (P3) is still non-convex considering the objective function and the non-convex constraint (32c). To address them, we use the successive convex approxima-tion (SCA) technique by approximating the non-convex terms with the first-order Taylor expansion in an iterative manner. First, we focus on the objective function. The second term of the objective function is convex w.r.t. ˜b. To tackle it, we approximate its lower bound at a local point ˜b(k). Then, for each iteration k ≥ 1, the second term of the objective function is lower bounded as 
+
+1
+
+λ2˜b ≥ 1
+
+λ2˜b(k) − ln 2 
+
+λ2˜b(k) (˜b − ˜b(k)) ≜ ζ(k)(˜b). (33) Substituting (33) into the objective yields the convex upper bound as 
+
+12λ
+
+s
+
+1 + 42˜b−1 − 1 − 1
+
+
+
+− 1
+
+λ2˜b
+
+≤ 12λ
+
+s
+
+1 + 42˜b−1 − 1 − 1
+
+
+
+− ζ(k)(˜b) ≜ ¯ζ(k)(˜b). (34) Next, we deal with the non-convex constraint (32c). Also, we approximate (32c) at the local point ˜b′(k) based on its first-order Taylor expansion as, 
+
+˜b − 1˜b′ ≤ ˜b − 1˜b′(k) + 1˜b′(k)2 (˜b′ − ˜b′(k)
+
+) ≤ 0. (35) Finally, for the k-th iteration, we obtain the approximate convex version of problem (P2) as problem (P4. k), via using 
+
+¯ζ(k)(˜b) in (34) as the objective function, and replacing (32c) with (35). The convex subproblem at iteration k is given by (P4. k) : min  
+
+> ˜b, ˜b′,f, ˜f
+
+¯ζ(k)(˜b)s.t. ˜b − 1˜b′(k) + 1˜b′(k)2 (˜b′ − ˜b′(k)
+
+) ≤ 0 (36a) 
+
+(32 a), (32 b), (32 d), (31 c), (30 d), and (30 e).
+
+Problem (P4. k) can be efficiently solved using standard convex optimization tools (e.g., CVX). By iteratively solving (P4. k) and updating ˜b(k) and ˜b′(k), the objective value of problem (P2) is monotonically non-increasing. This guarantees the convergence of the proposed SCA-based solution. The iterations terminate when the decrease of the objective value is below a threshold. Finally, after obtaining the relaxed solution 
+
+˜b⋆, we recover an achievable bit-width by rounding ˜b⋆ to the nearest feasible value in B. The overall algorithm is summarized in Algorithm 1. 82 3 4 5 6 7
+
+> Bit-width
+> 00.2 0.4 0.6 0.8 1
+> Distortion value
+> Output-uniform
+> Parameter-uniform
+> Output-nonuniform
+> Parameter-nonuniform
+
+(a) FCDNN-16 2 3 4 5 6 7 
+
+> Bit-width
+> 012345678
+> Distortion value
+> Output-uniform
+> Parameter-uniform
+> Output-nonuniform
+> Parameter-nonuniform
+
+(b) BLIP-2 2 3 4 5 6 7 
+
+> Bit-width
+> 00.5 11.5 22.5 33.5 44.5
+> Distortion value
+> Output-uniform
+> Parameter-uniform
+> Output-nonuniform
+> Parameter-nonuniform
+
+(c) GIT Figure 3. Distortions of model outputs and parameters w.r.t. bit-width. 
+
+VI. E VALUATION 
+
+We present performance evaluation results to validate the proposed joint quantization and computation design for LAIM co-inference. 
+
+A. Verification of Model Output Distortion Approximation 
+
+To validate the model output distortion approximation de-rived in Section III, we compare the parameter distortion bounds with the output distortion. Specifically, for each quanti-zation bit-width, we compute the parameter distortion induced by quantization and evaluate the corresponding theoretical distortion upper bound, which is then compared against the actual output distortion. The model-dependent coefficient that relates parameter distortion to output distortion is estimated in a data-driven manner as an empirical upper-bound constant. We begin by verifying the proposed distortion approxi-mation on an FC DNN with 16 hidden layers, denoted as FCDNN-16. Then we extend the validation to BLIP-2 [36] and GIT [37]. These models are selected not only because they are widely adopted, but also because their architectures are particularly well suited for co-inference. In the following, we introduce the models in detail.  
+
+> •
+
+FCDNN-16 : FCDNN-16 is an autoencoder with ReLU activation functions. The encoder consists of 8 layers with dimensions [64 , 128 , 256 , 512 , 256 , 128 , 64 , 32] , and the decoder is symmetric. The network is trained using the mean squared error (MSE) loss on MNIST.  
+
+> •
+
+BLIP-2 : We adopt the BLIP-2-2.7b version [36] for image understanding. BLIP-2 consists of a frozen CLIP-like vision encoder, a Querying Transformer (Q-Former), and a frozen large language model (LLM) (OPT-2.7B). Such a decoupled modular architecture naturally enables model partitioning across device and edge/cloud servers, making BLIP-2 particularly suitable for co-inference sce-narios. BLIP-2-2.7b contains 3.75 billion parameters, and requires 533.66 GFLOPs to generate the first token.  
+
+> •
+
+GIT : We adopt the Microsoft’s GIT-base version [37] for video understanding. GIT has a two-part architecture with a visual encoder and a text decoder. Similar to BLIP-2, its visual backbone and language generation modules can be cleanly decoupled to allow co-inference. GIT-base contains 176.62 million parameters, and requires 212.27 GFLOPs to generate the first token during inference. To evaluate the robustness of the proposed distortion ap-proximation under different quantization strategies, we con-sider both uniform and nonuniform quantization schemes. For uniform quantization, model parameters are quantized using a fixed step size, resulting in evenly spaced quantization levels, which is widely adopted due to its simplicity and hardware friendliness [31]. For nonuniform quantization, we adopt a widely-used power-of-two logarithmic (PoT-log) quantization scheme [32], in which quantization levels are distributed logarithmically. Fig. 3 shows the measured model output distortion and the theoretical parameter distortion bound under different quantization bit-widths. It is observed that, across all evaluated models and quantization schemes, the parameter distortion consistently upper bounds the output distortion. It is also observed that, as the quantization bit-width increases, the gap between the theoretical distortion bound and the measured distortions gradually narrows. In particular, when the bit-width exceeds a moderate threshold, the theoretical bound becomes notably tight, for example, when bit-width is larger than 3 for nonuniform, and 4 for uniform quantization. These results con-firm that the proposed model output distortion approximation provides a reliable and computationally tractable characteriza-tion of quantization-induced performance distortion, thereby justifying our analysis and its use as a surrogate distortion metric in Sections III and IV. 0 1 2 3 4 5 6 7 8
+
+> Rate (bits)
+> 00.5 11.5 22.5 33.5 44.5
+> Distortion
+> Simulated D(R)
+> Lower bound
+> Upper bound
+
+Figure 4. Illustration of the upper and lower bounds of the distortion-rate function. 91.70 1.80 1.90 2.00 0.25 0.29 0.33 0.37                      
+
+> 020 40 60 80 100 120 140 CIDEr
+> Proposed design
+> PPO
+> Fixed frequency
+> Feasible random
+> Delay threshold (s) Energy threshold (J)
+> Figure 5. Performance of BLIP-2 on MS-COCO w.r.t. different delay and energy consumption thresholds under uniform quantization with E0= 2 .00 J
+> (left) and T0= 3 .50 s (right). 1.70 1.80 1.90 2.00 0.25 0.29 0.33 0.37
+> 020 40 60 80 100 120 140 CIDEr
+> Proposed design
+> PPO
+> Fixed frequency
+> Feasible random
+> Delay threshold (s) Energy threshold (J)
+> Figure 6. Performance of BLIP-2 on MS-COCO w.r.t. different delay and energy consumption thresholds under nonuniform quantization with E0= 2 .00 J
+> (left) and T0= 3 .50 s (right).
+
+B. Verification of the Distortion-rate Bounds 
+
+Next, we evaluate the derived distortion-rate bounds by comparing them with a numerically estimated distortion-rate function. Specifically, we plot the analytical lower bound 
+
+DL(R) in (24) and the upper bound DU(R) in (26), and compare them with a numerically simulated D(R). Since obtaining the exact D(R) in closed forms is generally difficult for our considered setup, we estimate it numerically using a classical Blahut-Arimoto type procedure [39]. Particularly, the continuous source is first approximated by a sufficiently fine discrete alphabet, and the resulting discrete rate-distortion problem is solved via the iterative optimization of the test channel under an average distortion constraint. By sweeping the associated Lagrange multiplier, we obtain a numerical estimate of D(R).Fig. 4 compares the numerically simulated D(R) with the analytical bounds DL(R) and DU(R). It is observed that the simulated D(R) decreases rapidly with the rate, exhibiting an approximately exponential decay, which is consistent with the functional trend predicted by the derived bounds. Next, 
+
+DU(R) is relatively loose in the very low-rate regime, which is expected since it is constructed by a specific test channel and thus may be conservative when the quantization budget is extremely limited. Nevertheless, as the rate increases to a mod-erate range (e.g., larger than 2 bits), the gap between DU(R)
+
+and D(R) becomes increasingly tight. Meanwhile, DL(R)
+
+captures the correct scaling law of distortion reduction w.r.t. the rate (bit-width). Finally, as the rate further increases, both bounds converge toward a small distortion floor, showing that the interval [DL(R), D U(R)] provides an efficient characteri-zation of the distortion-rate behavior for LAIM quantization, which is well suited for guiding subsequent quantization-aware system design. 
+
+C. Performance of the Proposed Joint Quantization and Com-putation Design 
+
+We evaluate the proposed joint quantization and compu-tation design using two widely adopted vision datasets, i.e., MS-COCO [41] for image and VaTeX [42] for video under-standing. Specifically,  
+
+> •
+
+MS-COCO is a large-scale image dataset of complex everyday scenes with diverse resolutions and rich object contexts. For image captioning, it provides five indepen-dent human-written reference captions for each image. 10 0.9 1.1 1.3 1.5 0.3 0.4 0.5 0.6                       
+
+> 010 20 30 40 50 60 CIDEr
+> Proposed design
+> PPO
+> Fixed frequency
+> Feasible random
+> Delay threshold (s) Energy threshold (J)
+> Figure 7. Performance of GIT on VaTeX w.r.t. different delay and energy consumption thresholds under uniform quantization with E0= 2 .00 J (left) and
+> T0= 2 .00 s (right). 0.9 1.0 1.1 1.2 0.2 0.3 0.3 0.4
+> 0246810 12 14 16 CIDEr
+> Proposed design
+> PPO
+> Fixed frequency
+> Feasible random
+> Delay threshold (s) Energy threshold (J)
+> Figure 8. Performance of GIT on VaTeX w.r.t. different delay and energy consumption threshold under nonuniform quantization with E0= 2 .00 J (left) and T0= 2 .00 s (right).
+
+Following the widely used Karpathy split for evaluation, the dataset is partitioned into 113 , 287 images for train-ing, and 5, 000 images each for validation and testing.  
+
+> •
+
+VaTeX is a large-scale video-language dataset consisting of around 26k, 3k, and 6k video clips for training, validation, and testing, with each clip lasting around 10 seconds. We uniformly sample four frames from each video clip along the temporal axis as the model input. For each dataset, the inference quality is measured by the CIDEr score, a consensus-based metric that computes the similarity between a generated sentence and a set of ground-truth references using weighted n-gram matching. Specifically, given a candidate sentence pi and a reference set ˆPi =
+
+{ˆpij }mj=1 for sample i, we have 
+
+CIDEr n(pi, ˆPi) = 1
+
+m
+
+> m
+
+X
+
+> j=1
+
+gn(pi)Tgn(ˆ pij )
+
+∥gn(pi)∥ ∥ gn(ˆ pij )∥ , (37) where gn(·) is the weighted n-gram vectors. We obtain the overall CIDEr score by averaging over different n-gram orders. We consider a similar simulation setup as in [15] on 2 Nvidia RTX 3090 GPUs. Specifically, the maximum clock frequencies are set to f max = 2 GHz and ˜f max = 10 GHz ,and the number of FLOPs per cycle are set to c = 32 and 
+
+˜c = 128 . The PUEs are set to η = 1 and ˜η = 2 , and the power coefficients are set to ψ = 2 × 10 −29 W/(cycle /s) 3
+
+and ˜ψ = 1 × 10 −28 W/(cycle /s) 3. We compare the proposed design with three benchmark schemes: 1) PPO-based design [12]: This is the state-of-the-art method, where the system is modeled as a Markov decision process. Then the quantiza-tion and computation frequencies design problem is solved via DRL. 2) Fixed-frequency design: The device and server frequencies are fixed to predetermined maximum values and only the bit-width is optimized to satisfy the QoS constraints. 3) Feasible random design: We randomly sample bit-widths for 400 trials, and for each sampled bit-width, we check feasibility by optimizing the remaining computation frequency variables. Then, only feasible trials are evaluated and reported. Figs. 5, 6, 7, and 8 illustrate the CIDEr performance of BLIP2 and GIT under different delay and energy constraints, for uniform and nonuniform quantization schemes, respec-tively. It is observed that the proposed design consistently achieves the highest CIDEr score, demonstrating the effec-tiveness of the proposed joint quantization and computation design in exploiting the inference quality, delay, and energy consumption trade-off. The performance advantage over the 11   
+
+> TABLE I CO-INFERENCE PERFORMANCE (CIDE R SCORE )EVALUATED ON THE DEVELOPED TESTBED .
+
+BLIP-2 GIT Delay (s) Energy (J) Delay (s) Energy (J) 2.50 2.55 2.60 164.8 165.0 165.2 1.38 1.40 1.42 19.8 20.0 20.2 Low 8.2 61.4 109.2 133.4 134.6 138.8 5.4 7.5 18.2 46.2 50.4 53.7 
+
+Medium 43.6 102.7 127.5 115.3 128.1 131.7 38.5 43.7 48.6 26.7 38.9 48.8 High 100.8 118.9 132.4 8.2 43.9 101.9 54.3 55.9 57.1 5.8 21.3 38.6 
+
+PPO-based baseline mainly stems from the fact that DRL relies on proper initialization, sufficient exploration, and penalty-driven constraint handling, which may result in suboptimal solutions. Compared with the fixed-frequency and feasible random baselines, the performance gain of the proposed design is even more pronounced, as it explicitly exploits a higher design DoF for co-inference through joint optimization of quantization and computation resources. Moreover, as the delay or energy constraints become more relaxed, the CIDEr score generally increases. This is because a larger delay or energy budget provides more flexibility in system design, allowing higher quantization precision and/or more favorable computation frequencies. Finally, the proposed design exhibits robust performance across different quantization schemes, indicating that it generalizes well to both uniform and nonuni-form quantization. Finally, we implement real-world experiments using an NVIDIA Jetson AGX Orin 64GB as the edge device and a Dell PowerEdge R740 server equipped with dual Intel Xeon Gold 6246R CPUs and two NVIDIA RTX 3090 GPUs as the edge server. The device and server are connected through a commercial Wi-Fi router operating under stable 5 GHz WLAN networks. The complete testbed setup is illustrated in Fig. 9. In the current testbed, it is challenging to precisely control the computation frequency at the device side. To enable effective evaluation, we adopt three practically accessible operating profiles, namely low-frequency, medium-frequency, and high-frequency configurations, each corresponding to a feasible frequency setting supported by the Jetson AGX Orin. Under each configuration, we evaluate the co-inference performance under scenarios with only the delay or the energy consumption constraint. Table I reports the co-inference performance under different delay and energy consumption constraints. It is observed that, in the delay-limited but energy-sufficient regime, adopting a higher-frequency profile yields better task performance. This is because increasing the computation frequency directly reduces processing latency, thereby allowing the system to employ a larger quantization bit-width without violating the delay constraint. As a result, quantization-induced distortion is re-duced, leading to improved inference quality. In contrast, in the energy-limited but delay-sufficient regime, a lower-frequency profile achieves better task performance. Under a tight energy budget, operating at a higher frequency may increase energy consumption, which forces the system to compensate by adopting a more aggressive quantization scheme to remain feasible, thereby degrading inference quality. The results show that, even when fine-grained frequency control is unavailable, a coarse-grained selection among a small set of feasible frequency profiles remains effective. This further demonstrates the necessity and practicality of the proposed joint quantization and computation design for improving LAIM co-inference performance in real edge environments.  
+
+> Figure 9. Real-world testbed for quantization-aware LAIM co-inference.
+
+VII. C ONCLUSIONS 
+
+This paper has investigated quantization-aware LAIM co-inference for embodied AI systems. First, we have established a tractable approximation for quantization-induced inference distortion via parameter-level perturbations, and derived lower and upper bounds on the rate-distortion function to character-ize its dependence on LAIM statistics, such as the quantization bit-width. Then, we have formulated a joint quantization and computation design problem under QoS constraints, and developed an efficient solution to minimize the distortion upper bound while maintaining a tight approximation gap via maximizing the lower bound. Extensive simulations and real-world testbed experiments have demonstrated that the proposed design consistently outperforms benchmark schemes 12 
+
+in improving LAIM co-inference performance in embodied AI systems. APPENDIX 
+
+A. Proof of Proposition 3.1 
+
+We upper bound the inference output distortion of the FC DNN under model quantization. Specifically, we have 
+
+∥f (x, W ) − f (x, ˆW )∥1
+
+= W (L)σ f (x, W (1: L−1) ) − ˆW (L)
+
+σ f (x, ˆW (1: L−1) 
+
+)
+
+> 1
+
+≤ ∥ W (L) − ˆW (L)
+
+∥1 σ f (x, W (1: L−1) )
+
+> 1
+
++ ∥ ˆW (L)
+
+∥1 σ f (x, W (1: L−1) ) − σ f (x, ˆW (1: L−1) 
+
+)
+
+> 1
+
+,
+
+(38) where the inequality follows from the triangle inequality. By Assumptions 2 and 3, we further obtain 
+
+∥f (x, W ) − f (x, ˆW )∥1
+
+≤ ∥ W (L) − ˆW (L)
+
+∥1∥f (x, W (1: L−1) )∥1
+
++ ( ∥W (L)∥1 + τ (L))∥f (x, W (1: L−1) ) − f (x, ˆW (1: L−1) 
+
+)∥1.
+
+(39) Next, we upper bound ∥f (x, W (1: L−1) )∥1. By recursively applying Assumption 2 and the Cauchy-Schwarz inequality, we have 
+
+∥f (x, W (1: L−1) )∥1 ≤ ∥ W (L−1) ∥1 σ f (x, W (1: L−2) )
+
+> 1
+
+≤ ∥ W (L−1) ∥1∥f (x, W (1: L−2) )∥1
+
+≤
+
+> L−1
+
+Y
+
+> j=1
+
+∥W (j)∥1. (40) Substituting (40) into (39) yields 
+
+∥f (x, W ) − f (x, ˆW )∥1
+
+≤ ∥ W (L) − ˆW (L)
+
+∥1
+
+> L−1
+
+Y
+
+> j=1
+
+∥W (j)∥1
+
++ ( ∥W (L)∥1 + τ (L))∥f (x, W (1: L−1) ) − f (x, ˆW (1: L−1) 
+
+)∥1.
+
+(41) Dividing both sides of (41) by QLj=1 ∥W (j)∥1, we obtain 
+
+∥f (x, W ) − f (x, ˆW )∥1
+
+QLj=1 ∥W (j)∥1
+
+≤ ∥W (L) − ˆW (L)
+
+∥1
+
+∥W (L)∥1
+
++
+
+
+
+1 + τ (L)
+
+∥W (L)∥1
+
+ ∥f (x, W (1: L−1) ) − f (x, ˆW (1: L−1) 
+
+)∥1
+
+QL−1 
+
+> j=1
+
+∥W (j)∥1
+
+.
+
+(42) Then, we apply the same procedure on the second term in (42) and obtain 
+
+∥f (x, W ) − f (x, ˆW )∥1
+
+QLj=1 ∥W (j)∥1
+
+≤
+
+> L
+
+X
+
+> i=1
+> L
+
+Y
+
+> j=i+1
+
+
+
+1 + τ (j)
+
+∥W (j)∥1
+
+ ∥W (i) − ˆW (i)
+
+∥1
+
+∥W (i)∥1
+
+. (43) Finally, by multiplying both sides of (43) by QLj=1 ∥W (j)∥1, we have 
+
+∥f (x, W ) − f (x, ˆW )∥1 ≤
+
+> L
+
+X
+
+> i=1
+> i−1
+
+Y
+
+> j=1
+
+∥W (j)∥1
+
+> L
+
+Y
+
+> k=i+1
+
+(∥W (k)∥1 + τ (k))
+
+!
+
+∥W (i) − ˆW (i)
+
+∥1,
+
+(44) which completes the proof. 
+
+B. Proof of Lemma 4.2 
+
+We consider the following entropy maximization problem over all PDFs PZ (z) supported on R,
+
+max   
+
+> PZ(z)
+
+h(PZ (z)) ≜ −
+
+Z
+
+> R
+
+PZ (z) log 2 PZ (z) dz 
+
+s.t. 
+
+Z
+
+> R
+
+PZ (z) dz = 1 , (45) 
+
+Z
+
+> R
+
+|z|PZ (z) dz ≤ D, (46) 
+
+PZ (z) ≥ 0, ∀z ∈ R.
+
+First the constraint (46) must be active at the optimum. Indeed, if a feasible PDF PZ (z) satisfies R |z|PZ (z)dz < D ,then scaling the random variable as z′ = az with some 
+
+a > 1 strictly increases the differential entropy while still satisfying the constraint, which contradicts optimality. Hence, the optimal solution satisfies R |z|PZ (z)dz = D.Since the problem is convex and Slater’s condition holds, we invoke the Karush-Kuhn-Tucker (KKT) conditions to solve it. We introduce Lagrange multipliers λ0 ∈ R and λ1 ≥ 0
+
+corresponding to constraints (45) and (46), respectively. The Lagrangian is given by 
+
+L(P ; λ0, λ 1) = −
+
+Z
+
+> R
+
+PZ (z) log 2 PZ (z) dz +λ0
+
+Z 
+
+> R
+
+PZ (z) dz − 1
+
+
+
++ λ1
+
+
+
+D −
+
+Z
+
+> R
+
+|z|PZ (z) dz 
+
+
+
+. (47) Let P ⋆Z (z) denote the optimal solution. Consider any ad-missible perturbation η(z) satisfying R 
+
+> R
+
+η(z) dz = 0, and define Pϵ(z) = P ⋆Z (z) + ϵ η (z) for sufficiently small ϵ. The stationarity condition requires that the derivative of L at ϵ = 0 
+
+equals to 0, i.e., 
+
+0 = ddϵ L(Pϵ; λ0, λ 1) ϵ=0 
+
+=
+
+Z
+
+> R
+
+η(z)
+
+
+
+−  1 + log 2 P ⋆Z (z) + λ0 − λ1|z|
+
+
+
+dz. (48) Solving (48) yields the exponential-form solution 
+
+P ⋆Z (z) = Ce −λ1|z|, (49) where C = 2 λ0−1 > 0 is a normalization constant. Finally, enforcing constraints (45) and (46) yields the optimal PDF as 
+
+P ⋆(z) = 12D e−| z|/D , (50) which completes the proof. 13 
+
+REFERENCES [1] L. Kundu, X. Lin, R. Gadiyar, J.-F. Lacasse, and S. Chowdhury, “AI-RAN: Transforming RAN with AI-driven computing infrastructure,” 2025. [Online]. Available: https://arxiv.org/abs/2501.09007 [2] Z. Lyu, Y. Li, G. Zhu, J. Xu, H. Vincent Poor, and S. Cui, “Rethinking resource management in edge learning: A joint pre-training and fine-tuning design paradigm,” IEEE Trans. Wireless Commun. , vol. 24, no. 2, pp. 1584–1601, Feb. 2025. [3] A. Gupta, S. Savarese, S. Ganguli, and L. Fei-Fei, “Embodied intel-ligence via learning and evolution,” Nat. Commun. , vol. 12, no. 1, p. 5721, Oct. 2021. [4] M. Xu, D. Niyato, J. Kang, Z. Xiong, S. Mao, Z. Han, D. I. Kim, and K. B. Letaief, “When large language model agents meet 6G networks: Perception, grounding, and alignment,” IEEE Wireless Commun. , vol. 31, no. 6, pp. 63–71, Dec. 2024. [5] R. Yi, L. Guo, S. Wei, A. Zhou, S. Wang, and M. Xu, “EdgeMoE: Empowering sparse large language models on mobile devices,” IEEE Trans. Mob. Comput. , vol. 24, no. 8, pp. 7059–7073, Aug. 2025. [6] Y. Zhuang, Z. Zheng, F. Wu, and G. Chen, “LiteMoE: Customizing on-device LLM serving via proxy submodel tuning,” in Proc. ACM Int. Conf. Embedded Artificial Intelligence and Sensing Systems , 2024, pp. 521–534. [7] T. Griggs, X. Liu, J. Yu, D. Kim, W.-L. Chiang, A. Cheung, and I. Stoica, “M´ elange: Cost efficient large language model serving by exploiting GPU heterogeneity,” 2024. [Online]. Available: https://arxiv.org/abs/2404.14527 [8] Y. Jiang, F. Fu, X. Yao, T. Wang, B. Cui, A. Klimovic, and E. Yoneki, “Thunderserve: High-performance and cost-efficient LLM serving in cloud environments,” 2025. [Online]. Available: https://arxiv.org/abs/2502.09334 [9] J. Stojkovic, C. Zhang, I. Goiri, E. Choukse, H. Qiu, R. Fonseca, J. Torrellas, and R. Bianchini, “Tapas: Thermal- and power-aware scheduling for LLM inference in cloud platforms,” in Proc. ACM Int. Conf. Architectural Support for Programming Languages and Operating Systems , 2025, pp. 1266–1281. [10] Y. He, J. Fang, F. R. Yu, and V. C. Leung, “Large language models (LLMs) inference offloading and resource allocation in cloud-edge computing: An active inference approach,” IEEE Trans. Mob. Comput. ,vol. 23, no. 12, pp. 11 253–11 264, Dec. 2024. [11] L. Yuan, D.-J. Han, S. Wang, and C. Brinton, “Local-cloud inference of-floading for LLMs in multi-modal, multi-task, multi-dialogue settings,” in Proc. International Symposium on Theory, Algorithmic Foundations, and Protocol Design for Mobile Networks and Mobile Computing , 2025, pp. 201–210. [12] Y. Chen, R. Li, X. Yu, Z. Zhao, and H. Zhang, “Adaptive layer splitting for wireless LLM inference in edge computing: A model-based reinforcement learning approach,” Front. Inform. Technol. Electron. Eng. , vol. 26, pp. 278–292, Mar. 2025. [13] S. Oh, J. Kim, J. Park, S.-W. Ko, T. Q. S. Quek, and S.-L. Kim, “Uncertainty-aware hybrid inference with on-device small and remote large language models,” in Proc. IEEE Int. Conf. Machine Learning in Communications and Networking , 2025, pp. 1–7. [14] M. Zhang, X. Shen, J. Cao, Z. Cui, and S. Jiang, “Edgeshard: Efficient LLM inference via collaborative edge computing,” IEEE Internet Things J. , vol. 12, no. 10, pp. 13 119–13 131, May 2025. [15] Z. Lyu, M. Xiao, J. Xu, M. Skoglund, and M. D. Renzo, “The larger the merrier? efficient large AI model inference in wireless edge networks,” 
+
+IEEE J. Sel. Areas Commun. , pp. 1–1, 2025. [16] X. Peng, Z. Qin, X. Tao, J. Lu, and K. B. Letaief, “A robust image semantic communication system with multi-scale vision transformer,” 
+
+IEEE J. Sel. Areas Commun. , vol. 43, no. 4, pp. 1278–1291, Apr. 2025. [17] F. Jiang, C. Pan, L. Dong, K. Wang, O. A. Dobre, and M. Debbah, “From large AI models to agentic AI: A tutorial on future intelligent communications,” 2025. [Online]. Available: https://arxiv.org/abs/2505.22311 [18] J. Park, Y. Oh, Y. Kim, and Y.-S. Jeon, “Vision transformer-based semantic communications with importance-aware quantization,” IEEE Internet Things J. , vol. 12, no. 17, pp. 35 662–35 677, Sep. 2025. [19] B. Soret, I. Leyva-Mayorga, A. M. Mercado-Mart´ ınez, M. Moretti, A. Jurado-Navas, M. Martinez-Gost, C. S. de Miguel, A. Salas-Prendes, and P. Popovski, “Semantic and goal-oriented edge computing for satellite earth observation,” 2024. [Online]. Available: https: //arxiv.org/abs/2408.15639 [20] H. Zhou, Y. Deng, X. Liu, N. Pappas, and A. Nallanathan, “Goal-oriented semantic communications for 6G networks,” IEEE Internet Things Mag. , vol. 7, no. 5, pp. 104–110, Sep. 2024. [21] J. Chen, N. Skatchkovsky, and O. Simeone, “Neuromorphic wireless cognition: Event-driven semantic communications for remote inference,” 
+
+IEEE Trans. Cogn. Commun. , vol. 9, no. 2, pp. 252–265, Apr. 2023. [22] Z. Lyu, G. Zhu, J. Xu, B. Ai, and S. Cui, “Semantic communications for image recovery and classification via deep joint source and channel coding,” IEEE Trans. Wireless Commun. , vol. 23, no. 8, pp. 8388–8404, Aug. 2024. [23] W.-Q. Ren, Y.-B. Qu, C. Dong, Y.-Q. Jing, H. Sun, Q.-H. Wu, and S. Guo, “A survey on collaborative DNN inference for edge intelli-gence,” Mach. Intell. Res. , vol. 20, no. 3, pp. 370–395, May 2023. [24] X. Li, S. Bi, and Y.-J. A. Zhang, “Task-oriented computation offloading for edge inference: An integrated bayesian optimization and deep reinforcement learning framework,” 2025. [Online]. Available: https://arxiv.org/abs/2509.21090 [25] L. Zeng, X. Chen, Z. Zhou, L. Yang, and J. Zhang, “CoEdge: Co-operative DNN inference with adaptive workload partitioning over heterogeneous edge devices,” IEEE/ACM Trans. Netw. , vol. 29, no. 2, pp. 595–608, Apr. 2021. [26] J. Shao, Y. Mao, and J. Zhang, “Task-oriented communication for mul-tidevice cooperative edge inference,” IEEE Trans. Wireless Commun. ,vol. 22, no. 1, pp. 73–87, Jan. 2023. [27] S. F. Yilmaz, B. Hasircio˘ glu, L. Qiao, and D. G¨ und¨ uz, “Private collabo-rative edge inference via over-the-air computation,” IEEE Trans. Mach. Learn. Commun. Netw. , vol. 3, pp. 215–231, Jan. 2025. [28] Z. Wang, A. E. Kalør, Y. Zhou, P. Popovski, and K. Huang, “Ultra-low-latency edge inference for distributed sensing,” IEEE Trans. Wireless Commun. , vol. 25, pp. 1908–1922, Aug. 2026. [29] S. Sreenivas, et al., “LLM pruning and distillation in practice: The minitron approach,” 2024. [Online]. Available: https://arxiv.org/abs/ 2408.11796 [30] Y. Gu, L. Dong, F. Wei, and M. Huang, “MiniLLM: Knowledge distillation of large language models,” in Proc. Int. Conf. Learning Representations (ICLR) , 2024. [31] D. D. Lin, S. S. Talathi, and V. S. Annapureddy, “Fixed point quan-tization of deep convolutional networks,” in Proc. Int. Conf. Machine Learning , 2016, pp. 2849–2858. [32] A. Zhou, A. Yao, Y. Guo, L. Xu, and Y. Chen, “Incremental network quantization: Towards lossless CNNs with low-precision weights,” in 
+
+Proc. ICLR , 2017. [33] K. He, X. Zhang, S. Ren, and J. Sun, “Deep residual learning for image recognition,” in Proc. IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , 2016, pp. 770–778. [34] Z. Tong, Y. Song, J. Wang, and L. Wang, “VideoMAE: masked autoen-coders are data-efficient learners for self-supervised video pre-training,” in Proc. Conference on Neural Information Processing Systems (NIPS) ,2022. [35] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “BERT: Pre-training of deep bidirectional transformers for language understanding,” in Proc. Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies , Jun. 2019, pp. 4171–4186. [36] J. Li, D. Li, S. Savarese, and S. Hoi, “BLIP-2: Bootstrapping language-image pre-training with frozen image encoders and large language models,” in Proc. ICML , 2023. [37] J. Wang, Z. Yang, X. Hu, L. Li, K. Lin, Z. Gan, Z. Liu, C. Liu, and L. Wang, “GIT: A generative image-to-text transformer for vision and language,” Trans. Mach. Learn. Res. , Dec. 2022. [38] T. Brown, et al., “Language models are few-shot learners,” in Proc. NIPS , 2020. [39] T. M. Cover, Elements of Information Theory . John Wiley & Sons, 1999. [40] A. Ortega and K. Ramchandran, “Rate-distortion methods for image and video compression,” IEEE Signal Process. Mag. , vol. 15, no. 6, pp. 23–50, Nov. 1998. [41] T. Lin, M. Maire, S. Belongie, L. Bourdev, R. Girshick, J. Hays, P. Perona, D. Ramanan, C. L. Zitnick, and P. Doll´ ar, “Microsoft COCO: Common objects in context,” in Proc. European Conference on Computer Vision , 2014. [42] X. Wang, J. Wu, J. Chen, L. Li, Y. Wang, and W. Y. Wang, “VaTeX: A large-scale, high-quality multilingual dataset for video-and-language research,” in Proc. Int. Conf. Computer Vision , 2019.

@@ -1,0 +1,974 @@
+Title: Weak-Driven Learning: How Weak Agents make Strong Agents Stronger
+
+URL Source: https://arxiv.org/pdf/2602.08222v1
+
+Published Time: Tue, 10 Feb 2026 02:38:37 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+Zehao Chen * 1 2 Gongxun Li * 1 2 Tianxiang Ai * 2 Yifei Li 1 2 Zixuan Huang 1 Wang Zhou 2 Tao Huang 2
+
+Fuzhen Zhuang 1 Xianglong Liu 1 Jianxin Li 1 Deqing Wang 1 † Yikun Ban 1 †
+
+## Abstract 
+
+As post-training optimization becomes central to improving large language models, we observe a persistent saturation bottleneck: once models grow highly confident, further training yields di-minishing returns. While existing methods con-tinue to reinforce target predictions, we find that informative supervision signals remain latent in models’ own historical weak states. Motivated by this observation, we propose WMSS ( Weak Agents Can Make Strong Agents Stronger), a post-training paradigm that leverages weak check-points to guide continued optimization. By iden-tifying recoverable learning gaps via entropy dy-namics and reinforcing them through compen-satory learning, WMSS enables strong agents to improve beyond conventional post-training satura-tion. Experiments on mathematical reasoning and code generation datasets show that agents trained with our approach achieve effective performance improvements, while incurring zero additional in-ference cost. Code is available at https://github. com/chenzehao82/Weak-Driven-Learning.git .
+
+## 1. Introduction 
+
+The dominant post-training paradigms, including Super-vised Fine-Tuning (SFT) (Ouyang et al., 2022; Touvron et al., 2023; Zou et al., 2025; Chen et al., 2025), Knowledge Distillation (KD) (Hinton et al., 2015; Gou et al., 2021; Agar-wal et al., 2023), and Curriculum Learning (Bengio et al., 2009; Xu et al., 2023), share a common principle: learning from stronger supervision signals. These approaches rely on a mimicking objective, training models to approximate high-quality labels or the outputs of a stronger teacher, un-der the assumption that closer alignment leads to improved performance. 
+
+> *
+
+Equal contribution †Corresponding Author 1Beihang Uni-versity 2China Telecom eSurfing Cloud. If you have any ques-tions, feel free to contact Yikun Ban <yikunb@buaa.edu.cn >,or Zehao Chen <gyy chenzehao@chinatelecom.cn or ze-haochenacid@buaa.edu.cn >.
+
+Figure 1. Paradigm Comparison: Distillation-Based Learning vs. Weak-Driven Learning. 
+
+While highly effective during early training, such paradigms are increasingly observed to suffer from performance sat-uration as optimization proceeds (Chen et al., 2024; Dong et al., 2024a). Specifically, the logit margin—defined as the gap between the target logit and the average non-target log-its—grows rapidly in early epochs but stabilizes thereafter. Once this margin saturates, the decision boundary becomes effectively fixed, and gradients induced by standard super-vised objectives diminish, limiting further improvement. Existing remedies, such as continued SFT or self-revision and reflection-based fine-tuning, have shown limited effec-tiveness in addressing this saturation bottleneck (Gudibande et al., 2023; Zhou et al., 2024; Huang et al., 2024; Stechly et al., 2024). Despite architectural or procedural differences, these methods still rely on reinforcing correct targets and therefore struggle to provide informative learning signals once supervised gradients vanish. In this work, we approach this challenge from a fundamen-tally different perspective by introducing a new post-training paradigm, termed Weak-Driven Learning . Our approach is inspired by a common human learning phenomenon: in complex collaborative problem-solving, a strong individual working alongside a weaker teammate is often forced to further refine their reasoning in order to complete the task successfully. Crucially, this improvement does not arise from repeatedly applying the correct solution, but from ob-serving, analyzing, and correcting the weaker teammate’s mistakes. Such mistakes expose plausible yet incorrect reasoning paths that must be explicitly ruled out, thereby sharpening the distinction between correct and incorrect decisions. Guided by this insight, we challenge the conventional as-1
+
+> arXiv:2602.08222v1 [cs.AI] 9 Feb 2026 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger
+
+sumption that learning with weaker models necessarily de-grades performance. Instead, we show that weak agents can provide informative error signals that continue to drive improvement even when standard supervision saturates. We formalize this principle as Weak-Driven Learning , captur-ing the idea that Weak Agents can Make Strong Agents 
+
+Stronger. Unlike knowledge distillation, which depends on access to a stronger teacher that is often expensive or unavailable, weak-driven learning leverages weak reference models that are easy to obtain, such as historical checkpoints of the model itself. As illustrated in Figure 1, weak-driven learning fundamen-tally inverts the conventional learning flow. Instead of trans-ferring knowledge from a stronger teacher to a weaker stu-dent, a weak agent injects structured uncertainty and exposes failure modes that compel an already strong agent to further refine its decision boundary. By explicitly identifying and distancing the strong model from these failure modes, learn-ing can continue beyond the saturation point of standard supervision. Rather than discarding early-stage checkpoints as inferior intermediates, our approach actively reuses them as a source of corrective supervision, enabling sustained model evolution without introducing additional inference cost. To distinguish this paradigm clearly from existing post-training strategies, we now provide a formal definition of Weak-Driven Learning. 
+
+Definition: Weak-Driven Learning 
+
+Weak-Driven Learning refers to a class of post-training paradigms in which the improvement of a strong model is driven by systematic discrepancies between its pre-dictions and those of a weaker reference model (e.g., a historical checkpoint), rather than by imitation of a stronger teacher. Formally, given a strong agent Mstrong , a weak agent 
+
+Mweak , and a task dataset D, weak-driven learning constructs training signals by jointly leveraging the outputs of Mstrong and Mweak on D. These joint sig-nals are then used to further optimize the strong agent. As a result, the strong agent Mstrong is updated into a stronger agent M+strong with improved task perfor-mance. Our contributions are summarized as follows: 
+
+Learning paradigm. We introduce Weak-Driven Learn-ing , a new post-training paradigm that highlights the over-looked role of weak agents—such as historical model check-points—as driving signals that can further improve strong agents. 
+
+Training framework. We propose WMSS, a practical post-training framework that operationalizes weak-driven learning through joint optimization of weak and strong mod-els via logit mixing. This mechanism compels the strong model to refine its decision boundary and sustain mean-ingful gradients in saturated regimes, without additional inference overhead. 
+
+Theoretical analysis. We provide a gradient-level analysis of the joint training mechanism, theoretically demonstrating how incorporating weak-model logits reshapes the optimiza-tion landscape, prevents gradient vanishing on non-target tokens, and maintains effective learning pressure beyond standard supervision. 
+
+Empirical performance. We empirically demonstrate that WMSS consistently improves performance on challenging benchmarks, including mathematical reasoning and code generation, compared to standard SFT baselines. These gains arise purely from improved optimization dynamics during training and incur no additional inference cost. 
+
+## 2. Related Work 
+
+Post-training Paradigms: From SFT to Knowledge Dis-tillation. Supervised Fine-Tuning (SFT) has established itself as the cornerstone of aligning Large Language Mod-els (LLMs) (Ouyang et al., 2022; Touvron et al., 2023; Yang et al., 2026; Huang et al., 2026; He et al., 2025). To further enhance efficiency, Knowledge Distillation (KD) is frequently integrated into post-training. Traditional ap-proaches, including standard KD (Hinton et al., 2015) and Self-Distillation methods (Zhang et al., 2019; Xu et al., 2023), typically operate on a premise of mimicry : the model is optimized to approximate a ”superior” distribution, de-rived either from a larger teacher or its own smoothed pre-dictions. Recent LLM-specific variants like GKD (Agarwal et al., 2023) and MiniLLM (Gu et al., 2023) refine this by addressing distribution mismatch, yet they retain the core ”Strong-to-Weak” or ”Self-Smoothing” logic. While effec-tive for knowledge transfer, these mimicry-based objectives share a critical limitation with SFT where the diminishing supervisory gradients near convergence lead to optimiza-tion saturation and logit rigidification. In contrast, WMSS abandons the mimicry objective. We utilize historical weak checkpoints not as targets to approximate, but as sources of structured uncertainty to reactivate gradients, thereby breaking the optimization saturation barrier where SFT and standard KD stagnate. 
+
+Weak-to-Strong Generalization & Supervision. The po-tential for weak supervisors to elicit superior capabilities has attracted significant interest. Burns et al. (Burns et al., 2023) formalized the phenomenon of ”weak-to-strong gener-alization,” demonstrating that strong models can generalize beyond the imperfect labels provided by weaker supervi-sors. This paradigm has been further extended to iterative 2Weak-Driven Learning: How Weak Agents make Strong Agents Stronger Weak Agent  Strong Agent 
+
+Standard SFT 
+
+> Base / Ref.
+> Historical soft
+> boundary
+
+Stage 1  (Initialization Weak & Strong Agent) 
+
+> SFT on
+> Mixed Logit
+
+Stage 3  (Joint Training via Logit Mixing, SFT)   
+
+> Base Difficulty Consolidation Regression Repair
+
+Stage 2  (Curriculum -Enhanced Data Activation) 
+
+Key Visualization of Joint Training 
+
+> Mixing lifts hard negative mass while keeping GT highest;
+> Strong Agent is only slightly sharper than Weak Agent.
+
+Stronger Agent  (1) Logit (Weak)  (2) Logit Strong  (3)  Softmax  (Mixd )
+
+> Predictive
+> Entropy
+> Slightly
+> sharper than
+> Weak Agent
+
+Original 
+
+Data 
+
+> Fusion
+> Active
+> Data
+> Active
+> Data
+
+Figure 2. Weak-Driven Learning. Overview of WMSS. The framework has three phases: (1) initialization, (2) activate SFT data via curriculum learning, and (3) jointly train weak and strong models to obtain a stronger model; The right panel visualizes the joint-training principle through logit mixing and gradient amplification. 
+
+self-improvement (Gulcehre et al., 2023). Unlike these methods which focus on elicitation in the absence of ground truth, WMSS addresses optimization saturation in fully su-pervised settings. We utilize historical weak logits not as targets to follow, but as corrective signals to sustain gradient flow. 
+
+## 3. Preliminaries 
+
+We consider an autoregressive language model Mθ that maps a context sequence x to a next-token distribution over a vocabulary V. At decoding step t, the model outputs logits 
+
+zt ∈ R|V| , which induce a probability distribution 
+
+Pθ (· | x) = Softmax( zt). (1) 
+
+Supervised fine-tuning. In standard supervised fine-tuning (SFT), we minimize the negative log-likelihood over a dataset D:
+
+LSFT (θ) = −E(x,y )∼D [log Pθ (y | x)] (2) where y denotes the ground-truth next token under context 
+
+x (we omit the time index when clear). 
+
+Predictive entropy. To quantify uncertainty and diagnose optimization stagnation, we monitor the predictive entropy of the next-token distribution: 
+
+H(Pθ (· | x)) = − X
+
+> v∈V
+
+Pθ (v | x) log Pθ (v | x). (3) Let ℓ(x, y ; θ) = − log Pθ (y | x) be the per-token cross-entropy loss. Its gradient w.r.t. the logit of any token k ∈ V 
+
+is ∂ℓ ∂z t[k] = Pθ (k | x) − I[k = y]. (4) In particular, for any negative token k̸ = y, we have 
+
+∂ℓ ∂z t[k] = Pθ (k | x) (5) i.e., the gradient magnitude on a negative class is propor-tional to its assigned probability. Weak-driven learning ex-plicitly leverages this property: by reintroducing probability mass to plausible but suppressed alternatives through logit mixing, it amplifies informative gradients on unresolved decision regions, thereby sustaining effective optimization beyond the supervised saturation regime. 
+
+## 4. How Can Weak Make Strong Stronger 
+
+In this section, we describe how a weak agent can be lever-aged to further strengthen a strong agent. 3Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+Weak and strong agent initilization. In WMSS, the weak agent Mweak (a.k.a. Mref ) is initialized from the base checkpoint and co-trained with the strong agent during joint training. We begin with Phase 1 (Initialization) : starting from a base model M0, we perform standard SFT to obtain 
+
+M1, and set 
+
+Mweak ← M 0, Mstrong ← M 1. (6) The weak agent provides a corrective signals via its logits 
+
+zweak (x) ∈ R|V| (7) which preserve a softer decision boundary and highlight plausible distractors(non-target tokens), stabilizing contin-ued optimization. 
+
+4.1. Curriculum-Enhanced Data Activation 
+
+At this stage, training data for the strong agent Mstrong 
+
+is constructed via a curriculum-enhanced data activation process guided by the weak reference Mweak . Rather than uniformly sampling from a fixed corpus, we use the weak– strong model pair to diagnose uncertainty dynamics on in-dividual samples and selectively activate data that is most informative for continued learning. 
+
+Entropy dynamics. For each sample xi, define predictive entropy under model M as 
+
+H(M; xi) = H(PM(· | xi)) . (8) We measure how uncertainty changes from the weak refer-ence to the current strong agent by 
+
+∆Hi = H(Mstrong ; xi) − H(Mweak ; xi). (9) Here, H(Mweak ; xi) captures historical difficulty , while 
+
+∆Hi indicates whether the strong agent has become more certain (learned) or more uncertain (regressed) than the weak reference. 
+
+Curriculum construction. We sample training examples using a mixture of three entropy-based signals: 
+
+pi ∝ α H (Mweak ; xi) + β −∆Hi
+
+ 
+
+> +
+
++ γ ∆Hi
+
+ 
+
+> +
+
+(10) where [u]+ := max( u, 0) and normalization is over i. The three terms have an intuitive role: • Base difficulty ( α). Up-weights samples that the weak reference found uncertain, ensuring inherently hard concepts remain emphasized. • Consolidation ( β). If ∆Hi < 0, the strong agent is more certain than the weak reference; large decreases can indicate fast but brittle learning, so we revisit these samples to stabilize retention. • Regression repair ( γ). If ∆Hi > 0, the strong agent is less certain than the weak reference. Since the weak model handled the sample better, this is strong evi-dence the sample is learnable (not irreducible noise) and indicates regression/catastrophic forgetting; we up-weight such samples to recover the lost boundary. The resulting curriculum-enhanced data activation yields the training set for the subsequent stage, in which explicit weak guidance is incorporated during training. 
+
+4.2. Weak-Driven Learning: Joint Training of Weak and Strong 
+
+The core operation of WMSS is Joint Training: given a weak agent Mweak and a strong agent Mstrong , we con-vert the weak agent’s reference signals into additional opti-mization pressure, driving the strong agent toward an even stronger checkpoint M+strong through gradient amplifica-tion. This realizes the principle Weak + Strong → stronger Strong .
+
+Joint training via logit mixing. For a training pair (x, y ),let zstrong (x), z weak (x) ∈ R|V| denote the next-token logits produced by Mstrong and Mweak , respectively. We con-struct a joint probability map by linearly mixing the logits: 
+
+zmix (x) = λ z strong (x) + (1 − λ) zweak (x), (11) where λ ∈ [0 , 1] . We then optimize the strong agent using the mixed-logit distribution Pmix (· | x) := Softmax( zmix (x)) :
+
+Lmix = −E(x,y )∼D [log Pmix (y | x)] (12) Gradients propagate through zmix via standard backpropaga-tion. Intuitively, the weak agent assigns non-negligible prob-ability mass to plausible but incorrect tokens that the strong agent may have already suppressed. By mixing logits, these hard negatives are reintroduced under Pmix , preventing their associated gradients from vanishing. This mechanism re-activates informative learning signals in saturated regions of the decision space, enabling continued refinement of the strong agent’s decision boundary. 
+
+4.3. Training Pipeline 
+
+Algorithm 1 summarizes WMSS. 
+
+Phase 1 (Initialization) trains M0 with SFT to obtain 
+
+Mstrong and initializes Mweak ← M 0, Mstrong ← M 1.
+
+Phase 2 (Curriculum) constructs an active training dis-tribution by computing entropy dynamics between Mweak 
+
+and the current Mstrong , yielding a curriculum-weighted dataset Dactive via Eq. (10). 
+
+Phase 3 (Weak-driven Training) then performs joint train-ing on Dactive by mixing logits as in Eq. (11) and optimizing 4Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+Algorithm 1 Weak Agents make Strong Agents Stronger 
+
+Require: Dataset D, Base Model M0
+
+Require: Iterations K, Hyperparams λ
+
+1: Phase 1: Initialization 
+
+2: M1 ← Train (M0, D, LSFT )
+
+3: Phase 2: Iterative Training Loop 
+
+4: for t = 1 to K do 
+
+5: // Step A: Curriculum-Enhanced Data Activation 
+
+6: ∆H ← H(Mt) − H(Mt−1)
+
+7: Calculate p via Eq. 10 using ∆H and H(Mt−1)
+
+8: Dactive ← WeightedSample (D, p)
+
+9: // Step B: Weak-Driven Learning 
+
+10: Initialize Mθ ← M t
+
+11: for batch (x, y ) ∈ D active do 
+
+12: zweak ← Forward (Mt−1, x )
+
+13: zstrong ← Forward (Mθ , x )
+
+14: zmix ← λz strong + (1 − λ)zweak 
+
+15: Update Mθ via ∇CE (zmix , y )
+
+16: end for 
+
+17: Mt+1 ← M θ
+
+18: end for 
+
+19: return MK+1 
+
+the mixed-logit cross-entropy loss in Eq. (12) . This allows 
+
+Mstrong to suppress weak-revealed distractors and continue strengthening beyond saturation, producing M+strong .
+
+## 5. Why Can Weak Make Strong Stronger 
+
+In this section, we formalize the key advantage of weak-driven learning: joint logit mixing with a weak agent amplifies informative gradients in saturated regions , en-abling continued optimization of strong agent beyond stan-dard supervised fine-tuning. We show that, by reintroducing probability mass to plausible but suppressed alternatives, joint training prevents gradient vanishing on non-target to-kens and sustains effective learning pressure even after the strong model’s decision boundary has stabilized. 
+
+5.1. Why Joint Training Amplifies Gradients in Saturated Regions 
+
+Consider a weak agent Mweak (initialized from a histori-cal checkpoint and co-trained during joint training) and a strong agent Mstrong (current trainable agent) that, for a context x, produce logits zweak (x), z strong (x) ∈ R|V| over the vocabulary V, and the mixed logits 
+
+zmix (x) = (1 − λ)zweak (x) + λz strong (x), λ ∈ [0 , 1] .
+
+(13) Operationally, zmix (x) is the fused logit map used for joint training, injecting the weak agent’s uncertainty while preserving the strong agent’s target direction. Let y de-note the target index, ey the one-hot vector, and define 
+
+Pmix (· | x) = Softmax( zmix (x)) and Pstrong (· | x) = Softmax( zstrong (x)) . More generally, for any logit map 
+
+z(x), let Pz (· | x) = Softmax( z(x)) . The cross-entropy gradient on fused logits is 
+
+gmix = ∇zmix (x)L = Pmix (· | x) − ey , (14) For any negative token k̸ = y, the gradient component is 
+
+gmix [k] = Pmix (k | x), so increasing negative probability mass directly increases the gradient magnitude on that token. Standard SFT on the strong agent gives gsft = Pstrong (· | 
+
+x) − ey and can saturate when Pstrong (k | x) is already small. 
+
+Margins and hard negatives. Define the target margin for any negative token k̸ = y as 
+
+mk(z(x)) = z(x)[ y] − z(x)[ k]. (15) The margin measures target-vs-distractor separation: smaller margins mean higher confusion. We define the hard-negative set 
+
+H = {k̸ = y : mk(zweak (x)) < m k(zstrong (x)) }. (16) These are tokens where the weak agent is less separated than the strong agent, i.e., the weak agent highlights unresolved boundaries. The mixed margin is a convex combination: 
+
+mk(zmix (x)) = (1 − λ)mk(zweak (x)) + λm k(zstrong (x)) .
+
+(17) Thus mixing shrinks margins toward the weak agent on H,raising the relative probability of hard negatives. 
+
+Theorem 5.1 (Total negative-mass increase under uniform margin shrinkage) . If mk(zweak (x)) ≤ mk(zstrong (x)) for all k̸ = y, then 
+
+Pmix (y | x) ≤ Pstrong (y | x),
+
+X 
+
+> k̸=y
+
+Pmix (k | x) ≥ X 
+
+> k̸=y
+
+Pstrong (k | x). (18) The theorem shows that, when the weak agent is uniformly more uncertain than the strong agent, joint logit mixing necessarily shifts probability mass from the target to neg-ative tokens. As a consequence, gradient magnitude on negative classes is amplified, preventing vanishing gradients in saturated regions. This mechanism explains why weak-driven learning enables continued refinement of the strong agent’s decision boundary even after standard supervised fine-tuning has converged. A complete proof is provided in Appendix B. 
+
+Corollary 5.2 (Per-token amplification on hard negatives) .
+
+For any k ∈ H , the mixed negative gradient satisfies 
+
+Pmix (k | x) ≥ Pstrong (k | x) whenever 
+
+Pmix (y | x)
+
+Pstrong (y | x) ≥ exp( −(1 − λ)∆ mk) , (19) 
+
+where ∆mk = mk(zstrong (x)) − mk(zweak (x)) > 0.
+
+5Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+This corollary provides a token-level characterization of gradient amplification: for hard negatives, joint logit mixing increases their assigned probability—and thus their gradient magnitude, under mild and explicit conditions on the relative target probabilities. 
+
+Proposition 5.3 (Logit updates on negative and target to-kens) . Under joint training, for agent i ∈ { weak , strong }
+
+with scale sweak = 1 − λ, sstrong = λ,
+
+∆zi,k ≈ − ηs i Pmix (k | x) (k̸ = y),
+
+∆zi,y ≈ ηs i (1 − Pmix (y | x)) . (20) 
+
+Thus any increase in Pmix (k | x) directly amplifies sup-pression of hard negatives, while a decrease in Pmix (y | x)
+
+strengthens the upward push on the target logit. 
+
+The proposition shows that any increase in the mixed proba-bility Pmix (k | x) directly amplifies the suppressive update on non-target tokens, while a corresponding decrease in 
+
+Pmix (y | x) strengthens the upward update on the target logit. These dynamics are consistent with the empirical reduction of the non-target logit mean observed in our logit statistics. 
+
+Summary (Why Weak-Driven Learning Works): 
+
+These theoretical results formalize the key advantage of weak-driven learning over standard SFT. By redistribut-ing probability mass toward hard negatives in saturated regions, joint logit mixing with a weak agent increases gradient magnitudes for the strong agent that would otherwise vanish under SFT. While the dominant ef-fect arises from amplified suppression of non-target tokens, the concurrent reduction in target probability further strengthens the positive update on the correct class. Together, these effects alleviate optimization sat-uration and enable the strong agent to continue refining its decision boundary beyond the convergence point of conventional supervised fine-tuning. Mechanistic interpretation (three stages) of weak-driven learning: 
+
+Stage I: saturated-region amplification. Early in joint training, the weak agent is more confused on many non-target tokens, so mixing increases total negative mass (Ap-pendix B, Eq. (39) ); gmix is biased toward hard negatives, and the strong agent dominates the effective update (Ap-pendix C, Eq. (70)). 
+
+Stage II: gradient shielding. As the strong agent becomes confident, the Softmax Hessian collapses (Appendix C, Eq. (76) ) and the cross-Hessian between agents vanishes (Eq. (75) ). The weak agent then receives little curvature information, so its influence on training diminishes even though it still provides the fused logits. 
+
+Stage III: null-space drift. Because Softmax is invariant to global logit shifts (Eq. (78) ), the loss is flat along the mean direction. When gradients are small, stochastic updates can drift in this null space, producing the observed mean-logit drift without changing centered sharpness (Appendix C). 
+
+## 6. Experiments 
+
+We conduct extensive experiments to evaluate the effec-tiveness and efficiency of our proposed method. First, we evaluate WMSS’s performance on two representative tasks, math reasoning and code generation. 
+
+Arithmetic & Code Generation Datasets. To compre-hensively evaluate WMSS, we utilize a broad suite of reasoning tasks: (i) Arithmetic reasoning: AIME2025, MATH500, AMC23, AQuA (Ling et al., 2017),GSM8K (Cobbe et al., 2021), MAWPS (Koncel-Kedziorski et al., 2016), and SVAMP (Patel et al., 2021). (ii) Code Genera-tion: HumanEval (Chen et al., 2021), MBPP (Austin et al., 2021). 
+
+Implementation Details. For WMSS, we employ models from both the Qwen family (Qwen3-4B-Base, Qwen3-8B-Base) (Yang et al., 2025) as the backbone. We utilize the AM-1.4M dataset (Zhao et al., 2025) for supervised fine-tuning. All experiments are conducted on eight NVIDIA H800 GPUs. Our training pipeline is implemented based on the TRL library, utilizing the Qwen3 architecture from the 
+
+transformers library. We configure the global learning rate to 1 × 10 −5 and set the maximum sequence length to 8192 to accommodate complex reasoning chains. Regarding the hyperparameters of WMSS, we use α = 0 .1, β = 0 .8,and γ = 0 .1. Furthermore, for logit mixing, we set the mixing coefficient to λ = 0 .5 to balance the weak and strong logits in the joint-training loss. 
+
+Baselines. To evaluate the effectiveness of WMSS, we compare it against several competitive fine-tuning strategies: • Standard SFT : The conventional supervised fine-tuning paradigm that optimizes the standard next-token prediction objective. It serves as a deterministic refer-ence, devoid of any curriculum strategies or logit-space noise injection mechanisms. • UNDIAL (Dong et al., 2024b): A method that subtracts a one-hot vector scaled by random Gaussian noise from the target token’s logits to suppress specific outputs.. • NEFTune (Jain et al., 2023): A robust noise-injection baseline that adds random noise to the embedding vec-tors during training. Following the original implemen-tation, we set the noise scaling hyperparameter α = 5 .To ensure a fair comparison, all other experimental config-urations—including the learning rate, maximum sequence 6Weak-Driven Learning: How Weak Agents make Strong Agents Stronger                                                                                                                                                     
+
+> Table 1. Main Results on Qwen3-4B-Base and Qwen3-8B-Base. We benchmark WMSS against standard SFT, UNDIAL and NEFTune across 7 math datasets and 2 code datasets. All models are fine-tuned for a total of 2 epochs, and all reported results are averaged over 3 runs. Bold indicates the best performance, and underline denotes the second best.
+> Methods Math Code AIME2025 MATH500 AMC23 AQUA GSM8K MAWPS SVAMP Avg. HumanEval MBPP Avg.
+> Qwen3-4B-Base as base model.
+> SFT 12.2 66.1 47.7 61.8 83.9 91.3 85.5 64.1 68.5 57.7 63.1 UNDIAL 12.2 63.1 40.0 55.1 82.9 90.9 84.1 61.2 71.3 54.6 63.0 NEFTune 16.7 68.2 43.3 58.9 86.7 93.8 87.7 65.0 74.2 55.1 64.7
+> WMSS 20.0 71.3 50.0 67.6 88.5 96.2 90.3 69.1 74.4 59.2 66.8
+> Qwen3-8B-Base as base model.
+> SFT 15.6 72.1 45.0 63.0 87.5 95.1 88.6 66.7 78.3 64.0 71.2 UNDIAL 10.0 71.5 48.3 66.9 89.9 96.4 91.2 67.7 79.7 61.0 70.4 NEFTune 15.6 73.7 40.0 71.3 90.3 97.3 91.5 68.5 80.5 64.3 72.4
+> WMSS 20.0 75.4 52.5 77.3 92.5 97.8 94.0 72.9 83.9 71.3 77.6
+> Qwen2.5-3B as base model.
+> SFT 2.2 46.9 21.6 51.3 76.6 91.6 84.4 53.5 51.4 42.7 47.1 UNDIAL 4.4 50.7 18.3 49.3 77.4 91.3 83.2 53.5 50.8 42.5 46.7 NEFTune 2.2 51.3 22.5 47.1 78.1 90.3 84.7 53.7 51.8 41.5 46.7
+> WMSS 5.5 52.0 22.5 53.8 80.9 92.6 86.0 56.2 53.7 43.3 48.5
+
+length, and optimizer settings—are kept strictly consistent with those used in WMSS. 
+
+6.1. Main Results 
+
+Table 1 shows that WMSS consistently breaks the optimiza-tion plateau of standard SFT across both model scales and task domains. On Qwen3-4B-Base, standard SFT reaches 
+
+64 .1% accuracy on math reasoning, whereas WMSS im-proves performance to 69 .1% , yielding a +5.0% absolute gain. A similar improvement is observed on code genera-tion, where accuracy increases from 63 .1% to 66 .8% . These gains further scale with model capacity. On Qwen3-8B-Base, WMSS raises math accuracy from 66 .7% to 72 .9% 
+
+(+6.2% ), and improves code generation performance from 
+
+71 .2% to 77 .6% . Overall, the consistent improvements across both math and code tasks suggest that WMSS en-hances general reasoning capabilities rather than being con-fined to a single domain. 
+
+Adaptive Gains across Difficulty Regimes. A deeper breakdown reveals that WMSS acts as an adaptive regu-larizer across both model scales. The improvements are most profound on Hard and competition-level tasks: on AIME2025, WMSS boosts the SFT(Qwen3-4B-Base) base-line from 12 .2% to 20.0% and lifts SFT(Qwen3-8B-Base) from 15 .6% to 20.0% . This capability is further rein-forced on AMC23, where our method steadily improves the 4B model ( 47 .7% → 50.0% ) and delivers a substan-tial leap on the 8B model ( 45 .0% → 52.5% ), recover-ing from the dip observed in standard SFT. On Medium 
+
+tasks like AQUA, WMSS effectively rectifies optimiza-tion issues, with Qwen3-8B-Base exhibiting a massive gain (63 .0% → 77.3% ) and Qwen3-4B-Base showing robust growth ( 61 .8% → 67.6% ). Even on Easy benchmarks (e.g., MAWPS), both models push towards saturation (reach-ing 96 .2% and 97 .8% respectively) without suffering from catastrophic forgetting. 
+
+WMSS vs. UNDIAL. We compare WMSS against the UNDIAL baseline to evaluate the optimal strategy for logit adjustment. While UNDIAL focuses on directly suppress-ing the target token via stochastic penalties, Table 1 reveals that this approach degrades performance (Avg -1.4% ). This suggests that naively penalizing the ground truth disrupts the primary training signal. In sharp contrast, WMSS achieves robust gains (surpassing the baseline by 7.9% on Qwen3-4B-Base Math). This validates that distractors creates a more effective gradient signal than dampening the target itself, as it refines the decision boundary by widening the margin between the correct prediction and competing errors without sacrificing confidence in the ground truth. 
+
+WMSS vs. NEFTune. We benchmark WMSS against NEFTune to contrast targeted correction with blind regu-larization . NEFTune mitigates overfitting by injecting ran-dom noise into embeddings, which encourages the model to rely on pre-trained knowledge rather than memorization. However, it remains agnostic to the model’s specific error patterns. In contrast, WMSS leverages historical confusion to construct structurally informed corrective signals. This methodological divergence leads to consistent performance gains on held-out test sets. In particular, WMSS signif-7Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 0 1 2 3 4
+
+> Training Epochs
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Accuracy (%)
+> Convergence
+> Zone
+> AIME2025 (Hard)
+> MATH500
+> amc2023
+> AQUA
+> GSM8K
+> SVAMP
+> MAWPS (Easy)
+
+Figure 3. Convergence Analysis across Tasks. The training trajectory of WMSS (Qwen3-4B-Base) over 4 epochs. 
+
+icantly outperforms NEFTune on math reasoning bench-marks (69.1% vs. 65.0% on Qwen3-4B-Base; see Table 1), indicating that generic regularization alone is insufficient for harder reasoning tasks. These results suggest that over-coming the bottlenecks of mathematical reasoning requires structurally aligned guidance rather than purely stochastic perturbations. 
+
+6.2. Convergence Analysis across Tasks 
+
+Figure 3 visualizes training trajectories across seven datasets, revealing a two-stage pattern: rapid acquisition fol-lowed by asymptotic stabilization. While substantial gains occur within the first three epochs, marginal utility dimin-ishes thereafter. Crucially, we observe over-optimization 
+
+in the final stages; notably, AMC2023 (brown line) exhibits sharp regression after Epoch 3, while GSM8K shows volatil-ity. This identifies Epoch 4 as the critical inflection point to maximize generalization before the onset of catastrophic forgetting. 
+
+6.3. Statistical Analysis: Why WMSS Works 
+
+As visualized in Figure 4, standard SFT optimization in-evitably encounters a saturation bottleneck where the model loses the gradient drive to distinguish valid tokens from dis-tractors: the target logits hit a ceiling (plateauing at 35 .88 ), while the non-target logits cease to decline ( zbg sticking at 2.09 ). WMSS breaks this deadlock through a distinct ”suppression-dominant” mechanism (i.e., the non -target logit mean drops more than the target logit rises) detailed in Table 2. Rather than relying on forcing the already high target logits higher (showing only a marginal +0 .6% in-crease), our method aggressively suppresses background interference(the non -target logit mean ( zbg )), precipitating a dramatic 56.9% reduction in the Non-Target Logit Mean (zbg : 2 .09 → 0.90 ). This suppression effectively ”clears the signal path,” expanding the Target-to-Background Gap (∆gap ) by +1 .41 points; crucially, due to the exponential nature of the Softmax function ( P ∝ ez ), this linear expan-sion is significantly amplified in probability space, resulting 
+
+Table 2. Logit Dynamics Analysis (Qwen3-4B-Base). Compari-son of logit statistics at Epoch 3. Values in parentheses indicate the relative change of WMSS vs. SFT. 
+
+Metric SFT WMSS 
+
+Target Strength ( ztarget ) 35 .88 36 .10 (+0.6%) 
+
+Distractors Mean ( zbg ) 2.09 0.90 (-56.9% )
+
+Target-to-Background Gap ( ∆gap ) 33 .79 35 .20 (+4.2%) 
+
+Logit Variance ( σ) 2.93 3.45 (+17.7%) Base Model Epoch 1 Epoch 2 Epoch 3  
+
+> 30
+> 31
+> 32
+> 33
+> 34
+> 35
+> 36
+> Target Signal Strength
+> Signal Saturation
+> S T A G N A T I O N P H A S E
+> Target Signal
+> Distractors
+> 1
+> 2
+> 3
+> 4
+> 5
+> 6
+> 7
+> Competing Distractor Level
+> Distractor Rigidification
+
+Figure 4. Limits of SFT Logit Growth on Qwen3-4B-Base. 
+
+After an initial growth phase, both correct and incorrect token logits saturate, preventing standard SFT from further enlarging their margin. 
+
+in sharper decision boundaries and the robust performance gains observed in our experiments. 
+
+6.4. Ablation Study 
+
+Table 3 deconstructs the incremental contributions within the WMSS framework. The CEDA module first establishes a robust foundation by filtering high-value samples, improv-ing the average accuracy by +2.2% (54 .1% → 56 .3% ), though its impact on the challenging AIME task remains limited ( 12 .2% → 13 .3% ). The addition of JTWS marks a critical turning point, utilizing corrective signals to bridge the reasoning gap and lifting the average accuracy to 58 .2% .Finally, the full model achieves maximal robustness, peak-ing at 59.9% on average and nearly doubling the baseline performance on AIME ( 20.0% ). This progression confirms that while data curation provides a necessary baseline, the synergistic integration of weak-to-strong signals is essential for overcoming the optimization bottlenecks in complex mathematical reasoning. 
+
+## 7. Conclusion 
+
+In this work, we introduced WMSS, a training paradigm that fundamentally inverts the traditional distillation logic .Rather than relying on stronger teachers, we demonstrate that weak historical checkpoints harbor critical corrective signals required to break the optimization stagnation of standard SFT. By structurally leveraging these signals to amplify gradients from hard negatives, our method achieves remarkable scalability, notably doubling performance on 
+
+8Weak-Driven Learning: How Weak Agents make Strong Agents Stronger         
+
+> Table 3. Ablation on Qwen3-4B-Base. The Baseline denotes stan-dard SFT. We incrementally add CEDA (Curriculum-Enhanced Data Activation.) and JTWS (Joint Training of Weak and Strong). WMSS represents the full model (Baseline + CEDA + JTWS).
+
+Method AIME MATH500 GSM8K Avg. 
+
+Baseline 12.2 66.1 83.9 54.1 + CEDA 13.3 69.4 86.2 56.3 + JTWS 16.7 70.2 87.6 58.2 WMSS 20.0 71.3 88.5 59.9 AIME2025 . Beyond these benchmarks, our findings offer a proof-of-concept for autonomous self-evolution : effective alignment does not strictly demand external supervision or larger models. Instead, the ”waste” of training—historical confusion and distractors—can be repurposed as the fuel for breaking performance ceilings. This opens a new, data-efficient frontier for post-training large language models, suggesting that the key to stronger agents may lie in under-standing their weaker selves. 
+
+## Impact Statement 
+
+This paper presents a paradigm shift in post-training opti-mization by introducing Weak-Driven Learning , which challenges the conventional assumption that supervision must originate from a superior source. By demonstrating that strong models can transcend optimization plateaus us-ing signals from weaker historical checkpoints, our work suggests a pathway toward more autonomous and scalable model evolution, particularly in the context of Weak-to-Strong Generalization. This approach provides an alterna-tive to standard supervised fine-tuning and reduces reliance on expensive high-quality annotations or computationally heavy teacher models. This paper presents work whose goal is to advance the field of Machine Learning. While there are many potential societal consequences of our work, none are identified that must be specifically highlighted beyond those commonly associated with large language models. 
+
+## References 
+
+Agarwal, R., Vieillard, N., Stanczyk, P., Ramos, S., Geist, M., and Bachem, O. Gkd: Generalized knowledge distil-lation for auto-regressive sequence models. CoRR , 2023. Austin, J., Odena, A., Nye, M., Bosma, M., Michalewski, H., Dohan, D., Jiang, E., Cai, C., Terry, M., Le, Q., et al. Program synthesis with large language models. arXiv preprint arXiv:2108.07732 , 2021. Bengio, Y., Louradour, J., Collobert, R., and Weston, J. Curriculum learning. In Proceedings of the 26th annual international conference on machine learning , pp. 41–48, 2009. Burns, C., Izmailov, P., Kirchner, J. H., Baker, B., Gao, L., Aschenbrenner, L., Chen, Y., Ecoffet, A., Joglekar, M., Leike, J., et al. Weak-to-strong generalization: Eliciting strong capabilities with weak supervision. arXiv preprint arXiv:2312.09390 , 2023. Chen, L., Li, S., Yan, J., Wang, H., Gunaratna, K., Yadav, V., Kumar, Z., Liu, Y., Parikh, D., and Xu, S. Alpagasus: Training a better alpaca with fewer data. In The Twelfth International Conference on Learning Representations ,2024. Chen, M., Tworek, J., Jun, H., Yuan, Q., de Oliveira Pinto, H. P., Kaplan, J., Edwards, H., Burda, Y., Joseph, N., Brockman, G., Ray, A., Puri, R., Krueger, G., Petrov, M., Khlaaf, H., Sastry, G., Mishkin, P., Chan, B., Gray, S., Ryder, N., Pavlov, M., Power, A., Kaiser, L., Bavar-ian, M., Winter, C., Tillet, P., Such, F. P., Cummings, D., Plappert, M., Chantzis, F., Barnes, E., Herbert-Voss, A., Guss, W. H., Nichol, A., Paino, A., Tezak, N., Tang, J., Babuschkin, I., Balaji, S., Jain, S., Saunders, W., Hesse, C., Carr, A. N., Leike, J., Achiam, J., Misra, V., Morikawa, E., Radford, A., Knight, M., Brundage, M., Murati, M., Mayer, K., Welinder, P., McGrew, B., Amodei, D., McCandlish, S., Sutskever, I., and Zaremba, W. Evaluating large language models trained on code, 2021. URL https://arxiv.org/abs/2107.03374 .Chen, Z., Ai, T., Li, Y., Li, G., Wei, Y., Zhou, W., Li, G., Yu, B., Chen, Z., Sun, H., et al. Llmboost: Make large language models stronger with boosting. arXiv preprint arXiv:2512.22309 , 2025. Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., et al. Training verifiers to solve math word problems. 
+
+arXiv preprint arXiv:2110.14168 , 2021. Dong, G., Yuan, H., Lu, K., Li, C., Xue, M., Liu, D., Wang, W., Yuan, Z., Zhou, C., and Zhou, J. How abilities in large language models are affected by supervised fine-tuning data composition. In Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pp. 177–198, 2024a. Dong, Y. R., Lin, H., Belkin, M., Huerta, R., and Vuli ´c, I. Undial: Self-distillation with adjusted logits for robust unlearning in large language models, 2024b. URL https: //arxiv.org/abs/2402.10052 .Gou, J., Yu, B., Maybank, S. J., and Tao, D. Knowledge distillation: A survey. International Journal of Computer Vision , 129(6):1789–1819, March 2021. ISSN 1573-1405. doi: 10.1007/s11263-021-01453-z. URL http://dx.doi. org/10.1007/s11263-021-01453-z .9Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+Gu, Y., Dong, L., Wei, F., and Huang, M. Minillm: Knowl-edge distillation of large language models. arXiv preprint arXiv:2306.08543 , 2023. Gudibande, A., Wallace, E., Snell, C., Geng, X., Liu, H., Abbeel, P., Levine, S., and Song, D. The false promise of imitating proprietary llms, 2023. URL https://arxiv.org/ abs/2305.15717 .Gulcehre, C., Paine, T. L., Srinivasan, S., Konyushkova, K., Weerts, L., Sharma, A., Siddhant, A., Ahern, A., Wang, M., Gu, C., Macherey, W., Doucet, A., Firat, O., and de Freitas, N. Reinforced self-training (rest) for language modeling, 2023. URL https://arxiv.org/abs/ 2308.08998 .He, X., Ban, Y., Zou, J., Wei, T., Cook, C., and He, J. Llm-forest: Ensemble learning of llms with graph-augmented prompts for data imputation. In Findings of the Asso-ciation for Computational Linguistics: ACL 2025 , pp. 6921–6936, 2025. Hinton, G., Vinyals, O., and Dean, J. Distilling the knowledge in a neural network. arXiv preprint arXiv:1503.02531 , 2015. Huang, J., Chen, X., Mishra, S., Zheng, H. S., Yu, A. W., Song, X., and Zhou, D. Large language models cannot self-correct reasoning yet, 2024. URL https://arxiv.org/ abs/2310.01798 .Huang, Z., Xia, X., Ren, Y., Zheng, J., Xiao, X., Xie, H., Huaqiu, L., Liang, S., Dai, Z., Zhuang, F., Li, J., Ban, Y., and Wang, D. Real-time aligned reward model beyond se-mantics, 2026. URL https://arxiv.org/abs/2601.22664 .Jain, N., yeh Chiang, P., Wen, Y., Kirchenbauer, J., Chu, H.-M., Somepalli, G., Bartoldson, B. R., Kailkhura, B., Schwarzschild, A., Saha, A., Goldblum, M., Geiping, J., and Goldstein, T. Neftune: Noisy embeddings improve instruction finetuning, 2023. URL https://arxiv.org/abs/ 2310.05914 .Koncel-Kedziorski, R., Roy, S., Amini, A., Kushman, N., and Hajishirzi, H. Mawps: A math word problem reposi-tory. In Proceedings of the 2016 conference of the north american chapter of the association for computational lin-guistics: human language technologies , pp. 1152–1157, 2016. Ling, W., Yogatama, D., Dyer, C., and Blunsom, P. Pro-gram induction by rationale generation: Learning to solve and explain algebraic word problems. arXiv preprint arXiv:1705.04146 , 2017. Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al. Training language models to follow instructions with human feedback. Advances in neural information processing systems , 35:27730–27744, 2022. Patel, A., Bhattamishra, S., and Goyal, N. Are nlp models really able to solve simple math word problems? arXiv preprint arXiv:2103.07191 , 2021. Stechly, K., Valmeekam, K., and Kambhampati, S. On the self-verification limitations of large language models on reasoning and planning tasks, 2024. URL https://arxiv. org/abs/2402.08115 .Touvron, H. et al. Llama 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288 , 2023. Xu, C., Sun, Q., Zheng, K., Geng, X., Zhao, P., Feng, J., Tao, C., and Jiang, D. Wizardlm: Empowering large language models to follow complex instructions. arXiv preprint arXiv:2304.12244 , 2023. Yang, A., Li, A., Yang, B., Zhang, B., Hui, B., Zheng, B., Yu, B., Gao, C., Huang, C., Lv, C., Zheng, C., Liu, D., Zhou, F., Huang, F., Hu, F., Ge, H., Wei, H., Lin, H., Tang, J., Yang, J., Tu, J., Zhang, J., Yang, J., Yang, J., Zhou, J., Zhou, J., Lin, J., Dang, K., Bao, K., Yang, K., Yu, L., Deng, L., Li, M., Xue, M., Li, M., Zhang, P., Wang, P., Zhu, Q., Men, R., Gao, R., Liu, S., Luo, S., Li, T., Tang, T., Yin, W., Ren, X., Wang, X., Zhang, X., Ren, X., Fan, Y., Su, Y., Zhang, Y., Zhang, Y., Wan, Y., Liu, Y., Wang, Z., Cui, Z., Zhang, Z., Zhou, Z., and Qiu, Z. Qwen3 technical report, 2025. URL https://arxiv.org/ abs/2505.09388 .Yang, F., Chen, Z., Wang, X., Lu, X., Chai, J., Yin, G., Lin, W., Ma, S., Zhuang, F., Wang, D., Yang, Y., Li, J., and Ban, Y. Your group-relative advantage is biased, 2026. URL https://arxiv.org/abs/2601.08521 .Zhang, L., Song, J., Gao, A., Chen, J., Bao, C., and Ma, K. Be your own teacher: Improve the performance of convolutional neural networks via self distillation, 2019. URL https://arxiv.org/abs/1905.08094 .Zhao, H., Wang, H., Peng, Y., Zhao, S., Tian, X., Chen, S., Ji, Y., and Li, X. 1.4 million open-source distilled reasoning dataset to empower large language model training, 2025. URL https://arxiv.org/abs/2503.19633 .Zhou, C., Liu, P., Xu, P., Iyer, S., Sun, J., Mao, Y., Ma, X., Efrat, A., Yu, P., Yu, L., et al. Lima: Less is more for alignment. Advances in Neural Information Processing Systems , 36, 2024. Zou, J., Ban, Y., Li, Z., Qi, Y., Qiu, R., Yang, L., and He, J. Transformer copilot: Learning from the mistake log in llm fine-tuning. arXiv preprint arXiv:2505.16270 , 2025. 10 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger                                              
+
+> Table 4. Hyperparameter Sensitivity Analysis on Qwen3-4B-Base. We evaluate the impact of the mixing coefficients α(base difficulty),
+> β(consolidation), and γ(regression repair) on mathematical reasoning. Bold denotes the best performance.
+> Setup Coefficients Accuracy (%)
+> αβγAIME 2025 MATH 500
+> Config A 0.2 0.7 0.1 10.0 68.2
+> Ours (Selected) 0.1 0.8 0.1 16.7 68.2 Config B 0.2 0.6 0.2 10.7 67.8 Config C 0.1 0.9 0.0 10.3 70.2
+> Config D 0.0 1.0 0.0 9.7 68.3 Config E 0.05 0.85 0.1 14.0 69.5
+
+## A. Additional Experiments 
+
+A.1. Sensitivity of Curriculum, Consolidation, and Repair Coefficients. 
+
+We further investigate the impact of the curriculum coefficient α, the consolidation coefficient β, and the regression-repair coefficient γ. Table 4 presents the results on Qwen3-4B-Base. We observe a distinct trade-off between standard mathematical proficiency (MATH 500) and complex reasoning capability (AIME 2025). Configuration C ( α = 0 .1, β = 0 .9, γ = 0 ), which disables the regression-repair signal, achieves the highest accuracy on MATH 500 ( 70.2% ). However, its performance on the more challenging AIME benchmark drops significantly to 10 .3% .This suggests that while strong consolidation of the target distribution ( β = 0 .9) helps with standard problems, it leads to optimization stagnation on harder tasks. In contrast, our selected configuration ( α = 0 .1, β = 0 .8, γ = 0 .1) introduces a controlled regression-repair emphasis. Although this slightly reduces MATH performance ( 70 .2% → 67 .5% ), it yields a decisive +6.4% gain on AIME ( 10 .3% →
+
+16 .7% ). This confirms that the additional gradient signal induced by γ is essential for breaking through reasoning bottlenecks, justifying our choice of parameters. 
+
+A.2. Sensitivity Analysis on Mixing Coefficient λ
+
+The mixing coefficient λ explicitly controls the relative weight between the weak and strong models in joint training, with fused logits zmix = (1 − λ)z1 + λz 2. Smaller λ assigns more influence to the weaker model, while larger λ emphasizes the stronger model’s direct fit to the targets. We sweep λ over [0 .1, 0.9] with a finer grid in [0 .4, 0.6] . Table 5 shows a broad inverted U-shape: the best average performance occurs at λ = 0 .42 (Avg. 75 .5% ), and a strong plateau persists in λ ∈ [0 .42 , 0.48] . All benchmarks are evaluated with three-run averages; minor fluctuations on small sets (e.g., AIME25, 30 problems) are still expected, but the optimal region remains stable. At the extremes, the behavior aligns with the mechanism. As λ → 1, zmix ≈ z2 and the joint training reduces to relying on the strong model, so the compensatory interaction weakens and accuracy drops (e.g., Avg. 67 .6% at λ = 0 .9). As λ → 0,the weak model dominates the fused logits, reducing effective target learning and risking underfitting; this is especially pronounced for weaker base models (e.g., at λ = 0 .3, a weaker model attains only 13% accuracy on MATH500). 
+
+Numerical consistency with the gradient-share crossover. Following the theoretical analysis in Appendix C, we can estimate the effective sensitivity ratio using the centered-norm proxy: 
+
+α ≈
+
+ ∥˜z2∥2
+
+∥˜z1∥2
+
+2
+
+. (21) From the logits evaluation report, ∥˜z2∥2 ≈ 1240 .10 and ∥˜z1∥2 ≈ 1034 .50 , giving α ≈ 1.44 . Plugging into the crossover formula in Eq. (71), 
+
+λcross ≈ 11 + √α ≈ 0.455 , (22) which lies close to the empirically strongest region ( λ ∈ [0 .42 , 0.48] ). We stress that this is a heuristic consistency check : α
+
+is phase-dependent and the linearization is local, so the theory predicts a broad optimum region rather than a sharp inversion point. 11 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger              
+
+> Table 5. Sensitivity Analysis of Mixing Coefficient λ.We report the accuracy (%) on Qwen3-4B-Base across varying λvalues. The curve exhibits a broad inverted U-shape, with the strongest performance typically in the λ∈[0 .42 ,0.48] range (peak at λ= 0 .42 in Avg.), reflecting a balanced trade-off between learning new features and preserving historical constraints.
+
+Dataset Mixing Coefficient λ
+
+0.1 0.2 0.3 0.4 0.42 0.44 0.46 0.48 0.5 0.52 0.54 0.56 0.58 0.6 0.7 0.8 0.9 AIME25 7.8 10.0 12.2 16.7 20.0 20.0 16.7 20.0 20.0 21.1 16.7 16.7 16.7 10.0 20.0 20.0 12.2 MATH500 71.4 67.1 70.8 73.1 74.9 74.5 73.2 73.3 73.3 70.7 74.0 73.0 73.3 68.9 71.7 70.9 66.1 AQUA 77.2 72.8 74.7 75.2 73.9 73.1 72.4 71.8 73.9 71.0 71.3 71.9 70.2 64.8 66.9 61.4 60.8 GSM8K 88.2 89.1 89.4 91.9 91.8 91.7 91.0 91.4 91.0 91.2 91.4 90.6 90.9 89.2 89.3 88.1 85.7 MAWPS 94.9 96.6 95.5 97.8 98.2 97.8 97.8 98.0 95.7 96.5 97.2 96.8 97.5 94.7 96.2 95.5 93.6 SVAMP 90.4 91.8 93.3 94.9 94.1 93.6 93.5 92.9 92.6 92.4 93.5 92.8 92.9 90.8 91.9 89.6 87.4 
+
+Avg. 71.7 71.2 72.7 74.9 75.5 75.1 74.1 74.6 74.4 73.8 74.0 73.6 73.6 69.7 72.7 70.9 67.6       
+
+> Table 6. Extended Logit Statistics Before vs. After Joint Training (Qwen3-4B-Base). Weak = model 0, strong = model 1. “Pre” denotes before joint training, and “Stronger (Post)” denotes the jointly trained strong branch after training. ∆denotes Post −Pre (percent change in parentheses). Centered norm values are taken directly from the logit analysis report.
+
+Metric Weak Strong Pre Post ∆ Pre Stronger (Post) ∆
+
+Mean logit zmean 3.65 9.42 5.77 (+158.1%) 2.87 0.97 -1.90 (-66.2%) Std σ 3.06 2.65 -0.41 (-13.4%) 3.18 3.16 -0.02 (-0.6%) Centered norm ∥˜z∥2 1191.33 1034.50 -156.83 (-13.2%) 1240.10 1229.79 -10.31 (-0.8%) Max logit zmax 43.25 38.50 -4.75 (-11.0%) 48.75 60.50 11.75 (+24.1%) Min logit zmin -24.00 -22.50 1.50 (-6.2%) -26.63 -35.75 -9.12 (+34.2%) L2 norm ∥z∥2 1978.92 3858.60 1879.68 (+95.0%) 1865.96 1688.59 -177.37 (-9.5%) Entropy H 0.52 2.43 1.91 (+367.3%) 0.44 0.48 0.04 (+9.1%) Max prob pmax 0.83 0.53 -0.30 (-36.1%) 0.85 0.83 -0.02 (-2.4%) 
+
+A.3. Extended Logit Statistics 
+
+To provide a more complete view of the logit dynamics underlying joint training, we report additional statistics from the logit analysis report in Table 6. Beyond the non-target logit mean reduction shown in Table 2, the extended metrics highlight a pronounced mean drift in the weak model and stable sharpness in the strong (post) model. 
+
+Implementation details. All logit statistics are computed from 200 randomly sampled examples drawn from the AM-1.4M training dataset used in our experiments. We run forward passes for the pre- and post-joint-training checkpoints on these examples and aggregate statistics across the sampled set. The centered-norm definition used in the table follows Appendix C (Eq. (56)). 12 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+## B. Supplementary Theory: Gradient Amplification under Logit Mixing 
+
+Notation. Fix a context x and a target token index y, and analyze a single joint-training step; we omit the conditioning on x for readability. The weak and strong models Mweak and Mstrong produce logits zweak (x), z strong (x) ∈ R|V| ,and the mixed logits are zmix (x) = (1 − λ)zweak (x) + λz strong (x) with λ ∈ [0 , 1] . For any logit map z(x), define 
+
+Pz (· | x) = Softmax( z(x)) and use the shorthand Pz (k); let ey denote the one-hot target vector. We use a subscript 
+
+i ∈ { weak , strong } to index the two models when writing model-agnostic expressions. For any negative token k̸ = y, the margin is mk(z(x)) = z(x)[ y] − z(x)[ k].
+
+B.1. Setup and Baseline 
+
+We analyze joint training under logit mixing. The mixed logits are 
+
+zmix = (1 − λ)zweak + λz strong , λ ∈ [0 , 1] . (23) We distinguish the mixed-logit loss and the SFT loss on the strong model: 
+
+Lmix = − log Pmix (y), LSFT = − log Pstrong (y), (24) where Pmix = Pzmix and Pstrong = Pzstrong . The joint-training gradient with respect to fused logits is 
+
+gmix = ∇zmix Lmix = Pmix (·) − ey . (25) In standard SFT on the strong model alone, the corresponding gradient is 
+
+gsft = ∇zstrong LSFT = Pstrong (·) − ey . (26) For each model, gradients are scaled by the mixing coefficients: 
+
+∇zweak Lmix = (1 − λ)gmix , ∇zstrong Lmix = λg mix . (27) 
+
+B.2. Log-Odds and Margin Contraction Definition B.1 (Target margin) . For any negative token k̸ = y, define the margin 
+
+mk(z) = z[y] − z[k]. (28) 
+
+Lemma B.2 (Softmax log-odds) . For any k̸ = y, the log-odds under logits z satisfy 
+
+log Pz (k)
+
+Pz (y) = −mk(z). (29) 
+
+Proof. By definition, Pz (k)/P z (y) = exp( z[k] − z[y]) = exp( −mk(z)) .
+
+Lemma B.3 (Margin mixing) . For any k̸ = y, the mixed margin equals the convex combination 
+
+mk(zmix ) = (1 − λ)mk(zweak ) + λm k(zstrong ). (30) 
+
+Proof. Using (23) and (28), we expand 
+
+mk(zmix ) = zmix [y] − zmix [k]= (1 − λ)zweak [y] + λz strong [y] − (1 − λ)zweak [k] + λz strong [k]
+
+= (1 − λ)( zweak [y] − zweak [k]) + λ(zstrong [y] − zstrong [k]) = (1 − λ)mk(zweak ) + λm k(zstrong ). (31) 13 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+B.3. Negative-Gradient Amplification Definition B.4 (Hard-negative set) . Define the hard-negative set 
+
+H = {k̸ = y : mk(zweak ) < m k(zstrong )}, (32) i.e., tokens for which the weak model has a smaller margin (more confusion). 
+
+Lemma B.5 (Relative probability increase on hard negatives) . For any k ∈ H ,
+
+Pmix (k)
+
+Pmix (y) > Pstrong (k)
+
+Pstrong (y) . (33) 
+
+Proof. By (30) , mk(zmix ) < m k(zstrong ) for k ∈ H . Applying (29) yields a larger log-odds ratio for the mixed logits. 
+
+Corollary B.6 (Sufficient condition for per-token amplification) . For any k ∈ H , the negative-token gradient on fused logits satisfies 
+
+Pmix (k) ≥ Pstrong (k) whenever Pmix (y)
+
+Pstrong (y) ≥ exp( −(1 − λ)∆ mk) , (34) 
+
+where ∆mk = mk(zstrong ) − mk(zweak ) > 0.Proof. We begin by expressing probabilities via log-odds (Lemma (29)): 
+
+Pmix (k)
+
+Pstrong (k) = Pmix (y) exp( −mk(zmix )) 
+
+Pstrong (y) exp( −mk(zstrong )) = Pmix (y)
+
+Pstrong (y) exp( mk(zstrong ) − mk(zmix )) . (35) Using the margin mixing identity (Lemma (30)), 
+
+mk(zstrong ) − mk(zmix ) = mk(zstrong ) − (1 − λ)mk(zweak ) + λm k(zstrong )
+
+= (1 − λ) mk(zstrong ) − mk(zweak )
+
+= (1 − λ)∆ mk. (36) Substituting (36) into (35) yields 
+
+Pmix (k)
+
+Pstrong (k) = Pmix (y)
+
+Pstrong (y) exp((1 − λ)∆ mk) . (37) We now solve for the condition under which Pmix (k) ≥ Pstrong (k):
+
+Pmix (k)
+
+Pstrong (k) ≥ 1 ⇐⇒ Pmix (y)
+
+Pstrong (y) exp((1 − λ)∆ mk) ≥ 1
+
+⇐⇒ Pmix (y)
+
+Pstrong (y) ≥ exp( −(1 − λ)∆ mk) . (38) This is exactly the stated sufficient condition (34). 
+
+Theorem B.7 (Total negative-mass increase under uniform margin shrinkage) . If mk(zweak ) ≤ mk(zstrong ) for all k̸ = y,then 
+
+Pmix (y) ≤ Pstrong (y) and X 
+
+> k̸=y
+
+Pmix (k) ≥ X 
+
+> k̸=y
+
+Pstrong (k). (39) 
+
+Proof. By Lemma (30) and the assumption mk(zweak ) ≤ mk(zstrong ),
+
+mk(zmix ) = (1 − λ)mk(zweak ) + λm k(zstrong ) ≤ mk(zstrong ) ∀k̸ = y. (40) Applying Lemma (29) yields, for each k̸ = y,
+
+exp   − mk(zmix ) ≥ exp   − mk(zstrong ). (41) 14 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+Summing (41) over k̸ = y gives 
+
+X 
+
+> k̸=y
+
+exp   − mk(zmix ) ≥ X 
+
+> k̸=y
+
+exp   − mk(zstrong ). (42) Since 
+
+Pz (y) = 
+
+1 + X 
+
+> k̸=y
+
+exp   − mk(z)
+
+> −1
+
+, (43) the denominator for Pmix (y) is no smaller than that for Pstrong (y), and thus 
+
+Pmix (y) ≤ Pstrong (y). (44) Finally, because probabilities sum to one, 
+
+X 
+
+> k̸=y
+
+Pmix (k) = 1 − Pmix (y) ≥ 1 − Pstrong (y) = X 
+
+> k̸=y
+
+Pstrong (k), (45) which proves (39). 
+
+Proposition B.8 (Logit updates emphasize negative suppression) . For any negative token k̸ = y, the logit update for model 
+
+i ∈ { weak , strong } under joint training is 
+
+∆zi[k] ≈ − ηs i Pmix (k), sweak = 1 − λ, s strong = λ, (46) 
+
+while for the target token, 
+
+∆zi[y] ≈ ηs i (1 − Pmix (y)) . (47) 
+
+Thus any increase in Pmix (k) directly amplifies the suppression of hard negatives, while a decrease in Pmix (y) strengthens the upward push on the target logit. Proof. From (27), the model-i logit gradient satisfies 
+
+∇zi Lmix = si gmix , (48) where gmix = Pmix (·) − ey (Eq. (25)). For a negative token k̸ = y, this gives 
+
+∂Lmix 
+
+∂z i[k] = si Pmix (k), (49) and for the target token, 
+
+∂Lmix 
+
+∂z i[y] = si (Pmix (y) − 1) . (50) Under a first-order update ∆zi ≈ − η∇zi Lmix , we obtain 
+
+∆zi[k] ≈ − ηs i Pmix (k), ∆zi[y] ≈ ηs i (1 − Pmix (y)) , (51) which matches (46) and (47). 
+
+Remark B.9 (Consistency with logits statistics) . The logits evaluation report shows that after joint training the strong model exhibits lower mean logits and more extreme tails (e.g., larger magnitude minima and maxima). The mechanism above provides a local explanation: increased negative mass amplifies downward updates on many incorrect tokens, while the target receives a stronger upward push when Pmix (y) decreases. Mean shifts can further accumulate along shift-invariant directions (Appendix C). Informally, this gradient amplification provides extra training signal compared to SFT, which helps reduce saturation and move optimization past local minima. 15 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+## C. Supplementary Theoretical Analysis of Joint Training Dynamics 
+
+C.1. Problem Setting and Notation Notation. Fix a context x and a target index y, and analyze a single joint-training step; we omit the conditioning on x
+
+for readability. The weak and strong models Mweak and Mstrong have parameters θweak and θstrong , and produce logits 
+
+zweak (x), z strong (x) ∈ R|V| . The mixed logits are 
+
+zmix = (1 − λ)zweak + λz strong , λ ∈ [0 , 1] . (52) For any logit map z(x), define Pz (· | x) = Softmax( z(x)) and use the shorthand Pz (k); let Pmix = Pzmix and ey denote the one-hot target. We use a subscript i ∈ { weak , strong } to index the two models in generic expressions. Let 1 be the all-ones vector in R|V| . We use the mixed-logit loss 
+
+Lmix = − log Pmix (y), (53) and the residual 
+
+g = ∇zmix Lmix = Pmix (·) − ey . (54) For any negative token k̸ = y, the margin is mk(z) = z[y] − z[k]. We use η to denote the learning rate. For each model 
+
+i ∈ { weak , strong }, let Ji = ∂z i/∂θ i and define the Jacobian Gram matrix 
+
+Ki = JiJ⊤ 
+
+> i
+
+. (55) 
+
+Definition C.1 (Centered logits and centered norm) . Let ¯z = 1 
+
+> |V|
+
+1⊤z be the logit mean. The centered logits and centered norm are 
+
+˜z = z − ¯z1, ∥˜z∥2 =
+
+vuut |V| 
+
+X
+
+> k=1
+
+(z[k] − ¯z)2. (56) Since ∥˜z∥2 = p|V| · Std (z), the centered norm is a shift-invariant measure of sharpness. 
+
+C.2. First-Order Gradients and Centered Linearized Dynamics 
+
+By the chain rule, 
+
+∇zweak Lmix = (1 − λ)g, (57) 
+
+∇zstrong Lmix = λg. (58) Thus both models receive gradients in the same direction but with different magnitudes. Under a first-order (local) linearization, we apply a Taylor expansion of logits around θi:
+
+zi(θi + ∆ θi) ≈ zi(θi) + Ji∆θi, i ∈ { weak , strong }. (59) With ∆θi = −η∇θi Lmix , this yields 
+
+∆zi ≈ − ηJ iJ⊤ 
+
+> i
+
+g = −ηK ig, (60) and incorporating the mixing weights in (57)–(58) yields 
+
+∆zi ≈ − ηs iKig, sweak = 1 − λ, s strong = λ. (61) To remove mean-shift effects, let Π = I − 1 
+
+> |V|
+
+11 ⊤ be the centering projector. Since 1⊤g = 0 , we have Πg = g and define the centered kernel ˜Ki = Π KiΠ. (62) Then the centered logit dynamics are 
+
+∆˜ zi ≈ − ηs i ˜Kig. (63) 
+
+Lemma C.2 (PSD of centered kernel) . For each model i ∈ { weak , strong }, ˜Ki is positive semidefinite. 
+
+16 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+Proof. For any x ∈ R|V| , x⊤ ˜Kix = x⊤ΠJiJ⊤ 
+
+> i
+
+Πx = ∥J⊤ 
+
+> i
+
+Πx∥22 ≥ 0.The fused centered update is a doubly weighted combination of model updates: 
+
+∆˜ zmix = (1 − λ)∆˜ zweak + λ∆˜ zstrong 
+
+= −η
+
+h
+
+(1 − λ)2 ˜Kweak + λ2 ˜Kstrong 
+
+i
+
+g. (64) The corresponding first-order loss decrease follows from a Taylor expansion of Lmix at zmix :
+
+∆Lmix ≈ ∇ zmix L⊤
+
+> mix
+
+∆˜ zmix = g⊤∆˜ zmix . (65) Substituting (64) gives 
+
+∆Lmix ≈ g⊤∆˜ zmix = −η
+
+h
+
+(1 − λ)2g⊤ ˜Kweak g + λ2g⊤ ˜Kstrong g
+
+i
+
+. (66) 
+
+C.3. Stage I: Hard-Negative Amplification and Strong-Model Dominance 
+
+Early in joint training, the weak model is more confused, so for many hard negatives k we have mk(zweak ) < m k(zstrong ).By the logit-mixing analysis in Appendix B (e.g., Eq. (39) ), mixing shrinks these margins and increases total negative probability mass. Consequently, the residual g grows in magnitude and is biased toward hard negatives: the weak model acts as a gradient amplifier , not a competitor in final accuracy. The effective per-step loss decrease attributable to model i ∈ { weak , strong } is 
+
+Ei ≜ ηs 2 
+
+> i
+
+g⊤ ˜Kig, sweak = 1 − λ, s strong = λ. (67) Dominance corresponds to Estrong > E weak . Define the directional sensitivity κi = g⊤ ˜Kig/ ∥g∥22.
+
+Assumption C.3 (Sensitivity advantage of the strong model) . Because the strong model is sharper (larger centered norm / lower entropy), its centered kernel responds more strongly along the residual direction: 
+
+g⊤ ˜Kstrong g ≈ α g ⊤ ˜Kweak g, α > 1. (68) Substituting (68) into (66) yields the total effective rate 
+
+S(λ) = (1 − λ)2 + αλ 2, (69) and the strong model dominates the joint update when 
+
+λ2α > (1 − λ)2. (70) Solving (70) gives the gradient-share crossover 
+
+λcross = 11 + √α . (71) 
+
+Remark C.4 (Crossover vs. accuracy) . Equation (71) characterizes a local crossover of gradient contribution under a one-step linearization. It does not predict an accuracy inversion. In practice, both g and ˜Kweak , ˜Kstrong evolve with λ and training time, while optimizer dynamics smooth the trajectory, yielding a broad optimum region rather than a sharp transition. 
+
+Remark C.5 (Softmax amplification) . Because Pmix (k) ∝ exp( zmix [k]) , modest logit differences can disproportionately tilt 
+
+Pmix and g. This amplifies hard-negative gradients and reinforces the early dominance in (70). 
+
+C.4. Stage II: Gradient Shielding via Hessian Contraction 
+
+We next analyze why the weak model loses effective training signal once the strong model becomes confident. 17 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+C.4.1. S OFTMAX JACOBIAN AND LOSS HESSIAN 
+
+Recall Pmix = Softmax (zmix ). The Jacobian of Softmax is 
+
+∂P mix 
+
+∂z mix 
+
+= diag (Pmix ) − Pmix P ⊤
+
+> mix
+
+. (72) Since ey is constant, the Hessian of the cross-entropy loss with respect to zmix is 
+
+HL = ∇2 
+
+> zmix
+
+Lmix = ∂(Pmix − ey )
+
+∂z mix 
+
+= diag (Pmix ) − Pmix P ⊤
+
+> mix
+
+. (73) 
+
+Lemma C.6 (PSD of the loss Hessian) . HL is positive semidefinite. Proof. For any v ∈ R|V| ,
+
+v⊤HLv = X
+
+> j
+
+Pmix [j] v2 
+
+> j
+
+−
+
+X
+
+> j
+
+Pmix [j] vj
+
+
+
+> 2
+
+= Var Pmix (v) ≥ 0. (74) C.4.2. I NTERACTION HESSIAN BETWEEN MODELS 
+
+The mixed logits depend on both models, so the cross-Hessian captures how updates in the strong model affect the gradient seen by the weak model: 
+
+Hws = ∂∂z strong 
+
+[∇zweak Lmix ]= (1 − λ) ∂(Pmix − ey )
+
+∂z mix 
+
+∂z mix 
+
+∂z strong 
+
+= λ(1 − λ)HL. (75) C.4.3. S HIELDING IN THE CONFIDENT REGIME 
+
+Assume the target index is y and the strong model drives the mixed prediction to Pmix (y) → 1. Then Pmix (k) → 0 for all 
+
+k̸ = y, which implies 
+
+lim 
+
+> Pmix →ey
+
+HL = 0. (76) Consequently, 
+
+lim 
+
+> Pmix →ey
+
+Hws = 0, (77) and the weak model receives vanishing curvature information. This is the mathematical form of gradient shielding : once the strong model dominates and the prediction saturates, both the first-order residual g and its local sensitivity collapse, making it difficult for the weak model to receive informative updates. 
+
+C.5. Stage III: Null-Space Drift and Mean Shift 
+
+We now explain the observed mean drift of the weak model logits. C.5.1. S HIFT INVARIANCE OF THE MIXED SOFTMAX 
+
+Softmax is invariant to global shifts. For any scalar c,Softmax (z + c1) = Softmax (z). (78) Applying this to the fused logits, let z′ 
+
+> weak
+
+= zweak + c1. Then 
+
+z′ 
+
+> mix
+
+= (1 − λ)z′ 
+
+> weak
+
++ λz strong 
+
+= zmix + (1 − λ)c1, (79) and by (78) the predictive distribution is unchanged. Hence, the loss is flat along the mean-shift direction of each model. 18 Weak-Driven Learning: How Weak Agents make Strong Agents Stronger 
+
+C.5.2. Z ERO -E IGENVALUE DIRECTION OF THE HESSIAN 
+
+Let 1 denote the all-ones vector. From (73), 
+
+HL1 = diag (Pmix )1 − Pmix (P ⊤
+
+> mix
+
+1) = Pmix − Pmix = 0. (80) Thus 1 is a zero-eigenvalue direction of the Hessian, confirming that the loss has no curvature along global shifts. C.5.3. W HY DRIFT ACCUMULATES IN THE NULL SPACE 
+
+When the strong model has already fit the data, the expected gradient seen by the weak model is near zero. With stochastic training, the update can be modeled as 
+
+θ+ = θ − ηϵ, ϵ ∼ N (0 , Σ) , (81) which is a random walk. The logit space decomposes as 
+
+z = ¯ z1 + ˜ z, ˜z⊤1 = 0 , (82) where the null space is span {1} and the active space is its orthogonal complement. In the active space, even small gradients can weakly restore the distribution shape. In the null space, there is no restoring force; thus the variance of ¯z grows with time, leading to the observed mean drift without a corresponding increase in centered norm. 
+
+## D. System Prompts 
+
+We employ a specific system prompt to enforce the Chain-of-Thought (CoT) reasoning format. The exact instruction provided to the model is detailed in Table 7. 
+
+System Prompt for Reasoning Enforcement 
+
+You are a helpful assistant. To answer the user’s question, you first think about the reasoning process and then provide the user with the answer. The reasoning process and answer are enclosed within <think> and <answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer> . 
+
+> Table 7. The system prompt used to guide the model’s output structure, ensuring distinct separation between internal reasoning and the final response.
+
+## E. Data Construction 
+
+High-quality data is pivotal for effective alignment. We construct our training mixture from two primary domains: mathematics and code. • Mathematical Reasoning: We source our math corpus from the AM-1.4M dataset (Zhao et al., 2025). To ensure the rigor of the reasoning chains, we utilized the math verify library to rigorously parse and cross-check final solutions against ground truths. Only samples that successfully passed this verification were retained, resulting in 
+
+111,709 high-quality samples. • Code Generation: For the coding domain, we curated data from AM-1.4M dataset. We implemented an execution-based filtering pipeline : code blocks were explicitly extracted from the responses and validated against corresponding test cases to ensure functional correctness. After deduplication and strict quality control, we obtained 104,077 valid code samples. In total, the curated dataset comprises approximately 215k samples. We conducted training and evaluation for both tasks independently. Unless otherwise specified, all results reported in the main text are obtained by training with a sequence length of 8192 tokens and evaluating with 4096 tokens. In addition, we consider two aligned context-length settings—4k/4k and 8k/8k—under which our method also demonstrates consistent effectiveness. 19

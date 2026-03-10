@@ -1,0 +1,727 @@
+Title: See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch
+
+URL Source: https://arxiv.org/pdf/2602.10814v1
+
+Published Time: Thu, 12 Feb 2026 02:07:16 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+Xingyi Zhang 1 Yulei Ye 1 Kaifeng Huang 2 Wenhao Li 2 Xiangfeng Wang 1
+
+Abstract 
+
+Block-based programming environments such as Scratch play a central role in low-code educa-tion, yet evaluating the capabilities of AI agents to construct programs through Graphical User Interfaces (GUIs) remains underexplored. We introduce S CRATCH WORLD , a benchmark for evaluating multimodal GUI agents on program-by-construction tasks in Scratch. Grounded in the Use-Modify-Create pedagogical framework, SCRATCH WORLD comprises 83 curated tasks spanning four distinct problem categories: Create, Debug, Extend, and Compute. To rigorously diag-nose the source of agent failures, the benchmark employs two complementary interaction modes: primitive mode requires fine-grained drag-and-drop manipulation to directly assess visuomotor control, while composite mode uses high-level semantic APIs to disentangle program reasoning from GUI execution. To ensure reliable assess-ment, we propose an execution-based evaluation protocol that validates the functional correctness of the constructed Scratch programs through run-time tests within the browser environment. Ex-tensive experiments across state-of-the-art mul-timodal language models and GUI agents reveal a substantial reasoning–acting gap, highlighting persistent challenges in fine-grained GUI manipu-lation despite strong planning capabilities. 
+
+1. Introduction 
+
+The movement toward software development democrati-zation has created unprecedented opportunities for low-code paradigms (Gomes & Brito, 2022). By transform-ing complex symbolic representations into intuitive visual interfaces, low-code technologies democratize software de-velopment, extending it beyond professional developers to 
+
+> 1
+
+East China Normal University 2Tongji University. Corre-spondence to: Xingyi Zhang <xingyi.zhang@stu.ecnu.edu.cn >,Yulei Ye <52295901055@stu.ecnu.edu.cn >, Kaifeng Huang 
+
+<kaifengh@tongji.edu.cn >, Wenhao Li <whli@tongji.edu.cn >,Xiangfeng Wang <xfwang@cs.ecnu.edu.cn >.
+
+Preprint. February 12, 2026. 
+
+a broader population of non-expert users. The recent years have seen its widespread adoption in domains such as data analysis (S ´a et al., 2024), scientific simulation (Bucaioni et al., 2022), and game development (Ver ´on et al., 2024). Yet the potential of this paradigm extends far beyond in-dustrial applications; it has also opened new avenues in education. Scratch (Resnick et al., 2009), a programming language designed specifically for children and adolescents, has emerged as a representative and influential system. It features block-based visual interaction interfaces and a drag-and-drop programming paradigm designed to support play-ful, game-like learning experiences while fostering creativ-ity and computational thinking among children. Younger learners often struggle with (i) forming a stable un-derstanding of program execution and debugging (Swidan et al., 2018; Best & Miller, 2010), and (ii) accurate interac-tion with the Graphical User Interface (GUI) (e.g., naviga-tion and drag-and-drop based block manipulation) (Garc ´ıa, 2024; Donker & Reitsma, 2007) in Scratch. Therefore, this necessitates support for younger learners from experienced instructors. As teachers are often constrained by scheduled classes and limited time per student, an AI-assisted teacher appears to be a more favorable option. To address this resource constraint, several Large Language Model (LLM)-based assistants (Si et al., 2025; Fein et al., 2025; Druga & Ko, 2025) for Scratch have been proposed. They can provide textual debugging and modification sug-gestions, or even directly manipulate the underlying code representation to update the block structures. However, these systems create a split-attention demand (Ayres & Cier-niak, 2012): learners must mentally integrate text-based guidance with spatially located GUI actions (e.g., click, drag-and-drop), which adds extraneous cognitive load unre-lated to the programming goal (Chandler & Sweller, 1991). Fortunately, recent advances in GUI agents (Agashe et al., 2025a; Qin et al., 2025) offer a promising alternative. These agents can perceive graphical interfaces through screen-shots, interpret visual and textual elements, reason about task solutions through multi-step decomposition, and auto-matically execute GUI operations such as clicking, typing, and drag-and-drop. Unlike chat-based assistants that offer documented solutions, GUI agents directly demonstrate how to do it through observable interface interactions, eliminat-1
+
+> arXiv:2602.10814v1 [cs.AI] 11 Feb 2026
+
+See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+ing the cognitive overhead of translating verbal instructions into spatial actions. For Scratch learners, this hands-on guidance can accelerate procedural proficiency in block ma-nipulation while freeing cognitive resources for higher-order computational thinking. While GUI agents offer this potential, systematic evaluation on block-based programming remains underexplored. Ex-isting GUI agent benchmarks for web (Zhou et al., 2024; Deng et al., 2023), desktop (Nayak et al., 2025; Kapoor et al., 2025; Xie et al., 2024), and mobile (Li et al., 2024; Rawles et al., 2025) platforms primarily focus on naviga-tional or retrieval-oriented tasks such as web browsing, file management, and app navigation. In contrast, Scratch de-mands program-by-construction , where agents must assem-ble executable programs through long-horizon, composi-tional drag-and-drop operations that require not only precise visual grounding but also structured reasoning about pro-gram logic, resulting in a clear benchmarking gap. To address this gap, we introduce S CRATCH WORLD , the first benchmark for evaluating GUI agents on program-by-construction in block-based environments. S CRATCH -WORLD comprises 83 carefully curated tasks spanning four problem categories: Create , Debug , Extend , and Compute ,which align with the Use-Modify-Create pedagogical frame-work (Lytle et al., 2019). To rigorously diagnose whether failures stem from logical reasoning deficits or visuomo-tor execution errors, S CRATCH WORLD employs a dual-mode evaluation protocol. In primitive mode, agents receive screenshots with indexed element lists and must execute low-level UI primitives (click, drag-and-drop, type). In com-posite mode, agents receive pseudocode representations and execute high-level semantic commands (add block, connect blocks), isolating program logic from GUI manipulation. All tasks are validated through execution-based runtime tests to ensure functional correctness (Section 3.4). Through initial experiments, we observe a substantial per-formance gap between the two modes: while state-of-the-art (SOTA) models achieve over 78% success rate in compos-ite mode, their performance drops to merely 14% in prim-itive mode. To explain the low primitive-mode success, we first isolate drag-and-drop precision via a Single-Step Drag Benchmark, revealing that even single-step actions fre-quently fail. Given this finding, we then investigate whether perception deficits account for these failures via a Visual Perception QA Benchmark. Through extensive empirical evaluation on S CRATCH -WORLD , we highlight several phenomena: 
+
+Reasoning–Acting gap: We observe a severe dichotomy in agent capabilities. The best result in composite mode reaches 78.31% overall success rate (Claude-Sonnet-4.5), while the best result in primitive mode drops to 14.46% Primitive Mode  Composite Mode    
+
+> drag_and_drop(
+> 100, 200, 200, 250)
+> delete_block(
+> blockIndex = 3)
+> #1 [top]
+> event_whenflagclicked
+> #2 control_forever
+> - SUBSTACK:
+> #3 motion_sety
+> - input Y:
+> #4 sensing_mousex
+> The paddle is not moving as expected!
+> Error: Wrong Block!
+> Pong Game
+> Pong Game
+> Scratch VM
+> Test Case 1
+> Test Case 2
+> Test Case 3
+> I got this! Let's remove the wrong block first.
+
+Execution-based Evaluation 
+
+Problem:  Debug 
+
+GUI Agent Assisting     
+
+> GUI Agent See
+> Plan
+> Snap
+> Primitive Mode Composite Mode
+> drag_and_drop(
+> 100, 200, 200, 250)
+> delete_block(
+> blockIndex = 3)
+> #1 [top]
+> event_whenflagclicked
+> #2 control_forever
+> - SUBSTACK:
+> #3 motion_sety
+> - input Y:
+> #4 sensing_mousex
+> The paddle is not moving as expected!
+> Error: Wrong Block!
+> Pong Game
+> Pong Game
+> Scratch VM
+> Test Case 1
+> Test Case 2
+> Test Case 3
+> I got this! Let's remove the wrong block first.
+
+Execution-based Evaluation 
+
+Problem:  Debug 
+
+GUI Agent Assisting 
+
+> GUI Agent
+> Snap
+> Plan
+> See
+
+Figure 1. Overview of S CRATCH WORLD evaluation workflow through a Debug task: fixing incorrect paddle control in Pong. Agents interact via two modes: primitive mode using GUI oper-ations (drag-and-drop) or composite mode using high-level APIs (delete block). Execution-based evaluation leverages Scratch VM to validate functional correctness. 
+
+(AWM + Claude-Sonnet-4.5). This quantifies a critical bottleneck: models can plan the program logic but fail to reliably manipulate the interface. 
+
+Endpoint Localization Bottleneck: To explain this gap, results of Single-Step Drag Benchmark show that even when the start point is given, endpoint localization remains poor. With labeled start positions, end-component accuracy stays low (about 23–32%), indicating that fine-grained spatial grounding for “where to drop” is the dominant failure mode. 
+
+Perception is Not Sufficient: High accuracy on static Vi-sual Perception QA Benchmark (up to 90.5%) does not explain drag errors in dynamic GUI manipulation. This shows that static perception alone is insufficient; precise closed-loop execution remains the key challenge in Scratch drag-and-drop interactions. In short, S CRATCH WORLD separates “can you figure out the right program?” from “can you actually build it in the GUI?” and our experiments show the latter is the real blocker today. Even when models solve the logic in compos-ite mode ( > 78% SR), they largely collapse under primitive, 2See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+pixel-level interaction ( ∼ 14% SR), revealing a pronounced reasoning–acting gap. Diagnostics further point to endpoint localization (“where to drop”) as the dominant failure mode, and strong static perception (up to 90.5% QA accuracy) still does not translate into reliable closed-loop drag-and-drop execution. Together, these findings argue that progress on Scratch-style program-by-construction will hinge less on better planning and more on robust, snap-aware, high-precision interaction policies. 
+
+2. Related Work 
+
+Intelligent Assistance in Scratch. Recent works have be-gun to explore LLM-based intelligent assistance for real-time and personalized support in Scratch. Druga & Ko (2025) integrated LLMs into Scratch as a chatbot to offer suggestions on project ideas and manipulation strategies; Fein et al. (2025) used static analysis to detect common bugs and code smells in Scratch project and used LLMs to generate explanation and applicable fixes; Si et al. (2025) an-alyzed difference between current project and golden project to provide step-by-step instructions. In contrast to intelligent assistance in the form of chatbot, a more straightforward assistance is to receive direct hands-on GUI operation. GUI agents can help, which is demonstrated to be effective in web navigation (Zhou et al., 2024) and smartphone control (Rawles et al., 2025) tasks, other than Scratch. Our benchmark evaluates GUI agents that can au-tonomously perform click and drag-and-drop operations, providing a more direct solution to assistance on founda-tional procedural skill of block manipulation itself, which is essential for effective Scratch programming. 
+
+Benchmarking GUI Agents. Existing GUI agents bench-marks span a variety of platforms: web, desktop and mobile, each focusing on different interaction paradigms and abili-ties. Web -based benchmarks (Zhou et al., 2024; Deng et al., 2023; Yao et al., 2022) predominantly test browser-based navigation and information manipulation: DOM-targeted clicking, link following, search, pagination, form filling, and state changes. Desktop environment is more complex as it contains a wide range of applications and tasks that re-quire complex manipulation skills. Existing desktop bench-marks (Nayak et al., 2025; Kapoor et al., 2025; Xie et al., 2024; Bonatti et al., 2025) have covered many daily and professional scenarios, thus providing a broad evaluation of an agent’s capabilities in desktop environments. Mobile 
+
+benchmarks (Li et al., 2024; Rawles et al., 2025) are charac-terized by touch-based interactions and primarily evaluate agents on common smartphone tasks such as app launching, menu navigation, and list scrolling. Across categories, existing GUI benchmarks provide valu-able coverage of navigation, search, and form-based manip-ulation, but they leave a critical gap: they do not evaluate an agent’s ability to perform program-by-construction in a block-based or low-code interface, where precise drag-and-drop composition and structural reasoning over program logic are essential. S CRATCH WORLD is the first benchmark designed to directly address this gap. 
+
+LLM-based Coding Agents. Coding LLMs has rapidly emerged as one of the most transformative forces in modern software engineering. This progress is evident across key tasks, most notably in code generation and program repair, where LLMs have consistently pushed the SOTA. In code generation, the field has been defined by influen-tial benchmarks such as MBPP (Austin et al., 2021), Hu-manEval (Chen et al., 2021), and HumanEval-X (Zheng et al., 2024). These benchmarks have, in turn, fueled the development of powerful foundation models (DeepSeek-AI et al., 2024; Hui et al., 2024; Rozi `ere et al., 2024), sophis-ticated agentic frameworks (Rasheed et al., 2024; Zhang et al., 2024; Wang et al., 2025) and commercial AI-powered coding tools (GitHub, 2021; Anysphere, 2023; Anthropic, 2025b). In parallel, the field of program repair has seen sig-nificant advances, benchmarked by tasks like Defects4J (Just et al., 2014), QuixBugs (Lin et al., 2017), and the large-scale SWE-bench (Jimenez et al., 2024). This has spurred progress on specialized agents and models capable of under-standing and patching complex codebases (Li et al., 2025; Olausson et al., 2024; Yang et al., 2024). However, these works, spanning both code generation and program repair, share a critical and universal limitation: their focus is exclusively confined to text-based program-ming. As a result, a standardized benchmark for block-based programming like Scratch remains notably absent. 
+
+3. ScratchWorld Benchmark 
+
+This section details S CRATCH WORLD 1, including the eval-uation tasks (Section 3.1), benchmark construction pipeline (Section 3.2), interaction modes (Section 3.3), and evalua-tion protocol (Section 3.4). 
+
+3.1. Evaluation Tasks 
+
+To rigorously evaluate diverse competencies, S CRATCH -WORLD organizes its 83 tasks into four problem categories, as illustrated in Figure 2: Create , Debug , Extend , and 
+
+Compute . These categories align with the Use-Modify-Create pedagogical scaffold (Lytle et al., 2019): Debug and 
+
+Extend tasks both correspond to Modify (repairing buggy code and augmenting functional code with new features, respectively), while Create and Compute tasks map to Cre- 
+
+> 1Code and Dataset are available at https://github.com /astarforbae/ScratchWorld .
+
+3See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch Updated  
+
+> Blocks
+> 120 Input
+> Empty Workspace
+> +1
+> Mouse moved right Mouse moved right
+> User typed: 5
+
+Debug  Fix the script so the paddle moves horizontally with the mouse, correcting the vertical lock bug. 
+
+Create  Implement a clickable sprite that relocates to a random coordinate and increments the 'score' variable by 1 upon interaction. 
+
+Extend  Extend the switch control logic to implement an authentication mechanism requiring the input '1234' for activation.  Compute  Implement an algorithm to calculate the factorial of a given integer. 
+
+Figure 2. Example tasks for four problem categories in S CRATCH WORLD . Create tasks require creating interactive projects from scratch, such as a balloon game. Debug tasks involve diagnosing and correcting bugs, illustrated by fixing a coordinate error in a paddle controller. 
+
+Extend tasks challenge agents to extend existing functionality, e.g., adding password authentication for a circuit switch. Compute tasks focus on pure computational logic, such as implementing a factorial calculator. 
+
+ate (authoring original projects from scratch, with varying emphasis on interactivity versus algorithmic logic). Concretely, Create tasks require the agent to synthesize interactive projects with specific visual behaviors from an empty canvas based on natural language descriptions. This category rigorously tests high-level planning and composi-tional reasoning. Debug tasks present agents with projects containing intentionally injected bugs. The agent must di-agnose and rectify logic errors in the provided scripts to restore the expected functionality. Extend tasks challenge agents to extend functional codebases with new function-ality based on updated requirements. This tests the ability to augment capabilities while preserving existing behavior. 
+
+Compute tasks focus on implementing abstract logic and mathematical reasoning using block primitives, prioritizing algorithmic correctness over interactive behaviors. 
+
+3.2. Benchmark Construction Pipeline 
+
+Each task in S CRATCH WORLD comprises four core compo-nents: task instruction , initial project (starting state), golden project (canonical solution), and a specialized evaluation script . To ensure high quality and diversity, we developed a semi-automated pipeline comprising three stages: 
+
+Step 1: Sourcing. We establish the seed dataset through a hybrid approach. For Create and Compute tasks, human experts manually designed a set of seed tasks to define the rigorous structure of instructions and solutions. For Debug 
+
+and Extend tasks, we curated 8 representative projects from the official Scratch Starter Projects (MIT Scratch Team, 2019) (see Appendix B for the full list) to serve as high-quality, canonical base codebases. 
+
+Step 2: Expansion. We leverage a collaborative multi-model pipeline to scale these seeds. We utilize DeepSeek-V3 (DeepSeek-AI et al., 2025a) for generating high-level task concepts for Create and Compute categories, brain-storming diverse project requirements. For Debug and Ex-tend tasks, we serialize Scratch projects into structured text representations (Appendix L) and employ GitHub Copi-lot (GitHub, 2021), which analyzes the context of selected representative projects to propose bug injection strategies or feature extensions. Following human verification of these ideas, we further utilize Copilot to generate event-driven unit tests . Based on the finalized task descriptions, Copi-lot synthesizes JavaScript evaluation scripts that cover all functional requirements specified in the instructions (see Appendix O for part of prompts used in this step). 
+
+Step 3: Verification. A strict human-in-the-loop process guarantees validity. Expert annotators review all gener-ated instructions and implement the corresponding golden 
+
+4See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+projects to ensure correctness. Crucially, every evaluation script undergoes adversarial testing: it must pass the golden project (true positive) and correctly fail on corrupted so-lutions (true negatives). Specifically, for Debug tasks, we utilize the buggy initial project as the negative case; for other categories, we generate negative cases by removing blocks targeted by the unit tests to ensure the script validates critical logic. 
+
+3.3. Interaction Modes 
+
+SCRATCH WORLD employs two complementary modes to disentangle logical reasoning from visuomotor control. 
+
+Primitive mode is designed to assess an agent’s fine-grained GUI manipulation and visual grounding capabilities. We formulate the observation space Oprim as a hybrid represen-tation that augments visual screenshots with textual element lists to mitigate pixel-level ambiguity and align with prior work (e.g., OSWorld (Xie et al., 2024)): 
+
+Oprim = ⟨I, E⟩ , (1) where I ∈ RH×W ×3 represents the full-resolution screen-shot, with H and W denoting the height and width re-spectively, and 3 representing the RGB color channels. 
+
+E = {(τi, c i, b i)}N −1 
+
+> i=0
+
+is an indexed list of UI elements, where each element at index i consists of: a categorical type τi (e.g., inputs , blocks ); a text string ci describ-ing the content (e.g., block labels, values); and a spatial tuple bi ∈ N4 specifying the bounding box (x, y, w, h ). The index i serves as a unique identifier for interaction targets (see Appendix M for an example). Aligning with standard GUI benchmarks (Nayak et al., 2025; Xie et al., 2024), the action space Aprim consists of atomic UI primitives that mirror human operations: 
+
+Aprim = Pmouse ∪ P keyboard ∪ { done , fail }. (2) Here, Pmouse includes spatial actions such as click ,
+
+double-click , drag-and-drop , and scroll ;
+
+Pkeyboard covers type , key , and hotkey . See Appendix D for complete action specifications. 
+
+Composite mode abstracts away low-level execution to focus on logic planning. Agents receive a struc-tured observation (see Appendix F for an example) con-taining variable scopes, targets, and nested block pseu-docode. Interaction is performed via high-level seman-tic APIs , such as add block , connect blocks , and 
+
+set block field , that encapsulate complex UI opera-tions. This design disentangles reasoning from GUI exe-cution, enabling rigorous evaluation of control-flow design and data-flow correctness while eliminating the confound of visuomotor errors. (See Appendix E for complete action specifications). 
+
+3.4. Evaluation Protocol Execution-based Evaluation Mechanism. Following re-cent advanced benchmarks (Xie et al., 2024; Bonatti et al., 2025) that utilize functional verification, S CRATCH WORLD 
+
+adopts an execution-based evaluation protocol implemented via Playwright (Microsoft Corporation, 2020). Unlike gen-eral OS tasks where success is often determined by file system changes or terminal outputs, Scratch necessitates rigorous verification of dynamic internal states (e.g., sprite coordinates, variable updates during runtime). We interface with the Scratch VM (Scratch Foundation, 2016b) exposed in the browser and evaluate each task using a pre-authored JavaScript evaluation script that runs a suite of unit tests (see Appendix N). Scripts are generated by the LLM and refined by human experts to cover critical failure modes, ensuring the constructed program meets precise functional requirements beyond visual correctness. 
+
+Metrics. We define 2 key metrics to quantify agent perfor-mance based on the unit tests. Success Rate (SR) is a strict metric measuring the percentage of tasks where the agent passes all unit tests. Let N be the total tasks and ui be the result of the i-th task ( ui = 1 if all tests pass, else 0). 
+
+SR = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+ui × 100% . (3) 
+
+Partial Success Rate (PSR) is a fine-grained metric reflect-ing how close the agent came to a solution. It is the average ratio of passed unit tests per task. Let mi be the number of passed tests and Mi be the total tests for task i.
+
+P SR = 1
+
+N
+
+> N
+
+X
+
+> i=1
+
+mi
+
+Mi
+
+× 100% . (4) While SR indicates perfect completion, PSR provides di-agnostic value by revealing partial progress in such long-horizon tasks. 
+
+Statistics and Complexity. Although S CRATCH WORLD 
+
+comprises a compact set of 83 tasks, it is designed for high density and complexity. Long-Horizon Reasoning: 
+
+Tasks require an average modification of 9.14 blocks, with the most demanding task requiring the addition of 32 new blocks. Compute tasks are particularly complex, requiring the construction of 16 .96 functional blocks on average from a minimal scaffold. High Diversity: The benchmark covers 
+
+82 distinct block types across 8 categories (Motion, Con-trol, Sensing, etc.), ensuring broad coverage of Scratch’s programming primitives. This complexity profile ensures that despite the dataset size, S CRATCH WORLD provides a challenging and discriminative testbed for GUI agents. 5See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+Table 1. Main results on S CRATCH WORLD across four task categories and two interaction modes. Composite Mode provides high-level semantic APIs for block manipulation, while Primitive Mode requires low-level GUI operations (click, drag-and-drop). For each task category, we report Success Rate (%). Overall performance is measured by SR (Success Rate: percentage of tasks with all tests passed) and PSR (Partial Success Rate: average ratio of passed tests per task). 
+
+Task Performance (Success Rate %) Overall Metrics Agent Create (20) Debug (20) Extend (18) Compute (25) SR (83) PSR (83) Composite Mode 
+
+Proprietary LLMs 
+
+gpt-5 80.00 65.00 66.67 44.00 62.65 68.98 gemini-2.5-pro 90.00 75.00 72.22 56.00 72.29 79.88 claude-sonnet-4.5 90.00 75.00 83.33 68.00 78.31 82.81 
+
+Open-Source LLMs 
+
+deepseek-v3.2 75.00 75.00 66.67 36.00 61.45 68.80 Qwen3-Coder-30B-A3B-Instruct 10.00 30.00 0.00 0.00 9.64 20.54 Qwen2.5-Coder-7B-Instruct 0.00 5.00 0.00 0.00 1.20 12.09 
+
+Agentic Frameworks 
+
+AWM (gpt-5) 95.00 65.00 72.22 36.00 65.06 71.18 AWM (gemini-2.5-pro) 90.00 70.00 61.11 48.00 66.27 74.34 AWM (claude-sonnet-4.5) 90.00 55.00 55.56 56.00 63.86 75.88 
+
+Primitive Mode 
+
+Proprietary LLMs 
+
+gpt-5 15.00 40.00 0.00 0.00 13.25 28.27 
+
+gemini-2.5-pro 5.00 20.00 0.00 0.00 6.02 19.96 claude-sonnet-4.5 10.00 25.00 0.00 0.00 8.43 21.00 
+
+Open-Source LLMs 
+
+Qwen3-VL-32B-Instruct 0.00 10.00 0.00 0.00 2.41 12.29 UI-TARS-1.5-7B 0.00 0.00 0.00 0.00 0.00 9.88 
+
+Agentic Frameworks 
+
+AWM (gpt-5) 5.00 40.00 0.00 0.00 10.84 25.82 AWM (gemini-2.5-pro) 0.00 20.00 0.00 0.00 4.82 15.48 AWM (claude-sonnet-4.5) 25.00 30.00 0.00 4.00 14.46 27.95 Agent S2 (gpt-5) 5.00 20.00 0.00 0.00 6.02 18.03 Agent S2 (gemini-2.5-pro) 5.00 25.00 0.00 0.00 7.23 18.45 Agent S2 (claude-sonnet-4.5) 10.00 20.00 0.00 0.00 7.23 19.40 
+
+4. Experiments 
+
+We evaluate two categories of GUI agents under both modes. For foundation models, we benchmark proprietary models (GPT-5 (OpenAI, 2025), Claude-Sonnet-4.5 (An-thropic, 2025a), Gemini-2.5-Pro (Google DeepMind, 2025)) as upper bounds, and open-source models including rea-soning specialists (DeepSeek-V3.2 (DeepSeek-AI et al., 2025b), Qwen2.5-Coder-7B-Instruct (Hui et al., 2024)) and vision specialists (UI-TARS-1.5-7B (ByteDance Seed, 2025), Qwen3-VL-32B-Instruct (Bai et al., 2025)) as pri-mary evaluation targets for composite and primitive modes, respectively. For agentic frameworks, we benchmark Agent-S2 (Agashe et al., 2025b) 2, a hierarchical agent, and AWM (Wang et al., 2024), which uses memory-augmented approaches for workflow reuse. The complete system prompts for both interaction modes are provided in Ap-
+
+> 2
+
+Agent-S2 is evaluated only in primitive mode due to its dedi-cated design for visual grounding. 
+
+pendix P. We also conduct an ablation on observation repre-sentations of primitive mode, reported in Appendix A. We host a local Scratch GUI (Scratch Foundation, 2016a) orchestrated by a unified backend server that interfaces with the browser via Playwright. All experiments were conducted on an Ubuntu 22.04 server equipped with dual Intel Xeon Platinum 8280L CPUs, 256GB RAM, and 9 NVIDIA RTX 2080 Ti GPUs. This server acts as a bridge, exposing a cus-tom API to handle interactions for both modes. In primitive mode, we default the viewport to 1280 × 720 and use Play-wright for I/O operations. To assist visual grounding, we construct a concise list of UI elements by combining DOM elements (queried via CSS selectors) with OCR text regions from PaddleOCR (Cui et al., 2025), and deduplicate them based on spatial overlap (see Appendix Q for details). In composite mode, the server withholds visual feedback and instead exposes a custom API through which both observa-tions (pseudocode) and actions (high-level block operations) 6See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+are retrieved and executed via Scratch VM .We present the experimental results to answer the following research questions: RQ1: How do SOTA models perform on Scratch tasks, and how does the interaction mode im-pact performance? RQ2: Are drag-and-drop operations inherently difficult, even at the single-step level? RQ3: Do perception deficits account for the drag-and-drop failures? 
+
+4.1. RQ1: Overall Performance 
+
+Table 1 summarizes the performance of selected baselines across four task categories and two interaction modes. The results highlight critical insights regarding the capabilities and limitations of current base models and agents within the Scratch environment. 
+
+Key Finding 1 (Reasoning–Acting Gap). In composite mode, Claude-Sonnet-4.5 achieves 78.31% SR, while the open-source DeepSeek-v3.2 attains 61.45%, demonstrat-ing that contemporary LLMs possess strong logical rea-soning capabilities. In stark contrast, performance drops to 14.46% in primitive mode (AWM with Claude-Sonnet-4.5), revealing severe bottlenecks in executing plans through fine-grained drag-and-drop operations despite competent high-level planning. 
+
+Key Finding 2 (Category Sensitivity). The magnitude of performance degradation varies significantly depending on the task nature. Create tasks suffer the most precipitous decline; while their high success rates in composite mode substantiate the sufficiency of the models’ logical capabil-ities, the necessity for extensive drag-and-drop actions in primitive mode introduces a severe visuomotor bottleneck. Debug tasks are more resilient because they typically in-volve localized block adjustments and parameter updates, with fewer high-precision dragging operations than Create tasks. Finally, Extend and Compute tasks exhibit consis-tently lower success rates across both modes due to the combined requirement of strong logical reasoning and ex-tensive drag-and-drop interactions. 
+
+Key Finding 3 (Framework Limitations). We further ex-amine why two GUI agentic frameworks that performed well in prior benchmarks did not yield performance gains in this study, and instead underperformed relative to naive agents. For the AWM framework, effectiveness depends on inducing workflows from successful task executions to improve the success rate of subsequent tasks. However, in primitive mode, the high failure rate of drag-and-drop operations prevented AWM from accumulating a sufficient number of successful trajectories. This cold start limita-tion not only hindered the workflow summarization mech-anism from functioning as intended, but also could have introduced noise that interfered with the decision-making process, thereby degrading performance. With respect to 
+
+Agent-S2 , it adopts a collaborative architecture in which a strong LLM performs reasoning and planning while a smaller model performs visual localization. As the capa-bilities of the base model increase, the specialized smaller model no longer provides a clear advantage for visual lo-calization. The experimental results indicate that, after applying this framework, the success rates of GPT-5 and Claude-Sonnet-4.5, which exhibit stronger visual localiza-tion capability, decreased, whereas Gemini-2.5-Pro, which exhibits comparatively weaker visual localization capability, achieved improved performance under this architecture. 
+
+4.2. RQ2: Drag-and-Drop Precision Analysis 
+
+In this subsection, we explain the sharp performance drop observed in primitive mode by isolating models’ fine-grained drag-and-drop capability. Building on the 83 tasks in S CRATCH WORLD , we construct a Single-Step Drag Benchmark with 60 atomic tasks that each can be com-pleted with a single drag action, covering two interaction scenarios in Scratch: Direct Connection and Slot Insertion 
+
+(see examples in Appendix G). We evaluate GPT-5, Qwen3-VL-32B-Instruct, and UI-TARS-1.5-7B under three settings with increasing task-side assistance: Baseline (raw screen-shot), GT Start (ground-truth start position), and Knowledge 
+
+(heuristic rules; Appendix K). To quantify operation errors, we compute ground-truth feasible regions for valid start/end positions via a BFS-based algorithm (Appendix J) and de-fine pixel-level Spatial Error as the Euclidean distance from predicted coordinates to the nearest feasible point when predictions fall outside the feasible region. 
+
+Key Finding 4 (Single-Step Success is Still Low). Ta-ble 2 shows that even with task complexity reduced to a single drag-and-drop operation, success rates remain low across models, with the best performance (GPT-5) achieving only 23.33% Pass@1. This directly answers a key question raised by RQ1: does the reasoning–acting gap stem from long-horizon task complexity, or from fundamental visuo-motor control deficits? The single-step benchmark isolates the latter, indicating that per-step execution precision, rather than multi-step planning, is the primary bottleneck. Con-sequently, in long-horizon tasks (9.14 block modifications on average), even moderate per-step failure rates compound into very low end-to-end success in primitive mode. 
+
+Key Finding 5 (Endpoint Localization is the Dominant Failure Mode). Providing ground-truth start positions im-proves Pass@1 for all three models, but endpoint localiza-tion remains poor. Under GT Start , Start Component Acc. becomes near-perfect for GPT-5 (99.44%) and Qwen3-VL (100.00%), yet End Component Acc. stays low for all three models (GPT-5: 30.17%, Qwen3-VL: 32.22%, UI-TARS: 23.53%). This suggests that predicting the correct connec-tion target (“where to drop”) is substantially harder than 7See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch  
+
+> Table 2. Single-Step Drag Benchmark results on 60 atomic drag-and-drop tasks. The table summarizes success rates (Pass@k), component-wise pass rates, and spatial coordinate errors. See Appendix I for results by interaction type.
+
+Success Rate (%) Component Acc. (%) Spatial Error (px) Model Setting @1 @2 @3 Start End Start End GPT-5 Baseline 23.33 28.33 35.00 66.67 32.50 28.32 36.05 GT Start 26.67 36.67 46.67 99.44 30.17 60.00 39.06 Knowledge 31.67 41.67 51.67 63.33 43.86 13.01 26.56 
+
+Qwen3-VL-32B-Instruct Baseline 26.67 31.67 33.33 67.78 36.89 142.79 45.68 GT Start 35.00 38.33 40.00 100.00 32.22 — 43.82 Knowledge 28.33 40.00 51.67 67.78 41.80 75.75 34.47 UI-TARS-1.5-7B Baseline 1.67 6.67 6.67 49.44 5.62 238.50 84.58 GT Start 13.33 13.33 13.33 56.67 23.53 247.46 71.89 Knowledge 16.67 16.67 18.33 45.00 37.04 250.66 90.34 identifying a valid grasp point (“where to grab”), and thus increasingly constrains performance as the interaction hori-zon grows. 
+
+Key Finding 6 (Heuristic Priors Help, but Do Not Fully Solve the Problem). Across all three models, the Knowl-edge setting yields the best overall results. With heuris-tic grounding, Qwen3-VL-32B-Instruct matches GPT-5 on this benchmark (Pass@3: 51.67%), suggesting that explicit grounding rules can narrow the gap between proprietary and open-source models on specific low-level operations. In ad-dition to improving Pass@k, heuristics reduce localization errors for GPT-5 and Qwen3-VL, whereas UI-TARS shows slightly higher spatial error, indicating that smaller models do not reliably translate textual heuristics into pixel-level action refinement. 
+
+4.3. RQ3: Visual Perception Analysis 
+
+Having established that drag-and-drop operations frequently fail even at the single-step level (RQ2), we now investi-gate whether perception deficits account for these failures. If models cannot accurately perceive block structures and spatial relationships, execution failures would be expected. We construct a Visual Perception Benchmark that decou-ples perception from action by posing static visual QA on Scratch screenshots. Based on the visual demands of ex-ecuting Scratch tasks, the benchmark targets three critical perception scenarios with 200 manually curated samples: de-tecting block connections , identifying block existence un-der occlusion , and reading field values (see Appendix H). 
+
+Key Finding 7 (Strong Static Perception Across SOTA Models). Table 3 shows that GPT-5 achieves 90.5% overall accuracy, with near-ceiling performance on field reading (98.4%). Among open models, Qwen3-VL-32B-Instruct reaches 77.5%, outperforming UI-TARS-1.5-7B (67.5%), especially on connection and existence checks. 
+
+Key Finding 8 (Perception is Not the Bottleneck in Prim-itive Mode). Despite high perception accuracy, drag-and-drop success remains much lower (e.g., GPT-5: 90.5% per-ception vs. 23.33% single-step drag). This gap indicates that, for current agents, the dominant limitation lies in trans-lating correctly perceived GUI state into precise execution. 
+
+Key Finding 9 (Execution Errors Dominate Even Un-der Near-Correct Understanding). Taken together with RQ2, these results establish a clear diagnostic: failures in primitive mode primarily arise from control execution, par-ticularly the fine-grained coordinate prediction required for reliable snapping and block manipulation, rather than from misreading blocks or their relationships.                        
+
+> Table 3. Performance on Visual Perception Benchmark. We evalu-ate the following three dimensions: Connection (detecting whether blocks are physically connected), Existence (identifying blocks under occlusion or visual clutter), and Field (reading parameter values with equivalence checking or exact string matching). Accu-racy is reported in percentages.
+> Model Connection Existence Field Overall UI-TARS-1.5-7B 61.7 63.7 78.4 67.5 Qwen3-VL-32B-Instruct 65.0 78.8 88.4 77.5 GPT-5 78.3 93.8 98.4 90.5
+
+5. Conclusion 
+
+In this paper, we introduced S CRATCH WORLD , the first benchmark for evaluating multimodal GUI agents on block-based programming. S CRATCH WORLD comprises 83 tasks across four categories, utilizing a dual-mode interaction protocol to disentangle reasoning from execution. Our ex-periments reveal a significant reasoning–acting gap: while current models excel at high-level planning, they fail at precise drag-and-drop manipulations. Targeted diagnostics isolate endpoint localization as the dominant bottleneck, while ruling out perception deficits. 8See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+Impact Statement 
+
+SCRATCH WORLD advances machine learning for computer science education by enabling AI agents to serve as interac-tive programming tutors. While this technology promises to democratize access to high-quality instruction, deploying it requires careful consideration. Developers must guard against student over-reliance, which could diminish inde-pendent problem-solving skills. Additionally, given the user demographic of Scratch, strict adherence to data privacy and content safety for minors is paramount. We emphasize that AI agents should scaffold the learning process rather than automate creativity. 
+
+References 
+
+Agashe, S., Han, J., Gan, S., Yang, J., Li, A., and Wang, X. E. Agent s: An open agentic framework that uses com-puters like a human. In Towards Agentic AI for Science: Hypothesis Generation, Comprehension, Quantification, and Validation , 2025a. Agashe, S., Wong, K., Tu, V., Yang, J., Li, A., and Wang, X. E. Agent s2: A compositional generalist-specialist framework for computer use agents. In Second Confer-ence on Language Modeling , 2025b. Anthropic. Introducing Claude Sonnet 4.5. https://ww w.anthropic.com/news/claude-sonnet-4 -5 , 2025a. Website, accessed January 28, 2026. Anthropic. Claude Code. https://www.anthropic. com/claude/code , 2025b. Accessed: 2026-01-21. Anysphere. Cursor: The AI code editor. https://www. cursor.com/ , 2023. Accessed: 2026-01-21. Austin, J., Odena, A., Nye, M., Bosma, M., Michalewski, H., et al. Program Synthesis with Large Language Models, August 2021. Ayres, P. and Cierniak, G. Split-Attention Effect , pp. 3172– 3175. Springer US, Boston, MA, 2012. ISBN 978-1-4419-1428-6. doi: 10.1007/978-1-4419-1428-6 19. URL https://doi.org/10.1007/978-1-441 9-1428-6_19 .Bai, S., Cai, Y., Chen, R., Chen, K., Chen, X., et al. Qwen3-vl technical report, 2025. URL https://arxiv.or g/abs/2511.21631 .Best, J. R. and Miller, P. H. A developmental perspective on executive function. Child Development , 81(6):1641– 1660, November 2010. ISSN 0009-3920. doi: 10.1111/j. 1467-8624.2010.01499.x. Bonatti, R., Zhao, D., Bonacci, F., Dupont, D., Abdali, S., Li, Y., Lu, Y., Wagle, J., Koishida, K., Bucker, A., Jang, L. K., and Hui, Z. Windows agent arena: Evaluating multi-modal OS agents at scale. In ICML , 2025. Bucaioni, A., Cicchetti, A., and Ciccozzi, F. Modelling in low-code development: A multi-vocal systematic review. 
+
+Software and Systems Modeling , 21(5):1959–1981, Octo-ber 2022. ISSN 1619-1374. doi: 10.1007/s10270-021-0 0964-0. ByteDance Seed. UI-TARS: Transformative AI for real-world screens. https://seed.bytedance.com /ui-tars , 2025. Website, accessed January 28, 2026. Chandler, P. and Sweller, J. Cognitive load theory and the format of instruction. Cognition and Instruction , 8 (4):293–332, 1991. ISSN 07370008, 1532690X. URL 
+
+http://www.jstor.org/stable/3233596 .Chen, M., Tworek, J., Jun, H., Yuan, Q., de Oliveira Pinto, H. P., et al. Evaluating large language models trained on code, 2021. URL https://arxiv.org/abs/21 07.03374 .Cui, C., Sun, T., Lin, M., Gao, T., Zhang, Y., Liu, J., Wang, X., Zhang, Z., Zhou, C., Liu, H., et al. Paddleocr 3.0 technical report. arXiv preprint arXiv:2507.05595 , 2025. DeepSeek-AI, Zhu, Q., Guo, D., Shao, Z., Yang, D., et al. DeepSeek-Coder-V2: Breaking the Barrier of Closed-Source Models in Code Intelligence, June 2024. DeepSeek-AI, Liu, A., Feng, B., Xue, B., Wang, B., et al. Deepseek-v3 technical report, 2025a. URL https: //arxiv.org/abs/2412.19437 .DeepSeek-AI, Liu, A., Mei, A., Lin, B., Xue, B., et al. Deepseek-v3.2: Pushing the frontier of open large lan-guage models, 2025b. URL https://arxiv.org/ abs/2512.02556 .Deng, X., Gu, Y., Zheng, B., Chen, S., Stevens, S., Wang, B., Sun, H., and Su, Y. Mind2Web: Towards a Generalist Agent for the Web. In NIPS , 2023. Donker, A. and Reitsma, P. Drag-and-drop errors in young children’s use of the mouse. Interacting with Computers ,19(2):257–266, 2007. ISSN 0953-5438. doi: https: //doi.org/10.1016/j.intcom.2006.05.008. URL https: //www.sciencedirect.com/science/arti cle/pii/S0953543806000968 . HCI Issues in Computer Games. Druga, S. and Ko, A. J. Scratch Copilot: Supporting Youth Creative Coding with AI. In Proceedings of the 24th Interaction Design and Children , pp. 140–153, June 2025. doi: 10.1145/3713043.3727051. 9See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+Fein, B., Oberm ¨uller, F., and Fraser, G. LitterBox+: An Extensible Framework for LLM-enhanced Scratch Static Code Analysis, October 2025. Garc ´ıa, V. Analysis of the learning process of computer programming logic in an 8-year-old elementary school student at home through the scratch program. Digital , 4 (1):69–91, 2024. ISSN 2673-6470. doi: 10.3390/digital4 010002. URL https://www.mdpi.com/2673-6 470/4/1/2 .GitHub. GitHub Copilot. https://github.com/fea tures/copilot , 2021. Accessed: 2026-01-21. Gomes, P. M. and Brito, M. A. Low-Code Development Platforms: A Descriptive Study. In 2022 17th Iberian Conference on Information Systems and Technologies (CISTI) , 2022. Google DeepMind. Gemini model thinking updates - March 2025. https://blog.google/innovation-a nd-ai/models-and-research/google-dee pmind/gemini-model-thinking-updates-m arch-2025/ , 2025. Website, accessed January 28, 2026. Hui, B., Yang, J., Cui, Z., Yang, J., Liu, D., et al. Qwen2.5-Coder Technical Report, November 2024. Jimenez, C. E., Yang, J., Wettig, A., Yao, S., Pei, K., et al. SWE-bench: Can language models resolve real-world github issues? In ICLR , 2024. Just, R., Jalali, D., and Ernst, M. D. Defects4j: A database of existing faults to enable controlled testing studies for java programs. In Proceedings of the 2014 international symposium on software testing and analysis , 2014. Kapoor, R., Butala, Y. P., Russak, M., Koh, J. Y., Kamble, K., AlShikh, W., and Salakhutdinov, R. OmniACT: A Dataset and Benchmark for Enabling Multimodal Gener-alist Autonomous Agents for Desktop and Web. In ECCV ,2025. Li, H., Tang, Y., Wang, S., and Guo, W. PatchPilot: A Cost-Efficient Software Engineering Agent with Early Attempts on Formal Verification, June 2025. Li, W., Bishop, W. E., Li, A., Rawles, C., Campbell-Ajala, F., Tyamagundlu, D., and Riva, O. On the effects of data scale on UI control agents. In NIPS , 2024. Lin, D., Koppel, J., Chen, A., and Solar-Lezama, A. Quixbugs: A multi-lingual program repair benchmark set based on the quixey challenge. In Proceedings Compan-ion of the 2017 ACM SIGPLAN international conference on systems, programming, languages, and applications: software for humanity , 2017. Lytle, N., Catet ´e, V., Boulden, D., Dong, Y., Houchins, J., et al. Use, Modify, Create: Comparing Computational Thinking Lesson Progressions for STEM Classes. In 
+
+Proceedings of the 2019 ACM Conference on Innovation and Technology in Computer Science Education , 2019. Microsoft Corporation. Playwright: Fast and reliable end-to-end testing for modern web apps. https://play wright.dev/ , 2020. Accessed: 2026-01-24. MIT Scratch Team. Scratch starter projects. https:// scratch.mit.edu/starter-projects , 2019. Website, accessed January 24, 2026. Nayak, S., Jian, X., Lin, K. Q., Rodriguez, J. A., Kalsi, M., et al. UI-vision: A desktop-centric GUI benchmark for visual perception and interaction. In ICML , 2025. Olausson, T. X., Inala, J. P., Wang, C., Gao, J., and Solar-Lezama, A. Is Self-Repair a Silver Bullet for Code Gen-eration?, February 2024. OpenAI. Introducing GPT-5. https://openai.com /index/introducing-gpt-5/ , 2025. Website, accessed January 28, 2026. Qin, Y., Ye, Y., Fang, J., Wang, H., Liang, S., et al. UI-TARS: Pioneering Automated GUI Interaction with Na-tive Agents, January 2025. Rasheed, Z., Sami, M. A., Kemell, K.-K., Waseem, M., Saari, M., Syst ¨a, K., and Abrahamsson, P. CodePori: Large-Scale System for Autonomous Software Develop-ment Using Multi-Agent Technology, September 2024. Rawles, C., Clinckemaillie, S., Chang, Y., Waltz, J., Lau, G., Fair, M., Li, A., Bishop, W. E., Li, W., Campbell-Ajala, F., Toyama, D. K., Berry, R. J., Tyamagundlu, D., Lillicrap, T. P., and Riva, O. Androidworld: A dynamic benchmarking environment for autonomous agents. In 
+
+ICLR , 2025. Resnick, M., Maloney, J., Monroy-Hern ´andez, A., Rusk, N., Eastmond, E., Brennan, K., Millner, A., Rosenbaum, E., Silver, J., Silverman, B., and Kafai, Y. Scratch: Program-ming for all. Commun. ACM , 52(11):60–67, November 2009. ISSN 0001-0782. doi: 10.1145/1592761.1592779. Rozi `ere, B., Gehring, J., Gloeckle, F., Sootla, S., Gat, I., Tan, X. E., Adi, Y., Liu, J., Sauvestre, R., Remez, T., Rapin, J., Kozhevnikov, A., Evtimov, I., Bitton, J., Bhatt, M., Ferrer, C. C., Grattafiori, A., Xiong, W., D ´efossez, A., Copet, J., Azhar, F., Touvron, H., Martin, L., Usunier, N., Scialom, T., and Synnaeve, G. Code Llama: Open Foundation Models for Code, February 2024. 10 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+S ´a, D., Guimar ˜aes, T., Abelha, A., and Santos, M. F. Low Code Approach for Business Analytics. Procedia Com-puter Science , 231:421–426, January 2024. ISSN 1877-0509. doi: 10.1016/j.procs.2023.12.228. Scratch Foundation. Scratch GUI. https://github.c om/scratchfoundation/scratch-gui , 2016a. GitHub repository, accessed January 24, 2026. Scratch Foundation. Scratch VM. https://github.c om/scratchfoundation/scratch-vm , 2016b. GitHub repository, accessed January 24, 2026. Si, Y., Qi, K., Li, D., Shi, H., and Zhang, J. Stitch: Step-by-step LLM Guided Tutoring for Scratch, October 2025. Swidan, A., Hermans, F., and Smit, M. Programming mis-conceptions for school students. In ICER , 2018. Ver ´on, J., P ´erez, C., Calero, C., Moraga, M., P ´erez, F., and Cetina, C. A comparative analysis of energy con-sumption between visual scripting models and C++ in unreal engine: Raising awareness on the importance of green MDD. In Proceedings of the ACM/IEEE 27th In-ternational Conference on Model Driven Engineering Languages and Systems , 2024. Wang, X., Li, B., Song, Y., Xu, F. F., Tang, X., et al. Open-Hands: An Open Platform for AI Software Developers as Generalist Agents, April 2025. Wang, Z. Z., Mao, J., Fried, D., and Neubig, G. Agent Workflow Memory, September 2024. Xie, T., Zhang, D., Chen, J., Li, X., Zhao, S., et al. Osworld: Benchmarking multimodal agents for open-ended tasks in real computer environments. In NIPS , 2024. Yang, J., Jimenez, C. E., Wettig, A., Lieret, K., Yao, S., Narasimhan, K., and Press, O. SWE-agent: Agent-Computer Interfaces Enable Automated Software Engi-neering, November 2024. Yao, S., Chen, H., Yang, J., and Narasimhan, K. Web-shop: Towards scalable real-world web interaction with grounded language agents. In NIPS , 2022. Zhang, K., Li, J., Li, G., Shi, X., and Jin, Z. CodeAgent: Enhancing Code Generation with Tool-Integrated Agent Systems for Real-World Repo-level Coding Challenges, August 2024. Zheng, Q., Xia, X., Zou, X., Dong, Y., Wang, S., Xue, Y., Wang, Z., Shen, L., Wang, A., Li, Y., Su, T., Yang, Z., and Tang, J. CodeGeeX: A Pre-Trained Model for Code Generation with Multilingual Benchmarking on HumanEval-X, July 2024. Zhou, S., Xu, F. F., Zhu, H., Zhou, X., Lo, R., Sridhar, A., Cheng, X., Ou, T., Bisk, Y., Fried, D., Alon, U., and Neubig, G. Webarena: A realistic web environment for building autonomous agents. In ICLR , 2024. 11 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+Appendix Contents 
+
+• A. Ablation Study on Observation Representations • B. Details of Selected Source Projects • C. Representative Task Examples • D. Detailed Action Space of Primitive Mode • E. Detailed Action Space of Composite Mode • F. Example of Composite Mode Observation • G. Single-Step Drag-and-Drop Task Examples • H. Visual Perception Task Examples • I. Results for Single-Step Drag Benchmark in Task Categories • J. BFS-Based Feasible Region Computation • K. Heuristics Hints for Drag-and-Drop Tasks • L. Project Serialization Example • M. Example of Element List Observation • N. Example of Evaluation Script • O. Prompts for Semi-Automated Generation 
+
+– O.1 Task Idea Generation: Create 
+
+– O.2 Task Idea Generation: Debug and Extend 
+
+– O.3 Evaluation Script Generation • P. System Prompts for Two Interaction Modes 
+
+– P.1 Primitive Mode System Prompt 
+
+– P.2 Composite Mode System Prompt • Q. Element List Construction and OCR–DOM Fusion • R. Use of LLMs 
+
+12 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+A. Ablation Study on Observation Representations 
+
+In the primary experimental design of this study, the primitive mode provided agents with screenshots and a structured element list as the observation space. An analysis of failure trajectories identified a systematic interaction defect in which agents frequently relied on indices from the element list to execute drag-and-drop operations. This behavior led to imprecise positioning because index-based placement consistently targeted the geometric center of the destination block. Although the Scratch environment supports automatic snapping, placement at the geometric center often fails to coincide with the specific connection regions required to activate this mechanism. Aiming at preserve a clear distinction from the composite mode, which implicitly incorporates such low-level optimizations, we didn’t introduce heuristic offsets to facilitate snapping. To further examine the trade-off between the semantic indexing support provided by the element list and its propensity to induce imprecise interaction behaviors, an ablation study was conducted. In this setting, the element list was removed, and models were required to complete tasks based solely on screenshots. Experiments were conducted on 24 representative samples spanning four task categories. As reported in Table 4, the removal of textual modality support resulted in a reduction in success rates across both models, with GPT-5 decreasing from 16.67 percent to 8.33 percent. These results indicate that, despite challenges related to execution-level alignment, structured textual observations remain essential auxiliary information for enabling models to interpret complex graphical user interface environments, as current multimodal models continue to exhibit limitations in accurate program construction based solely on visual input.      
+
+> Table 4. Ablation study on observation representations in primitive mode. We compare agent performance when provided with Screenshots only versus Element List + Screenshot (visual input augmented with textual element metadata). Results are reported on 24 representative samples across four task categories. Success rates are in percentages (%). Despite challenges with index-based positioning, structured textual observations remain essential for GUI understanding.
+
+Model Context Mode Overall Create Debug Extend Compute GPT-5 Screenshots 8.33 0.00 33.33 0.00 0.00 Element List + Screenshot 16.67 33.33 33.33 0.00 0.00 Gemini-2.5-Pro Screenshots 0.00 0.00 0.00 0.00 0.00 Element List + Screenshot 8.33 0.00 33.33 0.00 0.00 
+
+B. Details of Selected Source Projects 
+
+In this section, we list the 8 official Scratch starter projects that served as the foundation for the Debug and Extend tasks in SCRATCH WORLD . These projects were selected to ensure coverage of diverse programming concepts (e.g., broadcasting, cloning, physics simulation) and project categories (Games, Animations, etc.). See Table 5 for the complete list and key concepts.  
+
+> Table 5. Eight official Scratch starter projects used to seed Debug and Extend tasks in S CRATCH WORLD , with derived task counts and key concepts.
+
+Project Name Tasks Derived Key Concepts 
+
+X and Y Coordinates 2 Coordinates, Input, Debugging Make It Fly 5 Gravity, Scrolling, Events Math Game 4 Arithmetic, Broadcasting, Variables Maze Starter 10 Collision detection, Motion, Control Make a Mouse Trail 3 Cloning, Mouse Sensing, Effects Dance Party 1 Costumes, Sound, Synchronization Pong Starter 5 Physics loop, Collision detection Simple Circuit Simulation 8 Logic, States, Interactive UI 
+
+> Note: Click on the project names to visit the official Scratch pages.
+
+13 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+C. Representative Task Examples 
+
+In this section, we provide detailed examples for each of the four task categories in S CRATCH WORLD : Create, Debug, Extend, and Compute. For each category, we showcase two representative tasks, including their instructions, initial states, golden solutions, and evaluation test cases. 
+
+Category 1: Create Tasks Type: Create 
+
+Instruction: Starting from an empty Scratch project with a single default sprite named ’balloon’, you should complete the following: 1) Create a variable named ’score’ and initialize it to 0 when the green flag is clicked. 2) Each time the balloon is clicked, increase ’score’ by 1 and immediately move the balloon to a random position on the stage.  
+
+> (a) Initial Project State (b) Golden Project State
+
+Test Cases: 1) Verify ’balloon’ sprite and ’score’ variable exist. 2) Click ’balloon’ 3 times: verify ’score’ increments each time. 3) Verify ’balloon’ position changes (random jump) after each click. 
+
+Type: Create 
+
+Instruction: Starting from an empty Scratch project with a single default sprite named ’jellyfish’, you should complete the following: 1) When the green flag is clicked, hide the jellyfish sprite. 2) Continuously create clones of the jellyfish at random X positions along the bottom. 3) For each clone, make it rise upward at a constant speed until it reaches the top edge, then delete the clone.  
+
+> (a) Initial Project State (b) Golden Project State
+
+Test Cases: 1) Verify ’jellyfish’ sprite exists. 2) Creation: At least 3 clones created periodically. 3) Motion: At least 2 clones spawn near bottom and rise ≥ 50px. 4) Cleanup: At least 1 clone deleted near top edge. 5) Randomness: Clones spawn at different X coordinates. 
+
+Category 2: Debug Tasks Type: Debug 
+
+Instruction: This is a basic Pong-style game where a ball bounces around the screen and players control a paddle that follows the mouse. The ball changes direction when hitting the paddle and the game ends when the ball touches red areas. But now in this Pong Game, the Paddle’s movement is inconsistent with the mouse movement. Please help me fix this issue. 14 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch  
+
+> (a) Initial Project State (b) Golden Project State
+
+Test Cases: 1) Verify ’Paddle’ sprite exists. 2) Move mouse to x = -200, -100, 0, 100, 200: Verify Paddle’s x-position follows within 10px tolerance. 
+
+Type: Debug 
+
+Instruction: This is an interactive circuit simulation where users can drag and connect a battery, switch, and lightbulb to complete an electrical circuit. When all components are properly connected and the switch is turned on, the lightbulb illuminates with sound effects. But now in this Simple Circuit project, even when ’ON or OFF’ is ON and ’connections complete’ equals 3, the Lightbulb does not turn on and remains in its OFF visual state. Please help me fix this issue so that the lightbulb turns on when the circuit is complete and the switch is ON.  
+
+> (a) Initial Project State (b) Golden Project State
+
+Test Cases: 1) Set ’ON or OFF’=ON, ’connections’=2 → Check Lightbulb stays OFF. 2) Set ’ON or OFF’=ON, ’connections’=3 → Check Lightbulb turns ON. 3) Set ’ON or OFF’=OFF, ’connections’=3 → Check Lightbulb stays OFF. 
+
+Category 3: Extend Tasks Type: Extend 
+
+Instruction: This is a simple flying game where a cat sprite can be controlled with arrow keys to fly up and down while buildings scroll continuously across the screen from right to left, creating a side-scrolling flight experience. We want to add a feature where collecting a power-up item slows down the buildings. The project already includes a ’Power Up’ sprite and a ‘glideDuration‘ variable to control the ’Buildings’ sprite’s speed. Please program the ’Power Up’ sprite to generate a clone every few seconds at a random y-position on the right side of the screen that moves toward the left. When the cat touches a ’Power Up’ clone, delete the clone and increase the ‘glideDuration‘ of the buildings to slow them down. 15 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch  
+
+> (a) Initial Project State (b) Golden Project State
+
+Test Cases: 1) ’Power Up’ clones spawn on right and move left. 2) Clone deleted/hidden upon touching ’Cat’. 3) Building scroll speed decreases (glide duration increases) after collecting 2 items. 4) Periodic spawn (at least 2 clones in set time). 5) Random spawn Y position. 
+
+Type: Extend 
+
+Instruction: This is a basic maze navigation game where players control a ball sprite using arrow keys to move through a maze. The ball bounces off blue walls and the goal is to reach a target sprite that displays ’You win!’ when touched. Create a clone-based trail effect. In the Ball sprite, periodically create clones while moving. In ’when I start as a clone’, set the clone’s ghost effect to 0, then in a repeat loop increase ghost by a small amount until the clone becomes invisible, then delete the clone. Ensure clones do not affect gameplay by spacing clone creation.  
+
+> (a) Initial Project State (b) Golden Project State
+
+Test Cases: 1) Clones created while Ball moves. 2) Ghost effect increases over time (fade out). 3) Clones self-delete (at least 1 deleted). 4) Active clone count ≤ 30 to prevent overflow. 
+
+Category 4: Compute Tasks Type: Compute 
+
+Instruction: Complete the given Scratch starter project that asks the user to input 5 numbers one by one, adds them to a list, sorts the list in ascending order, and then says the sorted numbers joined by spaces.  
+
+> (a) Initial Project State (b) Golden Project State
+
+16 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+Test Cases: 1) Input: [5, 1, 4, 2, 8] → Output: ’1 2 4 5 8’. 2) Input: [1, 2, 3, 4, 5] → Output: ’1 2 3 4 5’. 3) Input: [5, 4, 3, 2, 1] → Output: ’1 2 3 4 5’. 
+
+Type: Compute 
+
+Instruction: Complete the given Scratch starter project that takes a string as input and checks if it is a palindrome. The sprite should say ’True’ if it is, and ’False’ otherwise.  
+
+> (a) Initial Project State (b) Golden Project State
+
+Test Cases: 1) Input: ’radar’ → Output: ’True’. 2) Input: ’hello’ → Output: ’False’. 3) Input: ’12321’ → Output: ’True’. 17 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+D. Detailed Action Space of Primitive Mode 
+
+This section provides the complete specification of the primitive action space Aprim used in S CRATCH WORLD . The action space consists of low-level GUI primitives that mirror human operations, including mouse interactions (click, drag-and-drop, scroll) and keyboard operations (type, key, hotkey). Each action supports flexible parameter formats to accommodate both coordinate-based and index-based targeting strategies. Figure 3 presents the formal JSON schema defining all available actions, and their required parameters.      
+
+> {"envelope": {"api": "string", "args": "object"}, "actions": [{"name":"click","args":{"oneOf":[{"x":"number","y":"number"},{"index":"int>=0"}],"button?":"enum(left,right, middle)"}}, {"name":"double_click","args":{"oneOf":[{"x":"number","y":"number"},{"index":"int>=0"}],"button?":"enum(left, right,middle)"}}, {"name":"drag_and_drop","args":{"oneOf":[{"start_x":"number","start_y":"number","end_x":"number","end_y":" number"},{"start_index":"int>=0","end_index":"int>=0"},{"start_x":"number","start_y":"number","end_index":" int>=0"},{"start_index":"int>=0","end_x":"number","end_y":"number"}],"duration?":"number>=0"}}, {"name":"scroll","args":{"direction":"enum(up,down,left,right)","amount?":"number>=1","at?":{"oneOf":[{"x":" number","y":"number"},{"index":"int>=0"},"null"]}}}, {"name":"type","args":{"text":"string"}}, {"name":"key","args":{"key":"string"}}, {"name":"hotkey","args":{"keys":"string[2..]"}}, {"name":"done","args":{}}, {"name":"failed","args":{}} ]}
+
+Figure 3. JSON schema of the primitive action space Aprim in S CRATCH WORLD . This specification defines low-level GUI primitives that agents must execute in primitive mode. The action space includes: mouse operations ( click , double click , drag and drop ,
+
+scroll ) with coordinate-based or index-based targeting; keyboard operations ( type , key , hotkey ); and task completion signals (done , failed ). 
+
+E. Detailed Action Space of Composite Mode 
+
+This section provides the complete specification of the composite action space Acomp used in S CRATCH WORLD . Unlike primitive mode, composite mode exposes high-level semantic APIs that abstract away GUI coordinates and drag-and-drop mechanics. Agents manipulate Scratch programs through operations such as adding blocks, connecting blocks with specific placement strategies, setting block field values, and deleting blocks. This abstraction isolates program logic from visuomotor control, enabling pure evaluation of reasoning capabilities. Figure 4 presents the formal JSON schema defining all available APIs, and their parameters.      
+
+> {"envelope": {"api": "string", "args": "object"}, "apis": [{"name":"select_sprite","args":{"name":"string"}}, {"name":"select_stage","args":{}}, {"name":"add_block","args":{"blockType":"string","creation?":{"variableName?":"string","listName?":"string "}}}, {"name":"connect_blocks","args":{"sourceBlockIndex":"int","targetBlockIndex":"int","placement":{"kind":"enum ","inputName?":"string"}}}, {"name":"set_block_field","args":{"blockIndex":"int","fieldName":"string","value":"any"}}, {"name":"delete_block","args":{"blockIndex":"int"}}, {"name":"done","args":{}}, {"name":"failed","args":{}} ]}
+
+Figure 4. JSON schema of the composite action space Acomp in S CRATCH WORLD . This specification defines high-level semantic APIs that agents use in composite mode to manipulate Scratch programs without visual grounding. The action space includes: target selection (select sprite , select stage ), block manipulation ( add block with optional variable/list creation, connect blocks with placement strategies, set block field for parameter configuration, delete block ), and task completion signals. 
+
+18 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+F. Example of Composite Mode Observation 
+
+This section illustrates the observation format provided to agents in composite mode. As described in Section 3.3, composite mode replaces visual screenshots with structured textual representations that capture the current state of the Scratch program. The observation includes environmental context (available variables, lists, and editing targets) and a pseudocode representation of the block structure with indexed blocks for manipulation. Figure 5 shows a concrete example demonstrating how a simple Scratch program (a sprite moving with rotation style control) is represented in this textual format.                                       
+
+> ## Current Editing Target Sprite1 ## Target Variables In Scope name: my variable, scope: all ## Target Lists In Scope None ## All Available Targets Stage, Sprite1 ## Blocks Pseudocode #1 [top] event_whenflagclicked #2 motion_setrotationstyle -field STYLE: "left-right" {choices: {"styleOptions":["left-right","don’t rotate","all around"]}} #3 control_forever -SUBSTACK: #4 motion_movesteps -input STEPS: 10 (math_number) #5 motion_ifonedgebounce
+
+Figure 5. Example of the composite mode observation. It includes environmental context (variables, lists, and targets) and the block structure (pseudocode). 
+
+G. Single-Step Drag-and-Drop Task Examples 
+
+Table 7 presents representative examples from the Single-Step Drag Benchmark used in RQ2. Each row shows one atomic drag-and-drop task with its type, instruction, and the corresponding Scratch canvas screenshot. 19 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+Table 7. Representative examples from the Single-Step Drag Benchmark used in RQ2 to isolate drag-and-drop precision. The benchmark contains 60 atomic tasks spanning two interaction types: Direct Connection (vertically stacking command blocks by aligning top/bottom connection points) and Slot Insertion (inserting reporter/boolean blocks into input slots within command blocks). Each row shows one task with its type, natural language instruction describing the required drag operation, and the corresponding Scratch canvas screenshot showing the initial block arrangement. 
+
+Type Instruction Screenshot 
+
+Direct Connection 
+
+Drag the ’when green flag clicked’ block and place it directly above the ’set rotation style’ block to connect them. 
+
+Direct Connection 
+
+Drag the stack starting with the ’if then’ block and insert it between the first ’if then’ block and the second ’if then’ block inside the ’forever’ block. 
+
+Slot Insertion 
+
+Drag the ’say for 2 seconds’ block and connect it into the substack of the ’if then’ block. 
+
+Slot Insertion 
+
+Drag the ’glideTime’ data variable block from the flyout and connect it into the first value input slot of the ’glide secs to xy’ block. 
+
+20 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+H. Visual Perception Task Examples 
+
+Table 8 presents representative examples from the static visual perception benchmark used in RQ3. Each row illustrates one of the three evaluation dimensions with the corresponding question, screenshot, and ground-truth answer. 
+
+Table 8. Representative examples from the static Visual Perception QA Benchmark used in RQ3 to diagnose perception deficits. The benchmark contains 200 manually curated samples targeting three recurring error patterns observed in failure trajectories: Connection 
+
+(false positives in detecting block connections), Existence (false negatives when blocks are occluded or partially visible), and Field Value 
+
+(reading errors for dropdown menus and numeric inputs, evaluated with both equivalence checking and exact string matching). Each row shows one example with its evaluation dimension, the question posed to the model, the Scratch canvas screenshot, and the ground-truth answer (YES/NO for binary questions, exact text for field values). 
+
+Type Question Screenshot Answer 
+
+Connection 
+
+Is the bottommost ‘if then‘ block directly connected to the block directly above it? 
+
+NO 
+
+Existence Is there any ‘if then else‘ block that is visible in the canvas? YES 
+
+Field Value (Equivalence) 
+
+Is the dropdown field in the ‘key [key] pressed? ‘ block set to ‘space‘ YES 
+
+Field Value (Exact Match) 
+
+What number is shown in the left numeric field of the rightmost ‘letter of‘ block? 
+
+1
+
+21 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+I. Results for Single-Step Drag Benchmark in Task Categories 
+
+This section provides a detailed breakdown of the Single-Step Drag Benchmark results (reported in aggregate in Table 2) by interaction type. We distinguish between two fundamental drag-and-drop scenarios in Scratch: Direct Connection (T1), which involves vertically stacking command blocks by aligning their connection points, and Slot Insertion (T2), which involves inserting reporter or boolean blocks into specific input slots within command blocks. This decomposition reveals that models exhibit different performance patterns across interaction types, with slot insertion generally showing higher endpoint component accuracy but lower start-point accuracy compared to direct connection. Table 9 presents the complete results. 
+
+Table 9. Detailed breakdown of Single-Step Drag Benchmark results by interaction type. T1 (Direct Connection) involves vertically stacking command blocks by connecting their top/bottom edges. T2 (Slot Insertion) involves inserting reporter or boolean blocks into specific input slots within command blocks.                                                                                                                                                    
+
+> T1 (Direct Connection) T2 (Slot Insertion) Success Rate (%) Comp. Acc. (%) Spatial Err. (px) Success Rate (%) Comp. Acc. (%) Spatial Err. (px) Model Setting @1 @2 @3 Start End Start End @1 @2 @3 Start End Start End GPT-5 Baseline 23.33 26.67 33.33 74.44 22.39 18.50 33.63 23.33 30.00 36.67 58.89 45.28 34.42 40.40 GT Start 6.67 13.33 20.00 100.00 10.00 —40.61 46.67 60.00 73.33 98.89 50.56 60.00 36.20 Knowledge 36.67 40.00 50.00 74.44 38.81 9.53 28.25 26.67 43.33 53.33 52.22 51.06 14.88 23.55 Qwen3-VL-32B-Instruct Baseline 20.00 20.00 23.33 73.33 22.73 25.72 44.41 33.33 43.33 43.33 62.22 53.57 225.43 48.18 GT Start 16.67 16.67 16.67 100.00 12.22 —51.01 53.33 60.00 63.33 100.00 52.22 —30.62 Knowledge 20.00 33.33 43.33 68.89 32.26 23.29 43.80 36.67 46.67 60.00 66.67 51.67 124.71 20.95 UI-TARS-1.5-7B Baseline 3.33 6.67 6.67 61.11 3.64 150.50 116.46 0.00 6.67 6.67 37.78 8.82 293.49 30.07 GT Start 6.67 6.67 6.67 70.00 9.52 93.13 86.74 20.00 20.00 20.00 43.33 46.15 329.16 31.59 Knowledge 10.00 10.00 13.33 52.22 19.15 226.48 109.07 23.33 23.33 23.33 37.78 61.76 269.22 35.59
+
+J. BFS-Based Feasible Region Computation 
+
+To rigorously quantify localization errors in the Single-Step Drag Benchmark, we developed a BFS-based algorithm to compute the feasible regions for valid start and end positions in each drag-and-drop task. This automated procedure enables precise evaluation of model predictions by identifying all pixel coordinates that yield successful drag operations. 
+
+Computing Feasible Start Positions. For each task, we first retrieve the opcode and unique identifier of the block to be dragged, which allows us to determine its precise location on the canvas or in the flyout (block palette). Using heuristic rules, we compute an initial seed point, typically the geometric center of the block’s bounding box. We then perform a trial drag operation: for blocks in the flyout, we drag toward the canvas; for blocks already on the canvas, we drag toward a location far from their current position. If the block’s position changes after the drag, the seed point is marked as feasible. If the seed point fails (i.e., the block does not move), we systematically explore neighboring pixels in an expanding radius until a feasible point is identified. Once a feasible start point is found, we apply BFS to discover all contiguous feasible start positions. Starting from the initial feasible point, BFS expands outward by testing each neighboring pixel (4-directional connectivity) and marking it as feasible if a drag operation from that coordinate successfully displaces the block. This process continues until no additional feasible neighbors can be found, yielding a complete connected component of valid start coordinates. 
+
+Computing Feasible End Positions. To determine feasible end positions, we fix a known feasible start point and compute the set of end coordinates that result in successful block connections. Using heuristic rules and the identifier of the target block (the block to which we intend to connect), we calculate a seed end point based on the expected connection geometry (e.g., snapping distance, alignment offset). We then perform BFS centered at this seed point, testing each candidate end coordinate by executing a full drag-and-drop operation from the fixed start position to the candidate end position. For each candidate end point, we validate the connection outcome by querying the Scratch VM runtime state. Specifically, we designed task-specific verification rules that inspect the parent-child relationships, input slot occupancy, or stack ordering in the block AST to determine whether the drag operation successfully established the intended connection. A candidate end point is marked as feasible if and only if the verification rule confirms a correct connection. BFS continues to expand until all feasible end coordinates in the neighborhood are identified. 22 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+K. Heuristics Hints for Drag-and-Drop Tasks 
+
+In the Knowledge setting of Single-Step Drag Benchmark task, we provide the following heuristic hints (Figure 6): 
+
+### Experience & Heuristics for Coordinate Prediction 1. Start Point Target: The visible body of the Source Block (or Top Block if moving a stack). Heuristic: Set start_point near the Left Edge (e.g., 10-20px from the left). Note: Grabbing the Top Block prevents splitting the stack; grabbing the left side facilitates alignment. 2. End Point - Vertical Stacking (Command Blocks) Context: Connecting single blocks or entire stacks vertically. Appending (Bottom): - Align X with Target’s Left Edge. - Set Y 15-20px below Target’s Bottom Edge. Prepending (Top): - Align X with Target’s Left Edge. - Height Adjustment: Set Y to (Target_Top_Y - Source_Height). - Reasoning: Since the cursor holds the top of the source stack, lift it by its total height so its bottom connects with the target’s top. 3. End Point - Nesting (Inside C-Blocks) Context: Placing a block/stack inside container blocks like "Forever". X: Indent 15-20px to the right of Target’s Left Edge. Y: Position 15-20px below the bottom edge of the C-block’s "top arm" (inside the mouth) .4. End Point - Parameter Insertion (Values & Booleans) Context: Dropping round (Reporter) or hexagonal (Boolean) blocks into input slots. Target: The specific empty input slot on the Target Block. Heuristic: Set end_point to the geometric center of that target input slot. 
+
+Figure 6. Heuristics and experience rules provided to the model for coordinate prediction. These rules guide the calculation of precise start and end points for different drag-and-drop scenarios. 
+
+L. Project Serialization Example 
+
+To enable LLMs to process graphical Scratch projects provided in the .sb3 format, we serialize them into a structured text format. This representation preserves the project’s hierarchical structure (Stage vs. Sprites), metadata (variables, costumes, sounds), and logic scripts (represented as pseudo-code). Figure 7 shows an example of a serialized project: 
+
+M. Example of Element List Observation 
+
+This section illustrates the structured element list E provided to agents in primitive mode observation space. As described in Section 3.3, to assist visual grounding and mitigate pixel-level ambiguity, we augment raw screenshots with an indexed textual enumeration of interactive UI elements. This hybrid representation combines visual information with structured metadata, enabling agents to reference elements either by pixel coordinates or by index. The element list is constructed by merging DOM elements with OCR-detected text regions (see Appendix Q for the fusion algorithm). Figure 8 shows a concrete example of the element list format. 23 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+## Stage (Stage) ### Scripts: *No scripts found* ### Variables: **my variable**: 0### Costumes: **backdrop1** (svg), **Xy-grid** (png) ### Sounds: **pop** (wav) ## Sprite1 (Sprite) ### Scripts: ‘‘‘ when green flag clicked go to x: 0 y: 0set size to 50% broadcast {BROADCAST_OPTION} ‘‘‘ ‘‘‘ when I receive enter mode stop other scripts in sprite [sensing_setdragmode] ask join join I am at X: [xpos] Y: [ypos]. Change X by? and wait change x by [sensing_answer] ... (Ask and Change Y logic omitted for brevity) broadcast {BROADCAST_OPTION} ‘‘‘ ‘‘‘ when I receive drag mode [sensing_setdragmode] forever say join join X: round [motion_xposition] join Y: round [motion_yposition] ‘‘‘ ### Variables: *No variables* ### Costumes: **costume1** (svg), **costume2** (svg) ### Sounds: **Meow** (wav) ## Button (Sprite) ### Scripts: ‘‘‘ when this sprite clicked broadcast {BROADCAST_OPTION} hide ‘‘‘ ‘‘‘ when green flag clicked go to x: -187 y: -150 ‘‘‘ ... (Other scripts omitted) 
+
+Figure 7. An example of the serialized textual representation of a Scratch project used in S CRATCH WORLD task construction. 
+
+index type text position 0 inputs value: Scratch Project placeholder: Project title... (412, 8) 184x33 1 inputs value: Sprite1 placeholder: Name (1043, 295) 128x32 3 inputs value: 0 placeholder: y (1131, 335) 48x32 4 sprites Sprite1 duplicate export delete (1039, 388) 64x64 6 blocks event_whenflagclicked on canvas (310, 81) 99x52 7 blocks motion_gotoxy on canvas (310, 124) 128x40 ... 33 blocks motion_movesteps (68, 137) 104x40 43 blocks motion_pointtowards (68, 536) 180x40 44 category_menu Motion (1, 93) 60x45 45 category_menu Looks (1, 138) 60x45 ... 53 text ScRATCH (15, 10) 70x26 54 text Settings (136, 12) 56x21 55 text File (256, 14) 28x17 56 text Edit (351, 15) 29x16 ... 
+
+Figure 8. An example of the structured element list E provided to agents in primitive mode observation space. 
+
+N. Example of Evaluation Script 
+
+Figure 9 shows a simplified example of the JavaScript evaluation logic injected into the browser. It demonstrates how we interface with the Scratch VM to trigger events (e.g., Green Flag) and verify internal states (e.g., sprite coordinates). 24 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+// Task: Starting from an empty Scratch project with a single default sprite named ’Sprite1’, you should complete the following: 1) When the green flag is clicked, use ’ask and wait’ to ask ’What is your name?’. 2) After the user enters an answer, make Sprite1 say exactly the same text they typed for 2 seconds. 
+
+return (async function (vm) {
+
+const timeoutMs = 25000; 
+
+const spriteName = ’Sprite1’; 
+
+const testAnswer = ’TestUser123’; 
+
+// Tracking partial progress 
+
+const results = {detectsQuestion: false, providesAnswer: false, detectsEcho: false, }; 
+
+let timeoutTimer = null; 
+
+try {
+
+await new Promise((resolve, reject) => {
+
+// Set up timeout guard 
+
+timeoutTimer = setTimeout(() => reject(’Timeout’), timeoutMs); 
+
+// Listen for ’SAY’ events from the VM runtime 
+
+vm.runtime.on(’SAY’, (target, type, text) => {
+
+if (!target || !target.sprite || target.sprite.name !== spriteName) return ;
+
+const textStr = String(text || ’’).toLowerCase(); 
+
+// Step 1: Detect if the sprite asks "name" 
+
+if (!results.detectsQuestion && textStr.includes(’name’) && textStr.includes(’?’)) {results.detectsQuestion = true; 
+
+// Simulate user typing an answer after a short delay 
+
+setTimeout(() => {vm.runtime.emit(’ANSWER’, testAnswer); results.providesAnswer = true; }, 500); 
+
+return ;}
+
+// Step 2: Detect if the sprite says the answer back 
+
+if (results.providesAnswer && String(text) === testAnswer) {results.detectsEcho = true; resolve(); // Test Passed! 
+
+}}); 
+
+// Start the test 
+
+vm.greenFlag(); }); 
+
+// Calculate Score 
+
+const passedTests = Object.values(results).filter(Boolean).length; 
+
+const totalTests = Object.keys(results).length; 
+
+return {success: passedTests === totalTests, score: totalTests ? passedTests / totalTests : 0, details: results }; } catch (err) {
+
+return { success: false, reason: err.toString() }; } finally {
+
+if (timeoutTimer) clearTimeout(timeoutTimer); }})(window.vm); 
+
+Figure 9. An example of the execution-based evaluation script used in S CRATCH WORLD for functional verification. 
+
+O. Prompts for Semi-Automated Generation 
+
+To ensure the diversity and quality of the tasks in S CRATCH WORLD , we utilized LLMs to brainstorm task ideas and generate initial evaluation scripts. The raw outputs were refined by human experts to ensure rigor and solvability, particularly preventing hallucinated block types or logic errors. 25 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+O.1. Task Idea Generation: Create 
+
+For Create tasks, which require constructing projects from scratch, we used the prompt in Figure 10 to generate distinct task ideas and detailed requirements, aligned with available Scratch blocks. 
+
+### System / Role This project is a Scratch Benchmark, containing different task types: build, fix, modify, and algorithm. - **Create tasks**: Involves building a new project from scratch. Your job is to generate new tasks of this type: **create**. Create tasks require the agent to build a project based on the instruction from an empty project with only a default sprite: "Sprite1" (the cat). ### Instructions 1. **Avoid Duplication**: Review the provided overview of existing build tasks to ensure novelty. 2. **Feasibility**: Refer to the standard Scratch block documentation to ensure tasks are feasible. 3. **Format**: Generate configuration files for each task including: - Task Name - Detailed Instruction - Difficulty Level estimate ### Examples (Instructions Only) - "Starting from an empty Scratch project with a single default sprite named ’Sprite1’, you should complete the following: 1) When the green flag is clicked, use ’ask and wait’ to ask ’What is your name?’. 2) After the user enters an answer, make Sprite1 say exactly the same text they typed for 2 seconds." - "Starting from a Scratch project with a single default sprite named ’Sprite1’ and 3 backdrops, you should complete the following: 1) When the green flag is clicked, make the stage automatically switch to the next backdrop about every 2 seconds. 2) Ensure the backdrop switching loops forever." - "Starting from an empty Scratch project with a single default sprite named ’balloon’, you should complete the following: 1) Create a variable named ’score’ and initialize it to 0 when the green flag is clicked. 2) Each time the balloon is clicked, increase ’score’ by 1 and immediately move the balloon to a random position on the stage." Now, generate five new create tasks. 
+
+Figure 10. Prompt template used for generating Create task ideas during the Expansion stage of benchmark construction. 
+
+O.2. Task Idea Generation: Debug and Extend 
+
+For Debug and Extend tasks, we leveraged existing Scratch projects as seeds. The prompt in Figure 11 guided the LLM to propose bug injection strategies (for Debug) or feature extensions (for Extend) based on serialized project code. 
+
+### System / Role Your job is to act as an expert task generator. ### Task Description Analyze the provided project (Project ID: {project_id}). The project contains: 1. Project Metadata: Fundamental information about the project. 2. Pseudocode: A text-based representation of the block logic. **Goal:** 1. Offer 5 ideas on how to "destroy" this project to form **Debug tasks** (introduce logical errors, missing blocks, etc.). 2. Offer 5 ideas for modifying the original functional project to create **Extend tasks** (add features, change behaviors). ### Output Requirements Output a markdown file with the following structure: - **Idea Name**: A unique, descriptive name. - **Description**: Detailed explanation of the bug (for Debug) or feature (for Extend). 
+
+Figure 11. Prompt template used for generating Debug and Extend task ideas during the Expansion stage. 
+
+O.3. Evaluation Script Generation 
+
+After human annotators finalized the task definitions, we used the prompt in Figure 12 to generate the initial draft of the JavaScript-based evaluation scripts. 26 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+### System / Role Your job is to generate evaluation functions for Scratch tasks. These functions validate whether a user’s submission (a Scratch project) meets the task requirements. ### Task Information You are generating an evaluation function for the task: ‘{task_name}‘. Task Configuration: ‘{task_config_json}‘ ### Environment & Tools - The evaluation function should be a JavaScript file running in a browser environment with access to a global ‘ vm‘ (Virtual Machine) object. - **Utility Library**: You have access to ‘EvaluationUtils‘ validation helpers (e.g., checking sprite properties, monitoring events, simulating user input). ### Instructions 1. **Structure**: - The evaluation should consist of multiple **partial tests** (assertions). - Use ‘cleanupAndFinish(true, resolve)‘ to mark success. 2. **Logic Check**: - Ensure the script validates the *functional outcome* (e.g., "Sprite moves to X=100") rather than just static block presence. ### Example Logic (Say Listener) If you need to listen for a sprite saying something: ‘‘‘js vm.runtime.on(’SAY’, (target, type, text) => {if (target.sprite.name === ’Sprite1’ && text.includes(’Correct’)) {console.log(’Passed check!’); cleanupAndFinish(true, resolve); }}); ‘‘‘ 
+
+Figure 12. Prompt template used for generating JavaScript evaluation scripts during the Expansion stage. 
+
+P. System Prompts for Two Interaction Modes 
+
+This section provides the complete system prompts used for both interaction modes in S CRATCH WORLD . These prompts define the action spaces, response formats, and execution rules that guide agent behavior. 
+
+P.1. Primitive Mode System Prompt 
+
+The following system prompt (Figure 13) is used for primitive mode, where agents interact with the Scratch GUI through low-level UI actions such as click, drag-and-drop, and type. 27 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+You are an AI assistant that controls the Scratch programming environment using low-level UI actions. Your task is: {INSTRUCTION} ## Low-Level Actions Catalog Actions (api + args): - click: args { x?: number, y?: number, index?: number, button?: ’left’|’right’|’middle’ }- double_click: args { x?: number, y?: number, index?: number }- drag_and_drop: args { start_x?: number, start_y?: number, end_x?: number, end_y?: number, start_index?: number, end_index?: number, duration?: number }- type: args { text: string }- key: args { key: string }- hotkey: args { keys: string[] }- scroll: args { direction: ’up’|’down’|’left’|’right’, amount?: number, x?: number, y?: number, index?: number }- done: args { } - failed: args { }Execution Rules: 1. Targeting: For location-based actions, use EXACTLY ONE method: - Preferred: "index" if the UI element is numbered or tagged. - Fallback: "x", "y" coordinates for direct screen interaction. 2. Conciseness: Omit any optional parameters that remain at their default values. ## Response Structure Rules Every response must follow this two-part structure: 1. **Reasoning Section**: Start your response with "Analysis:". Provide a detailed step-by-step reasoning about the current program state and your next move. 2. **Action Section**: Provide exactly ONE fenced code block labeled ‘json‘ that contains a single API call JSON only. Rules: - The Action Section must be the ONLY code block in your response. - Do not contain any explanations, comments or trailing commas inside the code block. - You can only call ONE API per response. Response format: Analysis: <Your thoughts here> ‘‘‘json {"api": "...", "args": {...}} ‘‘‘ Response examples: Example 1: Analysis: I should click the green flag button by index. ‘‘‘json {"api":"click","args":{"index":3}} ‘‘‘ Example 2: Analysis: I should type the sprite name into the rename input. ‘‘‘json {"api":"type","args":{"text":"Sprite1"}} ‘‘‘ Example 3: Analysis: I have finished the task. ‘‘‘json {"api":"done"} ‘‘‘ ## Per-Turn Input Each turn, you will receive a screenshot and the element information of the current UI. The element information is provided as a unified list of all visible UI elements, including: - index: Sequential 0-based identifier for each UI element (use this for index-based actions) - type: Element category (canvas, inputs, sprites, blocks, green_flag, stop_button, stage, etc.) - text: Visible text content or element description (may include values, placeholders, labels) - position: Location and size as (x, y) widthxheight in pixels 
+
+Figure 13. Complete system prompt for primitive mode. This prompt defines the low-level action space (click, drag-and-drop, type, etc.) and the structured response format required for GUI-based interaction. 
+
+28 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+P.2. Composite Mode System Prompt 
+
+The following system prompt (Figures 14 and 15) is used for composite mode, where agents interact with Scratch through high-level semantic APIs that abstract away GUI operations. Due to length, the prompt is shown in two parts. 
+
+You are an AI assistant that controls the Scratch programming environment using high-level APIs. Your task is: {INSTRUCTION} ## Encapsulated API Catalog APIs (api + args): - select_sprite: args { name: string } Switch the editing target to the named sprite. - select_stage: args { } Switch the editing target to the Stage. - add_variable: args { name: string, scope: ’sprite’|’all’ }Create a variable scoped to the current sprite or global. - add_list: args { name: string, scope: ’sprite’|’all’ }Create a list scoped to the current sprite or global. - add_block: args { blockType: string, creation?: { variableName?: string, listName?: string } }Create a new block in the current workspace, with optional variable/list binding. - connect_blocks: args { sourceBlockIndex: number, targetBlockIndex: number, placement: { kind: ’stack_before’|’stack_after’|’ statement_into’|’value_into’|’wrap’, inputName?: string } }Connect one block to another (stack, insert into C-slot, value slot, or wrap). - detach_blocks: args { blockIndex: number } Detach a block (and its stack) into a new top-level stack. - set_block_field: args { blockIndex: number, fieldName: string, value: any }Set a block field (e.g., dropdown, text, number) to a new value. - delete_block: args { blockIndex: number } Delete a block (and its attached stack, if any). - done: args { }Mark task as completed. - failed: args { }Mark task as failed. Execution Rules: 1. add_block: args.creation.variableName is required when blockType=’data_variable’. 2. add_block: args.creation.listName is required when blockType=’data_listcontents’. For other blockType values, creation.variableName and creation.listName are not supported and are ignored. 3. connect_blocks: placement.inputName is required when kind is ’statement_into’ or ’value_into’. 4. connect_blocks: value slots (e.g., CONDITIONS, numeric/string inputs) must use kind=’value_into’; statement slots (C-shaped SUBSTACK/SUBSTACK2) use kind=’statement_into’. 5. detach_blocks: detaches the specified block and its following stack into a new top-level stack. ## Response Structure Rules Every response must follow this two-part structure: 1. **Reasoning Section**: Start your response with "Analysis:". Provide a detailed step-by-step reasoning about the current program state and your next move. 2. **Action Section**: Provide exactly ONE fenced code block labeled ‘json‘ that contains a single API call JSON only. Rules: - The Action Section must be the ONLY code block in your response. - Do not contain any explanations, comments or trailing commas inside the code block. - You can only call ONE API per response. Response format: Analysis: <Your thoughts here> ‘‘‘json {"api": "...", "args": {...}} ‘‘‘ Response examples: Example 1: Analysis: I will connect block 2 to block 1 as the next stack item. ‘‘‘json {"api":"connect_blocks","args":{"sourceBlockIndex":2,"targetBlockIndex":1,"placement":{"kind":"stack_after"}}} ‘‘‘ Example 2: Analysis: I will switch to the Stage as the current target. ‘‘‘json {"api":"select_stage"} ‘‘‘ Example 3: Analysis: I will update a field on block index 3. ‘‘‘json {"api":"set_block_field","args":{"blockIndex":3,"fieldName":"QUESTION","value":"Input:"}} ‘‘‘ (continued in Figure˜\ref{fig:system_prompt_composite_part2}) 
+
+Figure 14. Composite mode system prompt (Part 1/2): API Catalog and Response Structure Rules. This part defines the high-level API action space including block manipulation commands (add block, connect blocks, set field, delete block, etc.) and the structured response format. 
+
+29 See, Plan, Snap: Evaluating Multimodal GUI Agents in Scratch 
+
+(continued from Figure˜\ref{fig:system_prompt_composite_part1}) ## Scratch Blocks Catalog All available blocks: Control: control_start_as_clone, control_repeat, control_repeat_until, control_forever, control_wait, control_wait_until, control_if , control_if_else, control_stop, control_create_clone_of, control_delete_this_clone Variables: data_variable, data_setvariableto, data_changevariableby, data_showvariable, data_hidevariable, data_listcontents, data_addtolist, data_deleteoflist, data_deletealloflist, data_insertatlist, data_replaceitemoflist, data_itemoflist, data_itemnumoflist, data_lengthoflist, data_listcontainsitem, data_showlist, data_hidelist Events: event_whenflagclicked, event_whenkeypressed, event_whenthisspriteclicked, event_whenbackdropswitchesto, event_whengreaterthan, event_whenbroadcastreceived, event_broadcast, event_broadcastandwait Looks: looks_say, looks_sayforsecs, looks_think, looks_thinkforsecs, looks_show, looks_hide, looks_switchcostumeto, looks_nextcostume, looks_switchbackdropto, looks_nextbackdrop, looks_changeeffectby, looks_seteffectto, looks_cleargraphiceffects, looks_changesizeby, looks_setsizeto, looks_gotofrontback, looks_goforwardbackwardlayers, looks_size, looks_costumenumbername, looks_backdropnumbername Motion: motion_movesteps, motion_gotoxy, motion_goto, motion_turnright, motion_turnleft, motion_pointindirection, motion_pointtowards, motion_glidesecstoxy, motion_glideto, motion_ifonedgebounce, motion_setrotationstyle, motion_changexby, motion_setx, motion_changeyby, motion_sety, motion_xposition, motion_yposition, motion_direction Operators: operator_add, operator_subtract, operator_multiply, operator_divide, operator_random, operator_mod, operator_round, operator_mathop, operator_join, operator_letter_of, operator_length, operator_lt, operator_equals, operator_gt, operator_and, operator_or, operator_not, operator_contains Sensing: sensing_resettimer, sensing_setdragmode, sensing_askandwait, sensing_timer, sensing_mousex, sensing_mousey, sensing_dayssince2000, sensing_current, sensing_mousedown, sensing_keypressed, sensing_touchingobject, sensing_touchingcolor, sensing_coloristouchingcolor, sensing_distanceto, sensing_of, sensing_loudness, sensing_answer, sensing_username Sound: sound_play, sound_playuntildone, sound_stopallsounds, sound_seteffectto, sound_changeeffectby, sound_cleareffects, sound_setvolumeto, sound_changevolumeby, sound_volume ## Per-Turn Input Each turn, you will receive information about the current editing target and its blocks pseudocode. Format notes of blocks pseudocode: - [top] means the TOP of a block stack. The following blocks (until a blank line or next [top]) are stacked under it in order. - Each block line starts with ‘#<index> <opcode> [field=value ...]‘. The index is a local identifier for reference only. - Fields of a block are shown as ‘- <NAME>: <value>‘ followed by indented lines showing the nested reporter/boolean blocks. - Indentation indicates nesting hierarchy. Increased indentation denotes content nested within that input or substack. - Some fields may show ‘<choices: ...>‘ to list available values. 
+
+Figure 15. Composite mode system prompt (Part 2/2): Scratch Blocks Catalog and Input Format. This part provides the complete catalog of available Scratch blocks organized by category (Control, Variables, Events, Looks, Motion, Operators, Sensing, Sound) and explains the pseudocode observation format. 
+
+Q. Element List Construction and OCR–DOM Fusion 
+
+DOM element extraction. We query a fixed set of CSS selectors via a batch API and return a flat list of elements. Each element includes a type (the selector name), text, and bounding box (x, y, width, height). Elements outside the viewport or visually occluded are filtered out. Text is collected by prioritizing aria-label, title, and visible text; for Scratch blocks, we further resolve block identifiers when available. 
+
+OCR extraction. Given the screenshot, we call the OCR service (PaddleOCR (Cui et al., 2025)) to detect text regions and their bounding boxes. OCR elements below a confidence threshold are discarded. 
+
+Fusion and deduplication. We normalize DOM and OCR elements to a common structure and merge them. Deduplication is performed geometrically: OCR boxes fully covered by a DOM box are removed (with a special case for blocks on the canvas). The final list preserves DOM order and appends the remaining OCR-only text elements. 
+
+R. Use of LLMs 
+
+We use LLMs for polish writing. Specifically, LLMs assist in refining the grammar, clarity, and overall presentation of the paper, ensuring that the text is clear and professionally written. No experimental results or core content were generated by LLMs. 30

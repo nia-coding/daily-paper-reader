@@ -1,0 +1,1926 @@
+Title: PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition
+
+URL Source: https://arxiv.org/pdf/2602.08586v2
+
+Published Time: Wed, 11 Feb 2026 01:33:35 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+# Yiming Yang 
+
+AMap, Alibaba Group Beijing, China sachiel.yym@alibaba-inc.com 
+
+# Zhuoyuan Li 
+
+AMap, Alibaba Group Beijing, China weiyuan.lzy@alibaba-inc.com 
+
+# Fanxiang Zeng 
+
+AMap, Alibaba Group Beijing, China fanxiang.zfx@alibaba-inc.com 
+
+# Hao Fu 
+
+AMap, Alibaba Group Beijing, China fh265565@alibaba-inc.com 
+
+# Yue Liu 
+
+AMap, Alibaba Group Beijing, China yue.liu@alibaba-inc.com 
+
+## Abstract 
+
+Multi-agent collaboration has emerged as a promising paradigm for enhancing reasoning capabilities of Large Language Models (LLMs). However, existing approaches remain largely heuristic, lacking principled guidance on what drives performance gains and how 
+
+to systematically optimize multi-agent reasoning. Specifically, it remains unclear why multi-agent collaboration outperforms single-agent reasoning and which design choices contribute most to these gains, making it difficult to build better systems. We address this gap by introducing a unified theoretical frame-work that decomposes multi-agent reasoning gains into three con-ceptually independent dimensions: Exploration for diverse solu-tion coverage, Information for high-fidelity feedback, and Ag-gregation for principled consensus. Through this lens, existing methods can be understood as special cases that optimize only sub-sets of these dimensions. Building upon this decomposition, a novel framework called PRISM ( Propose-Review-Integrate Synthesis for 
+
+Multi-agent Reasoning) is proposed, which jointly maximizes all three dimensions through role-based diversity, execution-grounded feedback with evidence-based cross-evaluation, and iterative syn-thesis with closed-loop validation. Extensive experiments across mathematical reasoning, code generation, and function calling benchmarks demonstrate that PRISM achieves state-of-the-art per-formance with superior compute-efficiency compared to methods optimizing partial dimensions. The theoretical framework provides actionable design principles for future multi-agent reasoning sys-tems. 
+
+## Keywords 
+
+Multi-Agent Reasoning, Large Language Models, Gain Decomposi-tion, Test-Time Compute Scaling 
+
+## 1 Introduction 
+
+The paradigm of complex reasoning in Large Language Models (LLMs) has undergone a fundamental transformation. While early advances focused on eliciting reasoning through Chain-of-Thought (CoT) prompting [ 33 ], the field has progressively shifted toward leveraging multiple LLM instances as collaborative agents to tackle increasingly sophisticated tasks [ 7 , 29 ]. This transition from single-model inference to Multi-Agent Systems (MAS) has yielded sub-stantial empirical gains across mathematical reasoning [ 32 ], code Multi-Agent 
+
+> Reasoning Gains
+
+PRISM       
+
+> 𝐀 =𝐀 𝐀 𝐀 𝐀 𝐀 𝐀 𝐀 𝐀 +𝐀 𝐀 𝐀 𝐀 𝐀 +𝐀 𝐀 𝐀 𝐀 𝐀
+> 𝐀
+> 𝐀 𝐀 𝐀 𝐀 𝐀 𝐀 𝐀 𝐀
+> 𝐀 𝐀 𝐀 𝐀 𝐀
+> 𝐀 𝐀 𝐀 𝐀 𝐀
+> Exploration:
+> See More
+> Information:
+> See Clearly
+> Aggregation:
+> Decide Wisely
+
+Figure 1: The gain decomposition theory. Like a prism decom-poses light, our method decomposes multi-agent gains into three conceptually independent dimensions: Exploration (di-verse sampling), Information (high-fidelity feedback), and Aggregation (principled consensus). 
+
+generation [ 26 ], and interactive decision-making [ 37 ]. However, a fundamental question remains largely unanswered: What are the precise sources of performance improvement in multi-agent reasoning, and how can we systematically optimize them? 
+
+Despite impressive empirical successes across diverse reason-ing tasks, existing multi-agent approaches remain largely heuris-tic, lacking a principled understanding of why they succeed. This fragmentation hinders systematic optimization: without knowing which mechanisms drive improvements, practitioners cannot reli-ably design better systems or predict when multi-agent collabora-tion provides genuine benefits beyond single-agent alternatives. This fragmentation reveals a critical gap: current approaches optimize ad hoc design choices without a principled understanding of the mechanisms driving multi-agent performance. We argue that the key to advancing this field lies not in proposing yet another multi-agent architecture, but in developing a unified theoretical framework that explains when and why different multi-agent strate-gies succeed, and how their benefits can be jointly maximized. To this end, we introduce a principled decomposition framework that disentangles the sources of multi-agent reasoning performance into three conceptually independent dimensions. Just as a prism decomposes white light into its constituent spectral components, our framework decomposes the “black-box” gains of multi-agent 
+
+> arXiv:2602.08586v2 [cs.AI] 10 Feb 2026 Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu Propose-Review-Integrate Synthesis for Multi-agent Reasoning
+> 1. Propose
+> Minimalist Agent
+> Skeptic Agent
+> Explorer Agent
+> 2. Execute
+> Sandbox Component
+> Sandbox
+> Candidate Solutions
+> （Reasoning Paths ）
+> 3. Review Execution Reports
+> Evidence Grounded Reviews
+> 4. Synthesize
+> Analyze Failure Causes Identify Valid Components
+
+Propose-Review-Integrate Synthesis for Multi-agent Reasoning 
+
+> Synthesizer Agent
+> Validator Agent
+> Candidates
+> Reports
+> Reviews
+> Retry with Feedback
+> Output: • Response • Validate Report
+> Input: • Query • System Prompt • Sandbox
+> DIMENSION 1: EXPLORATION Diverse Roles, Broader Space
+> DIMENSION 2: INFORMATION High-Fidelity FeedBack, Execution Reports
+> DIMENSION 3: AGGREGARION Synthesize, Compare/Re fi ne, Validator
+> MULTI-AGENT REASONING GAINS DECOMPOSITION
+
+Figure 2: Overview of the PRISM framework. PRISM implements a four-phase workflow to jointly maximize all three gain dimensions: Propose targets exploration gain through diverse candidate generation; Execute and Review jointly maximize information gain through grounded feedback and evidence-based cross-evaluation; Synthesize maximizes aggregation gain through iterative refinement with closed-loop validation. 
+
+systems into interpretable, independently optimizable factors (Fig-ure 1): Performance Gain ≤ G explore 
+
+| {z }
+
+> Exploration
+
++ Ginfo 
+
+|{z} 
+
+> Information
+
++ Gaggr 
+
+|{z} 
+
+> Aggregation
+
+(1) where each component captures a distinct mechanism through which multi-agent collaboration enhances reasoning quality: 
+
+• Exploration Gain (Gexplore ): The benefit derived from seeing more — covering a larger portion of the solution space through diverse sampling strategies. This gain increases with the number of agents 𝐾 and the heterogeneity of their reasoning strategies, governed by the probability that at least one agent discovers a correct solution path. 
+
+• Information Gain (Ginfo ): The benefit derived from seeing clearly 
+
+— obtaining high-fidelity quality signals that reliably distinguish correct solutions from incorrect ones. This gain encompasses both execution feedback 𝑒 (e.g., code test results, tool call return values) that provides objective ground truth, and evidence-based cross-evaluation that enriches raw feedback into structured qual-ity assessments. The resulting information substantially outper-forms self-generated textual critiques 𝜎 in selection accuracy. 
+
+• Aggregation Gain (Gaggr ): The benefit from deciding wisely —efficiently synthesizing diverse proposals and feedback into a high-quality solution. This gain depends on the mechanism’s ability to converge to optimal solutions while avoiding group-think or agreement bias [24]. Building upon this theoretical foundation, we propose PRISM 
+
+(Propose-Review-Integrate Synthesis for Multi-agent Reasoning), a novel framework explicitly designed to jointly maximize all three gain dimensions (Figure 2). PRISM implements a four-phase work-flow: role-based diverse proposal generation (exploration), execution-grounded feedback collection and evidence-based cross-evaluation (information), and iterative synthesis with closed-loop validation (aggregation). Each design choice is theoretically grounded: we prove that execution feedback is information-theoretically optimal, and we establish convergence guarantees for the synthesis process. We evaluate PRISM on four challenging benchmarks spanning mathematical reasoning (GSM8K [ 3], AIME-2025 [ 19 ]), code gen-eration (MBPP [ 1]), and function calling (BFCL-SP [ 23 ]). Our ex-periments demonstrate that PRISM consistently outperforms state-of-the-art baselines in recent test-time scaling approaches. More importantly, Pareto frontier analysis reveals that PRISM dominates all baselines across the entire compute spectrum — methods opti-mizing only partial gain dimensions saturate early, while PRISM’s joint optimization across all three dimensions enables sustained ac-curacy scaling with increasing compute, confirming the theoretical predictions of our decomposition framework. In summary, our contributions are threefold: 
+
+• Three-Dimensional Gain Decomposition for Multi-Agent Reasoning : We provide the first formal decomposition of test-time multi-agent reasoning gains into three orthogonal dimensions— Exploration (solution coverage), Information (feedback fidelity), and Aggregation (consensus quality) — with a multiplicative PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+structure exhibiting subadditivity, unifying existing approaches as special cases optimizing partial subsets. 
+
+• Theory-Guided Joint Optimization Framework : Guided by this decomposition, we design PRISM, a multi-agent reasoning framework that jointly maximizes all three gain dimensions through role-based diverse generation, execution-grounded feed-back, and stable iterative synthesis, with provable convergence guarantees. 
+
+• Pareto-Dominant Compute-Efficiency : Across diverse rea-soning tasks spanning mathematics, programming, and tool-use, PRISM consistently dominates all baselines. While partial-dimension methods saturate early, PRISM achieves sustained accuracy scaling with increasing compute, eventually surpassing single models with 8 × more parameters. 
+
+## 2 Related Work 
+
+We organize related work through the lens of our proposed gain decomposition framework (Equation 3), analyzing how existing methods optimize each of the three dimensions: Exploration, In-formation, and Aggregation. This perspective reveals that current approaches typically excel along one or two dimensions while ne-glecting others, motivating our unified PRISM framework. 
+
+Diversity and Exploration ( Gexplore ). A foundational line of work focuses on expanding the coverage of solution space through diverse sampling strategies. Self-Consistency [ 32 ] pioneered this direction by sampling multiple reasoning paths from an LLM and selecting the most frequent answer through majority voting, lever-aging the intuition that correct solutions are more likely to be con-sistently reached via different reasoning routes. Tree of Thoughts 
+
+(ToT) [ 35 ] extends this paradigm by structuring exploration as tree search, enabling systematic evaluation and backtracking over intermediate reasoning steps. Recent work on diversified sam-pling [ 21 , 31 ] demonstrates that promoting explicit diversity in rea-soning paths yields stronger performance than naive temperature-based sampling. ReConcile [ 2] further enhances exploration by or-chestrating round-table discussions among heterogeneous LLMs, showing that model diversity leads to more robust consensus than homogeneous ensembles. While these methods effectively maximize Gexplore , they exhibit fundamental limitations in the other two dimensions. Without access to external feedback signals, they cannot reliably distin-guish correct solutions from plausible-sounding but incorrect ones (Ginfo ≈ 0). Moreover, simple aggregation mechanisms such as majority voting fail to leverage the semantic content of different solutions ( Gaggr is suboptimal), often converging to shared errors when the majority of sampled paths contain the same systematic mistake. 
+
+Grounding and Feedback ( Ginfo ). A second line of research focuses on enhancing reasoning quality through environmental feedback. ReAct [36 ] interleaves reasoning traces with actions that query external tools or environments, grounding chain-of-thought steps in observable outcomes. Reflexion [26 ] extends this paradigm by enabling agents to verbally reflect on execution feedback across episodes, maintaining an episodic memory of past failures to guide future attempts. LATS [ 37 ] further advances this direction by in-tegrating Monte Carlo Tree Search with environmental feedback at test time, demonstrating that deliberate, environment-grounded exploration yields substantial gains across programming, web nav-igation, and interactive reasoning—without gradient-based fine-tuning. Process supervision has emerged as a particularly effective form of feedback. Let’s Verify Step by Step [ 18 ] demonstrates that training reward models on step-level human feedback significantly out-performs outcome-only supervision for mathematical reasoning. Subsequent work on process reward models [ 17 , 25 ] has shown that dense per-step verification enables more reliable credit assignment and error localization than sparse outcome rewards. These approaches substantially improve Ginfo by introducing high-fidelity feedback signals. However, they predominantly oper-ate in single-agent settings, limiting Gexplore to sequential refine-ment within a single reasoning trajectory. Furthermore, they lack principled mechanisms for aggregating insights across multiple solution attempts when feedback is ambiguous or conflicting. 
+
+Interaction and Consensus ( Gaggr ). Multi-agent interaction methods aim to improve solution quality through structured com-munication and consensus formation. Multi-Agent Debate [6 ] demon-strates that having multiple LLM instances iteratively critique and refine each other’s responses improves both factuality and rea-soning accuracy. Encouraging Divergent Thinking [ 16 ] shows that explicitly promoting disagreement in early debate rounds leads to more thorough exploration before convergence. Mixture-of-Agents 
+
+(MoA) [ 30 ] proposes a layered architecture where each layer aggre-gates and synthesizes outputs from multiple agents in the previous layer, achieving state-of-the-art performance on language under-standing benchmarks. Recent work has begun investigating the scaling properties of multi-agent collaboration. Two Heads Are Better Than One [ 11 ] pro-vides empirical evidence that test-time scaling through multi-agent collaboration can be more compute-efficient than simply increasing model size, echoing findings from single-agent test-time compute scaling [ 27 ]. Comprehensive surveys [ 7, 13 , 29 ] have catalogued the growing landscape of LLM-based multi-agent systems, while theoretical analyses have begun connecting these systems to game-theoretic frameworks [12, 28]. However, several critical limitations persist. Pure debate-based methods rely on natural language persuasion—what game theory terms “cheap talk”—which provides no verifiable evidence and is susceptible to confident but incorrect arguments. ConsensAgent [24 ]identifies sycophancy and agreement bias as fundamental failure modes in multi-agent LLM interactions, where agents prematurely converge to suboptimal consensus due to social pressure dynamics rather than evidence quality. Without external grounding ( Ginfo ≈
+
+0), debate-based consensus can amplify rather than correct shared misconceptions. 
+
+Positioning of PRISM. Table 1 summarizes how existing meth-ods distribute their optimization effort across the three gain dimen-sions, revealing that each excels along one or two dimensions while neglecting others. In contrast, PRISM is explicitly designed to jointly maximize all three dimensions through role-based diversity ( Gexplore ), execution-grounded feedback with evidence-based cross-evaluation ( Ginfo ), and iterative synthesis with closed-loop validation ( Gaggr ), address-ing the fragmentation identified above. Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu 
+
+Table 1: Comparison of related methods through the gain decomposition lens. ✓: explicitly optimized; ❍: partially ad-dressed; ✗: not addressed. Our framework unifies existing methods as special cases that optimize different subsets of the three gain dimensions. Method Gexplore Ginfo Gaggr Key Limitation                                            
+
+> Exploration-focused Methods
+> Self-Consistency [32] ✓✗✗No grounding; majority vot-ing Tree of Thoughts [35] ✓✗❍No external feedback ReConcile [2] ✓✗❍Model diversity only
+> Information-focused Methods
+> ReAct [36] ✗✓✗Single-agent; no diversity Reflexion [26] ❍✓✗Sequential refinement only LATS [37] ❍✓✗Single-agent; sequential search
+> Aggregation-focused Methods
+> Multi-Agent Debate [6] ❍✗✓Cheap talk; no grounding MoA [30] ✓❍❍Layered latency; pseudo-feedback Two Heads [11] ❍❍❍Moderate optimization
+> PRISM (Ours) ✓✓✓Joint optimization
+
+## 3 The Unified Theoretical Framework 
+
+A prism decomposes white light into distinct spectral components. Analogously, we decompose multi-agent reasoning gains into three conceptually independent dimensions. 
+
+Multi-agent systems have demonstrated remarkable improve-ments over single-agent baselines in complex reasoning tasks [ 6 , 32 ]. Yet a fundamental question remains: Where do these gains come from? We develop a principled theoretical framework that reveals multi-agent gains arise from three distinct mechanisms: Explo-ration (searching a broader solution space), Information (ob-taining higher-fidelity feedback), and Aggregation (synthesizing proposals more effectively). This decomposition not only provides a unified lens for analyzing existing methods as special cases, but also guides the design of PRISM to jointly maximize all three di-mensions. 
+
+## 3.1 Problem Formulation and Gain Decomposition 
+
+We formalize multi-agent reasoning as a tuple (X , T , 𝑄, 𝐾, E, 𝑓 )
+
+where X is the input space, T the solution space, 𝑄 : T → { 0, 1} aquality indicator, 𝐾 proposers, E an executor providing feedback, and 𝑓 an aggregation function. We assume: (A1) conditional inde-pendence, (A2) baseline success 𝑝 ∈ ( 0, 1), (A3) finite strategy space (each agent’s generation is bounded by maximum token length and finite vocabulary, ensuring |T | < ∞), (A4) deterministic execution. Full definitions in Appendix B. We prove that multi-agent reasoning gains decompose into three conceptually independent components: 
+
+Theorem 3.1 (Gain Decomposition). The following decomposi-tion provides a principled framework that identifies three indepen-dently optimizable mechanisms. Under Assumptions (A1)–(A4): 
+
+E[𝑄 (𝜏 MAS )] = 𝐶 𝐾 
+
+|{z} 
+
+> coverage
+
+· 𝜂 (𝑓 , 𝑠 )
+
+| {z }
+
+> selection
+
+(2) 
+
+where 𝐶 𝐾 := 𝑃 (Ô𝐾 𝑘 =1 𝑄 (𝜏 (𝑘 ) ) = 1) is the coverage probability (at least one correct proposal exists) and 𝜂 (𝑓 , 𝑠 ) := 𝑃 (𝑄 (𝜏 MAS ) = 1 | ∃ 𝑘 :
+
+𝑄 (𝜏 (𝑘 ) ) = 1) is the selection accuracy under feedback signal 𝑠 and aggregation function 𝑓 . This multiplicative structure identifies three independent mechanisms, and the total gain satisfies: 
+
+E[𝑄 (𝜏 MAS )] − 𝑝 ≤ G explore + G info + G aggr (3) 
+
+where: (1) Gexplore := 𝐶 𝐾 − 𝑝 quantifies coverage gain from multiple proposals; (2) Ginfo := 𝐶 𝐾 · [ 𝜂 ∗ (𝑒 ) − 𝜂 ∗ (𝜎 )] quantifies selection im-provement from execution feedback 𝑒 over textual feedback 𝜎 , where 
+
+𝜂 ∗ (𝑠 ) := max 𝑓 𝜂 (𝑓 , 𝑠 ) is the Bayes-optimal selection accuracy; (3) 
+
+Gaggr := 𝐶 𝐾 · [ 𝜂 (𝑓 , 𝑠 ) − 𝜂 (𝑓 base , 𝑠 )] quantifies synthesis improvement from aggregation 𝑓 over baseline 𝑓 base . The inequality is strict in gen-eral: the multiplicative structure 𝐶 𝐾 · 𝜂 (𝑓 , 𝑠 ) induces subadditivity across dimensions (Remark 3.1). Proof in Appendix D.1. 
+
+Remark 3.1 (Conceptual Orthogonality vs. Realized Subad-ditivity). The gain decomposition (Theorem 3.1) characterizes three distinct mechanisms contributing to multi-agent performance. The three dimensions are conceptually orthogonal at the design level: exploration concerns generating diverse candidates, information con-cerns evaluating quality, and aggregation concerns combining results — each can be independently optimized. However, at the realization level , interactions exist due to the multiplicative structure 𝐶 𝐾 ·𝜂 (𝑓 , 𝑠 ):when exploration yields high-quality candidates, the marginal value of sophisticated aggregation decreases; when information feedback is highly reliable, redundant exploration becomes less valuable. Con-sequently, joint optimization typically exhibits subadditivity (actual gain < sum of individual gains), a well-documented phenomenon in ensemble learning [15, 34] and collective intelligence [8]. 
+
+Having established the decomposition framework, we now ana-lyze each dimension to understand the mechanisms behind multi-agent gains. Our analysis reveals actionable design principles that directly inform PRISM’s architecture. 
+
+Dimension 1: Exploration Through Diversity. The exploration gain measures how effectively multiple agents cover the solution space. With 𝐾 independent identically distributed (IID) agents of suc-cess rate 𝑝 , we achieve Giid explore = 1 − ( 1 − 𝑝 )𝐾 − 𝑝 , which grows monotonically but exhibits diminishing returns. However, this IID assumption is unrealistic—LLMs trained on similar data often ex-hibit correlated failure modes, sharing the same systematic biases and blind spots. The key to breaking correlation lies in role diversity : assigning heterogeneous problem-solving strategies that create complemen-tary failure patterns. When one role struggles with a particular problem structure, another role’s orthogonal approach may suc-ceed. We formalize this intuition: 
+
+Proposition 3.2 (Exploration via Diversity). Let 
+
+¯𝜌 = 2  
+
+> 𝐾 (𝐾 −1)
+
+Í𝑖 < 𝑗 𝜌 𝑖 𝑗 denote average pairwise success correlation among 𝐾 agents. For negative correlation ¯𝜌 < 0 (complementary roles), the diversity-enhanced exploration gain satisfies: 
+
+Gdiverse explore − G iid explore ≈ − 
+
+𝐾 
+
+2
+
+
+
+¯𝜌 · 𝑝 (1 − 𝑝 ) > 0 (4) PRISM exploits this by assigning three orthogonal roles to in-duce ¯𝜌 < 0 (Appendix D). Empirically, on MBPP we measure pair-wise success correlations 𝜌 12 ≈ − 0.15 , 𝜌 13 ≈ − 0.18 , 𝜌 23 ≈ − 0.12 PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+( ¯𝜌 ≈ − 0.15 ) among the three PRISM roles (see Appendix C for com-putation details), confirming that role diversity induces the negative correlation predicted by Proposition 3.2. When positive correlation persists ( ¯𝜌 > 0), the coverage bound 𝐶 𝐾 degrades gracefully; a formal robustness analysis is provided in Appendix D.7. 
+
+Dimension 2: Information from Execution Grounding. Informa-tion gain quantifies the quality of feedback signals used to evaluate candidate solutions. Feedback quality spans a spectrum: determin-istic execution feedback 𝑒 from environmental validation (e.g., test suites, schema validation) provides the highest fidelity; at the other end, textual self-critique 𝜎 (e.g., confidence scores, self-reflection) relies solely on model-internal beliefs. For tasks without determin-istic execution (e.g., mathematical reasoning), model-based pseudo-verification 𝜎 𝑣 —where a dedicated LLM evaluator provides struc-tured diagnostic feedback (reasoning analysis, error identification) without ground-truth access—occupies an intermediate position. Information theory provides a precise characterization: execu-tion feedback is information-theoretically optimal when quality is deterministic, while textual self-evaluation inevitably suffers information loss. Moreover, majority voting—a common aggrega-tion heuristic—fails catastrophically when agents exhibit correlated errors. We capture these insights: 
+
+Proposition 3.3 (Information Quality Bounds). Under de-terministic execution (Assumption A4), execution feedback 𝑒 satisfies 
+
+𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 ) (maximum information). In contrast, textual feed-back with false positive rate 𝜖 FP > 0 and false negative rate 𝜖 FN > 0
+
+satisfies 𝐼 (𝑄 ; 𝜎 ) < 𝐻 (𝑄 ) with information gap 𝐻 (𝑄 |𝜎 ) > 0.
+
+Remark 3.2 (Task Classification and Information Gain). 
+
+The realized information gain depends on verifier type: 
+
+• Complete verification (MBPP, BFCL-SP): Quality 𝑄 is uniquely determined by execution results ⇒ 𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 ) (Theorem 3.5a). 
+
+• Model-based pseudo-verification (GSM8K, AIME): No deter-ministic execution environment exists for evaluating mathematical reasoning; PRISM employs a dedicated LLM evaluator that provides structured diagnostic feedback 𝜎 𝑣 (reasoning analysis, error iden-tification) without ground-truth access ⇒ 𝐼 (𝑄 ; 𝜎 ) < 𝐼 (𝑄 ; 𝜎 𝑣 ) ≤ 
+
+𝐼 (𝑄 ; 𝑒 ), yielding positive but bounded Ginfo .
+
+• No verification (open-domain dialogue): No environmental feed-back available ⇒ 𝜂 ∗ (𝑒 ) = 𝜂 ∗ (𝜎 ), so Ginfo = 0.Connection to Theorem 3.1: The link from mutual information to selection accuracy is made rigorous via Fano’s inequality (Lemma F.5 in Appendix): higher 𝐼 (𝑄 ; 𝑠 ) implies lower conditional entropy 
+
+𝐻 (𝑄 |𝑠 ), which bounds the Bayes classification error from above, thus guaranteeing higher 𝜂 ∗ (𝑠 ). Since 𝐼 (𝑄 ; 𝑒 ) > 𝐼 (𝑄 ; 𝜎 ) under Proposition 3.3, we obtain 𝜂 ∗ (𝑒 ) > 𝜂 ∗ (𝜎 ), yielding Ginfo = 𝐶 𝐾 [𝜂 ∗ (𝑒 )− 
+
+𝜂 ∗ (𝜎 )] > 0 for tasks with deterministic execution. For model-based pseudo-verification, 𝐼 (𝑄 ; 𝜎 𝑣 ) > 𝐼 (𝑄 ; 𝜎 ) similarly yields positive 
+
+Ginfo , though bounded by the verifier LLM’s accuracy. PRISM therefore prioritizes environmental execution when avail-able, and model-based pseudo-verification over textual self-critique when deterministic execution is infeasible (proof and examples in Appendix D). 
+
+Dimension 3: Aggregation Beyond Voting. Define aggregation efficiency 𝜂 (𝑓 ) := E[𝑄 (𝑓 (𝝉 ))]/ E[max 𝑘 𝑄 (𝜏 (𝑘 ) )] , measuring how effectively 𝑓 selects the best solution from diverse proposals ( 𝜂 = 1
+
+is optimal). Throughout, we write 𝜂 (𝑓 , 𝑠 ) when the dependence on signal type matters (e.g., comparing execution vs. textual feedback) and 𝜂 (𝑓 ) as shorthand when 𝑠 is fixed by context. A common belief holds that majority voting provides robust aggregation. However, although the Condorcet Jury Theorem [ 5] guarantees that majority voting succeeds under voter independence, this assumption is se-verely violated in LLM ensembles [ 14 ], where majority voting fails catastrophically when agents exhibit correlated errors—a pervasive phenomenon where models agree on the same incorrect answer far more often than random chance would predict. We formalize the implications of this empirical finding for multi-agent reasoning: 
+
+Proposition 3.4 (Aggregation Efficiency). (a) Voting fail-ure under correlation [ 14 ]: When agents exhibit correlated errors (sharing systematic biases), majority voting achieves arbitrarily poor efficiency 𝜂 (𝑓 vote ) → 0, even when correct solutions are available. 
+
+(b) PRISM’s guarantee: With 𝐾 − 1 independent reviewers each having error rate 𝜖 0 < 0.5, PRISM’s evidence-based synthesis achieves 
+
+𝜂 (𝑓 PRISM ) ≥ 1 − 𝜖 𝐾 −10 .Root cause and solution: Voting amplifies systematic mistakes when multiple agents share the same misconception due to com-mon training data, architectures, or reasoning patterns. PRISM over-comes this limitation because its evidence-based cross-evaluation (Phase 3) produces high-fidelity quality signals by anchoring assess-ments to objective execution feedback rather than model-internal beliefs, breaking error correlation. Building on these enriched sig-nals, the synthesis process (Phase 4) is modeled game-theoretically as a potential game that guarantees convergence to stable consensus. 
+
+Caveat: In practice, the LLM synthesizer may introduce additional error beyond the cross-review bound; Proposition 3.4(b) provides a lower bound under the assumption that synthesis faithfully ag-gregates review signals. The closed-loop validation in Algorithm 1 mitigates this gap by re-executing and refining the synthesized solution. Proof of part (b) in Appendix D. The following theorem establishes theoretical optimality of PRISM’s design by unifying information-theoretic and game-theoretic guar-antees: 
+
+Theorem 3.5 (PRISM Convergence and Optimality). Under Assumptions (A1)-(A4), PRISM satisfies: (a) Information sufficiency (for tasks with deterministic ver-ification): When quality 𝑄 is deterministically computable from execution feedback 𝑒 (e.g., code with test suites, tool calls with return values), 𝑒 is a sufficient statistic for solution quality: 
+
+𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 ).(b) Convergence guarantee: The review-synthesis process forms an exact potential game with potential function Φ = max 𝑘 𝑄 (𝜏 (𝑘 ) )+ 
+
+𝜆 Í𝑘 𝑅 𝑘 (𝜏 (𝑘 ) ), ensuring finite-step convergence to a pure-strategy Nash equilibrium, which represents a stable consensus state where no agent can unilaterally improve the joint quality. (c) Performance bound: With baseline success probability 𝑝 , 𝐾 
+
+proposers, 𝑆 synthesis iterations, and per-reviewer error 𝜖 0, PRISM achieves: 
+
+E[𝑄 (𝜏 PRISM )] ≥ [ 1 − ( 1 − 𝑝 )𝐾 ] · [ 1 − 𝜖 𝐾 −10 ] (general) (5) Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu 
+
+For tasks with deterministic execution (A4), closed-loop re-execution over 𝑆 iterations further tightens the bound: 
+
+E[𝑄 (𝜏 PRISM )] ≥ [ 1− ( 1−𝑝 )𝐾 ] · [ 1−𝜖 𝐾 −1+𝑆  
+
+> 0
+
+] (execution tasks) (6) 
+
+Example 3.1. With 𝑝 = 0.4, 𝐾 = 3, 𝜖 0 = 0.2: exploration yields 
+
+≥ 78 .4% coverage, cross-review reduces error to ≤ 4% , giving E[𝑄 ] ≥ 
+
+75 .3% —an 88% relative improvement over baseline. 
+
+These three components directly inform PRISM’s design (detailed proofs in Appendix D). 
+
+## 3.2 From Decomposition to Design Principles 
+
+The preceding analysis translates into three actionable design prin-ciples for multi-agent test-time scaling: 
+
+Principle 1: Maximize coverage through diversity. Propo-sition 3.2 shows that coverage depends critically on the correla-tion structure among agents: simply increasing 𝐾 with identically-prompted agents yields diminishing returns due to shared failure modes. Designing agents with complementary reasoning strategies ( ¯𝜌 < 0) achieves higher Gexplore with fewer agents. 
+
+Principle 2: Exploit the highest-fidelity feedback available. 
+
+The information hierarchy established by Proposition 3.3 and Re-mark 3.2 — 𝐼 (𝑄 ; 𝑒 ) ≥ 𝐼 (𝑄 ; 𝜎 𝑣 ) > 𝐼 (𝑄 ; 𝜎 ) — implies that system design should anchor evaluation in environmental execution wher-ever possible, fall back to structured model-based evaluation when deterministic execution is infeasible, and avoid relying on pure self-critique. 
+
+Principle 3: Ground aggregation in evidence, not beliefs. 
+
+Proposition 3.4(a) reveals that aggregation heuristics such as ma-jority voting are fragile under correlated errors; part (b) shows that evidence-based cross-evaluation achieves exponentially better selection accuracy. Effective synthesis must therefore anchor qual-ity assessments to objective evidence rather than model-internal beliefs, breaking the correlation trap. 
+
+Joint optimization as a necessity. Crucially, the multiplicative structure 𝐶 𝐾 ·𝜂 (𝑓 , 𝑠 ) in Theorem 3.1 means each dimension acts as a 
+
+ceiling on the returns of the others: high coverage is wasted without reliable selection, while reliable selection is wasted without diverse candidates. Although the gains are subadditive (Remark 3.1), opti-mizing any single dimension in isolation quickly saturates because the unoptimized dimensions become the binding bottleneck. Bal-anced, joint optimization across all three dimensions avoids these ceilings and sustains accuracy scaling with increasing compute. 
+
+## 4 PRISM Methodology 
+
+Guided by these design principles, we present PRISM , implement-ing a four-phase workflow where each phase targets specific gain dimensions (Figure 2). Propose generates role-based diverse candi-dates ( Gexplore ); Execute and Review jointly maximize information quality through environmental feedback and evidence-based cross-evaluation ( Ginfo ); Synthesize iteratively integrates all information with closed-loop validation ( Gaggr ). We now detail each phase: 
+
+Phase 1: Propose (Maximizing Gexplore ). PRISM assigns each proposer a distinct role through specialized prompts, inducing neg-ative correlation between success patterns (Proposition 3.2): 
+
+• Minimalist : “Solve with fewest steps. Prioritize simplicity.” 
+
+• Skeptic : “Verify each step. Prioritize correctness.” 
+
+• Explorer : “Avoid the obvious. Try unconventional methods.” Proposers 𝑃 𝑘 generate candidate 𝜏 (𝑘 ) ∼ 𝑃 𝑘 (· | 𝑥, 𝑅 𝑘 ) indepen-dently and in parallel, achieving coverage probability 1 − ( 1 − 𝑝 )𝐾 .
+
+Phase 2: Execute (Maximizing Ginfo ). Each candidate is evalu-ated via the highest-fidelity feedback mechanism available — sand-boxed execution, or LLM-based pseudo-verification — producing structured feedback: 
+
+𝑒 (𝑘 ) =E ( 𝜏 (𝑘 ) ) = ⟨succ , out , tests , err ⟩ (7) By Theorem 3.5a, 𝑒 captures all quality information ( 𝐼 (𝑄 ; 𝑒 ) =
+
+𝐻 (𝑄 )) for tasks with deterministic verification, providing verifiable ground truth rather than subjective assessment. 
+
+Phase 3: Review (Enhancing Ginfo ). Reviewers perform evidence-based cross-evaluation :
+
+𝑣 (𝑘 ) 
+
+> 𝑗
+
+= R𝑗 (𝜏 (𝑘 ) , 𝑒 (𝑘 ) ), 𝑗 ≠ 𝑘 (8) Unlike “cheap talk” in debate methods, reviews are grounded in objective evidence (execution results or structured pseudo-verification feedback), transforming raw feedback into actionable quality assess-ments. Reviewers analyze failure causes, identify validated compo-nents, and suggest improvements, which enriching the information available for synthesis. By Proposition 3.4b, this cross-evaluation reduces misclassification to 𝜖 𝐾 −10 .
+
+Phase 4: Synthesize (Maximizing Gaggr ). A synthesis agent integrates all proposals, execution reports, and reviews through 
+
+iterative refinement with closed-loop validation (Algorithm 1 in Ap-pendix G). Key techniques include trajectory grafting (combining successful components from different candidates), closed-loop vali-dation (re-executing synthesized solutions and feeding error traces back for targeted fixes), and deterministic synthesis (temperature 0 for logical rigor). The theoretical performance guarantee follows directly from Theorem 3.5c. 
+
+## 5 Experiments 
+
+We conduct comprehensive experiments to validate PRISM’s effec-tiveness across four benchmarks spanning math, code, and tool use, and systematically ablate each gain dimension to demonstrate the necessity of joint optimization. 
+
+## 5.1 Experimental Setup 
+
+Datasets. We evaluate on four benchmarks spanning mathematical reasoning, code generation, and tool use. Together they exercise all three gain dimensions, while their different feedback regimes (Remark 3.2) and difficulty levels create varied bottleneck profiles: 
+
+• GSM8K [3]: 1,319 grade-school math problems. High baseline ac-curacy limits exploration headroom; PRISM employs LLM-based pseudo-verification ( 𝐼 (𝑄 ; 𝜎 𝑣 ) > 𝐼 (𝑄 ; 𝜎 )) without ground-truth access, providing a testbed where Ginfo is bounded by verifier fidelity. 
+
+• AIME-2025 [19 ]: 30 competition-level problems from the Ameri-can Invitational Mathematics Examination. Low baseline success rate ( 𝑝 ≈ 0.70 ) and extreme difficulty make exploration cover-age the primary bottleneck, while the small sample size tests robustness of aggregation under high variance. PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+• MBPP [1 ]: 500 Python code generation tasks with test-suite execution providing deterministic feedback ( 𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 )). All three dimensions are fully active here, making it the primary benchmark for scaling analysis. 
+
+• BFCL-SP [23 ]: 400 function-calling tasks from the Berkeley Func-tion Calling Leaderboard (Simple Python subset). Schema valida-tion provides deterministic feedback; precise parameter parsing and structured output requirements additionally stress aggrega-tion quality. 
+
+Baselines. We compare PRISM against four representative multi-agent methods, plus single-model references of varying scale: Self-Consistency [ 32 ] (sampling + majority voting), MoA [ 30 ] (layered aggregation), Two Heads [11 ] (collaborative reasoning), and ReCon-cile [2] (multi-model round-table discussion). 
+
+Implementation Details. All multi-agent methods use Qwen3-30B-A3B-Instruct-2507 as the base model for fair comparison. Its single-model performance, along with Qwen3-235B-A22B-Instruct-2507 and DeepSeek-V3.2 , serve as references. For the main comparison (Table 2), each method uses its standard operating configuration —a moderate number of agents and rounds following the respective original papers: PRISM uses 𝐾 =3 proposers (Minimal-ist, Skeptic, Explorer), 𝑅 =1 reviewer, 𝑆 =3 synthesis iterations; Self-Consistency samples 𝐾 =5 paths; MoA uses 3 agents per layer; Two Heads uses 𝐾 =3 solvers; ReConcile uses 3 agents with 2 discussion rounds. This ensures a fair comparison at comparable, moderate budgets. We further examine each method’s full scaling behavior in Section 5.4. All methods share identical execution environments (Python 3.10 sandbox for code, tool execution for BFCL-SP). 
+
+Model Configuration. To isolate multi-agent architectural con-tributions from model-specific optimizations, all experiments use: (1) zero-shot prompting , and (2) disable thinking mode . The sole exception is DeepSeek-V3.2 on AIME-2025, where we enable ex-tended reasoning because the non-reasoning mode yields only 50% accuracy — well below its known capability — making it an unin-formative reference (see Appendix G). Consequently, single-model references achieve lower accuracy than officially reported bench-marks on the remaining benchmarks. 
+
+Evaluation Metrics. We report: (1) Accuracy (or Pass@1 for code generation): percentage of correctly solved problems; (2) Token Cost : total number of tokens consumed (input + output) to measure computational efficiency. 
+
+## 5.2 Main Results: State-of-the-Art Performance 
+
+Table 2 presents results across all four benchmarks. PRISM out-performs every multi-agent baseline on each task and additionally surpasses much larger single models used as references. PRISM outperforms every multi-agent baseline on all four bench-marks, with gains of +1.3 (GSM8K), +6.6 (AIME), +6.6 (MBPP), and +3.5pp (BFCL-SP) over the respective runner-up. On MBPP, PRISM’s CI lower bound (81.4%) exceeds all baselines’ upper bounds, con-firming statistical significance. The cross-benchmark pattern is revealing. PRISM’s largest gains emerge on execution-intensive tasks (MBPP +6.6, BFCL-SP +3.5), where deterministic feedback ( 𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 )) fully activates Ginfo ,validating its critical role. On AIME-2025 , the dominant benefit comes from exploration and aggregation: Self-Consistency degrades 
+
+Table 2: Main results. Multi-agent methods (top) all use Qwen3-30B-A3B; single-model references (bottom) for com-parison. 95% CIs in brackets. Method GSM8K AIME-2025 MBPP BFCL-SP 
+
+Self-Consistency 86.4% [84.5%,88.3%] 56.7% [40.0%,73.3%] 78.0% [74.2%,81.2%] 82.3% [78.5%,85.8%] 
+
+MoA 87.1% [85.2%,88.9%] 86.7% [73.3%,96.7%] 76.8% [73.2%,80.2%] 85.8% [82.5%,89.3%] 
+
+Two Heads 85.8% [84.0%,87.6%] 80.0% [66.7%,93.3%] 77.2% [73.6%,81.2%] 88.8% [85.5%,92.0%] 
+
+ReConcile 89.8% [88.3%,91.5%] 70.0% [53.3%,86.7%] 77.2% [73.4%,81.0%] 82.3% [78.3%,86.0%] 
+
+PRISM (Ours) 91.1% [89.6%,92.7%] 93.3% [83.3%,100%] 84.6% [81.4%,87.0%] 92.3% [89.5%,94.8%] 
+
+Qwen3-30B-A3B 83.6% [81.5%,85.7%] 70.0% [53.3%,86.7%] 76.0% [72.4%,80.0%] 81.8% [78.0%,85.8%] 
+
+Qwen3-235B-A22B 86.4% [84.6%,88.3%] 73.3% [56.7%,86.7%] 80.2% [76.6%,83.8%] 89.0% [85.8%,92.0%] 
+
+DeepSeek-V3.2 85.3% [83.3%,87.2%] 76.8% † [60.0%,90.0%] 81.2% [77.6%,84.6%] 83.5% [79.5%,87.3%] 
+
+> †Extended reasoning (thinking mode) enabled; without it DeepSeek-V3.2 scores 50% on AIME-2025, so we report its strongest configuration as a reference upper bound.
+
+Table 3: Single-dimension scaling on MBPP. Each group varies one parameter while fixing the others. Exploration (𝑅 =1, 𝑆 =3) Information (𝐾 =3, 𝑆 =3) Aggregation (𝐾 =3, 𝑅 =1)
+
+𝐾 Acc 𝑅 Acc 𝑆 Acc 1 81.0% 0 83.2% 1 83.6% 2 82.8% 1 84.6% 2 84.0% 3 84.6% 3 85.8% 3 84.6% 
+
+(56.7% vs. 70.0% single-model), confirming that voting fails when correct solutions lack natural clustering (Proposition 3.4a), while PRISM’s evidence-based synthesis successfully identifies the best solution among diverse proposals. On GSM8K , the more modest +1.3pp gain is consistent with both Ginfo and Gexplore being con-strained (see Discussion in Section 5.5). Notably, PRISM with a 30B base model outperforms Qwen3-235B-A22B on all four benchmarks—most strikingly on AIME (93.3% vs. 73.3%)—and exceeds DeepSeek-V3.2 on AIME (93.3% vs. 76.8%, even with thinking mode †), MBPP, and BFCL-SP. This demonstrates that principled multi-dimensional optimization yields greater returns than scaling model size alone: a well-orchestrated team of smaller models can surpass individual models with 8 × more parameters. 
+
+## 5.3 Multi-Dimensional Scaling Analysis 
+
+To validate our gain decomposition framework (Theorem 3.1), we isolate each dimension by varying one parameter while fixing the others on MBPP (Table 3). Exploration scales most steeply: 𝐾 =1→3 yields +3.6pp (81.0% →
+
+84.6%), following the 1−( 1−𝑝 )𝐾 coverage curve (Proposition 3.2). Reviewer scaling adds +2.6pp overall ( 𝑅 =0→3, reaching 85.8%), with the primary gain from the first review round (+1.4pp at 𝑅 =0→1). Synthesis iterations contribute +1.0pp ( 𝑆 =1→3), validating closed-loop refinement. To further test whether joint optimization exceeds the sum of individual gains, we compare six configurations span-ning the space of dimension combinations (Table 4). Individual dimension contributions are: Explore-only (+5.2%), Info-only (+3.8%), Aggr-only (+0.8%), yielding a theoretical linear-additivity upper bound of +9.8%. PRISM-full achieves +8.6% (76.0% 
+
+→84.6%), corresponding to a synergy coefficient 𝛾 = 8.6/9.8 =
+
+0.88 . The coefficient 𝛾 < 1 indicates subadditivity —a well-known phenomenon in ensemble learning [ 15 ] where joint mechanisms exhibit diminishing marginal returns. This validates our framework Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu 
+
+Table 4: Joint optimization analysis on MBPP. PRISM-full achieves gains through joint optimization of all three dimen-sions. Config K R S Acc Target 
+
+Baseline 1 0 0 76.0% Single-agent Explore-only 3 0 1 81.2% Gexplore 
+
+Info-only 1 1 1 79.8% Ginfo 
+
+Aggr-only 1 0 1 76.8% Gaggr 
+
+Two-dims 3 1 1 83.6% Explore+Info 
+
+PRISM-full 3 1 3 84.6% All dims 0 1 2 3 4 5 6 7 8
+
+Token Cost (M tokens) 
+
+> 70
+> 75
+> 80
+> 85
+> 90
+> Accuracy (%)  Baseline ceiling (84.2%)
+> 88.8%
+> Self-Consist.
+> Two Heads
+> ReConcile
+> MoA
+> PRISM
+
+Figure 3: Equal-budget efficiency frontier on MBPP. Each curve traces a method’s Pareto envelope—the best accuracy achievable at each token budget—ensuring a strictly fair comparison across methods. PRISM dominates all baselines across the cost spectrum, matching MoA’s 84.2% ceiling at 
+
+∼5× less cost and scaling to 88.8%. 
+
+(Remark 3.1): the three dimensions are conceptually orthogonal at the design level yet statistically dependent at the realization level. Combining exploration and information alone ( 𝐾 =3, 𝑅 =1, 𝑆 =1)already achieves 83.6% (+7.6%), while adding synthesis iterations (𝑆 =3) provides an additional +1.0%, confirming the value of joint optimization despite subadditivity. 
+
+## 5.4 Compute-Efficiency Frontier 
+
+Table 2 compares methods at their standard operating points with comparable budgets. This analysis directly addresses the ques-tion of budget fairness : rather than comparing methods at their default configurations, we systematically evaluate each method’s best achievable accuracy at every token budget level. We sweep each method over a wide range of configurations on MBPP and plot each method’s upper envelope—the Pareto-optimal accuracy at each budget level (Figure 3). Self-Consistency, Two Heads, and ReConcile all plateau below 78% regardless of compute budget. MoA breaks through only when using 3 stacked layers (MoA-8agents-L3), reaching 84.2%—but at 7.73M tokens. In contrast, PRISM already achieves 84.6% at just 1.54M tokens—surpassing MoA’s ceiling at ∼5× less cost—and con-tinues to rise to 88.8% at 7.36M tokens, confirming that joint opti-mization across all three gain dimensions enables sustained compute-scaling where partial-dimension methods saturate. 
+
+## 5.5 Discussion: Gain Decomposition as a Diagnostic Tool 
+
+Our gain decomposition framework not only guides PRISM’s design but also serves as a diagnostic lens for explaining cross-benchmark performance patterns. On MBPP and BFCL-SP , deterministic execution feedback (𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 )) lifts the information ceiling, allowing all three dimensions to contribute fully—hence PRISM’s largest gains (+6.6pp on MBPP, +3.5pp on BFCL-SP). This also explains why Self-Consistency saturates early: without execution feedback, additional samples cannot break through the selection accuracy ceiling imposed by majority voting. On GSM8K , PRISM’s gain is more modest (+1.3pp). The de-composition predicts this: Ginfo is bounded by pseudo-verification fidelity ( 𝐼 (𝑄 ; 𝜎 𝑣 ) < 𝐼 (𝑄 ; 𝑒 )), while the high baseline accuracy ( 𝑝 =
+
+0.84 ) saturates coverage quickly, constraining Gexplore .On AIME-2025 , exploration is the binding bottleneck ( 𝑝 ≈ 0.70 ). Self-Consistency degrades performance (56.7% vs. 70.0% single-model) because voting harms aggregation when correct solutions lack natural clustering (Proposition 3.4a). PRISM’s evidence-based synthesis avoids this pitfall, though conclusions are limited by the small sample size ( 𝑁 = 30 ). These patterns suggest a practical guideline: diagnose which dimension is the bottleneck for a given task, then allocate compute accordingly rather than uniformly scaling all dimensions. 
+
+## 6 Conclusion 
+
+We introduced PRISM, a multi-agent reasoning framework grounded in a gain decomposition that factorizes performance improvements into three independently optimizable dimensions—Exploration, In-formation, and Aggregation. Theoretically , we proved that ex-isting methods optimize only subsets of these dimensions, estab-lishing actionable design principles. Methodologically , PRISM jointly maximizes all three through role-based diversity, execution-grounded feedback with evidence-based cross-evaluation, and game-theoretically stable synthesis. Empirically , PRISM achieves state-of-the-art performance on GSM8K (91.1%), AIME-2025 (93.3%), MBPP (84.6%), and BFCL-SP (92.3%), outperforming all multi-agent baselines and single models with 8 × more parameters. Looking forward, our decomposition reframes multi-agent sys-tem design as dimension-aware resource allocation: practitioners should diagnose which gain dimensions are bottlenecks for their tasks and invest compute accordingly, rather than uniformly scaling agents or rounds. 
+
+## References     
+
+> [1] Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, et al .2021. Program Synthesis with Large Language Models. arXiv preprint arXiv:2108.07732. [2] Justin Chih-Yao Chen, Swarnadeep Saha, and Mohit Bansal. 2024. ReConcile: Round-Table Conference Improves Reasoning via Consensus Among Diverse
+
+PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+LLMs. In Proceedings of the 62nd Annual Meeting of the Association for Computa-tional Linguistics . Association for Computational Linguistics, Bangkok, Thailand, 7066–7085. [3] Karl Cobbe, Vineet Kosaraju, Mohammad Bavarian, Mark Chen, Heewoo Jun, Lukasz Kaiser, Matthias Plappert, Jerry Tworek, Jacob Hilton, Reiichiro Nakano, et al . 2021. Training Verifiers to Solve Math Word Problems. arXiv preprint arXiv:2110.14168. [4] Thomas M Cover and Joy A Thomas. 2006. Elements of Information Theory (2nd ed.). Wiley-Interscience, Hoboken, NJ, USA. [5] Marquis de Condorcet. 1785. Essai sur l’application de l’analyse à la probabilité des décisions rendues à la pluralité des voix . De l’Imprimerie Royale, Paris. [6] Yilun Du, Shuang Li, Antonio Torralba, Joshua B Tenenbaum, and Igor Mor-datch. 2024. Improving Factuality and Reasoning in Language Models through Multiagent Debate. In Forty-first International Conference on Machine Learning (Proceedings of Machine Learning Research, Vol. 235) . PMLR, Vienna, Austria, 11733–11763. [7] Taicheng Guo, Xiuying Chen, Yaqi Wang, Ruidi Chang, Shichao Pei, Nitesh V Chawla, Olaf Wiest, and Xiangliang Zhang. 2024. Large Language Model based Multi-Agents: A Survey of Progress and Challenges. arXiv preprint arXiv:2402.01680. [8] Lu Hong and Scott E Page. 2004. Groups of Diverse Problem Solvers Can Out-perform Groups of High-Ability Problem Solvers. Proceedings of the National Academy of Sciences 101, 46 (2004), 16385–16389. [9] Dong Huang, Jie Bu, Jie Zhang, Michael Luck, and Zhi Wen. 2024. AgentCoder: Multi-Agent-based Code Generation with Iterative Testing and Optimisation. arXiv preprint arXiv:2312.13010. [10] Md Ashraful Islam, Mohammed Eunus Ali, and Md Rizwan Parvez. 2024. Map-Coder: Multi-Agent Code Generation for Competitive Problem Solving. arXiv preprint arXiv:2405.11403. [11] Chengsen Jin, Haozhen Peng, Qi Zhang, Yuqing Tang, Dimitris N Metaxas, and Mengdi Wang. 2025. Two Heads Are Better Than One: Test-Time Scaling of Multi-Agent Collaborative Reasoning. arXiv preprint arXiv:2504.09772. [12] Weiya Jin, Haifeng Du, Baoxiang Zhao, Xiaobo Tian, Bo Shi, and Guang Yang. 2025. A Comprehensive Survey on Multi-Agent Cooperative Decision-Making: Scenarios, Approaches, Challenges and Perspectives. arXiv preprint arXiv:2503.13415. [13] Zhangyue Ke, Fei Jiao, Yichuan Ming, Xuan-Phi Nguyen, Anbang Xu, Shulin Li, Zhenwen Wang, Xuan-Son Huang, Shunyu Yao, and Shafiq Joty. 2025. A Survey of Frontiers in LLM Reasoning: Inference Scaling, Learning to Reason, and Agentic Systems. arXiv preprint arXiv:2504.09037. [14] Elliot Kim, Avi Garg, Kenny Peng, and Nikhil Garg. 2025. Correlated Errors in Large Language Models. In Proceedings of the 42nd International Conference on Machine Learning (Proceedings of Machine Learning Research, Vol. 267) . PMLR, Vancouver, Canada. arXiv:2506.07962. [15] Anders Krogh and Jesper Vedelsby. 1995. Neural Network Ensembles, Cross Validation, and Active Learning. In Advances in Neural Information Processing Systems , Vol. 7. MIT Press, Denver, CO, USA, 231–238. [16] Tian Liang, Zhiwei He, Wenxiang Jiao, Xing Wang, Yan Wang, Rui Wang, Yujiu Yang, Zhaopeng Tu, and Shuming Shi. 2024. Encouraging Divergent Thinking in Large Language Models through Multi-Agent Debate. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing . Association for Computational Linguistics, Miami, Florida, USA, 17889–17904. [17] Zhenwen Liang, Ye Liu, Tao Niu, Xiangliang Zhang, Yingbo Zhou, and Yong Chen. 2024. Improving LLM Reasoning through Scaling Inference Computation with Collaborative Verification. arXiv preprint arXiv:2410.05318. [18] Hunter Lightman, Vineet Kosaraju, Yura Burda, Harri Edwards, Bowen Baker, Teddy Lee, Jan Leike, John Schulman, Ilya Sutskever, and Karl Cobbe. 2024. Let’s Verify Step by Step. In The Twelfth International Conference on Learning Representations . OpenReview.net, Vienna, Austria. [19] Mathematical Association of America. 2025. The 43rd American Invita-tional Mathematics Examination (AIME) I & II. https://www.maa.org/math-competitions/aime. Accessed: 2026-02-06. [20] Dov Monderer and Lloyd S Shapley. 1996. Potential Games. Games and Economic Behavior 14, 1 (1996), 124–143. [21] Ranjita Naik, Varun Chandrasekaran, Mert Yuksekgonul, Hamid Palangi, and Besmira Nushi. 2023. Diversity of Thought Improves Reasoning Abilities of Large Language Models. In NeurIPS 2023 Workshop on Instruction Tuning and Instruction Following . NeurIPS, New Orleans, LA, USA. [22] Scott E Page. 2007. The Difference: How the Power of Diversity Creates Better Groups, Firms, Schools, and Societies . Princeton University Press, Princeton, NJ, USA. [23] Shishir G. Patil, Huanzhi Mao, Fanjia Yan, Charlie Cheng-Jie Ji, Vishnu Suresh, Ion Stoica, and Joseph E. Gonzalez. 2025. The Berkeley Function Calling Leaderboard (BFCL): From Tool Use to Agentic Evaluation of Large Language Models. In 
+
+Proceedings of the 42nd International Conference on Machine Learning (Proceedings of Machine Learning Research, Vol. 267) . PMLR, Vancouver, Canada. [24] Priya Pitre, Naren Ramakrishnan, and Xuan Wang. 2025. CONSENSAGENT: Towards Efficient and Effective Consensus in Multi-Agent LLM Interactions through Sycophancy Mitigation. In Findings of the Association for Computational Linguistics: ACL 2025 . Association for Computational Linguistics, Vienna, Austria, 22112–22133. [25] Amrith Setlur, Chirag Nagpal, Adam Fisch, Xinyang Geng, Jacob Eisenstein, Rishabh Agarwal, Alekh Agarwal, Jonathan Berant, and Aviral Kumar. 2024. Rewarding Progress: Scaling Automated Process Verifiers for LLM Reasoning. arXiv preprint arXiv:2410.08146. [26] Noah Shinn, Federico Cassano, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. 2023. Reflexion: Language Agents with Verbal Reinforcement Learning. In Advances in Neural Information Processing Systems , Vol. 36. Curran Associates, Inc., New Orleans, LA, USA, 8634–8652. [27] Charlie Snell, Jaehoon Lee, Kelvin Xu, and Aviral Kumar. 2025. Scaling LLM Test-Time Compute Optimally Can Be More Effective Than Scaling Model Pa-rameters. In The Thirteenth International Conference on Learning Representations .OpenReview.net, Singapore. [28] Haoran Sun, Yusen Wu, Yukun Cheng, and Xu Chu. 2025. Game Theory Meets Large Language Models: A Systematic Survey. In Proceedings of the Thirty-Fourth International Joint Conference on Artificial Intelligence, IJCAI-25 . International Joint Conferences on Artificial Intelligence Organization, Montreal, Canada, 10669–10677. doi:10.24963/ijcai.2025/1184 Survey Track. [29] Khanh-Tung Tran, Duy Dao, Minh-Duong Nguyen, Quoc-Viet Pham, and Minh-Triet Ngo. 2025. Multi-Agent Collaboration Mechanisms: A Survey of LLMs. arXiv preprint arXiv:2501.06322. [30] Junlin Wang, Jue Wang, Ben Athiwaratkun, Ce Zhang, and James Zou. 2024. Mixture-of-Agents Enhances Large Language Model Capabilities. arXiv preprint arXiv:2406.04692. [31] Tianle Wang, Zhen Liu, Yuxin Chen, John Light, Hongyi Chen, and Jian Li. 2025. Diversified Sampling Improves Scaling LLM Inference. arXiv preprint arXiv:2502.11027. [32] Xuezhi Wang, Jason Wei, Dale Schuurmans, Quoc Le, Ed Chi, Sharan Narang, Aakanksha Chowdhery, and Denny Zhou. 2023. Self-Consistency Improves Chain of Thought Reasoning in Language Models. In The Eleventh International Conference on Learning Representations . OpenReview.net, Kigali, Rwanda. [33] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, and Denny Zhou. 2022. Chain-of-Thought Prompting Elicits Rea-soning in Large Language Models. In Advances in Neural Information Processing Systems , Vol. 35. Curran Associates, Inc., New Orleans, LA, USA, 24824–24837. [34] Danny Wood, Tingting Mu, Andrew Webb, Henry Reeve, Mikel Lujan, and Gavin Brown. 2023. A Unified Theory of Diversity in Ensemble Learning. Journal of Machine Learning Research 24, 359 (2023), 1–49. [35] Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L Griffiths, Yuan Cao, and Karthik Narasimhan. 2023. Tree of Thoughts: Deliberate Problem Solving with Large Language Models. In Advances in Neural Information Processing Systems , Vol. 36. Curran Associates, Inc., New Orleans, LA, USA, 11809–11822. [36] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. 2023. ReAct: Synergizing Reasoning and Acting in Language Models. In The Eleventh International Conference on Learning Representations .OpenReview.net, Kigali, Rwanda. [37] Andy Zhou, Kai Yan, Michal Shlapentokh-Rothman, Haohan Wang, and Yu-Xiong Wang. 2024. Language Agent Tree Search Unifies Reasoning, Acting, and Planning in Language Models. In Proceedings of the 41st International Conference on Machine Learning (Proceedings of Machine Learning Research, Vol. 235) . PMLR, Vienna, Austria, 62138–62160. 
+
+## A Formal Definitions 
+
+This section provides complete formal definitions referenced in Section 3. 
+
+Definition A.1 (Reasoning Task). A reasoning task is defined by the tuple (X , T , 𝑄 ), where: 
+
+• X is the input space (e.g., natural language problem descriptions) 
+
+• T is the output space (e.g., solution trajectories or code) 
+
+• 𝑄 : T × X → { 0, 1} is a binary quality function where 𝑄 (𝜏, 𝑥 ) = 1
+
+if and only if 𝜏 is a correct solution for input 𝑥 
+
+Definition A.2 (Multi-Agent System). A multi-agent reason-ing system is characterized by (𝐾, P, E, 𝑓 ):
+
+• 𝐾 ∈ N+: number of proposing agents 
+
+• P = {𝑃 1, . . . , 𝑃 𝐾 }: generative distributions for each proposer 
+
+• E : T → R : environment executor mapping solutions to structured feedback Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu 
+
+• 𝑓 : T 𝐾 × R 𝐾 → T : aggregation function synthesizing the final solution 
+
+Definition A.3 (Success Correlation). For agents 𝑖, 𝑗 , define the success correlation coefficient: 
+
+𝜌 𝑖 𝑗 := Corr (𝑄 (𝜏 (𝑖 ) ), 𝑄 (𝜏 ( 𝑗 ) )) = E[𝑄 (𝜏 (𝑖 ) )𝑄 (𝜏 ( 𝑗 ) )] − 𝑝 2
+
+𝑝 (1 − 𝑝 ) (9) 
+
+where 𝑝 = 𝑃 (𝑄 (𝜏 (𝑘 ) ) = 1) is the marginal success probability. 
+
+Definition A.4 (Mutual Information). The mutual informa-tion between quality 𝑄 and signal 𝑆 is: 
+
+𝐼 (𝑄 ; 𝑆 ) := 𝐻 (𝑄 ) − 𝐻 (𝑄 | 𝑆 ) =∑︁ 
+
+> 𝑞,𝑠
+
+𝑃 (𝑞, 𝑠 ) log 𝑃 (𝑞, 𝑠 )
+
+𝑃 (𝑞 )𝑃 (𝑠 ) (10) 
+
+where 𝐻 (𝑄 ) = − Í𝑞 𝑃 (𝑞 ) log 𝑃 (𝑞 ) is the entropy of 𝑄 . Note that 
+
+𝐼 (𝑄 ; 𝑆 ) ≤ 𝐻 (𝑄 ) with equality if and only if 𝑆 completely determines 
+
+𝑄 .
+
+Definition A.5 (Execution Feedback). Execution feedback 𝑒 =
+
+E ( 𝜏 ) is a structured report containing: 
+
+• 𝑒. success ∈ { 0, 1}: whether execution completed without errors 
+
+• 𝑒. tests ∈ { 0, 1}𝑚 : pass/fail status for 𝑚 test cases 
+
+• 𝑒. error ∈ Σ∗: error messages and stack traces (if any) For code generation, quality is typically: 𝑄 (𝜏 ) := 1[𝑒. success ∧
+
+𝑒. tests = 1].
+
+Definition A.6 (Textual Feedback). Textual feedback 𝜎 is an LLM-generated evaluation of solution quality, represented as a cate-gorical variable (e.g., 𝜎 ∈ { “correct” , “incorrect” , “uncertain” }). Define error rates: 
+
+𝜖 FP := 𝑃 (𝜎 = “correct” | 𝑄 = 0) (false positive) (11) 
+
+𝜖 FN := 𝑃 (𝜎 = “incorrect” | 𝑄 = 1) (false negative) (12) 
+
+Definition A.7 (Model-Based Pseudo-Verification Feed-back). For tasks without deterministic execution environments (e.g., mathematical reasoning), model-based pseudo-verification feedback 
+
+𝜎 𝑣 = V ( 𝜏, 𝑥 ) is a structured diagnostic report produced by a dedicated LLM evaluator that analyzes solution 𝜏 for input 𝑥 without access to the ground truth. The report contains: 
+
+• 𝜎 𝑣 .is_correct ∈ { 0, 1}: the verifier’s binary quality judgment 
+
+• 𝜎 𝑣 .confidence ∈ [ 0, 1]: a calibrated confidence score 
+
+• 𝜎 𝑣 .errors ∈ Σ∗: identified reasoning errors and diagnostic feed-back Since 𝜎 𝑣 is generated by an LLM evaluator (rather than deterministic execution), it satisfies 𝐼 (𝑄 ; 𝜎 ) < 𝐼 (𝑄 ; 𝜎 𝑣 ) ≤ 𝐼 (𝑄 ; 𝑒 ): strictly more informative than unstructured self-critique 𝜎 (due to specialized eval-uation prompts and structured output), but weakly less informative than deterministic execution feedback 𝑒 (due to the verifier’s own error rates). 
+
+Definition A.8 (Aggregation Efficiency). The efficiency of aggregation function 𝑓 : T 𝐾 × R 𝐾 → T is: 
+
+𝜂 (𝑓 ) := E[𝑄 (𝑓 (𝝉 , 𝒆 ))] 
+
+E[max 𝑘 𝑄 (𝜏 (𝑘 ) )] (13) 
+
+where 𝜂 (𝑓 ) = 1 indicates perfect aggregation (always selecting the best available candidate). Intuitively, E[max 𝑘 𝑄 (𝜏 (𝑘 ) )] is the oracle performance if we could identify the best proposal. When the de-pendence on the feedback signal 𝑠 matters, we write 𝜂 (𝑓 , 𝑠 ) as in Theorem 3.1; 𝜂 (𝑓 ) is used when the signal is fixed or implicit. 
+
+## B Formal Assumptions 
+
+We explicitly state all assumptions underlying our theoretical anal-ysis. The first four assumptions (A1-A4) formalize standard prop-erties of LLM-based multi-agent systems. We add two additional assumptions (A5-A6) specific to aggregation analysis. 
+
+Assumption 1 (Conditional Independence). Given input 𝑥 ,each proposer generates output independently: 
+
+𝑃 (𝜏 (1) , . . . , 𝜏 (𝐾 ) | 𝑥 ) =
+
+> 𝐾
+
+Ö
+
+> 𝑘 =1
+
+𝑃 𝑘 (𝜏 (𝑘 ) | 𝑥 ) (14) 
+
+Justification. Proposers operate in parallel without communi-cation during the generation phase, conditioned only on the input 
+
+𝑥 and their assigned roles. This independence enables the coverage analysis in Section 3.1. 
+
+Assumption 2 (Baseline Competence). There exists baseline success probability 𝑝 ∈ ( 0, 1) such that 𝑃 (𝑄 (𝜏 (𝑘 ) ) = 1) = 𝑝 for all 𝑘 
+
+in the absence of role specialization. 
+
+Justification. This assumes agents have non-trivial but imper-fect capability ( 0 < 𝑝 < 1), matching empirical LLM performance on reasoning tasks. Role-based diversity (Section 3.1) modifies these marginal probabilities while maintaining average success rate 𝑝 .
+
+Assumption 3 (Finite Strategy Space). The output space has finite cardinality: |T | < ∞.
+
+Justification. While the space of all possible text sequences is technically infinite, practical constraints (maximum token length, finite vocabulary) render it finite. This assumption is essential for potential game convergence (Theorem 3.5b). 
+
+Assumption 4 (Execution Determinism). For executable tasks, the environment executor is deterministic: given solution 𝜏 , the feed-back 𝑒 = E ( 𝜏 ) is uniquely determined. 
+
+Justification. Code execution, test evaluation, and MCP calls produce deterministic outputs (modulo explicit randomness in the code itself). This assumption directly applies to tasks with envi-ronmental verifiers (MBPP, BFCL-SP) and enables Theorem 3.5a (execution feedback as sufficient statistic). For mathematical rea-soning tasks (GSM8K, AIME) where no deterministic executor ex-ists, PRISM substitutes model-based pseudo-verification 𝜎 𝑣 (Defini-tion A.7); A4 does not hold in this regime, and theoretical guarantees apply only approximately (see Appendix D.7). 
+
+Assumption 5 (Reviewer Accuracy). Each reviewer, when pro-vided with objective evidence (execution feedback 𝑒 or structured pseudo-verification feedback 𝜎 𝑣 ), correctly assesses solution quality with probability 1 − 𝜖 0, where 𝜖 0 ∈ ( 0, 0.5).
+
+Justification. LLMs are imperfect interpreters of feedback sig-nals, exhibiting false positive and false negative errors. The con-straint 𝜖 0 < 0.5 ensures reviewers are better than random guessing. PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+Assumption 6 (Reviewer Independence). Given the true qual-ity 𝑄 (𝜏 (𝑘 ) ) and the available evidence (execution feedback 𝑒 (𝑘 ) or pseudo-verification feedback 𝜎 (𝑘 ) 
+
+> 𝑣
+
+), different reviewers’ assessments are conditionally independent. 
+
+Justification. Reviewers operate independently, each analyzing the same evidence. While they may share systematic biases (vio-lating full independence), conditional on the objective evidence, remaining errors are largely uncorrelated. This assumption enables the exponential error reduction in Proposition 3.4b. 
+
+## C Detailed Analysis and Examples 
+
+This section provides numerical examples, quantitative compar-isons, and detailed case studies supporting the main theoretical results. 
+
+## C.1 Exploration Gain: Quantitative Analysis 
+
+Proposition C.1 (IID Exploration Gain). With 𝐾 independent agents each having success probability 𝑝 , the exploration gain is: 
+
+Giid explore (𝐾 ) = 1 − ( 1 − 𝑝 )𝐾 − 𝑝 (15) 
+
+This gain is strictly positive for 𝐾 ≥ 2 and monotonically increasing in 𝐾 .
+
+Numerical Illustration. For baseline success rate 𝑝 = 0.4:
+
+• 𝐾 = 2: Gexplore = 0.64 − 0.40 = 0.24 (24% improvement) 
+
+• 𝐾 = 3: Gexplore = 0.784 − 0.40 = 0.384 (38.4% improvement) 
+
+• 𝐾 = 5: Gexplore = 0.922 − 0.40 = 0.522 (52.2% improvement) 
+
+• 𝐾 = 10 : Gexplore = 0.994 − 0.40 = 0.594 (59.4% improvement) The marginal gain Gexplore (𝐾 +1)−G explore (𝐾 ) decreases as 𝐾 grows, exhibiting diminishing returns characteristic of parallel sampling. 
+
+Role Diversity Enhancement. Consider three specialized roles: 
+
+• Minimalist : Prefers short, direct solutions. Fails on edge cases requiring extensive validation (failure mode: insufficient cover-age). 
+
+• Skeptic : Adds redundant checks. Fails on time/resource-constrained problems (failure mode: over-engineering). 
+
+• Explorer : Seeks non-standard approaches. Fails on tasks with strict conventions (failure mode: excessive creativity). These roles exhibit orthogonal failure modes . Empirically, on MBPP dataset, we observe pairwise correlations: 𝜌 12 ≈ − 0.15 , 𝜌 13 ≈ − 0.18 ,
+
+𝜌 23 ≈ − 0.12 , yielding ¯𝜌 ≈ − 0.15 < 0, confirming the diversity enhancement predicted by Proposition 3.2. 
+
+## C.2 Information Gain: Quantitative Comparison 
+
+Example: Execution vs. Textual Feedback. Consider a code generation task with baseline success rate 𝑝 = 0.4 (thus 𝐻 (𝑄 ) ≈ 
+
+0.971 bits). 
+
+Execution feedback 𝑒 provides deterministic quality assessment (pass/fail tests). By Theorem 3.5a: 
+
+𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 ) ≈ 0.971 bits (100% information) (16) 
+
+Textual feedback 𝜎 from LLM self-evaluation has error rates 
+
+𝜖 FP = 0.1, 𝜖 FN = 0.15 . Computing conditional entropies: 
+
+𝑃 (𝜎 = “correct” ) = (1 − 0.15 ) · 0.4 + 0.1 · 0.6 = 0.40 (17) 
+
+𝑃 (𝑄 = 1 | 𝜎 = “correct” ) = 0.85 · 0.40.40 = 0.85 (18) 
+
+𝐻 (𝑄 | 𝜎 = “correct” ) ≈ 0.442 bits (19) Similarly, 𝐻 (𝑄 | 𝜎 = “incorrect” ) ≈ 0.337 bits. Averaging: 
+
+𝐼 (𝑄 ; 𝜎 ) = 𝐻 (𝑄 ) − 𝐻 (𝑄 | 𝜎 ) ≈ 0.971 − 0.391 = 0.58 bits (20) 
+
+Information loss: Textual feedback retains only 60% of avail-able information, with 40% lost due to LLM evaluator errors. Model-based pseudo-verification 𝜎 𝑣 (Definition A.7)—which employs spe-cialized evaluation prompts and structured diagnostic output— achieves intermediate fidelity: empirically, 𝐼 (𝑄 ; 𝜎 𝑣 )/ 𝐻 (𝑄 ) ≈ 0.75 –
+
+0.85 for well-calibrated verifier LLMs, occupying the space between pure self-critique ( ∼60%) and deterministic execution (100%). This three-tier hierarchy directly informs PRISM’s feedback strategy (Remark 3.2). 
+
+## C.3 Aggregation Gain: Voting Failure Analysis 
+
+Majority voting faces structural limitations that depend on the 
+
+answer space topology , not merely on voter accuracy. We identify two failure modes and validate each with empirical results from Table 2. 
+
+Failure Mode 1: Answer Fragmentation. For code generation and function-calling tasks, multiple syntactically distinct imple-mentations can be correct. Each independent agent samples from 
+
+𝑃 (𝜏 | 𝑥 ); when correct probability mass fragments across 𝑀 distinct variants (each receiving ∼ 𝑝 /𝑀 ), no single correct answer achieves plurality. Empirically, Self-Consistency’s voting yields negligible gains despite 𝐾 =5 independent samples: only +2.0pp on MBPP and +0.5pp on BFCL-SP, confirming that exploration alone cannot compensate for ineffective aggregation. 
+
+Failure Mode 2: Low Per-Problem Success Rate. When per-problem success probability 𝑝 𝑖 < 0.5, majority voting amplifies 
+
+errors. With 𝐾 independent samples: 
+
+𝑃 (vote correct ) =
+
+> 𝐾
+
+∑︁ 
+
+> 𝑗 =⌈𝐾 /2⌉
+
+𝐾 𝑗 
+
+
+
+𝑝 𝑗 𝑖 (1−𝑝 𝑖 )𝐾 − 𝑗 < 𝑝 𝑖 whenever 𝑝 𝑖 < 0.5
+
+(21) On AIME-2025, where many competition-level problems have 𝑝 𝑖 ≪
+
+0.5, Self-Consistency degrades by −13.3pp (56.7% vs. 70.0% single-model), precisely because voting turns the majority of incorrect samples into confident wrong selections. 
+
+PRISM’s Aggregation Efficiency. In contrast, PRISM’s evidence-based aggregation bypasses these structural requirements. With reviewer error 𝜖 0 = 0.2:
+
+𝜂 (𝑓 PRISM ) ≥ 1 − 𝜖 20 = 0.96 (96% efficiency) (22) PRISM maintains high aggregation efficiency regardless of answer space structure for two reasons: (1) quality signals are anchored to objective execution feedback rather than answer clustering, and (2) assigning differentiated roles to each proposer (e.g., Minimal-ist, Skeptic, Explorer) maximizes behavioral diversity, driving the pairwise success correlation toward negative values ( ¯𝜌 ≈ − 0.15 Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu 
+
+empirically; see Appendix D.7) and thereby strengthening the in-dependence condition that voting critically relies on yet cannot guarantee. 
+
+## C.4 Case Studies: Existing Methods 
+
+We analyze three representative baselines — Self-Consistency, ReC-oncile, and MoA — through our gain decomposition framework, using empirical results from Table 2. All methods use Qwen3-30B-A3B as the base model. 
+
+Self-Consistency: Exploration Without Effective Aggrega-tion. Self-Consistency [ 32 ] samples 𝐾 =5 independent paths (acti-vating Gexplore ) but relies on majority voting (providing no Ginfo or 
+
+Gagg advantage). Our framework predicts its total gain is bounded by 𝐶 𝐾 · 𝜂 (𝑓 vote ) − 𝑝 , where 𝜂 (𝑓 vote ) depends on the answer space structure: 
+
+• GSM8K (+2.8pp): Moderate gain. Unique numerical answers enable effective voting ( 𝜂 moderate), but the high baseline ( 𝑝 ≈
+
+0.84 ) limits exploration headroom ( 𝐶 𝐾 − 𝑝 small). 
+
+• AIME-2025 (−13.3pp): Negative gain. Low per-problem success rates cause voting to amplify errors (Failure Mode 2 above), yielding 𝜂 (𝑓 vote ) · 𝐶 𝐾 < 𝑝 .
+
+• MBPP (+2.0pp) and BFCL-SP (+0.5pp): Negligible gains. Answer fragmentation across diverse correct implementations renders 
+
+𝜂 (𝑓 vote ) ≪ 1, wasting the exploration benefit. 
+
+ReConcile: Discussion Improves Aggregation for Struc-tured Reasoning. ReConcile [ 2] employs multi-round discussion among agents, introducing an information exchange mechanism that partially improves Gagg beyond naive voting. Our framework predicts discussion is effective when agents can verify reasoning through textual analysis, but limited when execution feedback is essential: 
+
+• GSM8K (+6.2pp): Strongest baseline gain. Step-by-step mathe-matical reasoning is amenable to textual verification; multi-round discussion enables agents to identify and correct reasoning er-rors, effectively improving aggregation quality. 
+
+• AIME-2025 (±0pp): No gain. Competition-level difficulty ex-ceeds the diagnostic capability of textual discussion; agents can-not reliably verify complex proofs through conversation alone, limiting Ginfo .
+
+• MBPP (+1.2pp) and BFCL-SP (+0.5pp): Minimal gains. Without deterministic execution feedback ( 𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 )), discussion-based verification cannot substitute for program correctness signals, leaving Ginfo largely inactivated. 
+
+MoA: Layered Synthesis as Implicit Iterative Refinement. 
+
+MoA [ 30 ] employs a multi-layer architecture where each layer’s agents synthesize outputs from the previous layer, implicitly activat-ing both Gexplore (multiple agents per layer) and Gagg (progressive synthesis). Our framework predicts that layered synthesis excels when iterative reasoning refinement is valuable, but achieves this at substantially higher compute cost than feedback-guided methods: 
+
+• AIME-2025 (+16.7pp): Strongest baseline gain across all bench-marks. Multi-layer synthesis enables progressive deepening of mathematical arguments; each layer builds on and refines previ-ous reasoning, effectively functioning as multi-round self-improvement that activates Gagg through iterative refinement. 
+
+• GSM8K (+3.5pp) and BFCL-SP (+4.0pp): Moderate gains con-sistent with synthesis-based aggregation improving over voting, but without targeted feedback signals. 
+
+• MBPP: Scaling behavior reveals the compute–information tradeoff. At standard configuration (3 agents, 2 layers), MoA gains only +0.8pp. However, unlike Self-Consistency (saturates at ∼77.2% beyond 𝐾 =15 ) and ReConcile (saturates at ∼77.6%), MoA continues to scale : from 77.2% to 84.2% on the Pareto frontier experiment, a +7pp improvement that nearly matches PRISM’s 84.6%. This confirms that layered synthesis genuinely increases 
+
+Gagg with additional capacity, bypassing the voting ceiling. The critical difference is efficiency : MoA requires ∼7.7M tokens to reach 84.2%, whereas PRISM achieves 84.6% at ∼1.5M tokens—a 
+
+5× cost advantage — and at comparable budget ( ∼7.4M tokens) PRISM reaches 88.8%, a +4.6pp lead. This gap arises because MoA, lacking Ginfo from execution feedback, must compensate with brute-force layer stacking, while PRISM’s feedback signals make each token of compute substantially more informative. These patterns confirm the independence of our three gain di-mensions: methods activating only a subset achieve limited, task-dependent improvements. PRISM’s consistent superiority across all four benchmarks (Section 5.2) arises from jointly maximizing exploration (role diversity), information (execution and pseudo-verification feedback), and aggregation (evidence-based cross-evaluation). 
+
+## D Complete Proofs D.1 Proof of Theorem 3.1: Gain Decomposition 
+
+We prove both the multiplicative identity and the subadditive upper bound. The decomposition draws on classical ideas from ensemble learning [ 15 , 34 ], the Condorcet jury theorem [ 5], and the diversity prediction theorem in collective intelligence [8, 22]. 
+
+Proof. Part I: Multiplicative Identity. 
+
+We establish E[𝑄 (𝜏 MAS )] = 𝐶 𝐾 · 𝜂 (𝑓 , 𝑠 ) from first principles. By the law of total probability, conditioning on whether at least one correct proposal exists: 
+
+E[𝑄 (𝜏 MAS )] = 𝑃 
+
+Ü
+
+> 𝑘
+
+𝑄 (𝜏 (𝑘 ) ) = 1
+
+!
+
+· 𝑃 𝑄 (𝜏 MAS ) = 1
+
+Ü
+
+> 𝑘
+
+𝑄 (𝜏 (𝑘 ) ) = 1
+
+!
+
++ 𝑃 
+
+
+
+∀𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 0
+
+
+
+· 𝑃 
+
+
+
+𝑄 (𝜏 MAS ) = 1 ∀𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 0
+
+
+
+(23) The second term equals zero: if no correct proposal exists and 𝑄 ∈{0, 1} is determined by execution (Assumption 4), the system cannot synthesize a correct solution from entirely incorrect proposals. Thus: 
+
+E[𝑄 (𝜏 MAS )] = 𝐶 𝐾 · 𝜂 (𝑓 , 𝑠 ) (24) where 𝐶 𝐾 := 𝑃 (Ô𝑘 𝑄 (𝜏 (𝑘 ) ) = 1) and 𝜂 (𝑓 , 𝑠 ) := 𝑃 (𝑄 (𝜏 MAS ) = 1 |∃𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1).
+
+Part II: Non-negativity and Well-definedness of Gain Terms. 
+
+We verify that each gain term is well-defined and non-negative. 
+
+Exploration gain: By Assumption 1 (conditional independence) and 2 (baseline competence 𝑝 ∈ ( 0, 1)): 
+
+𝐶 𝐾 = 1 − ( 1 − 𝑝 )𝐾 ≥ 𝑝 for 𝐾 ≥ 1 (25) with strict inequality for 𝐾 ≥ 2. Thus Gexplore = 𝐶 𝐾 − 𝑝 ≥ 0.PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+Information gain: The Bayes-optimal selection accuracy 𝜂 ∗ (𝑠 ) :=
+
+max 𝑓 𝜂 (𝑓 , 𝑠 ) satisfies 𝜂 ∗ (𝑒 ) ≥ 𝜂 ∗ (𝜎 ) because execution feedback 
+
+𝑒 provides at least as much information as textual feedback 𝜎 
+
+about solution quality. Formally, by the data processing inequality (Lemma F.4), since textual self-evaluation 𝜎 is generated from the solution 𝜏 without access to execution results, we have 𝐼 (𝑄 ; 𝑒 ) ≥ 
+
+𝐼 (𝑄 ; 𝜎 ). By Theorem 3.5a, under deterministic execution, 𝐼 (𝑄 ; 𝑒 ) =
+
+𝐻 (𝑄 ), which uniquely determines 𝑄 and yields 𝜂 ∗ (𝑒 ) = 1. In con-trast, textual feedback with error rates 𝜖 FP , 𝜖 FN > 0 leaves residual uncertainty 𝐻 (𝑄 |𝜎 ) > 0 (Proposition 3.3), so 𝜂 ∗ (𝜎 ) < 1. Thus 
+
+Ginfo = 𝐶 𝐾 [𝜂 ∗ (𝑒 ) − 𝜂 ∗ (𝜎 )] ≥ 0.
+
+Aggregation gain: The term Gaggr = 𝐶 𝐾 [𝜂 (𝑓 , 𝑠 ) − 𝜂 (𝑓 base , 𝑠 )] is non-negative whenever 𝑓 achieves at least the selection accuracy of the reference baseline 𝑓 base . This is not automatic—a poorly designed aggregation can underperform the baseline—and requires proof for each concrete system. For PRISM, we take 𝑓 base as uninformed selection (choosing one candidate uniformly at random, giving worst-case 𝜂 (𝑓 base ) = 1/𝐾 when exactly one proposal is correct). By Proposition 3.4(b), under Assumptions 5–6, PRISM achieves 
+
+𝜂 (𝑓 PRISM , 𝑠 ) ≥ 1 − 𝜖 𝐾 −10 > 1/2 ≥ 1/𝐾 for 𝐾 ≥ 2 and 𝜖 0 < 0.5,establishing Gaggr > 0.
+
+Part III: Subadditive Upper Bound. 
+
+From the multiplicative identity (Eq. 24): 
+
+E[𝑄 (𝜏 MAS )] − 𝑝 = 𝐶 𝐾 · 𝜂 (𝑓 , 𝑠 ) − 𝑝 
+
+= (𝐶 𝐾 − 𝑝 ) + 𝐶 𝐾 (𝜂 (𝑓 , 𝑠 ) − 1)
+
+= Gexplore + 𝐶 𝐾 (𝜂 (𝑓 , 𝑠 ) − 1) (26) Since 𝜂 (𝑓 , 𝑠 ) ≤ 1, the second term is non-positive: 
+
+E[𝑄 (𝜏 MAS )] − 𝑝 ≤ G explore ≤ G explore + G info + G aggr (27) where the second inequality follows from non-negativity of 
+
+Ginfo , Gaggr ≥ 0.
+
+Part IV: Subadditivity Mechanism. 
+
+The strict inequality (subadditivity) arises because the three dimensions interact through the multiplicative structure. To see this concretely, we decompose the selection loss 𝐶 𝐾 (1 − 𝜂 (𝑓 , 𝑠 )) 
+
+into information and aggregation components: 
+
+𝐶 𝐾 (1 − 𝜂 (𝑓 , 𝑠 )) = 𝐶 𝐾 (1 − 𝜂 ∗ (𝑠 )) 
+
+| {z }
+
+> information loss
+
++ 𝐶 𝐾 (𝜂 ∗ (𝑠 ) − 𝜂 (𝑓 , 𝑠 )) 
+
+| {z }
+
+> aggregation loss
+
+(28) Both terms depend on 𝐶 𝐾 , coupling exploration with the other two dimensions. This means: 
+
+• When 𝐶 𝐾 is large (good exploration), both information and aggre-gation losses are amplified in absolute terms, making marginal improvements in these dimensions more impactful. 
+
+• When 𝜂 (𝑓 , 𝑠 ) is close to 1 (good information and aggregation), further improvements in exploration directly translate to perfor-mance gains. 
+
+• Conversely, improving exploration alone without adequate se-lection ( 𝜂 ≪ 1) yields diminishing returns, as the additional coverage is wasted. This multiplicative interaction is structurally analogous to the bias-variance-covariance decomposition in ensemble learning [ 15 ,34 ], where ensemble performance decomposes into Error = Bias 2 + 
+
+> 1
+> 𝑁
+
+Var + ( 1 − 1 
+
+> 𝑁
+
+)Covar , and optimizing one term (e.g., reducing bias) can increase another (variance), reflecting the same kind of cross-dimensional interaction. It also parallels the diversity prediction theorem [ 8, 22 ]: Collective Error = Individual Error − Diversity ,where the diversity term captures the interaction between explo-ration breadth and aggregation quality. □
+
+Discussion: The Single-Dimension Trap and Joint Opti-mization. The multiplicative identity E[𝑄 ] = 𝐶 𝐾 · 𝜂 (𝑓 , 𝑠 ) has a sharp practical implication: each factor acts as a ceiling on the other .To make this concrete, decompose the selection accuracy into its two components (Part IV): 
+
+𝜂 (𝑓 , 𝑠 ) = 𝜂 ∗ (𝑠 )
+
+|{z} 
+
+> information ceiling
+
+− [ 𝜂 ∗ (𝑠 ) − 𝜂 (𝑓 , 𝑠 )] 
+
+| {z }
+
+> aggregation gap
+
+(29) The expected quality thus factors as E[𝑄 ] = 𝐶 𝐾 · [ 𝜂 ∗ (𝑠 ) − Δaggr ],where Δaggr := 𝜂 ∗ (𝑠 ) − 𝜂 (𝑓 , 𝑠 ) ≥ 0 is the aggregation loss. Three failure modes emerge: (1) Exploration-only scaling (high 𝐶 𝐾 , low 𝜂 ). Self-Consistency increases 𝐶 𝐾 by sampling 𝐾 =5–33 paths, but employs majority voting as aggregation ( Δaggr large on code tasks). Empirically on MBPP, 𝐶 𝐾 grows from ∼0.76 to ∼0.95, yet accuracy saturates at ∼77.2% because the low 𝜂 discounts the coverage gain: Δ𝐶 𝐾 
+
+is multiplied by 𝜂 ≪ 1 (Eq. 26). The coverage improvement is “wasted” by poor selection. (2) Selection-only optimization (high 𝜂 , low 𝐶 𝐾 ). A single-agent system with perfect execution feedback achieves 𝜂 ∗ (𝑒 ) =
+
+1, but 𝐶 1 = 𝑝 : the expected quality cannot exceed the baseline 
+
+𝑝 regardless of how perfect the feedback is. The quality ceiling is set by coverage. (3) Information without aggregation (high 𝜂 ∗, high Δaggr ). 
+
+Even with execution feedback providing 𝜂 ∗ (𝑒 ) = 1 (maximal information), a naive aggregation function (e.g., random selec-tion) leaves Δaggr = 1 − 1/𝐾 , recovering only a fraction of the available information. The information is “collected but not utilized.” 
+
+PRISM’s joint optimization. PRISM addresses all three fac-tors simultaneously: (1) role diversity drives 𝐶 𝐾 beyond the IID baseline via negative correlation ( ¯𝜌 < 0, Proposition 3.2); (2) execu-tion feedback and pseudo-verification raise the information ceiling 
+
+𝜂 ∗ (𝑠 ) → 1 (Theorem 3.5a); (3) evidence-based cross-review and potential-game synthesis close the aggregation gap Δaggr ≤ 𝜖 𝐾 −10 →
+
+0 (Proposition 3.4b). The multiplicative structure then becomes a 
+
+virtuous cycle : high 𝐶 𝐾 amplifies the impact of reliable selection, while high 𝜂 ensures that every unit of additional coverage trans-lates into actual performance gain. 
+
+## D.2 Proof of Proposition C.1 
+
+Proof. By Assumption 1: 
+
+𝑃 
+
+> 𝐾
+
+Ü
+
+> 𝑘 =1
+
+𝑄 (𝜏 (𝑘 ) ) = 1
+
+!
+
+= 1 −
+
+> 𝐾
+
+Ö
+
+> 𝑘 =1
+
+𝑃 (𝑄 (𝜏 (𝑘 ) ) = 0)
+
+= 1 − ( 1 − 𝑝 )𝐾 (30) Thus Gexplore (𝐾 ) = [1 − ( 1 − 𝑝 )𝐾 ] − 𝑝 .For 𝐾 ≥ 2: Let 𝑔 (𝐾 ) = (1 − 𝑝 )𝐾 + 𝑝 . Since 0 < 1 − 𝑝 < 1,
+
+(1 − 𝑝 )𝐾 < 1 − 𝑝 for 𝐾 ≥ 2, so 𝑔 (𝐾 ) < 1 and Gexplore (𝐾 ) > 0.Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu 
+
+Monotonicity: 𝜕 𝜕𝐾 Gexplore = −( 1 − 𝑝 )𝐾 ln (1 − 𝑝 ) > 0. □
+
+## D.3 Proof of Proposition 3.2 
+
+Proof. Let 𝐴 𝑘 = {𝑄 (𝜏 (𝑘 ) ) = 1} denote the event that agent 𝑘 
+
+produces a correct solution, with 𝑃 (𝐴 𝑘 ) = 𝑝 for all 𝑘 . We derive the union probability 𝑃 (Ð𝐾 𝑘 =1 𝐴 𝑘 ) using the inclusion-exclusion principle. 
+
+Step 1: Exact Formula via Inclusion-Exclusion. The inclusion-exclusion principle gives: 
+
+𝑃 
+
+> 𝐾
+
+Ø
+
+> 𝑘 =1
+
+𝐴 𝑘 
+
+!
+
+=∑︁ 
+
+> 𝑖
+
+𝑃 (𝐴 𝑖 ) − ∑︁ 
+
+> 𝑖 <𝑗
+
+𝑃 (𝐴 𝑖 ∩𝐴 𝑗 ) + ∑︁  
+
+> 𝑖 <𝑗 <ℓ
+
+𝑃 (𝐴 𝑖 ∩𝐴 𝑗 ∩𝐴 ℓ ) − · · · 
+
+(31) 
+
+Step 2: Rigorous Lower Bound via Bonferroni Inequalities. 
+
+Defining the standard partial sums 
+
+𝑆 1 =∑︁ 
+
+> 𝑖
+
+𝑃 (𝐴 𝑖 ), 𝑆 2 =∑︁ 
+
+> 𝑖 <𝑗
+
+𝑃 (𝐴 𝑖 ∩ 𝐴 𝑗 ) (32) the Bonferroni inequality at order 𝑚 = 2 (even) gives: 
+
+𝑃 
+
+> 𝐾
+
+Ø
+
+> 𝑘 =1
+
+𝐴 𝑘 
+
+!
+
+≥ 𝑆 1 − 𝑆 2 (33) For agents with marginal success rate 𝑝 and pairwise correlation 
+
+𝜌 𝑖 𝑗 , we have 𝑃 (𝐴 𝑖 ∩ 𝐴 𝑗 ) = 𝑝 2 + 𝜌 𝑖 𝑗 · 𝑝 (1 − 𝑝 ). Defining average pairwise correlation ¯𝜌 = 2  
+
+> 𝐾 (𝐾 −1)
+
+Í𝑖 <𝑗 𝜌 𝑖 𝑗 :
+
+𝑆 1 = 𝐾𝑝, 𝑆 2 =
+
+𝐾 
+
+2
+
+
+
+𝑝 2 +
+
+𝐾 
+
+2
+
+
+
+¯𝜌 · 𝑝 (1 − 𝑝 ) (34) Substituting into the Bonferroni bound: 
+
+𝑃 
+
+> 𝐾
+
+Ø
+
+> 𝑘 =1
+
+𝐴 𝑘 
+
+!
+
+≥ 𝐾𝑝 −
+
+𝐾 
+
+2
+
+
+
+𝑝 2
+
+| {z }
+
+> IID lower bound
+
+−
+
+𝐾 
+
+2
+
+
+
+¯𝜌 · 𝑝 (1 − 𝑝 )
+
+| {z }
+
+> diversity correction
+
+(35) 
+
+Step 3: Diversity Gain via Guaranteed Lower Bound. The exploration gain is Gexplore = 𝑃 (Ð𝑘 𝐴 𝑘 ) − 𝑝 . Comparing the guar-anteed lower bounds for diverse ( ¯𝜌 ≠ 0) vs. IID ( ¯𝜌 = 0) agents: 
+
+Gdiverse explore − G iid explore ≥ − 
+
+𝐾 
+
+2
+
+
+
+¯𝜌 · 𝑝 (1 − 𝑝 ) (36) When ¯𝜌 < 0 (complementary roles induce negative correlation), the right-hand side is strictly positive, establishing that role diversity 
+
+strictly increases the guaranteed lower bound of the exploration coverage. □
+
+## D.4 Proof of Theorem 3.5 Part (a): Information Sufficiency 
+
+Proof. We prove that execution feedback 𝑒 is a sufficient statis-tic for quality 𝑄 , achieving maximum mutual information 𝐼 (𝑄 ; 𝑒 ) =
+
+𝐻 (𝑄 ).
+
+Step 1: Deterministic Relationship. By Assumption 4, exe-cution is deterministic: given solution 𝜏 , the feedback 𝑒 = E ( 𝜏 ) is uniquely determined. By the definition of quality: 
+
+𝑄 (𝜏 ) = 𝑔 (E ( 𝜏 )) = 𝑔 (𝑒 ) (37) where 𝑔 (𝑒 ) := 1[𝑒. success = 1 ∧ 𝑒. tests = 1] is deterministic. 
+
+Step 2: Conditional Entropy is Zero. Since 𝑄 is deterministic given 𝑒 , knowing 𝑒 completely determines 𝑄 :
+
+𝐻 (𝑄 | 𝑒 ) =∑︁ 
+
+> 𝑒
+
+𝑃 (𝑒 )𝐻 (𝑄 | 𝑒 = 𝑒 ) =∑︁ 
+
+> 𝑒
+
+𝑃 (𝑒 ) · 0 = 0 (38) where 𝐻 (𝑄 | 𝑒 = 𝑒 ) = 0 because 𝑃 (𝑄 = 𝑞 | 𝑒 = 𝑒 ) ∈ { 0, 1}.
+
+Step 3: Mutual Information Equals Entropy. By definition: 
+
+𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 ) − 𝐻 (𝑄 | 𝑒 ) = 𝐻 (𝑄 ) − 0 = 𝐻 (𝑄 ) (39) This is the theoretical maximum, as 𝐼 (𝑄 ; 𝑆 ) ≤ 𝐻 (𝑄 ) for any signal 
+
+𝑆 .
+
+Step 4: Sufficiency Condition. We verify the Markov property 
+
+𝑄 ⊥ 𝜏 | 𝑒 . For any 𝑞, 𝜏, 𝑒 with 𝑃 (𝜏, 𝑒 ) > 0:
+
+𝑃 (𝑄 = 𝑞 | 𝜏, 𝑒 ) = 𝑃 (𝑄 = 𝑞 | 𝑒 ) (40) 
+
+= 1[𝑞 = 𝑔 (𝑒 )] (by Eq. (37)) (41) Thus 𝑒 is sufficient: 𝜏 provides no added information about 𝑄 . □
+
+## D.5 Proof of Proposition 3.3: Information Loss of Textual Feedback 
+
+Proof. We prove that textual feedback with non-zero error rates provides strictly less information: 𝐼 (𝑄 ; 𝜎 ) < 𝐻 (𝑄 ).
+
+Step 1: Model Setup. Let 𝜎 ∈ { “correct” , “incorrect” } denote the textual evaluation. The error rates are: 
+
+𝜖 FP := 𝑃 (𝜎 = “correct” | 𝑄 = 0) > 0 (42) 
+
+𝜖 FN := 𝑃 (𝜎 = “incorrect” | 𝑄 = 1) > 0 (43) By assumption, both error rates are strictly positive. 
+
+Step 2: Posterior Distributions. Let 𝑝 := 𝑃 (𝑄 = 1). By Bayes’ theorem: 
+
+𝑃 (𝜎 = “correct” ) = 𝑃 (𝜎 = “correct” | 𝑄 = 1)𝑃 (𝑄 = 1)+ 𝑃 (𝜎 = “correct” | 𝑄 = 0)𝑃 (𝑄 = 0)
+
+= (1 − 𝜖 FN )𝑝 + 𝜖 FP (1 − 𝑝 ) (44) The posterior is: 
+
+𝑃 (𝑄 = 1 | 𝜎 = “correct” ) = (1 − 𝜖 FN )𝑝 
+
+(1 − 𝜖 FN )𝑝 + 𝜖 FP (1 − 𝑝 ) (45) 
+
+Step 3: Conditional Entropy is Positive. Since 𝜖 FP , 𝜖 FN > 0
+
+and both are less than 1: 
+
+0 < 𝑃 (𝑄 = 1 | 𝜎 = 𝑠 ) < 1 for 𝑠 ∈ { “correct” , “incorrect” } (46) The conditional entropy for each outcome is strictly positive: 
+
+𝐻 (𝑄 | 𝜎 = 𝑠 ) = 𝐻 𝑏 (𝑃 (𝑄 = 1 | 𝜎 = 𝑠 )) > 0 (47) where 𝐻 𝑏 (𝑝 ) = −𝑝 log 𝑝 − ( 1 − 𝑝 ) log (1 − 𝑝 ) is strictly positive for 
+
+𝑝 ∈ ( 0, 1).
+
+Step 4: Overall Conditional Entropy. The conditional entropy 
+
+𝐻 (𝑄 | 𝜎 ) is: 
+
+𝐻 (𝑄 | 𝜎 ) =∑︁ 
+
+> 𝑠
+
+𝑃 (𝜎 = 𝑠 )𝐻 (𝑄 | 𝜎 = 𝑠 ) (48) 
+
+= 𝑃 (𝜎 = “correct” )𝐻 (𝑄 | 𝜎 = “correct” )+ 𝑃 (𝜎 = “incorrect” )𝐻 (𝑄 | 𝜎 = “incorrect” ) (49) 
+
+> 0 (since each term is positive) (50) 
+
+Step 5: Information is Suboptimal. By definition: 
+
+𝐼 (𝑄 ; 𝜎 ) = 𝐻 (𝑄 ) − 𝐻 (𝑄 | 𝜎 ) < 𝐻 (𝑄 ) (51) PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+The information loss 𝐻 (𝑄 | 𝜎 ) > 0 quantifies residual uncertainty. 
+
+□
+
+The strict inequality 𝐼 (𝑄 ; 𝜎 ) < 𝐻 (𝑄 ) derived above is not merely a theoretical bound; it formalizes the entropy loss inherent in purely textual self-critique. This result establishes an information-theoretic imperative for PRISM’s feedback hierarchy: 
+
+• Priority on Lossless Channels (Execution): For domains where deterministic verification is feasible (e.g., code genera-tion in MBPP, function calling in BFCL-SP), the system must 
+
+prioritize execution feedback 𝑒 . As shown in Theorem 3.5(a), this yields 𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 ), effectively eliminating the residual uncer-tainty that plagues textual critique. Relying on LLM self-critique in these contexts would introduce avoidable information loss. 
+
+• Principled Fallback for Lossy Channels: For domains where execution is intractable (e.g., abstract reasoning in GSM8K), the system falls back to model-based verification 𝜎 𝑣 . The framework explicitly acknowledges this as a lossy channel ( 𝐻 (𝑄 | 𝜎 𝑣 ) > 0). This necessitates the stronger aggregation mechanisms in Phase 4 (Synthesis) to compensate for the imperfect information fidelity, ensuring robustness even when ground truth is inaccessible. 
+
+## D.6 Proof of Theorem 3.5 Part (b): Convergence Guarantee 
+
+Proof. We prove that PRISM’s proposal-review mechanism is an exact potential game, guaranteeing finite-time convergence to a stable consensus. 
+
+Step 1: Game Specification. The game consists of: 
+
+• Players : 𝐾 proposers indexed by 𝑘 ∈ { 1, . . . , 𝐾 }• Strategy space : Each player 𝑘 chooses 𝜏 (𝑘 ) ∈ T • Utility function : 𝑢 𝑘 (𝝉 ) = max 𝑗 =1,...,𝐾 𝑄 (𝜏 ( 𝑗 ) ) + 𝜆𝑅 𝑘 (𝜏 (𝑘 ) )
+
+where 𝜆 > 0 is the role preference weight and 𝑅 𝑘 : T → R encodes player 𝑘 ’s role-specific preferences. 
+
+Step 2: Proposed Potential Function. Define: 
+
+Φ(𝝉 ) := max  
+
+> 𝑘 =1,...,𝐾
+
+𝑄 (𝜏 (𝑘 ) ) + 𝜆 
+
+> 𝐾
+
+∑︁ 
+
+> 𝑘 =1
+
+𝑅 𝑘 (𝜏 (𝑘 ) ) (52) 
+
+Step 3: Verification of Potential Game Property. Consider player 𝑖 unilaterally changing strategy from 𝜏 (𝑖 ) to ˜𝜏 (𝑖 ) , while all other players maintain their strategies 𝜏 (− 𝑖 ) := (𝜏 ( 𝑗 ) )𝑗 ≠𝑖 . Define: 
+
+𝑄 ∗ := max  
+
+> 𝑗 ≠𝑖
+
+𝑄 (𝜏 ( 𝑗 ) ) (53) the maximum quality among proposals from players other than 𝑖 .
+
+Utility Change for Player 𝑖 :
+
+Δ𝑢 𝑖 = 𝑢 𝑖 ( ˜𝜏 (𝑖 ) , 𝜏 (− 𝑖 ) ) − 𝑢 𝑖 (𝜏 (𝑖 ) , 𝜏 (− 𝑖 ) )
+
+= max (𝑄 ( ˜𝜏 (𝑖 ) ), 𝑄 ∗) + 𝜆𝑅 𝑖 ( ˜𝜏 (𝑖 ) )
+
+− max (𝑄 (𝜏 (𝑖 ) ), 𝑄 ∗) + 𝜆𝑅 𝑖 (𝜏 (𝑖 ) )
+
+= max (𝑄 ( ˜𝜏 (𝑖 ) ), 𝑄 ∗) − max (𝑄 (𝜏 (𝑖 ) ), 𝑄 ∗)+ 𝜆 [𝑅 𝑖 ( ˜𝜏 (𝑖 ) ) − 𝑅 𝑖 (𝜏 (𝑖 ) )] (54) 
+
+Potential Change: 
+
+ΔΦ = Φ( ˜𝜏 (𝑖 ) , 𝜏 (− 𝑖 ) ) − Φ(𝜏 (𝑖 ) , 𝜏 (− 𝑖 ) )
+
+=
+
+"
+
+max  
+
+> 𝑗 =1,...,𝐾
+
+𝑄 (𝜏 ′( 𝑗 ) ) + 𝜆 
+
+> 𝐾
+
+∑︁ 
+
+> 𝑗 =1
+
+𝑅 𝑗 (𝜏 ′( 𝑗 ) )
+
+#
+
+−
+
+"
+
+max  
+
+> 𝑗 =1,...,𝐾
+
+𝑄 (𝜏 ( 𝑗 ) ) + 𝜆 
+
+> 𝐾
+
+∑︁ 
+
+> 𝑗 =1
+
+𝑅 𝑗 (𝜏 ( 𝑗 ) )
+
+#
+
+(55) where 𝜏 ′( 𝑗 ) = ˜𝜏 (𝑖 ) if 𝑗 = 𝑖 , and 𝜏 ′( 𝑗 ) = 𝜏 ( 𝑗 ) otherwise. Since only player 𝑖 changed strategy: 
+
+ΔΦ =
+
+"
+
+max (𝑄 ( ˜𝜏 (𝑖 ) ), 𝑄 ∗) + 𝜆𝑅 𝑖 ( ˜𝜏 (𝑖 ) ) + 𝜆 ∑︁ 
+
+> 𝑗 ≠𝑖
+
+𝑅 𝑗 (𝜏 ( 𝑗 ) )
+
+#
+
+−
+
+"
+
+max (𝑄 (𝜏 (𝑖 ) ), 𝑄 ∗) + 𝜆𝑅 𝑖 (𝜏 (𝑖 ) ) + 𝜆 ∑︁ 
+
+> 𝑗 ≠𝑖
+
+𝑅 𝑗 (𝜏 ( 𝑗 ) )
+
+#
+
+= max (𝑄 ( ˜𝜏 (𝑖 ) ), 𝑄 ∗) − max (𝑄 (𝜏 (𝑖 ) ), 𝑄 ∗)+ 𝜆 [𝑅 𝑖 ( ˜𝜏 (𝑖 ) ) − 𝑅 𝑖 (𝜏 (𝑖 ) )] (56) 
+
+Step 4: Exact Potential Property. Comparing Equations (54) and (56): 
+
+Δ𝑢 𝑖 = ΔΦ for all 𝑖, 𝜏 (𝑖 ) , ˜𝜏 (𝑖 ) , 𝜏 (− 𝑖 ) (57) This confirms that Φ is an exact potential function [20]. 
+
+Step 5: Convergence and Equilibrium Characterization. By Assumption 3, the strategy space T is finite. In any best-response dynamics , each refinement step strictly increases the potential func-tion Φ. Since Φ is bounded and takes only finitely many values, this process must terminate in a finite number of steps 𝑇 ∗.
+
+Φ(𝝉 ) ∈ [ 0 − 𝜆𝐾𝑅 max , 1 + 𝜆𝐾𝑅 max ] (58) Moreover, Φ takes only finitely many distinct values (since T is finite). In any best-response dynamics (where players sequentially play best responses), each move strictly increases the potential unless already at a best response: 
+
+Φ(𝜏 1, . . . , 𝜏 ∗ 
+
+> 𝑖
+
+, . . . , 𝜏 𝐾 ) > Φ(𝜏 1, . . . , 𝜏 𝑖 , . . . , 𝜏 𝐾 ) (59) where 𝜏 ∗ 
+
+> 𝑖
+
+∈ arg max ˜𝜏 𝑢 𝑖 ( ˜𝜏, 𝜏 −𝑖 ) is a best response for player 𝑖 .The termination point is, by definition, a pure-strategy Nash equilibrium 𝝉 ∗. While a Nash equilibrium in general games does not necessarily imply global optimality, in our framework, the po-tential function Φ is explicitly constructed to align with the goal of maximizing reasoning quality 𝑄 . Thus, the resulting equilib-rium represents a principled consensus that is locally optimal with respect to the evidence-based rewards and roles, providing a theoretical foundation for the stability of PRISM’s multi-agent synthesis. □
+
+## D.7 Assumption Robustness Analysis 
+
+This section analyzes how our theoretical results degrade when key assumptions are relaxed, providing practitioners with guidance on when and where to expect deviations from the idealized analysis. Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu 
+
+D.7.1 Role of Assumption A1 (Conditional Independence). Assump-tion A1 serves as an analytical starting point to establish the IID baseline coverage 𝐶 iid  
+
+> 𝐾
+
+= 1 − ( 1 − 𝑝 )𝐾 . It is not a claim that LLM agents are truly independent. Indeed, models from the same family trained on overlapping data inevitably share failure modes. The analytical progression is: (1) Baseline under A1: 𝐶 iid  
+
+> 𝐾
+
+= 1 − ( 1 − 𝑝 )𝐾 provides a clean reference point. (2) Extension to correlated agents (Prop. 3.2): For pairwise success correlation 𝜌 𝑖 𝑗 , the coverage satisfies: 
+
+𝐶 diverse  
+
+> 𝐾
+
+≈ 𝐶 iid  
+
+> 𝐾
+
+−
+
+𝐾 
+
+2
+
+
+
+¯𝜌 · 𝑝 (1 − 𝑝 ) (60) where ¯𝜌 = 2  
+
+> 𝐾 (𝐾 −1)
+
+Í𝑖 <𝑗 𝜌 𝑖 𝑗 .(3) Design implication: Role diversity is the mechanism that drives ¯𝜌 < 0.
+
+D.7.2 Empirical Correlation Evidence. On MBPP with three PRISM roles (systematic debugger, edge-case hunter, clean coder), we mea-sure pairwise success correlations: 
+
+𝜌 12 𝜌 13 𝜌 23 
+
+−0.15 −0.18 −0.12 
+
+The average correlation ¯𝜌 ≈ − 0.15 confirms that role diversity induces the negative correlation predicted by Proposition 3.2. The correlation improvement from Proposition 3.2 with 𝐾 = 3, 𝑝 = 0.76 ,and ¯𝜌 = −0.15 yields 𝐶 diverse  
+
+> 3
+
+− 𝐶 iid  
+
+> 3
+
+≈ 3 × 0.15 × 0.76 × 0.24 ≈
+
+0.082 , corresponding to roughly +8 percentage points of additional coverage beyond the IID baseline. 
+
+D.7.3 Degradation under Positive Correlation. When ¯𝜌 > 0, the coverage bound degrades relative to the IID baseline: 
+
+𝐶 correlated  
+
+> 𝐾
+
+≤ 𝐶 iid  
+
+> 𝐾
+
++
+
+𝐾 
+
+2
+
+
+
+| ¯𝜌 | · 𝑝 (1 − 𝑝 ) (61) In the worst case ( ¯𝜌 → 1), all agents fail on the same inputs and 
+
+𝐶 𝐾 → 𝑝 , eliminating the exploration advantage entirely. This for-malizes why naive scaling (adding identical agents without role differentiation) yields diminishing returns. 
+
+D.7.4 Reviewer Independence (A6). Assumption A6 (conditional independence of reviewer assessments given 𝑄 and 𝑒 ) is approx-imate. In practice, reviewers sharing the same base model may exhibit correlated errors when interpreting ambiguous execution feedback. However, conditioning on execution feedback 𝑒 substan-tially reduces the residual correlation: once objective evidence is available, remaining disagreements stem primarily from interpre-tation noise rather than systematic model biases. The exponential error reduction in Proposition 3.4(b) thus provides a conservative but qualitatively correct prediction. 
+
+D.7.5 Potential Game Idealization. Theorem 3.5(b) models the review-synthesis process as a potential game where utilities de-pend on the true quality 𝑄 (𝜏 ). In practice, agents do not observe 𝑄 
+
+directly but instead observe execution feedback 𝑒 = E ( 𝜏 ).
+
+Exact case (complete verification): For tasks with determinis-tic, complete verifiers (MBPP with test suites, BFCL-SP with schema validation), execution feedback 𝑒 fully determines 𝑄 (Theorem 3.5a: 
+
+𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 )). In this regime, the potential game formulation is 
+
+exact : the utility 𝑢 𝑖 = 𝑄 (𝜏 (𝑖 ) ) + 𝜆 Í𝑗 𝑅 𝑗 (𝜏 (𝑖 ) ) can be computed from 
+
+𝑒 without loss. This covers two of our four benchmarks. 
+
+Approximate case (model-based pseudo-verification): For GSM8K and AIME-2025, PRISM does not employ deterministic answer matching during its iterative loop; instead, a dedicated LLM evaluator assesses reasoning quality without ground-truth access, producing structured diagnostic feedback 𝜎 𝑣 . The utility gap between true 𝑄 and its model-based estimate ˆ𝑄 (𝜎 𝑣 ) satisfies: 
+
+|𝑢 𝑖 (𝑄 ) − 𝑢 𝑖 ( ˆ𝑄 (𝜎 𝑣 ))| ≤ | 𝑄 − ˆ𝑄 (𝜎 𝑣 )| + 𝜆 ∑︁ 
+
+> 𝑗
+
+|𝑅 𝑗 (𝑄 ) − 𝑅 𝑗 ( ˆ𝑄 (𝜎 𝑣 ))| (62) Since ˆ𝑄 (𝜎 𝑣 ) depends on the verifier LLM’s own accuracy, the ap-proximation error is bounded by the verifier’s false positive and false negative rates—larger than those of deterministic execution but smaller than unstructured self-critique. The potential game convergence guarantee remains valid as an approximation under this regime. 
+
+Inapplicable case (no verification): For open-domain tasks without any environmental feedback, agents can only rely on tex-tual self-evaluation ( 𝑒 = 𝜎 ). We do not claim PRISM’s theoretical guarantees extend to this setting (see Limitations). 
+
+## D.8 Proof of Proposition 3.4 Part (b): PRISM Aggregation Efficiency 
+
+Proof. We prove that PRISM’s aggregation, informed by evidence-based cross-evaluation, achieves efficiency at least 1 − 𝜖 𝐾 −10 , where 
+
+𝜖 0 is the per-reviewer error rate. 
+
+Step 1: Setup. Suppose that among the 𝐾 proposals {𝜏 (1) , . . . , 𝜏 (𝐾 ) },at least one is correct. Without loss of generality, let: 
+
+𝜏 (𝑖 ∗ ) := arg max    
+
+> 𝑘 ∈ { 1,...,𝐾 }
+
+𝑄 (𝜏 (𝑘 ) ) (63) be a correct proposal, so 𝑄 (𝜏 (𝑖 ∗ ) ) = 1. The aggregation challenge is to correctly identify 𝜏 (𝑖 ∗ ) among all proposals. 
+
+Step 2: Reviewer Model. Each proposal 𝜏 (𝑘 ) is reviewed by 
+
+𝐾 − 1 reviewers (all agents except the proposer). Let 𝑣 (𝑘 ) 
+
+> 𝑗
+
+∈ { 0, 1}
+
+denote reviewer 𝑗 ’s binary assessment of proposal 𝑘 :
+
+𝑣 (𝑘 ) 
+
+> 𝑗
+
+=
+
+(
+
+1 if reviewer 𝑗 judges 𝜏 (𝑘 ) as correct 
+
+0 if reviewer 𝑗 judges 𝜏 (𝑘 ) as incorrect (64) By Assumption 5, given execution feedback 𝑒 (𝑘 ) and true quality 
+
+𝑄 (𝜏 (𝑘 ) ), each reviewer has error rate 𝜖 0:
+
+𝑃 (𝑣 (𝑘 ) 
+
+> 𝑗
+
+= 0 | 𝑄 (𝜏 (𝑘 ) ) = 1, 𝑒 (𝑘 ) ) = 𝜖 0 (false negative) (65) 
+
+𝑃 (𝑣 (𝑘 ) 
+
+> 𝑗
+
+= 1 | 𝑄 (𝜏 (𝑘 ) ) = 0, 𝑒 (𝑘 ) ) = 𝜖 0 (false positive) (66) 
+
+Step 3: Misidentification Probability. For PRISM to fail at identifying the correct proposal 𝜏 (𝑖 ∗ ) , one of two scenarios must occur: 
+
+Scenario 1: All 𝐾 − 1 reviewers incorrectly reject the correct pro-posal 𝜏 (𝑖 ∗ ) (false negatives). 
+
+Scenario 2: All 𝐾 − 1 reviewers incorrectly endorse some incorrect proposal 𝜏 (𝑘 ) with 𝑄 (𝜏 (𝑘 ) ) = 0 (false positives), and this misleads the synthesizer. We focus on Scenario 1, which provides an upper bound on the overall misidentification probability. By Assumption 6, reviewers’ PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+errors are independent: 
+
+𝑃 (all 𝐾 − 1 reviewers reject 𝜏 (𝑖 ∗ ) | 𝑄 (𝜏 (𝑖 ∗ ) ) = 1)
+
+= 𝑃 
+
+Û
+
+> 𝑗 ≠𝑖 ∗
+
+𝑣 (𝑖 ∗ ) 
+
+> 𝑗
+
+= 0 | 𝑄 (𝜏 (𝑖 ∗ ) ) = 1
+
+!
+
+=
+
+Ö
+
+> 𝑗 ≠𝑖 ∗
+
+𝑃 (𝑣 (𝑖 ∗ ) 
+
+> 𝑗
+
+= 0 | 𝑄 (𝜏 (𝑖 ∗ ) ) = 1)
+
+= 𝜖 𝐾 −10 (67) 
+
+Step 4: Aggregation Efficiency. The synthesis agent selects a proposal based on aggregated reviews. In the worst case (accounting for both false negatives on correct proposals and false positives on incorrect ones), the probability of correctly identifying 𝜏 (𝑖 ∗ ) is at least: 
+
+𝑃 (select 𝜏 (𝑖 ∗ ) | ∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1) ≥ 1 − 𝜖 𝐾 −10 (68) Thus, the aggregation efficiency is: 
+
+𝜂 (𝑓 PRISM ) = E[𝑄 (𝑓 PRISM )] 
+
+E[max 𝑘 𝑄 (𝜏 (𝑘 ) )] 
+
+= 𝑃 (∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1) · 𝑃 (select correct | ∃ correct )
+
+𝑃 (∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1) · 1
+
+= 𝑃 (select correct | ∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1)≥ 1 − 𝜖 𝐾 −10 (69) 
+
+Step 5: Exponential Decay. The key insight is that the error decreases exponentially with the number of reviewers: 
+
+1 − 𝜂 (𝑓 PRISM ) ≤ 𝜖 𝐾 −10 = (𝜖 0)𝐾 −1 (70) For instance, with 𝜖 0 = 0.2 and 𝐾 = 3: 1 − 𝜂 ≤ 0.04 (4% error), demonstrating the robustness of evidence-based cross-evaluation. 
+
+□
+
+Remark: Why 𝑅 =1 reviewer is the recommended default. 
+
+The bound above assumes 𝐾 −1 reviewers per proposal. In practice, PRISM’s standard configuration uses 𝑅 =1 reviewer, yielding a se-lection error of 𝜖 0 (e.g., 20% with 𝜖 0 = 0.2), compared to 𝜖 20 = 0.04 
+
+for 𝑅 =2. Though increasing 𝑅 provides exponential error reduction, the marginal benefit decays rapidly while the cost grows linearly: each additional reviewer must evaluate all 𝐾 proposals, adding 𝐾 
+
+review calls (each involving reading the proposal, analyzing execu-tion feedback, and generating a structured assessment). For 𝐾 =3
+
+proposers, moving from 𝑅 =1 to 𝑅 =2 adds 3 review calls; moving to 
+
+𝑅 =3 adds 6 total. Empirically on MBPP, 𝑅 =1 achieves 84.6% at ∼1.5M tokens, while 
+
+𝑅 =3 reaches 85.8% at ∼4.0M tokens—a +1.2pp gain at 2.6× the cost. Meanwhile, investing the same budget into more proposers ( 𝐾 =6,
+
+𝑅 =1) yields 87.4% at ∼5.6M tokens, a far larger gain. This reflects the multiplicative structure E[𝑄 ] = 𝐶 𝐾 · 𝜂 : once 𝜂 is sufficiently high (first reviewer already brings 𝜂 ≥ 1 − 𝜖 0 = 0.8), marginal improvements in 𝜂 via additional reviewers are dominated by the coverage gain from additional proposers. In short, the first reviewer captures the lion’s share of the aggregation gain; subsequent re-viewers encounter steep diminishing returns that are better spent expanding exploration. 
+
+## D.9 Proof of Theorem 3.5 Part (c): Performance Bound 
+
+Proof. We derive a lower bound on PRISM’s expected quality by decomposing the analysis into exploration and aggregation phases. 
+
+Step 1: Decomposition by Conditioning. The expected quality of PRISM’s output can be written as: 
+
+E[𝑄 (𝜏 PRISM )] = 𝑃 (∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1)· E[𝑄 (𝜏 PRISM ) | ∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1]+ 𝑃 (∀ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 0)· E[𝑄 (𝜏 PRISM ) | ∀ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 0] (71) Since 𝑄 ∈ { 0, 1}, the conditional expectations are probabilities: 
+
+E[𝑄 (𝜏 PRISM ) | ∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1]
+
+= 𝑃 (𝑄 (𝜏 PRISM ) = 1 | ∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1) (72) 
+
+E[𝑄 (𝜏 PRISM ) | ∀ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 0]
+
+= 𝑃 (𝑄 (𝜏 PRISM ) = 1 | ∀ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 0) = 0 (73) The second equality holds because PRISM cannot produce a correct solution if no correct proposals are available. 
+
+Step 2: Exploration Phase Analysis. By Proposition C.1, with 
+
+𝐾 independent proposers each having success probability 𝑝 :
+
+𝑃 (∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1) = 1 − 𝑃 (∀ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 0) = 1 − ( 1 − 𝑝 )𝐾 (74) This quantifies PRISM’s exploration gain: generating 𝐾 diverse proposals increases coverage. 
+
+Step 3: Aggregation Phase Analysis. Given that at least one correct proposal exists, PRISM must select it through evidence-based synthesis. By Proposition 3.4b: 
+
+𝑃 (𝑄 (𝜏 PRISM ) = 1 | ∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1) ≥ 1 − 𝜖 𝐾 −10 (75) where 𝜖 0 < 0.5 is the per-reviewer error rate. High-fidelity informa-tion from cross-evaluation with 𝐾 −1 reviewers yields exponentially decreasing misclassification, enabling high aggregation efficiency. 
+
+Step 4: Combining Both Phases. Substituting the bounds from Steps 2 and 3 into Equation (71): 
+
+E[𝑄 (𝜏 PRISM )] = 𝑃 (∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1)· 𝑃 (𝑄 (𝜏 PRISM ) = 1 | ∃ 𝑘 : 𝑄 (𝜏 (𝑘 ) ) = 1)≥ [ 1 − ( 1 − 𝑝 )𝐾 ] · [ 1 − 𝜖 𝐾 −10 ] (76) 
+
+Step 5: Comparison to Baseline. The gain over the single-agent baseline 𝑝 is: 
+
+E[𝑄 (𝜏 PRISM )] − 𝑝 ≥ [ 1 − ( 1 − 𝑝 )𝐾 ] [ 1 − 𝜖 𝐾 −10 ] − 𝑝 (77) 
+
+= [1 − ( 1 − 𝑝 )𝐾 ] − [ 1 − ( 1 − 𝑝 )𝐾 ]𝜖 𝐾 −10 − 𝑝 
+
+= [1 − ( 1 − 𝑝 )𝐾 − 𝑝 ]
+
+| {z }
+
+> Gexplore
+
+− [ 1 − ( 1 − 𝑝 )𝐾 ]𝜖 𝐾 −10
+
+| {z }
+
+> aggregation loss
+
+(78) The first term is the exploration gain (Proposition C.1). The second term represents the small efficiency loss due to imperfect reviewers, which decreases exponentially in 𝐾 .Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu 
+
+Numerical Example. With 𝑝 = 0.4, 𝐾 = 3, 𝜖 0 = 0.2:
+
+E[𝑄 (𝜏 PRISM )] ≥ [ 1 − 0.63] [ 1 − 0.22] = 0.784 × 0.96 = 0.753 (79) This represents an 88% relative improvement over the baseline ( 0.753 −0.40.4 = 0.8825 ). We note that this bound is signal-agnostic : it treats the reviewer error 𝜖 0 as a fixed parameter regardless of signal quality. We next show that incorporating information gain from execution feedback yields a substantially tighter bound. 
+
+Step 6: Information-Tightened Bound Under Deterministic Execution. 
+
+The bound in Step 4 does not exploit a key property of execution-based tasks: under Assumption 4, execution feedback 𝑒 perfectly reveals quality ( 𝐼 (𝑄 ; 𝑒 ) = 𝐻 (𝑄 ), Theorem 3.5a). This tightens the bound through two mechanisms that jointly incorporate Ginfo :
+
+(a) Deterministic quality filtering. Quality is directly observable from execution: 𝑄 (𝜏 (𝑘 ) ) = 𝑔 (𝑒 (𝑘 ) ) for a deterministic function 𝑔 .The system identifies the correct proposal set C = {𝑘 : 𝑒 (𝑘 ) .pass =
+
+1} with zero error. The reviewer’s role reduces from quality judg-ment to failure-mode analysis , making the effective 𝜖 0 in this regime substantially lower than for tasks with noisy pseudo-verification. 
+
+(b) Closed-loop verification via re-execution. PRISM’s iterative syn-thesis (Algorithm 1) re-executes each synthesized output. Under A4, re-execution is a perfect verification oracle : if 𝑄 (𝜏 syn ) = 0, the failure is detected with certainty and the system iterates. Over 𝑆 synthesis iterations, each failed attempt is caught deterministically, giving 𝑆 
+
+independent trials at producing a correct output. The probability that all 𝑆 iterations fail to produce or select a correct solution— despite C ≠ ∅ and deterministic verification—is bounded by 𝜖 𝑆  
+
+> 0
+
+,where each iteration independently fails to utilize the available execution evidence. Combining cross-review and iterative synthesis, the system fails only if reviewers misidentify and all 𝑆 synthesis iterations indepen-dently fail under deterministic verification: 
+
+𝜂 (𝑓 PRISM , 𝑒 ) ≥ 1 − 𝜖 𝐾 −1+𝑆  
+
+> 0
+
+(80) The exponent 𝐾 − 1 + 𝑆 reflects two independent sources of error reduction: reviewer redundancy ( 𝐾 − 1 cross-evaluations) and syn-thesis iteration ( 𝑆 attempts with re-execution). The information-tightened performance bound is therefore: 
+
+E[𝑄 (𝜏 PRISM )] ≥ [ 1 − ( 1 − 𝑝 )𝐾 ] · [ 1 − 𝜖 𝐾 −1+𝑆  
+
+> 0
+
+] (81) 
+
+Updated Numerical Example. With 𝑝 = 0.4, 𝐾 = 3, 𝑆 = 3,
+
+𝜖 0 = 0.2:
+
+E[𝑄 (𝜏 PRISM )] ≥ [ 1 − 0.63] [ 1 − 0.22+3] = 0.784 × ( 1 − 0.00032 ) ≈ 0.784 
+
+(82) Compared to the signal-agnostic bound of 0.753 (Step 5), the information-tightened bound approaches the oracle 𝐶 𝐾 = 0.784 —confirming that deterministic execution feedback effectively closes the aggre-gation gap. 
+
+Remark (Non-execution tasks). For tasks without determinis-tic verification (e.g., GSM8K, AIME), PRISM employs model-based pseudo-verification 𝜎 𝑣 where 𝐼 (𝑄 ; 𝜎 𝑣 ) < 𝐻 (𝑄 ) (Remark 3.2). Re-execution cannot deterministically verify quality in this regime, so the iterative tightening does not apply, and the general bound 
+
+1 − 𝜖 𝐾 −10 from Step 4 remains operative. This asymmetry precisely explains the empirical observation (Table 2) that PRISM’s largest gains emerge on execution-intensive tasks (MBPP +8.6pp, BFCL-SP 
+
++10.5pp) versus modest gains on math tasks (GSM8K +7.5pp). □
+
+## E Computational Complexity Analysis 
+
+Let 𝐶 prop , 𝐶 rev , 𝐶 syn denote token costs for proposal, review, syn-thesis. 
+
+Total cost : 𝐶 = 𝐾 · 𝐶 prop + 𝐾 (𝐾 − 1) · 𝐶 rev + 𝑇 · 𝐶 syn 
+
+For 𝐾 = 3, 𝑇 = 3: 𝐶 = 3𝐶 prop + 6𝐶 rev + 3𝐶 syn .
+
+Parallelization : Propose and review phases are fully parallel. Wall-clock latency: 
+
+𝐿 = 𝐿 prop + 𝐿 rev + 𝑇 · 𝐿 syn + ( 𝐾 + 𝑇 ) · 𝐿 exec (83) 
+
+Table 5: Complexity comparison. Method Calls Depth 
+
+Self-Consistency 𝐾 1
+
+MoA 𝐾 · 𝐿 𝐿 
+
+Debate 𝐾 · 𝑅 𝑅 
+
+PRISM 𝑂 (𝐾 2) 𝑂 (𝑇 )
+
+## F Additional Technical Lemmas 
+
+This section collects fundamental results from information the-ory, probability theory, and game theory that underpin our main theorems. 
+
+## F.1 Information-Theoretic Lemmas 
+
+Lemma F.1 (Properties of Shannon Entropy). Let 𝑋 be a discrete random variable taking values in X. The Shannon entropy 
+
+𝐻 (𝑋 ) = − Í𝑥 ∈ X 𝑃 (𝑋 = 𝑥 ) log 𝑃 (𝑋 = 𝑥 ) satisfies: (a) Non-negativity : 𝐻 (𝑋 ) ≥ 0, with equality if and only if 𝑋 is deterministic (concentrated on a single value). (b) Maximum entropy : 𝐻 (𝑋 ) ≤ log |X| , with equality if and only if 𝑋 is uniformly distributed over X.(c) Conditioning reduces entropy : 𝐻 (𝑋 | 𝑌 ) ≤ 𝐻 (𝑋 ), with equality if and only if 𝑋 and 𝑌 are independent. 
+
+Lemma F.2 (Binary Entropy Function). The binary entropy function 𝐻 𝑏 (𝑝 ) := −𝑝 log 𝑝 − ( 1−𝑝 ) log (1−𝑝 ) for 𝑝 ∈ [ 0, 1] satisfies: (a) 𝐻 𝑏 (𝑝 ) ≥ 0 with 𝐻 𝑏 (0) = 𝐻 𝑏 (1) = 0.(b) 𝐻 𝑏 (𝑝 ) = 𝐻 𝑏 (1 − 𝑝 ) (symmetry). (c) 𝐻 𝑏 (𝑝 ) is concave and achieves maximum 𝐻 𝑏 (0.5) = 1 bit at 
+
+𝑝 = 0.5.
+
+Lemma F.3 (Mutual Information Chain Rule). For random variables 𝑋, 𝑌, 𝑍 :
+
+𝐼 (𝑋 ; 𝑌, 𝑍 ) = 𝐼 (𝑋 ; 𝑌 ) + 𝐼 (𝑋 ; 𝑍 | 𝑌 ) (84) 
+
+where 𝐼 (𝑋 ; 𝑍 | 𝑌 ) := 𝐻 (𝑍 | 𝑌 ) − 𝐻 (𝑍 | 𝑋, 𝑌 ) is the conditional mutual information. 
+
+Lemma F.4 (Data Processing Ineqality). If 𝑋 → 𝑌 → 𝑍 
+
+forms a Markov chain (i.e., 𝑍 is conditionally independent of 𝑋 given 
+
+𝑌 ), then: 
+
+𝐼 (𝑋 ; 𝑍 ) ≤ 𝐼 (𝑋 ; 𝑌 ) (85) 
+
+Equality holds if and only if 𝑌 → 𝑍 is an invertible transformation. PRISM: A Principled Framework for Multi-Agent Reasoning via Gain Decomposition 
+
+Proof. By the chain rule: 
+
+𝐼 (𝑋 ; 𝑌, 𝑍 ) = 𝐼 (𝑋 ; 𝑌 ) + 𝐼 (𝑋 ; 𝑍 | 𝑌 ) (86) 
+
+= 𝐼 (𝑋 ; 𝑍 ) + 𝐼 (𝑋 ; 𝑌 | 𝑍 ) (87) Since 𝑋 → 𝑌 → 𝑍 is Markov, 𝐼 (𝑋 ; 𝑍 | 𝑌 ) = 0. Also, 𝐼 (𝑋 ; 𝑌 | 𝑍 ) ≥ 0.Thus 𝐼 (𝑋 ; 𝑍 ) = 𝐼 (𝑋 ; 𝑌 ) − 𝐼 (𝑋 ; 𝑌 | 𝑍 ) ≤ 𝐼 (𝑋 ; 𝑌 ). □
+
+Lemma F.5 (Fano’s Ineqality for Selection Accuracy). Let 
+
+𝑄 ∈ { 0, 1} be a binary quality indicator and 𝑆 a signal. The Bayes-optimal classification error 𝑃 ∗ 
+
+> 𝑒
+
+:= min ˆ𝑄 (𝑆 ) 𝑃 ( ˆ𝑄 (𝑆 ) ≠ 𝑄 ) satisfies: 
+
+𝑃 ∗ 
+
+> 𝑒
+
+≤ 𝐻 (𝑄 |𝑆 )
+
+1 + log 1 = 𝐻 (𝑄 |𝑆 ) (88) 
+
+where 𝐻 (𝑄 |𝑆 ) = 𝐻 (𝑄 ) − 𝐼 (𝑄 ; 𝑆 ). Consequently, the Bayes-optimal selection accuracy satisfies 𝜂 ∗ (𝑆 ) ≥ 1 − 𝐻 (𝑄 |𝑆 ) = 1 − 𝐻 (𝑄 ) + 𝐼 (𝑄 ; 𝑆 ).
+
+Proof. This is a direct application of Fano’s inequality [ 4] to binary random variables. For 𝑄 ∈ { 0, 1}, the cardinality |Q| = 2
+
+yields log (|Q| − 1) = 0, so 𝐻 (𝑄 |𝑆 ) ≤ 𝐻 𝑏 (𝑃 ∗ 
+
+> 𝑒
+
+) + 𝑃 ∗ 
+
+> 𝑒
+
+· log (|Q| − 1) =
+
+𝐻 𝑏 (𝑃 ∗ 
+
+> 𝑒
+
+). Since 𝐻 𝑏 (𝑝 ) ≤ 1 and 𝐻 𝑏 (𝑝 ) ≤ 2𝑝 for 𝑝 ≤ 0.5, we get 
+
+𝑃 ∗ 
+
+> 𝑒
+
+≥ 𝐻 (𝑄 |𝑆 )/ 2. For the upper bound: 𝑃 ∗ 
+
+> 𝑒
+
+≤ 𝐻 (𝑄 |𝑆 ) follows from 
+
+𝐻 𝑏 (𝑃 ∗ 
+
+> 𝑒
+
+) ≥ 𝐻 (𝑄 |𝑆 ) and 𝐻 𝑏 (𝑝 ) ≤ 1 for all 𝑝 . □
+
+Corollary (Connection to our framework). When 𝐼 (𝑄 ; 𝑒 ) >
+
+𝐼 (𝑄 ; 𝜎 ) (Proposition 3.3), Fano’s inequality guarantees 𝐻 (𝑄 |𝑒 ) <
+
+𝐻 (𝑄 |𝜎 ), hence 𝑃 ∗ 
+
+> 𝑒
+
+(𝑒 ) < 𝑃 ∗ 
+
+> 𝑒
+
+(𝜎 ), yielding 𝜂 ∗ (𝑒 ) > 𝜂 ∗ (𝜎 ).
+
+## F.2 Probabilistic Lemmas 
+
+Lemma F.6 (Bonferroni Ineqality). For events 𝐴 1, . . . , 𝐴 𝐾 :
+
+𝑃 
+
+> 𝐾
+
+Ø
+
+> 𝑘 =1
+
+𝐴 𝑘 
+
+!
+
+≥
+
+> 𝐾
+
+∑︁ 
+
+> 𝑘 =1
+
+𝑃 (𝐴 𝑘 ) − ∑︁  
+
+> 1≤𝑖 <𝑗 ≤𝐾
+
+𝑃 (𝐴 𝑖 ∩ 𝐴 𝑗 ) (89) This provides a lower bound on the union probability accounting for pairwise overlaps, used in the proof of Proposition 3.2. 
+
+Lemma F.7 (Union Bound). For events 𝐴 1, . . . , 𝐴 𝐾 :
+
+𝑃 
+
+> 𝐾
+
+Ø
+
+> 𝑘 =1
+
+𝐴 𝑘 
+
+!
+
+≤
+
+> 𝐾
+
+∑︁ 
+
+> 𝑘 =1
+
+𝑃 (𝐴 𝑘 ) (90) 
+
+## F.3 Game-Theoretic Lemmas 
+
+Lemma F.8 (Characterization of Potential Games). A finite game Γ = (𝑁 , {𝑆 𝑖 }, {𝑢 𝑖 }) is an exact potential game if and only if for all players 𝑖, 𝑗 and all strategy profiles 𝑠 :
+
+𝑢 𝑖 (𝑠 ′ 
+
+> 𝑖
+
+, 𝑠 −𝑖 ) − 𝑢 𝑖 (𝑠 𝑖 , 𝑠 −𝑖 ) = 𝑢 𝑗 (𝑠 ′ 
+
+> 𝑗
+
+, 𝑠 − 𝑗 ) − 𝑢 𝑗 (𝑠 𝑗 , 𝑠 − 𝑗 ) (91) 
+
+whenever the two deviations affect the same set of players’ payoffs. 
+
+Lemma F.9 (Finite Improvement Property). In any finite poten-tial game, best-response dynamics converge to a pure-strategy Nash equilibrium in finitely many steps. 
+
+Proof. By definition of a potential game, each best-response move strictly increases the potential function Φ. Since the strategy space is finite, Φ takes finitely many values. A strictly increasing sequence over a finite set must terminate, at which point no player can improve by unilateral deviation—i.e., a Nash equilibrium. □
+
+Lemma F.10 (Existence of Nash Eqilibrium in Potential Games). Every finite potential game possesses at least one pure-strategy Nash equilibrium, namely any strategy profile that maxi-mizes the potential function. 
+
+Algorithm 1 PRISM Synthesis with Closed-Loop Validation 
+
+Require: Problem 𝑥 , proposals {𝜏 (𝑘 ) }, reports {𝑒 (𝑘 ) }, reviews 
+
+{𝑣 (𝑘 ) }, max iterations 𝑇  
+
+> 1:
+
+𝜏 ∗ ← S({ 𝜏 (𝑘 ) , 𝑒 (𝑘 ) , 𝑣 (𝑘 ) }, 𝑥 ) // init synthesis  
+
+> 2:
+
+for 𝑡 = 1 to 𝑇 do  
+
+> 3:
+
+𝑒 ∗ ← E ( 𝜏 ∗) // execute  
+
+> 4:
+
+if 𝑒 ∗.success = True then  
+
+> 5:
+
+return 𝜏 ∗ // pass  
+
+> 6:
+
+end if  
+
+> 7:
+
+𝜏 ∗ ← S( 𝜏 ∗, 𝑒 ∗, {𝜏 (𝑘 ) , 𝑒 (𝑘 ) , 𝑣 (𝑘 ) }, 𝑥 ) // refine  
+
+> 8:
+
+end for  
+
+> 9:
+
+return 𝜏 ∗ // best-effort 
+
+## G Experimental Protocol Details 
+
+This section provides comprehensive details on experimental setup for reproducibility. 
+
+Model Configuration Rationale. The controlled setting (zero-shot prompting, no extended reasoning mode) ensures fair com-parison across methods by eliminating confounding variables from model-specific features. As a consequence, the single-model refer-ences achieve lower accuracy than officially reported benchmarks (which typically use few-shot prompting and extended reasoning), but this setting is essential for measuring the pure gains attributable to multi-agent architectures rather than orthogonal enhancements. 
+
+Exception: DeepSeek-V3.2 on AIME-2025. We make one de-liberate exception for the DeepSeek-V3.2 reference on AIME-2025. With extended reasoning disabled, DeepSeek-V3.2 achieves only 
+
+∼43–50% accuracy on these competition-level problems—a drastic under-representation of the model’s true capability, since AIME problems demand long chains of mathematical reasoning that the base generation mode cannot sustain. To provide a meaningful and 
+
+challenging reference point, we enable its native thinking mode, which raises accuracy to 76.8%. Notably, PRISM with Qwen3-30B-A3B still outperforms this strengthened reference, further demon-strating the effectiveness of our multi-agent framework. All other DeepSeek-V3.2 entries and all multi-agent method comparisons use the standard instruct-mode configuration. 
+
+Data Sampling. 
+
+• GSM8K : Full test split (1,319 samples). 
+
+• AIME-2025 : Full problem set (30 problems). 
+
+• MBPP : Full test split (500 samples). 
+
+• BFCL-SP : Simple Python subset of the eval split (400 samples). 
+
+Random Seeds and Reproducibility. 
+
+• All LLM API calls use fixed seeds where supported (OpenAI API 
+
+seed=42 ). 
+
+• Sampling-based methods (Self-Consistency) use temperature=0.7 
+
+with seed=42 for diversity while maintaining best-effort repro-ducibility across runs. 
+
+• For methods without native seed support, we record and report all hyperparameters (temperature, top-p, etc.) in experimental configurations. 
+
+Confidence Intervals. 
+
+• 95% confidence intervals were computed via bootstrap resam-pling with 1,000 iterations. Yiming Yang, Zhuoyuan Li, Fanxiang Zeng, Hao Fu, and Yue Liu 
+
+• Bootstrap implementation: randomly sample with replacement from the set of 𝑛 prediction results, compute accuracy, repeat 1,000 times, and report the 2.5th and 97.5th percentiles. 
+
+• CI computation uses the bootstrap_ci function in our codebase. 
+
+Execution Environment. 
+
+• GSM8K : During PRISM’s iterative loop (Execute phase), an LLM-based pseudo-verifier evaluates candidate solutions’ reasoning quality without ground-truth access, providing structured diag-nostic feedback (see Remark 3.2). For final evaluation metrics ,we use numerical equivalence checking (tolerance 𝜖 = 10 −3): extracting the final numerical answer via regex and comparing against the ground truth. 
+
+• AIME-2025 : Same LLM-based pseudo-verification during PRISM’s iterative loop; same numerical equivalence checking for final evaluation. Each problem yields a single integer answer. 
+
+• MBPP : Python 3.10 sandbox environment with 60-second time-out per test execution. Code is executed with all provided test cases; a solution passes if all tests succeed without errors. 
+
+• BFCL-SP : Tool execution with mocked API responses. Function calls are validated against expected schemas, and parameter types are checked for correctness. 
+
+Baseline Implementation Details. 
+
+• Self-Consistency : 𝐾 = 5 samples with temperature=0.7 , ma-jority voting on final answers. 
+
+• MoA : 3-layer architecture with 3 agents per layer, each layer synthesizes outputs from the previous layer. 
+
+• Two Heads : 𝐾 = 3 collaborative solvers with mutual critique and refinement. 
+
+• ReConcile : Round-table discussion with 𝑀 = 3 agents, 𝑅 = 2
+
+discussion rounds, majority voting for final selection. 
+
+## H Limitations and Future Directions 
+
+Theoretical Limitations. Our gain decomposition framework assumes conditional independence (A1), which serves as an analyt-ical starting point relaxed via Proposition 3.2; in practice, agents sharing the same base model retain residual positive correlation even with role diversity. The finite strategy space assumption (A3) holds by construction for LLMs (finite vocabulary, bounded genera-tion length), but the resulting space is combinatorially large ( |V | 𝐿 ), making the finite-step convergence guarantee (Theorem 3.5b) a qualitative prediction—convergence rate bounds under realistic strategy-space structure remain an open problem. Furthermore, the information gain analysis (Theorem 3.5a) applies specifically to tasks with deterministic verifiers (MBPP, BFCL-SP); for mathe-matical reasoning tasks (GSM8K, AIME), PRISM uses model-based pseudo-verification 𝜎 𝑣 as a practical approximation (Remark 3.2), for which the information-theoretic optimality guarantee does not strictly hold. Extension to tasks with noisy or probabilistic feedback (e.g., human preference ratings) requires refined analysis. Finally, the subadditivity coefficient ( 𝛾 ≈ 0.88 in our experiments) depends on task characteristics and may vary across domains; a more gen-eral theory characterizing when subadditivity is mild vs. severe would guide resource allocation. 
+
+Experimental Scope. Our benchmarks focus on reasoning tasks with verifiable outputs (GSM8K, AIME-2025, MBPP, BFCL-SP). Gen-eralization to open-ended generation tasks where Ginfo → 0 re-mains unexplored; in such domains, PRISM’s information and ag-gregation advantages vanish, reducing it to an exploration-only framework. Our efficiency analysis uses token cost as a proxy for computational expense, while wall-clock latency under API rate limits, parallel execution overhead, and infrastructure costs warrant separate study for production deployment. All experiments utilize a single model family (Qwen3-30B-A3B) to isolate the effect of role diversity; future work should investigate heterogeneous ensembles, as the synergy patterns observed here may differ when combining diverse model architectures. We also note that AIME-2025 results serve as qualitative stress tests under extreme difficulty—the wide confidence intervals preclude statistically powered comparisons, and conclusions about PRISM’s mathematical reasoning advantage should be drawn primarily from GSM8K. 
+
+Comparison Scope. We do not directly compare against process reward models (PRMs) [ 18 , 25 ] because PRMs require task-specific training data (human step-level annotations), while PRISM oper-ates in a zero-shot setting; a fair comparison would require either training a PRM for each benchmark or evaluating PRISM under a supervised fine-tuning regime, which we leave to future work. Our baselines represent the major paradigms in multi-agent reasoning (voting, debate, layered aggregation, discussion) but do not exhaust the rapidly growing landscape—methods such as AgentCoder [ 9]and MapCoder [ 10 ] target code generation specifically and may offer competitive performance on MBPP.

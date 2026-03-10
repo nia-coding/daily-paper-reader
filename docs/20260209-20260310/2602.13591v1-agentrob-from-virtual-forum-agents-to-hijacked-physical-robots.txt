@@ -1,0 +1,400 @@
+Title: AgentRob: From Virtual Forum Agents to Hijacked Physical Robots
+
+URL Source: https://arxiv.org/pdf/2602.13591v1
+
+Published Time: Tue, 17 Feb 2026 01:29:59 GMT
+
+Number of Pages: 9
+
+Markdown Content:
+# AgentRob: From Virtual Forum Agents to Hijacked Physical Robots 
+
+Wenrui Liu, Yaxuan Wang, Xun Zhang, Yanshu Wang, Jiashen Wei, Yifan Xiang, Yuhang Wang, Mingshen Ye, Elsie Dai, Zhiqi Liu, Yingjie Xu, Xinyang Chen, Hengzhe Sun, Jiyu Shen, Jingjing He, Tong Yang 
+
+Peking University, China 
+
+{liuwenrui, yanshuwang, yangtong}@pku.edu.cn , {wangyx2024, zhangxunbb, wjsoj}@stu.pku.edu.cn 
+
+Figure 1: Overview of AgentRob. The three-layer architecture connects a forum substrate (left), MCP-powered agents that perceive, reason, and report (center), and VLM-driven robot controllers that decompose natural language into physical primitives (right). Numbered arrows show the data flow: (1) agents poll the forum and extract commands, (2) VLM controllers iteratively invoke robot primitives, (3) agents post execution summaries back to the forum. 
+
+Demo Video: https://disk.pku.edu.cn/link/AA1A57341F4D2849F693606F1FC83CFA69 
+
+## Abstract 
+
+Large Language Model (LLM)-powered autonomous agents have demonstrated significant capabilities in virtual environments, yet their integration with the physical world remains narrowly con-fined to direct control interfaces. We present AgentRob , a frame-work that bridges online community forums, LLM-powered agents, and physical robots through the Model Context Protocol (MCP). AgentRob enables a novel paradigm where autonomous agents participate in online forums—reading posts, extracting natural lan-guage commands, dispatching physical robot actions, and report-ing results back to the community. The system comprises three layers: a Forum Layer providing asynchronous, persistent, multi-agent interaction; an Agent Layer with forum agents that poll for @mention -targeted commands; and a Robot Layer with VLM-driven controllers and Unitree Go2/G1 hardware that translate commands into robot primitives via iterative tool calling. The frame-work supports multiple concurrent agents with distinct identities and physical embodiments coexisting in the same forum, establish-ing the feasibility of forum-mediated multi-agent robot orchestra-tion. 
+
+## 1 Introduction 
+
+The rapid advancement of Large Language Models (LLMs) [ 25 ,40 ] has spawned a new generation of autonomous agents capable of sophisticated tool use, multi-step reasoning, and complex task execution [ 33 , 37 , 54 ]. Systems such as AutoGPT [ 37 ], BabyAGI [ 23 ], Voyager [ 44 ], and MetaGPT [ 11 ] have demonstrated that LLM-powered agents can autonomously browse the web, write and debug code, and coordinate in multi-agent teams. However, these agents operate almost exclusively in virtual environments—interacting with APIs, file systems, and web interfaces. A key open question remains: How can LLM-powered agents be effectively grounded in the physical world? 
+
+Simultaneously, the robotics community has made significant progress in natural language robot control [ 1, 4, 12 , 13 , 18 ]. Say-Can [ 1] grounds language commands in robotic affordances, Code as Policies [ 18 ] generates executable robot control code from natu-ral language, and RT-2 [ 4] trains end-to-end vision-language-action models. While these approaches achieve impressive direct control, they share common limitations: they typically require direct API access or specialized hardware interfaces, real-time connectivity 
+
+> arXiv:2602.13591v1 [cs.RO] 14 Feb 2026 Liu, Wang, Zhang et al.
+
+between operator and robot, and technical expertise to configure and operate. These constraints fundamentally limit accessibility to controlled laboratory settings with specialized operators. We observe a critical gap between these two research threads: LLM agents excel at navigating complex information environments but lack physical grounding, while language-controlled robots achieve physical manipulation but lack accessible, community-scale interaction channels. In this paper, we propose to bridge this gap by leveraging online community forums as the interaction channel. Our key insight is that forums provide a naturally asynchro-nous , multi-agent , and persistent communication channel that can serve as an effective medium for agent-robot interaction. Com-pared to alternative channels, forums offer several structural advan-tages: unlike instant messaging (WeChat, Telegram, Slack), forums organize discussions into persistent, categorized threads that form a searchable knowledge base; unlike direct REST APIs, forums embed robot interaction within a human-readable social context; unlike voice control, forums support arbitrarily complex instructions and concurrent multi-agent access without distance or noise constraints; and unlike dedicated robot control GUIs, forums provide a general-purpose infrastructure requiring no per-robot development effort. By repurposing this familiar social infrastructure as an inter-agent coordination layer, we enable community-scale multi-robot orches-tration where diverse agents coexist, communicate, and command physical robots through natural language posts. We present AgentRob , a framework that realizes this vision (Figure 1). In the AgentRob paradigm: 
+
+• Agents post instructions in natural language on a forum, just as they would participate in any online community. 
+
+• LLM-powered agents autonomously monitor the forum, extract actionable commands from natural language posts, and dispatch them to physical robots. 
+
+• Robots execute actions in the real world, and agents report results back to the forum as replies. 
+
+• The entire interaction history is permanently preserved, searchable, and accessible to all community members. We build AgentRob upon three layers: (1) a Forum Layer us-ing an open-source forum platform as the community substrate, chosen for its modern REST API and persistent thread structure; (2) an Agent Layer with LLM-powered forum agents that poll for commands via REST API (or optionally through MCP [ 3] for standardized tool invocation); and (3) a Robot Layer combining VLM-driven controllers with Unitree Go2 [ 41 ] quadruped and G1 humanoid robots as embodied executors. Our main contributions are: (1) We propose a novel forum-mediated agent-robot in-teraction paradigm where LLM agents coordinate and control physical robots through familiar social platforms, enabling asynchronous, multi-agent, and community-scale orchestration. (2) We design and implement an MCP-based tool framework 
+
+with eight standardized operations (one meta, three read, two write, two identity management) that encapsulate all forum interactions and enable agents to fully participate in online communities. (3) We implement end-to-end forum-to-robot execution 
+
+on the Unitree Go2 quadruped and G1 humanoid, with a complete pipeline from natural language forum posts to physical robot actions and back to forum replies. (4) We design a multi-agent architecture where agents with different physical embodiments (quadruped, humanoid, sim-ulated) coexist within the same forum community, each maintaining distinct identities and capabilities. 
+
+## 2 Related Work 2.1 LLM-based Autonomous Agents 
+
+The emergence of LLMs has catalyzed a wave of autonomous agent frameworks. AutoGPT [ 37 ] demonstrated the potential of self-directed LLM agents that can decompose goals into subtasks and execute them autonomously. ReAct [ 54 ] formalized the reasoning-action loop, interleaving chain-of-thought reasoning traces with tool invocations. Toolformer [ 33 ] showed that language models can learn to use tools by self-generating API calls within text. BabyAGI [ 23 ] introduced task-driven autonomous agents that main-tain and prioritize task queues. Voyager [ 44 ] demonstrated open-ended exploration in Minecraft using an LLM-powered agent with a growing skill library. Subsequent work has advanced along several dimensions. In 
+
+multi-agent collaboration , MetaGPT [ 11 ] assigns distinct soft-ware engineering roles to agents that collaborate through structured communication, while AutoGen [ 49 ] enables flexible multi-agent conversation patterns combining LLMs, human inputs, and tools. ChatDev [ 30 ] organizes agents into a virtual software company with specialized roles (CEO, CTO, programmer, tester) that collabo-rate through “chat chains.” CAMEL [ 17 ] explored communicative agents that engage in role-playing conversations for emergent task solving. In tool use and function calling , ToolLLM [ 32 ] constructed a benchmark of 16,000+ real-world RESTful APIs and trained models for complex multi-tool scenarios. HuggingGPT [ 35 ] uses ChatGPT as a controller to orchestrate hundreds of expert models from Hug-ging Face across diverse AI tasks. Gorilla [ 28 ] fine-tuned LLaMA to generate accurate API calls with reduced hallucination. In reasoning and self-improvement , Tree of Thoughts [ 53 ]generalizes chain-of-thought into a tree-structured search over multiple reasoning paths. Reflexion [ 36 ] reinforces agents through linguistic self-reflection stored in episodic memory, improving decision-making across successive trials without weight updates. In software engineering and computer use , SWE-agent [ 51 ]demonstrated that purpose-built agent-computer interfaces can enable automated software engineering, while OpenHands [ 46 ]provides an open platform for AI agents that interact with com-puters through code, terminals, and web browsers. Manus [ 21 ]showcased general-purpose agent capabilities across diverse digital tasks. WebArena [ 57 ] introduced a realistic web environment for evaluating autonomous agents, and AgentBench [ 19 ] provided a systematic benchmark across eight interactive environments. Wang et al. [45] offer a comprehensive survey of the field. However, these agents predominantly operate in digital envi-ronments, interacting with APIs, file systems, web browsers, and code interpreters. The question of how to ground these capable virtual agents in physical reality—particularly through accessible, community-scale channels—remains largely unexplored. AgentRob AgentRob: From Virtual Forum Agents to Hijacked Physical Robots 
+
+addresses this gap by extending the agent paradigm from virtual-only interactions to a complete virtual-to-physical pipeline medi-ated by forum communities. 
+
+## 2.2 Natural Language Robot Control 
+
+Language-grounded planning. SayCan [ 1 ] pioneered the use of LLMs for grounding language in robotic affordances, combining the broad knowledge of language models with value functions that assess which actions are physically feasible. Code as Policies [ 18 ]demonstrated that LLMs can generate executable robot control code from natural language specifications. Inner Monologue [ 13 ] intro-duced embodied reasoning through an inner dialogue where the robot reasons about environmental feedback. ProgPrompt [ 38 ] gen-erates situated robot task plans as executable programs. ChatGPT for Robotics [ 42 ] explored design principles for using conversational AI in robotic control, and Socratic Models [ 56 ] compose multiple foundation models for zero-shot multimodal reasoning. Wake et al. [ 43 ] demonstrated ChatGPT-empowered long-step robot control in various environments. 
+
+Vision-language-action models. A parallel line of work trains end-to-end models that directly map visual observations and lan-guage commands to robot actions. RT-2 [ 4] demonstrated that web-scale vision-language pretraining transfers to robotic control. The Open X-Embodiment [ 24 ] collaboration assembled the largest open-source robot dataset from 22 embodiments, showing positive cross-embodiment transfer. OpenVLA [ 16 ] built a 7B-parameter open-source VLA that outperforms the much larger RT-2-X across 29 tasks. PaLM-E [ 7 ] injected continuous sensor observations into a 562B-parameter language model, achieving state-of-the-art em-bodied reasoning. 
+
+LLM-driven reward and skill synthesis. Beyond direct plan-ning, LLMs have been used to synthesize reward functions and locomotion skills. Language to Rewards [ 55 ] translates natural lan-guage into reward-specifying code optimized via model-predictive control, achieving 90% success across 17 quadruped and manipula-tion tasks. Eureka [ 20 ] uses GPT-4 for evolutionary optimization of reward functions, outperforming expert human-engineered re-wards on 83% of 29 environments. SayTap [ 39 ] uses foot contact patterns as an intermediate representation bridging LLM commands to quadrupedal locomotion controllers. VIMA [ 14 ] proposes multi-modal prompts for general robot manipulation, and VoxPoser [ 12 ]introduced composable 3D value maps for manipulation. 
+
+Scalable data collection and personalization. AutoRT [ 2]orchestrates fleets of 20+ robots across multiple buildings using VLMs for scene understanding and LLMs for proposing diverse instructions, collecting 77k demonstrations over 7 months. Tidy-Bot [ 48 ] uses LLM few-shot summarization to infer personalized user preferences for household object placement. LM-Nav [ 34 ] com-bines GPT-3, CLIP, and a visual navigation model for outdoor robot navigation over hundreds of meters without any fine-tuning. While these approaches achieve impressive direct control, they require specialized interfaces, expert-level setup, and real-time con-nectivity. In contrast, AgentRob embraces asynchrony and multi-agent coordination: robot commands are posted as forum threads by commanding agents, execution happens in the background, and results are reported as replies. This enables any agent with forum access to interact with physical robots, and all interactions are permanently recorded as a searchable community knowledge base. 
+
+## 2.3 Model Context Protocol and Tool-Use Standards 
+
+The Model Context Protocol [ 3], introduced by Anthropic in 2024, provides a standardized interface for LLM agents to invoke external tools. Often described as “USB-C for AI,” MCP defines a JSON-RPC 2.0 [ 15 ]-based client-server protocol over stdio, enabling modu-lar and interoperable tool ecosystems. The protocol specifies a lifecycle with initialization handshake, capability negotiation, and bidirectional communication between clients (agents) and servers (tool providers). MCP has gained rapid adoption, with thousands of community-built servers and integration with major LLM providers including OpenAI and Google. The broader landscape of agent interoperability is evolving quickly. Google’s Agent2Agent (A2A) protocol [ 10 ] complements MCP by enabling peer-to-peer communication between agents across frame-works, using JSON-RPC 2.0 over HTTP with discovery via “Agent Cards.” A recent survey [ 8 ] compares MCP, A2A, and other emerg-ing protocols (ACP, ANP), analyzing their trade-offs—MCP excels at agent-to-tool integration while A2A targets agent-to-agent task del-egation. On the research side, tool use in LLMs has been extensively studied. Toolformer [ 33 ] showed that models can self-teach API usage through self-supervised training. ToolLLM [ 32 ] scaled this to 16,000+ real-world APIs with a depth-first search-based decision algorithm. Gorilla [ 28 ] fine-tuned models specifically for accurate API call generation with reduced hallucination. AgentRob leverages MCP to create a clean abstraction layer between forum operations and agent logic. By encapsulating all forum interactions as MCP tools, we achieve several benefits: (1) the agent logic is completely decoupled from the specific forum platform, (2) new tools can be added without modifying agent code, (3) any MCP-compatible agent framework can use our tools, and (4) the tool framework can be tested independently from the agent. 
+
+## 2.4 Social Agents in Online Communities 
+
+Research on AI participation in online communities spans three areas: social simulation, bot detection, and agent benchmarking. 
+
+Social simulation. Park et al. [ 26 ] created “Generative Agents” that simulate believable human behavior in a virtual town, demon-strating emergent social dynamics including memory, reflection, and planning. Social Simulacra [ 27 ] prototyped social comput-ing systems populated with LLM-generated personas. Humanoid Agents [ 47 ] extended generative agents with more realistic human-like behaviors. More recently, AgentSociety [ 29 ] scaled LLM-driven simulation to over 10,000 agents and 5 million interactions, while Mou et al. [ 22 ] provide a comprehensive survey categorizing social simulations into individual, scenario, and society levels. 
+
+Bot detection and LLM-powered social bots. LLMs have fun-damentally changed the social bot landscape. Cresci [ 5 ] surveyed a decade of bot detection research, highlighting the evolving sophis-tication of automated accounts. Yang and Menczer [ 52 ] analyzed the “fox8” Twitter botnet—1,140 accounts using ChatGPT to gen-erate human-like posts—showing that LLM-powered bots evade Liu, Wang, Zhang et al. 
+
+Table 1: Comparison of AgentRob with representative prior systems across key design dimensions. ✓ = supported, ✗ =not supported, P = partially supported.                                           
+
+> Async
+> Multi-Agent
+> Persistent
+> Open Access
+> Physical
+> Community
+> SayCan [1] ✗✗✗✗✓✗
+> Code as Pol. [18] ✗✗✗✗✓✗
+> RT-2 [4] ✗✗✗✗✓✗
+> AutoGPT [37] P✗P✓✗✗
+> MetaGPT [11] ✗✓✗✗✗✗
+> Gen. Agents [26] ✓✓✓✗✗✓
+> AgentRob ✓✓✓✓✓✓
+
+existing content classifiers. Feng et al. [ 9 ] found that LLM-based bots reduce detector performance by 30%, though fine-tuned LLM detectors can outperform prior methods. Doshi et al. [ 6] introduced “sleeper social bots” with distinct personalities that convincingly pass as human in political discussions. BotSim [ 31 ] provides a sim-ulation framework for benchmarking detection strategies against LLM-driven botnets. 
+
+Agent benchmarking. ChatArena [ 50 ] provided multi-agent language game environments for evaluating LLM social capabili-ties, and AgentBench [ 19 ] offered a systematic benchmark across eight interactive environments including web browsing and social scenarios. Unlike these simulation-focused or detection-oriented works, AgentRob deploys agents in real online forums with real physical consequences. Our agents do not merely simulate social behavior— they use forum participation as a channel to receive commands, execute physical actions, and report results back. This establishes a direct and consequential link between virtual discourse and physical action, a paradigm we term forum-grounded embodied agency .
+
+Summary comparison. Table 1 positions AgentRob relative to representative prior work across six design dimensions. AgentRob is the first system to combine all six properties. 
+
+## 3 System Architecture 3.1 Overview 
+
+AgentRob is architected as a three-layer system (Figure 2) with clear separation of concerns: 
+
+• Forum Layer : An open-source forum platform providing the interaction substrate—persistent, asynchronous, multi-agent communication via REST API. 
+
+• Agent Layer : LLM-powered forum agents ( Go2ForumAgent ,
+
+G1ForumAgent ) that perceive, reason, and act by polling for @mention commands and dispatching them to the Ro-bot Layer. 
+
+• Robot Layer : VLM-driven controllers ( Go2VLMController ,
+
+G1VLMController ) coordinated by robot_command_driver ,with Unitree Go2 (12-DOF quadruped) and G1 (23-DOF hu-manoid) communicating via DDS-based unitree_sdk2py .
+
+Table 2: MCP tools in AgentRob. Tools are categorized by function: Meta (self-documentation), Read (forum content retrieval), Write (content creation), and Identity (account management).                   
+
+> Tool Category Description
+> get_manual Meta Retrieve tool documentation and usage examples
+> list_boards Read List forum categories with pagina-tion
+> list_posts Read List topics in a category by page
+> get_topic Read Fetch topic with full post contents
+> create_topic Write Create new topic with agent meta-data
+> reply_to_topic Write Reply to existing topic with status
+> login_account Identity Switch active session at runtime
+> register_account Identity Register new account (admin or public)
+
+The data flow follows a complete cycle: (1) a user posts a natural language instruction mentioning a robot agent (e.g., @quadruped )on the forum; (2) the corresponding forum agent detects the new post via REST API polling; (3) the agent’s LLM extracts actionable commands from the post; (4) the robot_command_driver initial-izes the SDK and delegates the command to the appropriate VLM controller; (5) the VLM controller executes the command via iter-ative tool calling on the physical robot; (6) the agent summarizes the result and posts it back as a reply. This cycle is fully automated and repeats indefinitely. 
+
+## 3.2 Forum Layer: Forum as Interaction Platform 
+
+As discussed in Section 1, forums offer structural advantages— asynchrony, multi-agent access, persistence, low barrier to entry, and emergent community dynamics—that make them well-suited as an agent-robot interaction medium. Our implementation uses an open-source forum platform whose REST API exposes categories (boards), topics, and posts as first-class resources with full CRUD operations. The MCP tool layer abstracts all platform-specific de-tails, allowing the forum backend to be replaced without modifying agent logic. 
+
+## 3.3 Agent Layer: MCP-Based Tool Framework 
+
+The Agent Layer is the central nervous system of AgentRob. It exposes eight MCP tools (Table 2) that encapsulate all forum inter-actions into a standardized, typed interface: The MCP Server communicates with agents via JSON-RPC 2.0 over stdio. Each tool is defined with a validated input schema and returns a unified response envelope containing success/error status, payload, and a unique trace ID for auditing. A key design decision is the agent metadata injection : write tools automatically prefix all posts with structured tags identifying the agent type, agent ID, and execution status. This observability layer enables distinguishing agent-generated posts from human posts, prevents agents from processing their own replies in loops, and supports filtering. AgentRob: From Virtual Forum Agents to Hijacked Physical Robots 
+
+Boards 
+
+Categories 
+
+Forum Platform 
+
+REST API 
+
+Topics / Posts 
+
+Threads & Replies 
+
+Go2ForumAgent 
+
+@quadruped 
+
+G1ForumAgent 
+
+@humanoid 
+
+LLM Provider 
+
+Doubao / ARK API 
+
+Go2VLMController 
+
+VLM Tool Calling 
+
+G1VLMController 
+
+VLM Tool Calling 
+
+robot_command_driver 
+
+SDK Init / Dispatch 
+
+Unitree Go2 
+
+Quadruped / 12-DOF 
+
+Unitree G1 
+
+Humanoid / 23-DOF 
+
+Forum Layer 
+
+Agent Layer 
+
+Robot Layer         
+
+> REST API / Bearer Token list_posts, post/detail command/reply
+> robot_command_driver drive_go2/g1_robot() execution result DDS DDS
+> Forum Post Agent Detect LLM Extract VLM Execute LLM Summarize Agent Reply
+
+Figure 2: Overall architecture of AgentRob. The three-layer design separates forum interaction (Forum Layer), autonomous agent logic (Agent Layer), and robot control with hardware (Robot Layer). Blue arrows ( ↓) denote command flow; red arrows ( ↑)denote result flow. 
+
+## 3.4 Robot Layer: VLM Controllers and Hardware 
+
+The Robot Layer encompasses both VLM-driven controllers and the physical robot hardware. A driver module initializes the Unitree SDK over DDS, instantiates the appropriate VLM controller, and routes commands to the correct robot. Each VLM controller exposes robot primitives as callable tools. Given a natural language command, the controller runs an iterative tool-calling loop : the VLM receives the command alongside tool definitions, selects and invokes primitives, observes results, and repeats until the command is fulfilled. This lets the VLM decompose complex commands (e.g., “walk forward then turn around”) into sequences of atomic actions without manual scripting. We implement two concrete controllers: 
+
+Go2 Controller + Unitree Go2 [ 41 ]. The Go2 is a compact quadruped with 12 degrees of freedom (DOF), equipped with front-facing cameras. The controller exposes four action primitives— 
+
+act_move (velocity-controlled locomotion with direction, distance, and speed parameters), act_hello , act_heart , and act_backflip —and two perception primitives for camera capture and cloud im-age upload. 
+
+G1 Controller + Unitree G1. The G1 is a humanoid robot with 23 DOF, featuring both locomotion and arm manipulation. It exposes act_move and act_hello alongside the same percep-tion primitives. Both robots communicate via DDS over Ethernet or WiFi through the unitree_sdk2py interface. 
+
+## 4 Agent Design 4.1 LLM-Powered Decision Loop 
+
+The core agent follows a perception-reasoning-action loop inspired by the ReAct paradigm [54]: (1) Perceive : Poll the forum for new posts via list_posts ,retrieving topic metadata and post content including poster information and timestamps. (2) Reason : Use the LLM to understand post content, deter-mine if it contains an actionable command directed at this agent, and extract the command if present. Liu, Wang, Zhang et al. 
+
+Algorithm 1 AgentRob Main Agent Loop  
+
+> 1:
+
+Input: board_id, poll_interval, mention_pattern  
+
+> 2:
+
+processed ← ∅  
+
+> 3:
+
+Initialize LLM provider, RobotExecutor  
+
+> 4:
+
+while running do  
+
+> 5:
+
+topics ← list_posts (board_id)  
+
+> 6:
+
+for each topic 𝑡 in topics do  
+
+> 7:
+
+if 𝑡 .tid ∉ processed and mentions_me( 𝑡 ) then  
+
+> 8:
+
+processed.add( 𝑡 .tid)  
+
+> 9:
+
+cmd ← LLM.extract_command( 𝑡 .content)  
+
+> 10:
+
+if cmd ≠ null then  
+
+> 11:
+
+result ← Executor.execute(cmd)  
+
+> 12:
+
+summary ← LLM.summarize(cmd, result)  
+
+> 13:
+
+reply_to_topic (𝑡 .tid, summary)  
+
+> 14:
+
+end if  
+
+> 15:
+
+end if  
+
+> 16:
+
+end for  
+
+> 17:
+
+sleep(poll_interval)  
+
+> 18:
+
+end while 
+
+(3) Act : Dispatch the extracted command to the appropriate ro-bot executor, collect the execution result, generate a human-readable summary via the LLM, and post it back to the forum. Algorithm 1 presents the complete agent loop. The agent main-tains a set of processed topic IDs to avoid duplicate processing, uses configurable @mention patterns for command targeting, and supports multiple operational modes. 
+
+## 4.2 LLM Provider Abstraction 
+
+All agents access the LLM through a unified chat(system_prompt, user_message) interface, regardless of the underlying provider. This abstraction decouples agent logic from any specific LLM ser-vice: switching between providers (e.g., Volcengine Doubao, Ope-nAI, local models) requires only changing configuration, not code. The interface also handles graceful degradation—when the LLM is unavailable, agents fall back to rule-based extraction (Section 4.3). 
+
+## 4.3 Command Extraction 
+
+Command extraction transforms unstructured forum posts into actionable robot commands. The primary strategy is LLM-based extraction : a specialized system prompt (Listing 1) instructs the LLM to identify and extract commands directed at a specific robot agent. 
+
+Listing 1: Command extraction system prompt (Go2). The G1 variant replaces @quadruped with @humanoid .                                    
+
+> You are acommand extraction expert . Extract commands issued to @quadruped ( quadruped robot dog ) from forum posts . Input : post content in markdown format Output : extracted commands , concise and accurate ( bulleted ; numbered if sequential ) If the post contains no commands for @quadruped , return an empty string .
+
+The LLM returns only the extracted command; invalid or empty responses are filtered out. As a fallback, a rule-based extractor 
+
+captures text following the @mention tag via pattern matching, providing robustness when the LLM is unavailable. 
+
+## 4.4 Execution Result Summarization 
+
+After robot execution, the raw result (containing success status, output, and error messages) is transformed into a human-readable forum reply via the LLM. The summarization prompt instructs the model to produce a concise report covering the executed command, key steps, outcome, and any errors. When the LLM is unavailable, the agent falls back to returning the raw result text. 
+
+## 4.5 Operational Modes 
+
+Agents support three operational modes: (1) polling mode (de-fault), where the agent continuously scans the forum at configurable intervals (default: 30 s); (2) HTTP service mode , where the agent exposes a REST API for on-demand triggering and external orches-tration; and (3) single-run mode , where the agent performs one scan and exits, useful for debugging and CI/CD integration. 
+
+## 4.6 Multi-Agent Architecture 
+
+AgentRob supports multiple concurrent agents with distinct identi-ties and physical embodiments coexisting in the same forum. Each agent is bound to a specific robot and listens for its own @mention 
+
+trigger (e.g., @quadruped for Go2, @humanoid for G1). When a post mentions multiple robots, each agent independently extracts and executes only the commands directed at it. Agents avoid duplicate processing by maintaining a set of already-handled topic IDs. To prevent reply loops—where one agent’s post triggers another—all agent-generated posts carry metadata tags that agents recognize and skip. A rule-based agent variant is provided for pipeline testing without LLM dependency. 
+
+## 5 Implementation 5.1 MCP Server 
+
+The MCP Server is implemented in TypeScript using the official MCP SDK ( @modelcontextprotocol/sdk ). Each of the eight tools (Table 2) is defined as a self-contained module consisting of three components: (1) a Zod schema that validates input parameters at the protocol boundary, (2) a handler that invokes forum APIs through a shared HTTP client, and (3) a uniform response en-velope wrapping every result in a structured JSON object with success/error status, tool name, payload, and a unique trace ID. Write tools automatically inject agent metadata tags into post content before submission, ensuring all agent-generated posts are machine-identifiable. The server communicates with agents via JSON-RPC 2.0 over stdio. 
+
+## 5.2 Forum Client 
+
+The forum client abstracts all platform-specific HTTP communi-cation behind a uniform interface. Its design addresses three key challenges of programmatic forum access: AgentRob: From Virtual Forum Agents to Hijacked Physical Robots 
+
+Session management. The client maintains authentication state through cookie jar management and automatic CSRF token acquisition. Write operations require valid CSRF tokens, which are fetched and cached with transparent refresh on expiry. 
+
+Runtime identity switching. A single client instance can switch between forum accounts at runtime by clearing session state and re-authenticating. This enables multi-persona scenarios where one agent process operates under different identities. 
+
+Registration abstraction. Account creation supports both priv-ileged (admin API) and unprivileged (public registration) flows, allowing agents to self-provision identities without manual setup. 
+
+## 5.3 MCP Client Library 
+
+On the Python agent side, a shared MCP client library spawns the TypeScript MCP Server as a subprocess and manages the full protocol lifecycle—initialization handshake, capability negotiation, and bidirectional message correlation. The client provides typed wrappers for all eight tools, abstracting the JSON-RPC framing into simple async function calls. 
+
+## 5.4 Robot Integration 
+
+The robot_command_driver module bridges the Agent Layer and Robot Layer. Given a natural language command, it initializes the Unitree DDS communication layer on the specified network inter-face, instantiates the appropriate VLM controller, and enters the iterative tool-calling loop described in Section 3.4. The Go2 controller exposes four action primitives ( act_move ,
+
+act_hello , act_heart , act_backflip ) and two perception prim-itives ( get_front_image for camera capture and img_to_volc 
+
+for cloud upload). The G1 controller exposes a subset ( act_move ,
+
+act_hello ) alongside the same perception tools. 
+
+## 6 Discussion 6.1 Safety and Ethics 
+
+Opening robot control through public forums raises important safety and ethical considerations that must be addressed: 
+
+Permission management. Forum role systems (admin, moder-ator, registered account, guest) can be mapped to robot operation privilege levels. For example, only accounts with “robot operator” role can post in the command board, while all accounts can view execution reports. Our current prototype implements basic agent-side filtering (the agent only processes posts mentioning its specific trigger), but production deployments should integrate with the forum’s built-in permission system. 
+
+Dangerous command detection. Commands that could cause physical harm (“run into the wall”, “jump off the table”) should be detected and rejected before execution. This can be implemented as an additional LLM-based safety filter between command extraction and execution, similar to content moderation systems. 
+
+Rate limiting. To prevent abuse, the system should enforce per-account rate limits on command submissions, execution frequency caps, and cooldown periods between consecutive robot operations. 
+
+Identity disclosure. All agents identify themselves through mandatory metadata tags ( [agent_id=...] ) prepended to posts. This ensures that forum participants can distinguish between agent types—commanding agents, robot agents, and monitoring agents— and enables filtering and analytics. 
+
+Physical safety perimeter. Robots should operate within de-fined physical boundaries, with hardware-level emergency stops that override software commands. 
+
+## 6.2 Scalability and Extensibility 
+
+AgentRob’s modular architecture supports extension along multiple dimensions: 
+
+Additional robot types. The executor interface can be imple-mented for drones, robotic arms, mobile platforms, and any other actuated system. Each executor translates natural language com-mands into platform-specific control sequences. 
+
+Alternative forum platforms. The MCP tool layer abstracts all forum-specific logic. Replacing the current forum backend with Dis-course, Reddit, or a custom platform requires only reimplementing the tool handlers while keeping the agent logic unchanged. 
+
+Enhanced MCP tools. The current eight tools cover basic forum CRUD operations. Future tools could include: upload_media for sharing robot camera images, search_posts for semantic search across forum history, manage_permissions for dynamic access control, and subscribe_topic for WebSocket-based real-time no-tifications (eliminating polling latency). 
+
+Multi-robot coordination. Multiple robots can be coordinated through forum threads, where one agent posts a sub-task and an-other robot’s agent picks it up. This enables emergent multi-robot collaboration without centralized planning. 
+
+## 6.3 Limitations 
+
+We acknowledge several limitations of the current system: 
+
+Polling latency. The forum polling mechanism introduces in-herent latency (up to one poll interval, default 30 seconds) between command posting and detection. This makes AgentRob unsuitable for real-time robot control tasks requiring sub-second response times. Future work could leverage WebSocket-based push notifica-tions for reduced latency. 
+
+Network dependency. Both the agent (for forum access) and the robot (for command reception) require continuous network connectivity. Network interruptions disrupt the pipeline. 
+
+LLM hallucination risk. LLM-based command extraction may misinterpret post content, extracting incorrect commands or fabri-cating commands that were not present. The rule-based fallback mitigates this but at reduced extraction quality. 
+
+Single-threaded execution. Each agent currently processes commands sequentially. Concurrent command execution would require careful management of robot state and physical safety con-straints. 
+
+Limited feedback modalities. Current implementations return only text-based execution reports. Richer feedback—images, video, sensor data visualizations—would significantly enhance interac-tion quality but requires additional MCP tools and forum media attachment support. 
+
+## 7 Conclusion 
+
+We have presented AgentRob, a novel framework that bridges on-line community forums, LLM-powered autonomous agents, and Liu, Wang, Zhang et al. 
+
+physical robots through the Model Context Protocol. By repur-posing forums—one of the oldest and most ubiquitous forms of online communication—as an asynchronous agent-robot interac-tion channel, AgentRob enables community-scale multi-agent robot orchestration. Our key technical contributions include: (1) the forum-mediated interaction paradigm, which provides asynchronous, multi-agent, persistent, and observable agent-robot communication; (2) the MCP-based tool framework with eight standardized operations, enabling any MCP-compatible agent to participate in forum communities; (3) the pluggable robot executor architecture with concrete imple-mentations for the Unitree Go2 quadruped; and (4) the multi-agent coordination mechanism allowing agents with diverse physical embodiments to coexist in the same forum. While current limitations in latency and feedback modalities constrain real-time applications, the framework opens a rich design space for future exploration. Future directions include: (1) multi-modal interaction , en-abling robots to share images, videos, and sensor data on forums; (2) inter-robot collaboration , where robots communicate through forum threads to coordinate complex tasks; (3) community-driven robot learning , where forum discussions provide training signal for robot skill improvement; and (4) decentralized robot net-works , built on federated forum platforms where communities govern their own robot fleets. 
+
+## References 
+
+[1] Michael Ahn, Anthony Brohan, Noah Brown, Yevgen Chebotar, Omar Cortes, Chelsea Finn, Karol Hausman, Alex Herzog, Daniel Ho, Julian Ibarz, et al . 2022. Do As I Can, Not As I Say: Grounding Language in Robotic Affordances. In 
+
+Conference on Robot Learning (CoRL) .[2] Michael Ahn, Debidatta Dwibedi, Chelsea Finn, Montse Gonzalez Arenas, Keerthana Gopalakrishnan, Karol Hausman, Brian Ichter, Alex Irpan, Nikhil Joshi, Ryan Julian, et al . 2024. AutoRT: Embodied Foundation Models for Large Scale Orchestration of Robotic Agents. arXiv preprint arXiv:2401.12963 (2024). [3] Anthropic. 2024. Model Context Protocol Specification. https:// modelcontextprotocol.io. [4] Anthony Brohan, Noah Brown, Justice Carbajal, Yevgen Chebotar, Xi Chen, Krzysztof Choromanski, et al . 2023. RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control. In Conference on Robot Learning (CoRL) .[5] Stefano Cresci. 2020. A Decade of Social Bot Detection. Commun. ACM 63, 10 (2020), 72–83. [6] Jaiv Doshi, Ines Novacic, Curtis Fletcher, Mats Borges, Elea Zhong, Mark C. Marino, Jason Gan, Sophia Mager, Dane Sprague, and Melinda Xia. 2024. Sleeper Social Bots: A New Generation of AI Disinformation Bots Are Already a Political Threat. arXiv preprint arXiv:2408.12603 (2024). [7] Danny Driess, Fei Xia, Mehdi S M Sajjadi, Corey Lynch, Aakanksha Chowdhery, Brian Ichter, Ayzaan Wahid, Jonathan Tompson, Quan Vuong, Tianhe Yu, et al .2023. PaLM-E: An Embodied Multimodal Language Model. In International Conference on Machine Learning (ICML) .[8] Abul Ehtesham et al. 2025. A Survey of Agent Interoperability Protocols: MCP, ACP, A2A, and ANP. arXiv preprint arXiv:2505.02279 (2025). [9] Shangbin Feng, Herun Wan, Ningnan Wang, Zhaoxuan Tan, Minnan Luo, and Yulia Tsvetkov. 2024. What Does the Bot Say? Opportunities and Risks of Large Language Models in Social Media Bot Detection. In Annual Meeting of the Association for Computational Linguistics (ACL) .[10] Google. 2025. Agent2Agent Protocol Specification. https://a2a-protocol.org. [11] Sirui Hong, Mingchen Zhuge, Jonathan Chen, Xiawu Zheng, Yuheng Cheng, Ceyao Zhang, Jinlin Wang, Zili Wang, Steven Ka Shing Yau, Zijuan Lin, et al .2024. MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework. In International Conference on Learning Representations (ICLR) .[12] Wenlong Huang, Chen Wang, Ruohan Zhang, Yunzhu Li, Jiajun Wu, and Li Fei-Fei. 2023. VoxPoser: Composable 3D Value Maps for Robotic Manipulation with Language Models. In Conference on Robot Learning (CoRL) .[13] Wenlong Huang, Fei Xia, Ted Xiao, Harris Chan, Jacky Liang, Pete Florence, Andy Zeng, Jonathan Tompson, Igor Mordatch, Yevgen Chebotar, et al . 2022. Inner Monologue: Embodied Reasoning through Planning with Language Models. In Conference on Robot Learning (CoRL) .[14] Yunfan Jiang, Agrim Gupta, Zichen Zhang, Guanzhi Wang, Yongqiang Dou, Yanjun Chen, Li Fei-Fei, Anima Anandkumar, Yuke Zhu, and Linxi Fan. 2023. VIMA: General Robot Manipulation with Multimodal Prompts. In International Conference on Machine Learning (ICML) .[15] JSON-RPC Working Group. 2010. JSON-RPC 2.0 Specification. https://www. jsonrpc.org/specification. [16] Moo Jin Kim, Karl Pertsch, Siddharth Karamcheti, Ted Xiao, Ashwin Balakrishna, Suraj Nair, Rafael Rafailov, Ethan Foster, Grace Lam, Pannag Sanketi, et al . 2024. OpenVLA: An Open-Source Vision-Language-Action Model. In Conference on Robot Learning (CoRL) .[17] Guohao Li, Hasan Abed Al Kader Hammoud, Hani Itani, Dmitrii Khizbullin, and Bernard Ghanem. 2023. CAMEL: Communicative Agents for “Mind” Exploration of Large Language Model Society. Advances in Neural Information Processing Systems (NeurIPS) (2023). [18] Jacky Liang, Wenlong Huang, Fei Xia, Peng Xu, Karol Hausman, Brian Ichter, Pete Florence, and Andy Zeng. 2023. Code as Policies: Language Model Programs for Embodied Control. In IEEE International Conference on Robotics and Automation (ICRA) .[19] Xiao Liu, Hao Yu, Hanchen Zhang, Yifan Xu, Xuanyu Lei, Hanyu Lai, Yu Gu, Hangliang Ding, Kaiwen Men, Kejuan Yang, et al . 2024. AgentBench: Evaluating LLMs as Agents. International Conference on Learning Representations (ICLR) 
+
+(2024). [20] Yecheng Jason Ma, William Liang, Guanzhi Wang, De-An Huang, Osbert Bastani, Dinesh Jayaraman, Yuke Zhu, Linxi Fan, and Anima Anandkumar. 2024. Eureka: Human-Level Reward Design via Coding Large Language Models. In International Conference on Learning Representations (ICLR) .[21] Manus AI. 2025. Manus: General AI Agent. https://manus.im. [22] Xinyi Mou et al . 2024. From Individual to Society: A Survey on Social Simulation Driven by Large Language Model-based Agents. arXiv preprint arXiv:2412.03563 
+
+(2024). [23] Yohei Nakajima. 2023. Task-driven Autonomous Agent Utilizing GPT-4, Pinecone, and LangChain for Diverse Applications. https://github.com/yoheinakajima/ babyagi. [24] Open X-Embodiment Collaboration. 2024. Open X-Embodiment: Robotic Learn-ing Datasets and RT-X Models. In IEEE International Conference on Robotics and Automation (ICRA) .[25] OpenAI. 2023. GPT-4 Technical Report. arXiv preprint arXiv:2303.08774 (2023). [26] Joon Sung Park, Joseph C O’Brien, Carrie J Cai, Meredith Ringel Morris, Percy Liang, and Michael S Bernstein. 2023. Generative Agents: Interactive Simulacra of Human Behavior. In ACM Symposium on User Interface Software and Technology (UIST) .[27] Joon Sung Park, Lindsay Popowski, Carrie J Cai, Meredith Ringel Morris, Percy Liang, and Michael S Bernstein. 2022. Social Simulacra: Creating Populated Prototypes for Social Computing Systems. ACM Symposium on User Interface Software and Technology (UIST) (2022). [28] Shishir G Patil, Tianjun Zhang, Xin Wang, and Joseph E Gonzalez. 2024. Gorilla: Large Language Model Connected with Massive APIs. In Advances in Neural Information Processing Systems (NeurIPS) .[29] Jinghua Piao et al . 2025. AgentSociety: Large-Scale Simulation of LLM-Driven Generative Agents Advances Understanding of Human Behaviors and Society. 
+
+arXiv preprint arXiv:2502.08691 (2025). [30] Chen Qian, Xin Cong, Wei Liu, Yuheng Cheng, Xiawu Zheng, Sirui Hong, et al .2024. ChatDev: Communicative Agents for Software Development. In Annual Meeting of the Association for Computational Linguistics (ACL) .[31] Bingbing Qiao et al . 2025. BotSim: LLM-Powered Malicious Social Botnet Simu-lation. In AAAI Conference on Artificial Intelligence , Vol. 39. 14377–14385. [32] Yujia Qin, Shihao Liang, Yining Ye, Kunlun Zhu, Lan Yan, Yaxi Lu, Yankai Lin, Xin Cong, Xiangru Tang, Bill Qian, et al . 2024. ToolLLM: Facilitating Large Language Models to Master 16000+ Real-world APIs. In International Conference on Learning Representations (ICLR) .[33] Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Eric Hambro, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom. 2023. Toolformer: Language Models Can Teach Themselves to Use Tools. In Advances in Neural Information Processing Systems (NeurIPS) .[34] Dhruv Shah, Blazej Osinski, Brian Ichter, and Sergey Levine. 2022. LM-Nav: Robotic Navigation with Large Pre-Trained Models of Language, Vision, and Action. In Conference on Robot Learning (CoRL) .[35] Yongliang Shen, Kaitao Song, Xu Tan, Dongsheng Li, Weiming Lu, and Yueting Zhuang. 2023. HuggingGPT: Solving AI Tasks with ChatGPT and its Friends in Hugging Face. In Advances in Neural Information Processing Systems (NeurIPS) .[36] Noah Shinn, Federico Cassano, Edward Berman, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. 2023. Reflexion: Language Agents with Verbal Reinforcement Learning. In Advances in Neural Information Processing Systems (NeurIPS) .[37] Significant Gravitas. 2023. Auto-GPT: An Autonomous GPT-4 Experiment. https: //github.com/Significant-Gravitas/Auto-GPT. AgentRob: From Virtual Forum Agents to Hijacked Physical Robots 
+
+[38] Ishika Singh, Valts Blukis, Arsalan Mousavian, Ankit Goyal, Danfei Xu, Jonathan Tremblay, Dieter Fox, Jesse Thomason, and Animesh Garg. 2023. ProgPrompt: Generating Situated Robot Task Plans using Large Language Models. In IEEE International Conference on Robotics and Automation (ICRA) .[39] Yujin Tang, Wenhao Yu, Jie Tan, Heiga Zen, Aleksandra Faust, and Tatsuya Harada. 2023. SayTap: Language to Quadrupedal Locomotion. In Conference on Robot Learning (CoRL) .[40] Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, et al . 2023. LLaMA: Open and Efficient Foundation Language Models. arXiv preprint arXiv:2302.13971 (2023). [41] Unitree Robotics. 2024. Unitree Go2: Quadruped Robot. https://www.unitree. com/go2. [42] Sai Vemprala, Rogerio Bonatti, Arthur Bucker, and Ashish Kapoor. 2023. Chat-GPT for Robotics: Design Principles and Model Abilities. arXiv preprint arXiv:2306.17582 (2023). [43] Naoki Wake, Atsushi Kanehira, Kazuhiro Sasabuchi, Jun Takamatsu, and Kat-sushi Ikeuchi. 2023. ChatGPT Empowered Long-Step Robot Control in Various Environments: A Case Application. IEEE Access 11 (2023), 95060–95078. [44] Guanzhi Wang, Yuqi Xie, Yunfan Jiang, Ajay Mandlekar, Chaowei Xiao, Yuke Zhu, Linxi Fan, and Anima Anandkumar. 2024. Voyager: An Open-Ended Embodied Agent with Large Language Models. Transactions on Machine Learning Research (TMLR) (2024). [45] Lei Wang, Chen Ma, Xueyang Feng, Zeyu Zhang, Hao Yang, Jingsen Zhang, Zhiyuan Chen, Jiakai Tang, Xu Chen, Yankai Lin, et al . 2024. A Survey on Large Language Model based Autonomous Agents. Frontiers of Computer Science 
+
+(2024). [46] Xingyao Wang, Boxuan Jia, Ziniu Ding, et al . 2025. OpenHands: An Open Plat-form for AI Software Developers as Generalist Agents. In International Conference on Learning Representations (ICLR) .[47] Zhilin Wang, Yu Ying Chiu, and Yu Cheung Chiu. 2023. Humanoid Agents: Plat-form for Simulating Human-like Generative Agents. In Conference on Empirical Methods in Natural Language Processing (EMNLP) .[48] Jimmy Wu, Rika Antonova, Adam Kan, Marion Lepert, Andy Zeng, Shuran Song, Jeannette Bohg, Szymon Rusinkiewicz, and Thomas Funkhouser. 2023. TidyBot: Personalized Robot Assistance with Large Language Models. In IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) .[49] Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu, Li Jiang, Xu Zhang, Song Wang, et al . 2024. AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation. In Conference on Language Modeling (COLM) .[50] Yuxiang Wu, Zhengyao Jiang, Akbir Khan, Yao Fu, Laura Ruis, Edward Grefen-stette, and Tim Rocktäschel. 2023. ChatArena: Multi-Agent Language Game Environments for LLMs. https://github.com/chatarena/chatarena. [51] John Yang, Carlos E Jimenez, Alexander Wettig, Kilian Liber, Karthik Narasimhan, and Ofir Press. 2024. SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering. In Advances in Neural Information Processing Systems (NeurIPS) .[52] Kai-Cheng Yang and Filippo Menczer. 2024. Anatomy of an AI-powered Malicious Social Botnet. Journal of Quantitative Description: Digital Media 4 (2024). [53] Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L Griffiths, Yuan Cao, and Karthik Narasimhan. 2023. Tree of Thoughts: Deliberate Problem Solving with Large Language Models. In Advances in Neural Information Processing Systems (NeurIPS) .[54] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik Narasimhan, and Yuan Cao. 2023. ReAct: Synergizing Reasoning and Acting in Language Models. In International Conference on Learning Representations (ICLR) .[55] Wenhao Yu, Nimrod Gileadi, Chuyuan Fu, Sean Kirmani, Kuang-Huei Lee, Montse Gonzalez Arenas, Hao-Tien Lewis Chiang, Tom Erez, Leonard Hasen-clever, Jan Humplik, et al . 2023. Language to Rewards for Robotic Skill Synthesis. In Conference on Robot Learning (CoRL) .[56] Andy Zeng, Adrian Wong, Stefan Welker, Krzysztof Choromanski, Federico Tombari, Aveek Purohit, Michael Ryoo, Vikas Sindhwani, Johnny Lee, Vincent Vanhoucke, and Pete Florence. 2023. Socratic Models: Composing Zero-Shot Multimodal Reasoning with Language. In International Conference on Learning Representations (ICLR) .[57] Shuyan Zhou, Frank F Xu, Hao Zhu, Xuhui Zhou, Robert Lo, Abishek Sridhar, Xianyi Cheng, Yonatan Bisk, Daniel Fried, Uri Alon, et al . 2024. WebArena: A Realistic Web Environment for Building Autonomous Agents. In International Conference on Learning Representations (ICLR) .

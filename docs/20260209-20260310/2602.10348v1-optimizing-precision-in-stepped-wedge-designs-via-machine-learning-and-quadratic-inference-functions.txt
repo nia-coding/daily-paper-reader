@@ -1,0 +1,5443 @@
+Title: Optimizing precision in stepped-wedge designs via machine learning and quadratic inference functions
+
+URL Source: https://arxiv.org/pdf/2602.10348v1
+
+Published Time: Thu, 12 Feb 2026 01:19:20 GMT
+
+Number of Pages: 60
+
+Markdown Content:
+# Optimizing precision in stepped-wedge designs via machine learning and quadratic inference functions 
+
+## Liangbo Lyu and Bingkai Wang ∗
+
+## Department of Biostatistics, School of Public Health, University of Michigan 
+
+Abstract 
+
+Stepped-wedge designs are increasingly used in randomized experiments to accom-modate logistical and ethical constraints by staggering treatment roll-out over time. Despite their popularity, existing analytical methods largely rely on parametric mod-els with linear covariate adjustment and prespecified correlation structures, which may limit achievable precision in practice. We propose a new class of estimators for the causal average treatment effect in stepped-wedge designs that optimizes preci-sion through flexible, machine-learning-based covariate adjustment to capture complex outcome-covariate relationships, together with quadratic inference functions to adap-tively learn the correlation structure. We establish consistency and asymptotic normal-ity under mild conditions requiring only L2 convergence of nuisance estimators, even under model misspecification, and characterize when the estimator attains the minimal asymptotic variance. Moreover, we prove that the proposed estimator never reduces efficiency relative to an independence working correlation. The proposed method fur-ther accommodates treatment-effect heterogeneity across both exposure duration and calendar time. Finally, we demonstrate our methods through simulation studies and reanalyses of two empirical studies that differ substantially in research area and key design parameters. 
+
+Keywords : Average treatment effect, causal inference, robust inference, staggered roll-out, time-varying treatment effect. 1
+
+> arXiv:2602.10348v1 [stat.ME] 10 Feb 2026
+
+# 1 Introduction 
+
+In randomized trials, the stepped-wedge design refers to a staggered roll-out of a treatment at randomized time points, such that all units begin the study under control and eventually receive the treatment by its conclusion. This design is particularly attractive in settings where it is logistically infeasible to deploy the treatment to all units simultaneously, as in a parallel-arm design, or when there is a strong prior belief that the treatment is beneficial and withholding it from some units indefinitely is undesirable (Li and Wang, 2022). Because of these practical advantages, stepped-wedge designs have gained substantial popularity across a wide range of applied fields, including health sciences, implementation sciences, educa-tion, and social sciences (Mdege et al., 2011; Beard et al., 2015; Varghese et al., 2025). In Section 2, we introduce two motivating studies that both adopt stepped-wedge designs but differ markedly in key design features, including the unit of randomization, overall sample size, and the number of roll-out periods. Traditional analyses of stepped-wedge designs typically rely on parametric regression models for covariate adjustment, yet such models may be too restrictive to deliver mean-ingful precision gains in practice. In the context of cluster-randomized trials, Hussey and Hughes (2007) first introduced mixed-effect models that linearly adjust for covariates while accounting for within-cluster correlation; these approaches have since become standard and widely applied (Li et al., 2021; Nevins et al., 2024). There is a rich literature of subsequent methodological developments, such as random effects specifications (Kasza and Forbes, 2019; Kasza et al., 2019; Voldal et al., 2022), treatment-effect heterogeneity (Kenny et al., 2022; Maleyeff et al., 2023; Lee et al., 2025), and robustness to model misspecification (Ouyang et al., 2023; Wang et al., 2024b; Chen and Li, 2025), but they have largely remained within a linear covariate-adjustment framework. However, Wang et al. (2026) demonstrated that covariate adjustment in such models can in fact reduce precision in certain distributions, raising questions about appropriate covariate adjustment. Moreover, because the choice of correlation structure itself can materially affect statistical efficiency, the problem of optimally learning or adapting the correlation structure remains largely unexplored. Recently, Fang et al. (2025) proposed a model-robust standardization framework that improves precision by leveraging parametric and semiparametric outcome models. Never-2theless, this approach does not address optimal learning of correlation structures or poten-tial treatment-effect heterogeneity across time in stepped-wedge settings. Wang and Xiong (2025); Xia et al. (2025) derived the efficiency bounds with adjustment for cluster-level co-variates only, whereas individual-level covariates contain additional contextual information that can further enhance precision but is not considered. Furthermore, none of these methods fully accommodates data-adaptive methods, such as modern machine-learning algorithms, to optimize precision gain from covariate adjustment. In this article, we propose a new class of estimators designed to optimize precision for esti-mating the causal average treatment effect in stepped-wedge designs. Our approach is built on a cross-fitted partial linear outcome model that enables flexible covariate adjustment, allowing machine-learning algorithms to capture complex outcome-covariate relationships. We show that the resulting estimator is consistent and asymptotically normal provided the nuisance-function estimators converge in L2 norm, even if they converge to misspecified lim-its. When the mean model is correctly specified and the nuisance estimator is consistent, the proposed estimator attains the minimal asymptotic variance under individual randomization. To further enhance efficiency, we augment the estimator with quadratic inference functions (QIF; Qu et al., 2000) to adaptively learn the correlation structure. Unlike random-effects models, which require prespecification of a single correlation structure, QIF accommodates multiple candidate structures and uses the data to optimally weight them for improved preci-sion. In the stepped-wedge setting, we provide the first theoretical guarantee that QIF, when coupled with machine learning, yields valid asymptotic inference and never reduces precision relative to the independence working correlation. Finally, our framework accommodates treatment-effect heterogeneity across both exposure duration and calendar time, and applies seamlessly to open- and closed-cohort designs as well as the diverse design features illustrated in our motivating examples. The remainder of this article is organized as follows. Section 2 presents two motivating examples. Section 3 formally introduces the proposed causal framework. In Section 4, we develop the proposed estimators, and Section 5 establishes their asymptotic properties. Sections 6 and 7 evaluate the proposed methods through simulation studies and re-analyses of the motivating examples. Section 8 concludes with a discussion. 32 Motivating examples 
+
+## 2.1 Improving caring quality for people with dementia in nursing homes using IPOS 
+
+Patients with dementia are at high risk of receiving inadequate palliative care for their complex needs, in part because cognitive impairment often limits their ability to communi-cate symptoms and concerns effectively (Livingston et al., 2020). To address this challenge, Spichiger et al. (2021) conducted a cluster-randomized stepped-wedge trial in Switzerland to evaluate the effectiveness of the Integrated Palliative Care Outcome Scale (IPOS), combined with subsequent case studies, in improving care for people with dementia. In this study, staff from 23 nursing homes (clusters) were equally randomized to initiate IPOS training in one of three rollout periods. The training program began at 3, 6, and 9 months after trial initiation and ultimately enrolled a total of 234 unique patients (mean cluster sizes 10.17 with standard error 3.41). We focus on the primary outcome, the QUALIDEM score measured over 3-month cycles, which is a continuous assessment of quality of care. Baseline covariates include age, sex, baseline QUALIDEM score, and baseline IPOS subscale scores for dementia physical interaction impact and dementia emotional behavioral impact. 
+
+## 2.2 Procedural justice training program 
+
+To reduce police misconduct and use of force, the Chicago Police Department implemented a procedural justice training program for its police officers (Wood et al., 2020). The program used an individually randomized stepped-wedge design, in which each of the 5537 qualified officers was equally randomized to one of 72 time periods (months) to receive procedural justice training. We consider the number of complaints filed against officers measured at each time period as the outcome. Baseline covariates include age, sex, baseline number of complaints, and baseline use-of-force incidents of officers. These two data examples illustrate the stepped-wedge design across distinct research domains with markedly different sample sizes and design characteristics. Together, they highlight the methodological challenges and opportunities that arise in practice. Our goal 4is to develop statistical methods that improve estimation precision across such settings. In Section 7, we present our re-analysis of these studies with the proposed methods. 
+
+# 3 Definition and assumptions 
+
+We consider a cluster-randomized stepped-wedge design with I clusters and J periods, where each cluster i ∈ { 1, . . . , I } contains Ni individuals. The special case of individual random-ization, as in the second motivating example, corresponds to Ni ≡ 1. The study period j
+
+takes values in {0, 1, . . . , J }, where j = 0 represents the baseline period (before randomiza-tion) and j = 1 , . . . , J represents the randomization periods. In the stepped-wedge design, each cluster is crossed over from control to treatment, and the timing of treatment onset is randomized. We use Zi ∈ { 1, . . . , J, +∞} to denote the treatment sequence, where Zi = j
+
+means the treatment starts at the beginning of period j. We allow for never-treated clusters, denoted as Zi = + ∞.For each individual k (k = 1 , . . . , N i) in cluster i, we denote Yijk as the outcome at period 
+
+j and Xik as a vector of baseline variables. Here, Xik can include both individual-specific covariates and cluster-level covariates. Since an individual may not be observed at all time points, we further define Sijk as the enrollment indicator at period j (i.e., Sijk = 1 if Yijk 
+
+is observed) and the observed cluster size as Nij = ∑Ni 
+
+> k=1
+
+Sijk , which is no larger than the cluster-population size Ni. Then Nij = 0 or 1 given individual randomization. Under the Neyman-Rubin (Neyman et al., 1990) causal inference framework, we define 
+
+Yijk (z) as the potential outcome had cluster i been assigned to treatment sequence z. We assume no treatment anticipation (i.e., Yijk (z) does not vary by z when z > j ) and denote 
+
+Yijk (0) as the potential outcome when a cluster has not been treated. Furthermore, we assume causal consistency: Yijk = ∑jz=1 I{Zi = z}Yijk (z) + I{Zi > j }Yijk (0), where I{·} is the indicator function. Given these definitions, the observed data for each cluster are Oi = {(Yijk , Z i, Xik ) : 
+
+Sijk = 1 , j = 1 , . . . , J, k = 1 , . . . , N i}, and the complete (unobserved) data are Wi =
+
+{(Yijk (z), S ijk , Z i, Xik , N i), k = 1 , . . . , N i, 0 ≤ z ≤ j}. We make the following assumptions on the complete data. 5Assumption 1. (Superpopulation) (1) {Wi, i = 1 , ..I } are independent and identically distributed samples from an unknown distribution P with finite fourth moments. (2) Within each cluster i, the individual vectors ( Yi1k(0) , . . . , Y iJk (J), Xik ) are identically distributed given Ni for k = 1 , . . . , N i.
+
+Assumption 2. (Randomization) The treatment sequence Zi is independent of all other random variables in Wi.
+
+Assumption 3. (Non-informative sampling) {Sijk : j = 1 , . . . , J, k = 1 , . . . , N i} is independent of all other random variables in Wi given Ni.Assumption 1(1) specifies the standard sampling-based framework and the inter-cluster independence. Assumption 1(2) imposes an identical distribution on the individual-level information but allows arbitrary within-cluster correlation; this assumption is used to sim-plify the causal estimands. Assumption 2 is implied by the stepped-wedge design. Of note, we allow for unequal steps where P (Zi = j) = 0 for some j, which extends the classical design. Assumption 3 assumes away selection bias by imposing a random sampling scheme that is similar to missing completely at random in longitudinal data. Compared with Wang et al. (2024b), which imposed similar assumptions to address unequal cluster sizes across time, Assumption 3 relaxes these conditions by placing no restrictions on Nij , while still al-lowing arbitrary correlation among enrollment indicators. This formulation accommodates cross-sectional, closed-cohort, and open-cohort designs (Li et al., 2021). Our goal is to estimate the marginal, cluster-average treatment effect, defined as ∆j (d) = E
+
+{
+
+1
+
+NiNi∑
+
+> k=1
+
+Yijk (j − d + 1) 
+
+}
+
+− E
+
+{
+
+1
+
+NiNi∑
+
+> k=1
+
+Yijk (0) 
+
+}
+
+, (1) for 1 ≤ d ≤ j ≤ J, where d = j − z + 1 is the duration of treatment under sequence z ≤ j.It is interpreted as the effect of d-periods of treatment at period j. By Assumption 1(2), the estimand ∆ j (d) can be simplified to E{Yijk (j − d + 1) } − E{Yijk (0) }.Based on Equation (1), Wang et al. (2024b) investigated four treatment-effect models according to whether treatment effects are homogeneous across calendar time and expo-sure duration. Specifically, the constant treatment-effect model assumes ∆ j (d) ≡ ∆ and 6is widely used due to its simplicity. The duration-specific treatment-effect model assumes ∆j (d) ≡ ∆( d) and accommodates heterogeneity with respect to exposure duration (Hughes et al., 2015; Kenny et al., 2022; Maleyeff et al., 2023), such as delayed or cumulative treatment effects. The period-specific treatment-effect model assumes ∆ j (d) ≡ ∆j , allowing treatment effects to vary over calendar time, for example, because of seasonal patterns. Finally, the 
+
+saturated treatment-effect model imposes no structural constraints on the causal estimands and therefore involves the largest number of parameters. In practice, accounting for such treatment-effect heterogeneity is critical, as ignoring it can lead to substantial bias (Kenny et al., 2022; Wang et al., 2024b). Although more flexible models introduce additional param-eters, interpretable summary estimands can still be reported, such as the average treatment effect across exposure durations, ∑Jd=1 ∆( d)/J .Table 1 summarizes the key characteristics of these models, and our proposed methods can apply to all these settings. Notably, when no units remain under control in period 
+
+J (as in the classical setting where Zi̸ = + ∞), the parameters ∆ J and ∆ J (d) are not identifiable under the period-specific and saturated models and are therefore excluded from the set of estimands. Finally, beyond the estimand in Equation (1), Fang et al. (2025) considered constant and individual-average treatment effects under informative cluster sizes, where individuals instead of clusters are equally weighted. Our proposed methods can be readily generalized to estimate these alternative estimands using the weighted estimating function in Wang et al. (2024a). 
+
+# 4 Estimators 
+
+## 4.1 Flexible covariate adjustment with machine learning 
+
+We first present the covariate adjustment method with an independence correlation structure. Consider a working partial linear regression model 
+
+E[Yijk |Zi, Xik ] = ( D∗ 
+
+> ij
+
+− E[D∗ 
+
+> ij
+
+]) Tβ∗ + gj (Xik ), (2) 7Treatment effect structure Abbreviation Assumption Illustration 
+
+Constant CTreatment effect does not vary by exposure duration or calendar time     
+
+> 012344321
+> Period Cluster Constant treatment effect
+
+Duration-specific D Treatment effect only varies by exposure duration     
+
+> 012344321
+> Period Cluster Duration−specific treatment effect
+
+Period-specific P Treatment effect only varies by calendar time     
+
+> 012344321
+> Period Cluster Period−specific treatment effect
+
+Saturated STreatment effect varies by exposure duration and calendar time     
+
+> 012344321
+> Period Cluster Saturated treatment effect
+
+Table 1: Treatment effect structures in stepped wedge designs. In this illustration, white cells denote control conditions, whereas colored cells indicate periods under treatment. Different colors correspond to distinct treatment-effect estimands. Black cells indicate settings in which the treatment-effect estimand is not defined. 
+
+8where ( D∗ 
+
+> ij
+
+− E[D∗ 
+
+> ij
+
+]) Tβ∗ is the centered treatment effect term, and gj (Xik ) = E[Yijk |Xik ]is the nuisance function for period j. In the first term, the superscript ∗ takes values in 
+
+{C, D, P, S}, representing different notations when considering constant, duration-specific, period-specific, and saturated treatment effects, respectively. The notation D∗ 
+
+> ij
+
+is a function of treatment variable Zi to define the appropriate treatment status, and β∗ is the treatment effect parameter of interest. In the second term, gj (Xik ) represents the form of covariate ad-justment. For example, linear adjustment corresponds to approximating gj (Xik ) = βT 
+
+> Xj
+
+Xik .To relate β∗ to our target estimands, we specific DC 
+
+> ij
+
+= I{Zij ≤ j}, a simple indi-cator of receiving intervention, and βC as a scalar under constant-treatment-effect model. With duration-specific treatment effect structure, we define DD 
+
+> ij
+
+= ( I{Z = j}, . . . , I {Z =1}, 0, . . . , 0) T ∈ RJ and βD = ( βD1 , . . . , β D 
+
+> J
+
+)T ∈ RJ . For the period-specific treatment effect, we define DP 
+
+> ij
+
+= I{Zij ≤ j} and use βP 
+
+> j
+
+as the treatment effect parameter. Finally, the saturated treatment effect structure employs DS 
+
+> ij
+
+= DD 
+
+> ij
+
+and βS 
+
+> j
+
+= ( βS1j , . . . , β S 
+
+> J−1,j
+
+)T ∈ RJ−1.Together, these specifications of D∗ 
+
+> ij
+
+and β∗ make sure that our estimators for β∗ are con-sistent for the estimands under each treatment effect model. We estimate β∗ using a two-step cross-fitting procedure. In the first step, we apply cluster-level cross-fitting to estimate gj (Xik ). Specifically, let B1, . . . , B M denote a random partition of the I clusters into M folds, with each fold containing approximately I/M clusters (allowing at most a difference of one in fold sizes). For each fold m, we use data from the remaining M − 1 folds as the training sample to fit a prediction model for Yijk given Xik ,yielding the fold-specific estimator ̂ g(m) 
+
+> j
+
+. The prediction model may take simple parametric forms, such as linear regression, or more flexible data-adaptive machine-learning methods. For observations belonging to fold m, the cross-fitted prediction is then given by ̂ g(m) 
+
+> j
+
+(Xik ). In the second step, we treat these cross-fitted predictions as fixed and construct ̂ β∗ by minimizing the total squared loss over the observed data, i.e., ̂
+
+β∗ = arg min 
+
+> β∗
+> M
+
+∑
+
+> m=1
+
+∑
+
+> i∈Bm
+> J
+
+∑
+
+> j=1
+
+1
+
+Nij Ni∑
+
+> k=1
+
+Sijk 
+
+{
+
+Yijk − (D∗ 
+
+> ij
+
+− E[D∗ 
+
+> ij
+
+]) Tβ∗ −̂ g(m) 
+
+> j
+
+(Xik )
+
+}2
+
+. (3) The variance estimator for ̂ β∗, denoted as ̂ V ar ∗
+
+(̂ β∗), is constructed by the squared influence function for ̂ β∗, which is provided in Supplementary Material A. Of note, when Nij = 0, the 9term 1 /N ij is dropped from Equation (3) to avoid zeros in the denominator. In the above procedure, cross-fitting is employed to eliminate in-sample prediction bias when data-adaptive modeling is used for estimating gj (Xik ) (Chernozhukov et al., 2018). When we adopt parametric models, such as gj (Xik ) = βT 
+
+> Xj
+
+Xik , cross-fitting is unnecessary, and the resulting estimator ̂ β∗ reduces to the standard ANCOVA estimator (Wang et al., 2024a). From a practical perspective, we recommend using parametric models when the effective sample size is limited (e.g., fewer than 50 observations per fold), while encouraging data-adaptive cross-fitting to optimize precision when sufficient sample sizes are available, as in our second motivating example. In addition, the above formulation corresponds to an independence working correlation structure, since each individual k and period j receives equal weight. Specifically, ̂ β∗ can be equivalently characterized as the solution to 
+
+> M
+
+∑
+
+> m=1
+
+∑
+
+> i∈Bm
+
+(D∗ 
+
+> i
+
+− E[D∗ 
+
+> i
+
+| Ni]) TST 
+
+> i
+
+QiSi
+
+{
+
+Yi − (D∗ 
+
+> i
+
+− E[D∗ 
+
+> i
+
+| Ni]) β∗ −̂ G(m)
+
+> i
+
+}
+
+= 0 , (4) where Yi, D∗ 
+
+> i
+
+, Si, and ̂ G(m) 
+
+> i
+
+denote the stacked vector or matrix representations of Yijk , D∗ 
+
+> i
+
+,
+
+Sijk , and ̂ g(m) 
+
+> j
+
+(Xik ), respectively, concatenated over j and k (see Supplementary Material A for details). In Equation (3), the weighting matrix Qi is taken to be the identity matrix, cor-responding to the independence working correlation. Alternative choices are also applicable, such as nested exchangeable correlation matrices. 
+
+## 4.2 Flexible correlation modeling with QIF 
+
+In stepped-wedge designs, correlations may arise along multiple dimensions: across repeated visits within the same individual, among different individuals within the same cluster at a given time period, and across time within the same cluster. Because appropriately modeling the correlation structure can substantially improve statistical efficiency (Li, 2020), we in-corporate quadratic inference functions (QIF) to adaptively learn the underlying correlation structure. Rather than prespecifying a single working correlation structure, such as the ma-trix Qi in Equation (4), QIF represents Qi as a linear combination, Qi = ∑Ll=1 alQil , where 10 Qi1, . . . , QiL are a collection of candidate correlation structures and a1, . . . , a L are unknown weighting parameters estimated from the data. Each basis matrix Qil can be chosen to cap-ture a distinct aspect of correlation, such as an exchangeable correlation for within-cluster correlation or within-individual correlation across time, allowing QIF to adaptively combine these components to best match the observed correlation patterns. With this adaptive correlation learning, we retain the cross-fitting procedure for covariate adjustment and modify the estimation step for β∗ accordingly. Specifically, we define the QIF estimator as ̂
+
+β∗ 
+
+> QIF
+
+= arg min 
+
+> β∗
+
+{ I∑
+
+> i=1
+
+˜ψ∗
+
+> i
+
+}T { I∑
+
+> i=1
+
+˜ψ∗ 
+
+> i
+
+( ˜ψ∗ 
+
+> i
+
+)T
+
+}−1 { I∑
+
+> i=1
+
+˜ψ∗
+
+> i
+
+}
+
+, (5) where, for i ∈ Bm,
+
+˜ψ∗ 
+
+> i
+
+=
+
+
+
+(D∗ 
+
+> i
+
+− E[D∗ 
+
+> i
+
+| Ni]) TST 
+
+> i
+
+Qi1Si
+
+{
+
+Yi − (D∗ 
+
+> i
+
+− E[D∗ 
+
+> i
+
+| Ni]) β∗ −̂ G(m)
+
+> i
+
+}
+
+...(D∗ 
+
+> i
+
+− E[D∗ 
+
+> i
+
+| Ni]) TST 
+
+> i
+
+QiL Si
+
+{
+
+Yi − (D∗ 
+
+> i
+
+− E[D∗ 
+
+> i
+
+| Ni]) β∗ −̂ G(m)
+
+> i
+
+} .
+
+Compared with ̂ β∗, QIF-based estimation involves stacking estimating functions with different candidate correlation structures and solving a quadratic form of ˜ψ∗, which equiv-alently optimizes ( a1, . . . , a L), as shown in Qu et al. (2000). When a single candidate Qi
+
+is used, then ̂ β∗ 
+
+> QIF
+
+reduces to ̂ β∗ defined in Equation (4), thereby covering the indepen-dence correlation structure as a special case. The variance estimator for ̂ β∗
+
+> QIF
+
+, denoted as ̂
+
+V ar ∗
+
+(̂ β∗
+
+> QIF
+
+), is obtained from the squared influence function. Full details of the variance derivation are provided in Supplementary Material A. In practice, the choice of candidate correlation structures should be guided by the trial parameters and substantive domain knowledge. For stepped-wedge designs, commonly con-sidered structures include independence, exchangeable correlation, and first-order autoregres-sive (AR-1) correlation to capture within-individual correlation across time, within-cluster within-period correlation, and within-cluster correlation across periods. We caution against unstructured correlation modeling, as it typically entails high-dimensional parameterization 11 and substantial computational burden. Empirically, a small collection of basis matrices is often sufficient to capture most of the attainable efficiency gains (Qu and Li, 2006). Al-ternatively, data-driven correlation selection criteria similar to BIC in regression have been proposed to further enhance stability and interpretability (Song et al., 2009). 
+
+# 5 Asymptotic results 
+
+To present our theoretical statements, we denote I as the identity matrix and define the target the causal parameters at each treatment structure as ∆ C , ∆D = (∆(1) , . . . , ∆( J)) T ∈ RJ ,
+
+∆P = (∆ 1, . . . , ∆J−1)T ∈ RJ−1, and ∆S = (∆ 1(1) , ∆2(1) , . . . , ∆J−1(J − 1)) T ∈ R(J−1) J/ 2.Theorem 1 establishes the consistency and asymptotic normality of the proposed estimator defined in Equation (3) as the number of clusters approaches infinity. 
+
+Theorem 1. Assuming Assumptions 1-3 and E
+
+[{̂ 
+
+g(m) 
+
+> j
+
+(Xik ) − gj (Xik )
+
+}2]
+
+→ 0 for some integrable limit function gj (Xik ), we have 
+
+{̂ 
+
+V ar ∗
+
+(̂ β∗)
+
+}−1/2 (̂ 
+
+β∗ − ∆∗
+
+) d
+
+−→ N (0 , I) under each treatment effect model ∗ ∈ { C, D, P, S }.If the partial linear model (2) is correctly specified, then ̂ β∗ achieves smallest asymptotic variance if gj (Xik ) = E[Yijk |Xik ] and Yijk is independent of Xik ′ for k̸ = k′ given Xik .
+
+Theorem 1 establishes the asymptotic validity of Wald-type inference for our proposed estimator under all treatment-effect models considered. Notably, the only requirement for nuisance-function estimation is L2 convergence, and the limiting function need not be the correct target. This condition is automatically satisfied when nuisance components are estimated using parametric regression models, such as linear or spline regression. Moreover, the requirement is relatively mild for machine-learning algorithms, as it places no restriction on the rate of convergence, and is met by a wide range of methods, including random forests (Wager and Athey, 2018; Young and B¨ uhlmann, 2025) and deep neural networks (Farrell et al., 2021). Theorem 1 further characterizes the conditions under which precision is optimized. Un-der individual randomization, where k ≡ 1, optimal precision corresponds to a correctly specified mean model and consistent estimation of the nuisance functions. The former con-12 dition is equivalent to no treatment-covariate interactions, and the latter can be achieved by many well-established machine-learning algorithms, including those mentioned above. For clustered data, the limit function that attains the optimal precision is gj (Xik ) = E[Yijk |
+
+Xi1, . . . , XiN i ]. However, this target is difficult to estimate at the individual level, since all individuals within a cluster share the same covariate set. A more practical strategy is therefore to construct cluster-level summary measures and model outcomes using both individual-level covariates and these cluster-level summaries. These quantities can be incor-porated into Xik in our proposed methods, yielding an estimand of the form E[Yijk | Xik ]. Accordingly, optimal precision is achieved under an additional conditional independence as-sumption, which yields E[Yijk | Xi1, . . . , XiN i ] = E[Yijk | Xik ] and is plausible when Xik 
+
+includes sufficiently rich individual- and cluster-level covariates. When leveraging QIF for correlation modeling, Theorem 2 establishes asymptotic re-sults parallel to those in Theorem 1. More importantly, it shows that QIF never decreases asymptotic precision relative to using a single working correlation structure, as is common in classical approaches. This result provides a strong theoretical guarantee that the proposed QIF method can only improve, and never harm, asymptotic precision. 
+
+Theorem 2. Assuming Assumptions 1-3 and E
+
+[{̂ 
+
+g(m) 
+
+> j
+
+(Xik ) − gj (Xik )
+
+}2]
+
+→ 0 for some integrable limit function gj (Xik ), we have 
+
+{̂ 
+
+V ar ∗
+
+(̂ β∗
+
+> QIF
+
+)
+
+}−1/2 (̂ 
+
+β∗ 
+
+> QIF
+
+− ∆∗
+
+) d
+
+−→ N (0 , I) under each treatment effect model ∗ ∈ { C, D, P, S }.Furthermore, ̂ β∗ 
+
+> QIF
+
+achieves equal or smaller variance with more basis correlation matri-ces. 
+
+Remark 1. In longitudinal settings, including stepped-wedge designs, semiparametric ef-ficiency is theoretically attainable but often computationally impractical, as it requires un-structured modeling of high-dimensional covariance matrices. For example, in the absence of covariate adjustment, Xia et al. (2025) derived the efficient score, which involves the term 
+
+V ar {Yi − D∗⊤  
+
+> i
+
+β∗}−1. Without imposing assumptions on the correlation structure, construct-ing a consistent estimator of this quantity requires empirically approximating and inverting large covariance matrices, a task that is frequently inaccurate or computationally infeasible. These challenges are further exacerbated in the presence of varying cluster sizes, covariate 
+
+13 adjustment, and missing data. In practice, adopting structured working correlation models can yield satisfactory precision gains, and QIF provides an effective approach to improving correlation modeling and enhancing inferential efficiency. 
+
+# 6 Simulation 
+
+We conduct two simulation studies to assess the finite-sample performance of the proposed estimators. The first study considers a cluster-randomized stepped-wedge trial, while the second focuses on an individually randomized stepped-wedge trial. Within each setting, we evaluate performance under both constant and duration-specific treatment-effect structures. Additional results for period-specific and fully saturated treatment-effect specifications are provided in Supplementary Material C. 
+
+## 6.1 Simulation setting 
+
+For cluster-randomized trials, we generate 1,000 realizations under two trial sizes, with I = 20 and I = 100 clusters, representing small and moderately large trials, respectively. When 
+
+I = 20, we set the number of periods to J = 3, the cluster-population size to Ni = 20, and sample the observed cluster-period size Nij uniformly from [5 , 15]. When I = 100, we set J = 5, Ni = 500, and sample Nij uniformly from [5 , 35]. In both scenarios, we independently generate four covariates: one cluster-level covariate Xi1 ∼ N (0 , 1) and three individual-level covariates, Xik 2 ∼ Bernoulli(0 .5) and Xik 3, X ik 4 ∼ N (0 , 1). The sampling indicators Sijk follows uniform distribution given Nij and Ni. Treatment assignments Zi
+
+are generated independently across clusters, with equal probability to initiate treatment in periods 1 , . . . , J .Under the constant treatment-effect setting, outcomes are generated according to 
+
+Yijk = I{Zi ≤ j} β(X) + exp( Xik 1Xik 2) + 1 
+
+> 2
+
+X2 
+
+> ik 4
+
++ I{Xik 4 > −1} + 2 I{Xik 3 > 1}
+
++ I{Xik 1 > 0.5}(j + 1) + σi + αij + τik + ϵijk , (6) where σi, α ij , τ ik ∼ N (0 , 0.1) denotes the cluster-level, cluster-period, individual-level random 14 effects, respectively, and ϵijk ∼ N (0 , 0.7) is the independent residual error. The covariate-specific treatment effect is defined as β(X) = 1 + (Xik 3 − Xi·3
+
+) + (X3 
+
+> ik 4
+
+− X3i·4
+
+)/2, where 
+
+f (Xi·p) denotes the within-cluster average of f (Xikp ). Under the duration-specific treatment-effect setting, outcomes are generated as 
+
+Yijk = βd(X) + 1
+
+2 exp ( Xik 1Xik 2) + I{Xik 4 > −1} + I{Xik 1 > 0.5}(j + 1) + 2 I{Xik 3 > 1} + σi + αij + τik + ϵijk ,
+
+where the treatment effect is βd(X) = I{d > 0}{ 1+( Xik 3 −Xi. 3)d/ (J +1)+( X3 
+
+> ik 4
+
+−X3
+
+> i. 4
+
+)/(J +1) } for d = j − Zi + 1. Both outcome distributions incorporate nonlinear relationships with treatment and covariates, as well as multiple correlation structures, and are intentionally designed to demonstrate the proposed methods under challenging and realistic settings. For individual randomized trials, we generate 1,000 datasets setting I = 1000 with J =20, representing larger and longer trials. By design, Ni = 1, and we set Nij ∼ Bernoulli(0 .5) to generate unobserved outcomes in certain time points. Covariates and treatments are generated as in cluster-randomized trials. For the constant treatment effect structure, the outcome is generated as in Equation (6) except that cluster-level random effects are absorbed into the residual random error. For the duration-specific treatment effect structure, the outcome is generated by 
+
+Yijk = β′
+
+> d
+
+(X) + 1
+
+2X3 
+
+> ik 3
+
++ 1
+
+2X3 
+
+> ik 4
+
++ J + 1 
+
+2 Xik 1Xik 2 + I{Xik 4 > 0.5} + τik + ϵijk 
+
+with β′
+
+> d
+
+(X) = I{d > 0}{ 1 + Xik 3 − Xi. 3 + ( X3 
+
+> ik 4
+
+− X3
+
+> i. 4
+
+)d} for d = j − Zi + 1. For each simulated dataset, we apply our proposed approach to estimate the treatment effect estimands. Under a working independence working correlation, we implement the es-timator defined in Equation (3) with three covariate adjustment options: no adjustment, linear adjustment, and machine-learning-based adjustment. Linear adjustment specifies ̂
+
+gj (Xik ) = βT 
+
+> Xj
+
+Xik , and machine-learning adjustment uses an ensemble of regression trees (Breiman et al., 2017), random forests (Breiman, 2001), generalized linear models, and sup-port vector machines (Cortes and Vapnik, 1995), implemented with the SuperLearner Rpackage (van der Laan et al., 2007). We further implement QIF-assisted estimators, for 15 which the covariate adjustment strategies remain the same, while the basis correlation struc-tures are chosen to reflect the underlying random-effects components. When I = 20, we apply the 4MD correction of (Westgate, 2012) to improve variance estimation for QIF in small samples. To benchmark the proposed methods, we also fit linear mixed-effects models with correctly specified random-effects structures and linear adjustment for baseline covari-ates; model-based variance estimator from the R function lme4 (Bates et al., 2015) was used for convenience. For each estimator, we report the bias, empirical standard error, average es-timated standard error, and the coverage probability of 95% confidence intervals constructed using a t-distribution with I − p degrees of freedom, where p denotes the dimension of the treatment effect vector. 
+
+## 6.2 Simulation Results 
+
+Table 2 summarizes the simulation results under the constant treatment-effect setting for cluster-randomized trials with I = 20 , 100 clusters and individually randomized trials with 
+
+I = 1000 individuals. Across all scenarios, the proposed estimators exhibit negligible bias and achieve close-to-nominal 95% coverage, supporting our asymptotic theory and demon-strating satisfactory finite-sample performance, even when the number of clusters is small. Relative to the unadjusted estimator, linear covariate adjustment reduces variance by 25-70%, and machine-learning-based adjustment consistently achieves further precision gain, particularly in larger samples (over 90% variance reduction) where sufficient data mitigate overfitting. These patterns are consistent with the fact that the benefits of flexible learning become more pronounced as the sample size increases. Incorporating QIF to adaptively learn the correlation structure yields additional efficiency improvements across all settings, with variance reductions of roughly 50-70% compared with the independence working corre-lation. Taken together, these results highlight the complementary roles of flexible covariate adjustment and adaptive correlation learning in improving efficiency. The benchmark linear mixed-effects model performs comparably to the proposed esti-mator with QIF and linear adjustment, indicating that our framework is compatible with simple parametric adjustment. However, in the large-sample setting ( I = 1000), the linear mixed-effects model exhibits noticeable undercoverage (0.812), reflecting bias in the model-16 based variance estimator under model misspecification; this issue can be alleviated by using model-robust variance estimators (Wang et al., 2024b). Moreover, while our implementation of the mixed-effects model assumes correct specification of the random-effects structure, such assumptions are often violated in practice, potentially leading to efficiency loss. In contrast, QIF flexibly combines multiple candidate correlation structures, increasing the chance of capturing the true dependence structure and yielding more robust efficiency gains. For the duration-specific treatment-effect setting, there are J causal estimands corre-sponding to different exposure durations. For brevity, we report only the average duration-specific effect, defined as ∑Jd=1 ∆( d)/J . Table 3 summarizes the simulation results, which further demonstrate the validity of the proposed methods in this more complex setting and show comparable precision gains from machine-learning-based covariate adjustment and adaptive correlation modeling to those observed in Table 2. In Supplementary Material C, we present parallel results under the period-specific and saturated treatment-effect structures, which yield similar findings. To further assess the performance of individual machine-learning methods, we repeat the simulation studies using 8 standalone algorithms. The results, reported in Supplementary Material C, show that regression trees, random forests, and support vector machines achieve the best overall per-formance under the data-generating mechanisms considered. These algorithms are therefore included in the ensemble learner used in our analyses. 
+
+# 7 Data application 
+
+We apply the proposed methods to the two motivating examples using the same specifications as in the simulation studies. We do not implement mixed-effects models because their model-based inference can lead to undercoverage, as demonstrated in our simulation results. When treatment effects vary across exposure duration or calendar time, we report averaged treatment effects for brevity. Figures 1 and 2 display the point estimates and 95% confidence intervals for each estimator in the first and second motivating examples, respectively. Figure 1 shows beneficial effects of IPOS in improving patient care across all specifica-tions. Both QIF and covariate adjustment yield substantial variance reductions (28-70%), 17 Table 2: Summary results for estimating the constant treatment effect. For cluster-randomized trials with     
+
+> I= 20 ,100 clusters and individual-randomized trials with I= 1000 individuals, we report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP).
+
+I Correlation modeling Covariate adjustment Bias ESE ASE CP 
+
+20 Unadjusted -0.051 0.872 0.859 0.940 Independence Linear -0.011 0.614 0.547 0.942 ML -0.024 0.474 0.415 0.952 
+
+Unadjusted 0.021 0.313 0.327 0.954 QIF Linear 0.017 0.271 0.263 0.952 ML 0.002 0.248 0.225 0.936 
+
+Random effects Linear 0.018 0.252 0.263 0.970 
+
+100 Unadjusted -0.016 0.436 0.431 0.956 Independence Linear 0.002 0.242 0.241 0.952 ML -0.003 0.123 0.112 0.959 
+
+Unadjusted 0.014 0.136 0.140 0.958 QIF Linear 0.007 0.094 0.095 0.950 ML 0.006 0.057 0.057 0.944 
+
+Random effects Linear 0.007 0.124 0.129 0.963 
+
+1000 Unadjusted 0.006 0.347 0.353 0.952 Independence Linear 0.005 0.209 0.219 0.965 ML 0.000 0.063 0.058 0.961 
+
+Unadjusted 0.014 0.181 0.177 0.946 QIF Linear 0.003 0.109 0.112 0.952 ML 0.000 0.037 0.034 0.934 
+
+Random effects Linear 0.010 0.138 0.095 0.812 
+
+resulting in statistically significant treatment effects at the 5% level, whereas the unadjusted analyses fail to reach significance. These findings further highlight the practical value of the proposed methods. Moreover, despite the limited sample size ( I = 20), machine-learning-based covariate adjustment achieves an additional 0-18% variance reduction relative to linear 18 Table 3: Summary results for estimating the averaged duration-specific treatment effect. For cluster-randomized trials with I = 20 , 100 clusters and individual-randomized trials with I = 1000 individuals, we report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and cover-age probability of the 95% confidence interval (CP). 
+
+I Correlation modeling Covariate adjustment Bias ESE ASE CP 
+
+20 Unadjusted -0.037 1.081 1.085 0.934 Independence Linear 0.005 0.712 0.700 0.947 ML -0.006 0.518 0.462 0.957 
+
+Unadjusted -0.002 0.767 0.803 0.943 QIF Linear -0.003 0.581 0.572 0.949 ML 0.010 0.377 0.328 0.943 
+
+Random effects Linear -0.007 0.552 0.459 0.911 
+
+100 Unadjusted 0.032 0.595 0.611 0.953 Independence Linear 0.021 0.361 0.360 0.942 ML 0.004 0.143 0.124 0.960 
+
+Unadjusted -0.034 0.381 0.351 0.928 QIF Linear 0.003 0.253 0.241 0.944 ML 0.006 0.071 0.069 0.939 
+
+Random effects Linear -0.015 0.309 0.213 0.824 
+
+1000 Unadjusted -0.014 0.479 0.484 0.945 Independence Linear -0.008 0.327 0.327 0.949 ML -0.003 0.138 0.140 0.953 
+
+Unadjusted -0.001 0.399 0.394 0.942 QIF Linear -0.007 0.276 0.279 0.946 ML -0.004 0.077 0.075 0.954 
+
+Random effects Linear 0.044 0.295 0.116 0.558 
+
+adjustment across settings, illustrating the finite-sample benefits of data-adaptive estimation in stepped-wedge designs. In Figure 2, the unadjusted analysis suggests that procedural justice training reduces complaints, whereas this apparent effect disappears after covariate adjustment. This pattern 19 Saturated treatment effect 
+
+Period−specific treatment effect 
+
+Duration−specific treatment effect 
+
+Constant treatment effect     
+
+> −5 0510 15 SL Linear Unadjusted
+> SL Linear Unadjusted
+> SL Linear Unadjusted
+> SL Linear Unadjusted
+
+Estimates with 95% Confidence Intervals Estimators 
+
+Estimator type QIF Independence 
+
+> Figure 1: Point Estimates with 95% confidence intervals of IPOS data. For duration-specific, period-specific, and saturated treatment structures, results for the averaged treatment effects across estimands are presented.
+
+is consistent with findings reported in Wood et al. (2021). Our further investigation indicates that the nominal significance in the unadjusted analysis is driven by imbalance in baseline covariates. Specifically, officers assigned to training exhibit lower baseline use-of-force than those in the control group (See Supplementary Material D for a visualization). Because this baseline variable is prognostic of the outcome, such imbalances induce an estimate shift in the treatment effect estimate, which would be eliminated under a balanced design by covariate adjustment (Wang et al., 2019). In terms of efficiency, QIF improves precision by 20-45%, whereas covariate adjustment alone yields only moderate gains of 8-25%. Moreover, machine 20 Saturated treatment effect 
+
+Period−specific treatment effect 
+
+Duration−specific treatment effect 
+
+Constant treatment effect    
+
+> −0.010 −0.005 0.000 0.005 SL Linear Unadjusted
+> SL Linear Unadjusted
+> SL Linear Unadjusted
+> SL Linear Unadjusted
+
+Estimates with 95% Confidence Intervals Estimators 
+
+Estimator type QIF Independence 
+
+Figure 2: Point estimates with 95% confidence intervals of Chicago Police Training Data. For duration-specific, period-specific, and saturated treatment structures, results for the averaged treatment effects across estimands are presented. 
+
+learning offers little additional variance reduction beyond linear covariate adjustment 0-6%, suggesting that the outcome–covariate relationship is not strongly nonlinear in this setting. 
+
+# 8 Discussion 
+
+Motivated by the increasing use of stepped-wedge designs across diverse applied domains with heterogeneous design features, we develop flexible, efficient, and robust methods for 21 causal inference under multiple treatment-effect structures. Our theoretical results demon-strate that integrating modern machine-learning-based covariate adjustment with adaptive correlation learning yields asymptotic efficiency gains while preserving valid inference. Sim-ulation studies and real-data applications further demonstrate the finite-sample robustness and practical advantages of the proposed approach. Together, these features offer a principled and practically implementable alternative to standard mixed-effects and parametric regres-sion analyses for stepped-wedge designs, particularly in settings where correlation structures are complex, covariate-outcome relationships are nonlinear, and treatment effects vary over exposure duration and calendar time. Our framework is developed under simple randomization, whereas covariate-adaptive ran-domization schemes, such as stratified randomization (Zelen, 1974) and covariate-constrained randomization (Morgan and Rubin, 2012), are commonly used to improve baseline balance and enhance precision. Building on the theoretical results of Wang et al. (2023); Wang and Li (2024), the proposed methods extend directly to these settings without compromising the asymptotic validity. In particular, machine-learning-based covariate adjustment combined with standard cross-fitting remains asymptotically valid and can fully capture the efficiency gains induced by covariate-adaptive randomization, provided that the covariates used in the randomization scheme are included in the adjustment set. To accommodate missing outcomes and time-varying cluster sizes in stepped-wedge de-signs, we adopt a noninformative sampling assumption to target the population-level causal estimands. An alternative approach is to target the observed population by conducting a cluster-level analysis based on within-cluster averaged outcomes, for which the proposed methods remain directly applicable. When outcome missingness depends on observed co-variates, the missingness mechanism can be modeled to construct doubly robust estimators within a longitudinal data framework (Tsiatis, 2007). A formal development and evaluation of such extensions in stepped-wedge settings is an important direction for future research. 22 Acknowledgements 
+
+Research reported in this publication was supported by the National Institute Of Allergy And Infectious Diseases of the National Institutes of Health under Award Number R00AI173395. The content is solely the responsibility of the authors and does not necessarily represent the official views of the National Institutes of Health. 
+
+# Supplementary Materials 
+
+Web Appendices, Tables, and Figures referenced in Sections 3-6 and code are available with this paper at the Biometrics website on Oxford Academic. 
+
+# References 
+
+Bates, D., Maechler, M., Bolker, B., Walker, S., Christensen, R. H. B., Singmann, H., Dai, B., Grothendieck, G., Green, P., and Bolker, M. B. (2015). Package ‘lme4’. convergence ,12(1):2. Beard, E., Lewis, J. J., Copas, A., Davey, C., Osrin, D., Baio, G., Thompson, J. A., Fielding, K. L., Omar, R. Z., Ononge, S., et al. (2015). Stepped wedge randomised controlled trials: systematic review of studies published between 2010 and 2014. Trials , 16(1):353. Breiman, L. (2001). Random forests. Machine learning , 45(1):5–32. Breiman, L., Friedman, J., Olshen, R. A., and Stone, C. J. (2017). Classification and regression trees . Chapman and Hall/CRC. Chen, X. and Li, F. (2025). Model-assisted analysis of covariance estimators for stepped wedge cluster randomized experiments. Scandinavian Journal of Statistics , 52(1):416–446. Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., and Robins, J. (2018). Double/debiased machine learning for treatment and structural param-eters. 23 Cortes, C. and Vapnik, V. (1995). Support-vector networks. Machine learning , 20(3):273– 297. Fang, X., Wang, X., Heagerty, P. J., Wang, B., and Li, F. (2025). Model-robust standard-ization in stepped wedge designs. arXiv preprint arXiv:2507.17190 .Farrell, M. H., Liang, T., and Misra, S. (2021). Deep neural networks for estimation and inference. Econometrica , 89(1):181–213. Hughes, J. P., Granston, T. S., and Heagerty, P. J. (2015). Current issues in the design and analysis of stepped wedge trials. Contemporary Clinical Trials , 45:55–60. Hussey, M. A. and Hughes, J. P. (2007). Design and analysis of stepped wedge cluster randomized trials. Contemporary Clinical Trials , 28(2):182–191. Kasza, J. and Forbes, A. B. (2019). Inference for the treatment effect in multiple-period clus-ter randomised trials when random effect correlation structure is misspecified. Statistical Methods in Medical Research , 28(10-11):3112–3122. Kasza, J., Hemming, K., Hooper, R., Matthews, J., and Forbes, A. (2019). Impact of non-uniform correlation structure on sample size and power in multiple-period cluster randomised trials. Statistical methods in medical research , 28(3):703–716. Kenny, A., Voldal, E. C., Xia, F., Heagerty, P. J., and Hughes, J. P. (2022). Analysis of stepped wedge cluster randomized trials in the presence of a time-varying treatment effect. 
+
+Statistics in Medicine , 41(22):4311–4339. Lee, K. M., Turner, E. L., and Kenny, A. (2025). Analysis of stepped-wedge cluster ran-domized trials when treatment effects vary by exposure time or calendar time. Statistics in Medicine , 44(20-22):e70256. Li, F. (2020). Design and analysis considerations for cohort stepped wedge cluster randomized trials with a decay correlation structure. Statistics in medicine , 39(4):438–455. 24 Li, F., Hughes, J. P., Hemming, K., Taljaard, M., Melnick, E. R., and Heagerty, P. J. (2021). Mixed-effects models for the design and analysis of stepped wedge cluster randomized trials: an overview. Statistical Methods in Medical Research , 30(2):612–639. Li, F. and Wang, R. (2022). Stepped wedge cluster randomized trials: a methodological overview. World Neurosurgery , 161:323–330. Livingston, G., Huntley, J., Sommerlad, A., Ames, D., Ballard, C., Banerjee, S., Brayne, C., Burns, A., Cohen-Mansfield, J., Cooper, C., et al. (2020). Dementia prevention, intervention, and care: 2020 report of the lancet commission. The lancet , 396(10248):413– 446. Maleyeff, L., Li, F., Haneuse, S., and Wang, R. (2023). Assessing exposure-time treatment effect heterogeneity in stepped-wedge cluster randomized trials. Biometrics , 79(3):2551– 2564. Mdege, N. D., Man, M.-S., Taylor, C. A., and Torgerson, D. J. (2011). Systematic review of stepped wedge cluster randomized trials shows that design is particularly used to evaluate interventions during routine implementation. Journal of clinical epidemiology , 64(9):936– 948. Morgan, K. L. and Rubin, D. B. (2012). Rerandomization to improve covariate balance in experiments. Annals of Statistics , 40(2):1263–1282. Nevins, P., Ryan, M., Davis-Plourde, K., Ouyang, Y., Pereira Macedo, J. A., Meng, C., Tong, G., Wang, X., Ortiz-Reyes, L., Caille, A., et al. (2024). Adherence to key recommendations for design and analysis of stepped-wedge cluster randomized trials: A review of trials published 2016–2022. Clinical Trials , 21:199–210. Neyman, J. S., Dabrowska, D. M., and Speed, T. (1990). On the application of probability theory to agricultural experiments. Essay on principles. Section 9. Statistical Science ,pages 465–472. Ouyang, Y., Kulkarni, M. A., Protopopoff, N., Li, F., and Taljaard, M. (2023). Accounting 25 for complex intracluster correlations in longitudinal cluster randomized trials: a case study in malaria vector control. BMC Medical Research Methodology , 23(1):1–10. Qu, A. and Li, R. (2006). Quadratic inference functions for varying-coefficient models with longitudinal data. Biometrics , 62(2):379–391. Qu, A., Lindsay, B. G., and Li, B. (2000). Improving generalised estimating equations using quadratic inference functions. Biometrika , 87(4):823–836. Song, P. X.-K., Jiang, Z., Park, E., and Qu, A. (2009). Quadratic inference functions in marginal models for longitudinal data. Statistics in medicine , 28(29):3683–3696. Spichiger, F., Koppitz, A. L., De Wolf-Linder, S., Murtagh, F. E., Volken, T., and Larkin, P. (2021). Improving caring quality for people with dementia in nursing homes using ipos-dem: A stepped-wedge cluster randomized controlled trial protocol. Journal of advanced nursing , 77(10):4234–4245. Tsiatis, A. (2007). Semiparametric Theory and Missing Data . Springer Science & Business Media. van der Laan, M. J., Polley, E. C., and Hubbard, A. E. (2007). Super learner. Statistical Applications in Genetics and Molecular Biology , 6(1). Varghese, E., Briola, A., Kennel, T., Pooley, A., and Parker, R. A. (2025). A systematic review of stepped wedge cluster randomized trials in high impact journals: assessing the design, rationale, and analysis. Journal of Clinical Epidemiology , 178:111622. Voldal, E. C., Xia, F., Kenny, A., Heagerty, P. J., and Hughes, J. P. (2022). Model mis-specification in stepped wedge trials: Random effects for time or treatment. Statistics in Medicine , 41(10):1751–1766. Wager, S. and Athey, S. (2018). Estimation and inference of heterogeneous treatment effects using random forests. Journal of the American Statistical Association , 113(523):1228– 1242. 26 Wang, B., Harhay, M. O., Tong, J., Small, D. S., Morris, T. P., and Li, F. (2026). On the mixed-model analysis of covariance in cluster-randomized trials. Statistical Science ,41(1):49–68. Wang, B. and Li, F. (2024). Asymptotic inference with flexible covariate adjustment under rerandomization and stratified rerandomization. arXiv preprint arXiv:2406.02834 .Wang, B., Ogburn, E. L., and Rosenblum, M. (2019). Analysis of covariance in random-ized trials: More precision and valid confidence intervals, without model assumptions. 
+
+Biometrics , 75(4):1391–1400. Wang, B., Park, C., Small, D. S., and Li, F. (2024a). Model-robust and efficient covari-ate adjustment for cluster-randomized experiments. Journal of the American Statistical Association , pages 1–13. Wang, B., Susukida, R., Mojtabai, R., Amin-Esmaeili, M., and Rosenblum, M. (2023). Model-robust inference for clinical trials that improve precision by stratified randomization and covariate adjustment. Journal of the American Statistical Association , 118(542):1152– 1163. Wang, B., Wang, X., and Li, F. (2024b). How to achieve model-robust inference in stepped wedge trials with model-based methods? Biometrics , 80(4):ujae123. Wang, H. and Xiong, R. (2025). Semiparametrically efficient stepped wedge designs. Avail-able at SSRN 5515199 .Westgate, P. M. (2012). A bias-corrected covariance estimate for improved inference with quadratic inference functions. Statistics in Medicine , 31(29):4003–4022. Wood, G., Tyler, T., Papachristos, A. V., Roth, J., and Sant’Anna, P. H. (2021). Revised findings for” procedural justice training reduces police use of force and complaints against officers. Technical report, Center for Open Science. Wood, G., Tyler, T. R., and Papachristos, A. V. (2020). Procedural justice training reduces police use of force and complaints against officers. Proceedings of the National Academy of Sciences , 117(18):9815–9821. 27 Xia, F., Chan, K., Voldal, E., Kenny, A., Heagerty, P. J., and Hughes, J. P. (2025). Ro-bust and efficient semiparametric inference for the stepped wedge design. arXiv preprint arXiv:2510.08972 .Young, E. H. and B¨ uhlmann, P. (2025). Clustered random forests with correlated data for optimal estimation and inference under potential covariate shift. arXiv preprint arXiv:2503.12634 .Zelen, M. (1974). The randomization and stratification of patients to clinical trials. Journal of Chronic Diseases , 27(7):365 – 375. 28 Supplementary Material to “Optimizing precision in stepped-wedge designs via machine learning and quadratic inference function” 
+
+Supplementary Material A provides the estimating equations and variance estimators. Supplementary Material B provides the proof for our theorems. Supplementary Material C provides the additional simulation results. Supplementary Material D visualizes the baseline imbalance of the Chicago training program. 
+
+# A Estimating equations and variance estimators 
+
+We first present the estimating equations for computing ̂ β∗.We define Yi = ( Yi11 , Y i12 , . . . , Y iJN i )T ∈ RJN i and Gi = ( g1(Xi1), g 1(Xi2), . . . , g J (XiN i )) T ∈
+
+RJN i . In addition, let Sij ∈ RNij ×Ni represents the missing matrix for cluster i at time 
+
+j. Specifically, Sij is constructed by extracting all k-th rows of the identity matrix INi
+
+corresponding to k : Sijk = 1. Let Si = bdiag (Si1/N 1/2 
+
+> i1
+
+, . . . , SiJ /N 1/2 
+
+> iJ
+
+) ∈ R(∑ Nij )×NiJ ,which implies that Si is the function of Ni and Sijk . We next define D∗ 
+
+> i
+
+as the stacked matrix of D∗ 
+
+> ij
+
+across individuals. Under constant treatment effect structure, we define 
+
+DCi = HCi ⊗ 1Ni ∈ RNiJ for HCi = ( I{Zi ≤ 1}, . . . , I {Zi ≤ J})T, where 1Ni denotes a 
+
+Ni-dimensional vector of ones and ‘ ⊗’ is the Kronecker product. Under duration-specific treatment effect structure, we define DDi = HDi ⊗ 1Ni ∈ RJN i×J where 
+
+HDi =
+
+
+
+I{Zi = 1 }
+
+I{Zi = 2 } I{Zi = 1 }
+
+... ... . . .
+
+I{Zi = J} I{Zi = J − 1} · · · I{Zi = 1 }
+
+ .
+
+Under period-specific treatment effect structure, we denote DPi = HPi ⊗ 1Ni ∈ R(J−1) Ni×(J−1) 
+
+for HDi = diag (I{Zi ≤ 1}, . . . , I {Zi ≤ (J − 1) }). Under the saturated treatment effect 1strucutre, we define DSi = HSi ⊗ 1Ni ∈ RNI {J−1}× (J−1) J/ 2, where HSi = diag (HT
+
+> i1
+
+, . . . , HT
+
+> i,J −1
+
+)and Hij = ( I{Zi = j}, . . . , I {Zi = 1 })T.With the above notation, the estimating function is defined as 
+
+ψ∗ 
+
+> i
+
+(β∗, Gi) = ( D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{Yi − (D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+}β∗ − Gi),
+
+where μ∗ 
+
+> i
+
+= E(D∗ 
+
+> i
+
+| Ni). Here, μ∗ 
+
+> i
+
+is conditioned on Ni because its dimension varies by 
+
+Ni; at the individual level, Ni is independent of D∗ 
+
+> ij
+
+due to randomization. The proposed ̂
+
+β∗ is then computed from the estimating equation ∑Mm=1 
+
+∑ 
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(β∗,̂ G(m) 
+
+> i
+
+) = 0, where ̂
+
+G(m) 
+
+> i
+
+= ( ̂ g(m)1 (Xi1),̂ g(m)1 (Xi2), . . . , ̂ g(m) 
+
+> J
+
+(XiN i )) T ∈ RJN i for i ∈ Bm.The variance estimator, ̂ V ar ∗
+
+(̂ β∗), is defined as ̂
+
+Σ∗ =
+
+(̂ 
+
+V∗
+
+)−1
+
+{
+
+1
+
+M
+
+> M
+
+∑
+
+> m=1
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(̂ β∗,̂ G(m) 
+
+> i
+
+)ψ∗ 
+
+> i
+
+(̂ β∗,̂ G(m) 
+
+> i
+
+)T
+
+} (̂ 
+
+V∗
+
+)−1
+
+, (1) where ̂
+
+V∗ = 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+)T(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+).
+
+Next, for QIF-based estimation, we define 
+
+ψ∗ 
+
+> I
+
+(β∗,̂ G) = 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+˜ψ∗ 
+
+> I
+
+{β∗,̂ G(m} 
+
+> i
+
+) = 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+
+
+(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+Qi1Si
+
+{
+
+Yi − (D∗ 
+
+> i
+
+− μ∗)β∗ −̂ G(m)
+
+> i
+
+}
+
+...(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+QiL Si
+
+{
+
+Yi − (D∗ 
+
+> i
+
+− μ∗)β∗ −̂ G(m)
+
+> i
+
+} .
+
+Then, the estimator in the main paper can be reformulated as ̂
+
+β∗ 
+
+> QIF
+
+= arg min  
+
+> β∗
+
+ψ∗ 
+
+> I
+
+(β∗,̂ G)T
+
+{
+
+C∗ 
+
+> I
+
+(β∗,̂ G)
+
+}−1
+
+ψ∗ 
+
+> I
+
+(β∗,̂ G),
+
+where C∗ 
+
+> I
+
+(β∗,̂ G) = I−1 ∑Ii=1 ˜ψ∗ 
+
+> I
+
+{β∗,̂ G} ˜ψ∗ 
+
+> I
+
+{β∗,̂ G}T. The variance estimator, ̂ V ar ∗
+
+(̂ β∗
+
+> QIF
+
+), is defined as ̂
+
+Σ∗ 
+
+> QIF
+
+=
+
+(∂ψ∗ 
+
+> I
+
+{̂ β∗
+
+> QIF
+
+,̂ G}
+
+∂(β∗)T {C∗ 
+
+> I
+
+{̂β∗
+
+> QIF
+
+,̂ G}} −1 ∂ψ∗ 
+
+> I
+
+{̂ β∗
+
+> QIF
+
+,̂ G}
+
+∂β∗
+
+)−1
+
+, (2) where 
+
+∂ψ∗ 
+
+> I
+
+{̂ β∗
+
+> QIF
+
+,̂ G}
+
+∂β∗ = − 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+
+
+(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+Qi1Si{D∗ 
+
+> i
+
+− μ∗}
+
+...(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+QiL Si{D∗ 
+
+> i
+
+− μ∗}
+
+ .
+
+2B Proofs 
+
+## B.1 Proof for Theorem 1 
+
+We inherit all notation from Section A. In this proof, we first establish that solving function 
+
+E(ψ∗ 
+
+> i
+
+(β∗, Gi)) = 0 yields β∗ = ∆∗. We next show that, for any integrable limiting function 
+
+Gi = ( g1(Xi1), g 1(Xi2), . . . , g J (XiN i )) T ∈ RJN i , we have E(ψ∗ 
+
+> i
+
+(∆∗, Gi)) = 0. Then, we prove the consistency and asymptotic normality of ̂ β∗. Next, we established the consistency of our variance estimator defined in Equation (1). Finally, we characterize when the estimator achieves the highest precision. Throughout the proof, ∥ · ∥ denotes the Euclidean norm for vectors and the L2 norm for matrices. 
+
+Part I (Unbiased estimating equation) 
+
+Under the constant treatment effect structure, we define the conditional treatment effects function for individual k in cluster i as 
+
+hCj (Xik ) = E[Yijk | Xik , D Cij = 1] − E[Yijk | Xik , D Cij = 0] and define μCj = ED Cij . Then, denoting 
+
+ϵijk = Yijk − (DCij − μCj )hCj (Xik ) − gj (Xik ),
+
+Assumption 2 yields 
+
+E[ϵijk | Xik , D Cij ] = DCij E[Yijk | Xik , D Cij = 1] + (1 − DCij )E[Yijk | Xik , D Cij = 0] 
+
+− (DCij − μCj )hCj (Xik ) − gj (Xik )= μCj E[Yijk | Xik , D Cij = 1] + (1 − μCj )E[Yijk | Xik , D Cij = 0] − E[Yijk | Xik ]= 0 .
+
+3We can rewrite the estimating equation as 
+
+EψCi (βC , Gi) = 
+
+> J
+
+∑
+
+> j=1
+
+E
+
+[
+
+N −1
+
+> ij Ni
+
+∑
+
+> k=1
+
+Sijk (DCij − μCj ){Yijk − (DCij − μCj )βC − gj (Xik )}
+
+]
+
+=
+
+> J
+
+∑
+
+> j=1
+
+E
+
+[
+
+N −1
+
+> ij Ni
+
+∑
+
+> k=1
+
+Sijk (DCij − μCj ){ϵijk + ( DCij − μCj )( hCj (Xik ) − βC )}
+
+]
+
+=
+
+> J
+
+∑
+
+> j=1
+
+E
+
+[ Ni∑
+
+> k=1
+
+E[N −1 
+
+> ij
+
+Sijk |Ni]E[( DCij − μCj ){ϵijk + ( DCij − μCj )( hCj (Xik ) − βC )}| Ni]
+
+]
+
+=
+
+> J
+
+∑
+
+> j=1
+
+E [(DCij − μCj ){ϵijk + ( DCij − μCj )( hCj (Xik ) − βC )]
+
+=
+
+> J
+
+∑
+
+> j=1
+
+Var( DCij )E[{hCj (Xik ) − βC }],
+
+where the second line comes from the definition of ϵijk , the third line results from non-informative sampling (Assumption 3), the fourth line is implied by Assumption 1(2) and 
+
+∑Ni 
+
+> k=1
+
+E[N −1 
+
+> ij
+
+Sijk |Ni] = 1, and the last line uses E[ϵijk | Xik , D Cij ] = 0 and randomization (Assumption 2). By setting EψCi (βC , Gi) = 0 and denoting wj = Var( DCij )/(∑Jj=1 Var( DCij )) > 0, we have that 
+
+βC = 1
+
+J
+
+> J
+
+∑
+
+> j=1
+
+wj E[hCj (Xik )] = 1
+
+J
+
+> J
+
+∑
+
+> j=1
+
+wj
+
+(E[Yijk | DCij = 1] − E[Yijk | DCij = 0] )
+
+= 1
+
+J
+
+> J
+
+∑
+
+> j=1
+
+wj
+
+( j
+
+∑
+
+> z=1
+
+E[I{Zi = z}Yijk (z) | Zi ≤ j] − E[I{Zi > j }Yijk (0) | Zi > j ]
+
+)
+
+= 1
+
+J
+
+> J
+
+∑
+
+> j=1
+
+wj
+
+( j
+
+∑
+
+> z=1
+
+P (Zi = z|Zi ≤ j)E[Yijk (z)] − E[Yijk (0)] 
+
+)
+
+= 1
+
+J
+
+> J
+
+∑
+
+> j=1
+
+wjj
+
+∑
+
+> z=1
+
+P (Zi = z|Zi ≤ j)∆ j (j − z + 1) = ∆ C ,
+
+where the last line uses the constant treatment effect structure that ∆ j (j − z + 1) ≡ ∆. 4Similarly, under the duration-specific treatment effect model, we define hDj (Xik ) =(hDj (Xik ; d = 1) , . . . , h Dj (Xik ; d = j), 0, . . . , 0) T ∈ RJ where for d = 1 , . . . , j ,
+
+hDj (Xik ; d) = E[Yijk | Xik , Z i = j − d + 1] − E[Yijk | Xik , Z i > j ].
+
+Then, for μDj = E(DDij ) and 
+
+ϵijk = Yijk − (DDij − μDj )ThDj (Xik ) − gj (Xik ),
+
+we have 
+
+E[ϵijk | Xik , DDij ]=
+
+> j
+
+∑
+
+> d=1
+
+I{Zi = j − d + 1 }E[Yijk | Xik , Z i = j − d + 1] + I{Zi > j }E[Yijk | Xik , Z i > j ]
+
+− (DDij − μDj )ThD(Xik ) − gj (Xik )=
+
+> j
+
+∑
+
+> d=1
+
+P (Z = j − d + 1) E[Yijk | Xik , Z i = j − d + 1] + P (Z > j )E[Yijk | Xik , Z i > j ] − E[Yijk |Xik ]= 0 .
+
+Then, we derive 
+
+EψDi (βD, Gi) = 
+
+> J
+
+∑
+
+> j=1
+
+E
+
+[
+
+N −1
+
+> ij Ni
+
+∑
+
+> k=1
+
+Sijk (DDij − μDj ){Yijk − (DDij − μDj )TβD − gj (Xik )}
+
+]
+
+=
+
+> J
+
+∑
+
+> j=1
+
+E
+
+[
+
+N −1
+
+> ij Ni
+
+∑
+
+> k=1
+
+Sijk (DDij − μDj ){ϵijk + ( DDij − μDj )T(hDj (Xik ) − βD)}
+
+]
+
+=
+
+> J
+
+∑
+
+> j=1
+
+E[( DDij − μDj )( DDij − μDj )T]E[hDj (Xik ) − βD].
+
+For E[hDj (Xik )], we observe that its non-zero entries satisfies 
+
+E[hDj (Xik ; d)] = E[Yijk | Zi = j − d + 1] − E[Yijk | Zi > j ]= E[Yijk (j − d + 1)] − E[Yijk (0)] = ∆( d),
+
+under the duration-specific treatment effect structure. Furthermore, E[hDj (Xik ; d)] does not vary by j. Therefore, it is easy to verify that βD = ∆D is the solution to EψDi (βD, Gi) = 0. 5It is also the unique solution because E[( DDij − μDj )( DDij − μDj )T] is positive-definite for j = J
+
+and positive semi-definite for j < J . (In the special case P (Z = j) = 0 for some j, we can easily re-parameterize the functions to achieve uniqueness.) For period-specific and saturated treatment effects, we can follow the same steps to prove that the estimating equation is unbiased. 
+
+Part II (Unbiased estimating equation given model misspecification) 
+
+For arbitrary limiting function Gi, we have 
+
+E(ψ∗ 
+
+> i
+
+(∆∗, Gi)) − E(ψ∗ 
+
+> i
+
+(∆∗, Gi)) = 0.
+
+This is because, under Assumption 2, 
+
+E(ψ∗ 
+
+> i
+
+(∆∗, Gi)) − E(ψ∗ 
+
+> i
+
+(∆∗, Gi)) = E[( D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{Gi − Gi}]= E[E(D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+| Ni)TE{ST 
+
+> i
+
+Si{Gi − Gi} | Ni}] = 0.
+
+Part III (Consistency and asymptotic normality) 
+
+We first define 
+
+V∗ = E{(D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+}} ,
+
+and recall the definition ̂
+
+V∗ = 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+)T(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+).
+
+By law of large numbers, we obtain ∥̂V∗ − V∗∥ = op(1). Next, we show E[ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) | (Wi)i∈BCm ] = 0. We define the function 
+
+h(r) = E[ψ∗ 
+
+> i
+
+(∆∗, Gi + r(̂ G(m) 
+
+> i
+
+− Gi)) | (Wi)i∈BCm ],
+
+and clearly, h(1) = E[ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) | (Wi)i∈BCm ] and h(0) = E[ψ∗ 
+
+> i
+
+(∆∗, Gi) | (Wi)i∈BCm ] = 
+
+E[ψ∗ 
+
+> i
+
+(∆∗, Gi)] = 0 because of the independence between different partitions of data. By 6Taylor expansion, for some value ˜ r ∈ [0 , 1] 
+
+h(1) = h(0) + h′(0) + h(˜ r)′′ /2= 0 + ∂E [ψ{∆∗, Gi + r(̂ G(m) 
+
+> i
+
+− Gi)} | (Wi)i∈BCm ]
+
+∂r 
+
+∣∣∣∣r=0 
+
++ ∂2E[ψ{∆∗, Gi + r(̂ G(m) 
+
+> i
+
+− Gi)} | (Wi)i∈BCm ]
+
+2( ∂r )2
+
+∣∣∣∣r=˜ r
+
+= −E[( D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{̂ G(m} 
+
+> i
+
+− Gi) | (Wi)i∈BCm ] − ∂E [( D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{̂G(m} 
+
+> i
+
+− Gi) | (Wi)i∈BCm ]
+
+2∂r 
+
+= 0,
+
+where the last equation is satisfied because D∗ 
+
+> i
+
+is independent of Xik given Ni,̂ G(m) 
+
+> i
+
+is non-stochastic given training data ( Wi)i∈BCm , and data in different partitions are independent. This derivation implies E[ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) | (Wi)i∈BCm ] = 0 and hence E[ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+)] = 0. Using this result, we can obtain 
+
+E
+
+[∥∥∥∥
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) − 1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(∆∗, Gi)
+
+∥∥∥∥
+
+> 2
+
+]
+
+= E
+
+[
+
+E
+
+[∥∥∥∥
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) − E[ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+)] + E[ψ∗ 
+
+> i
+
+(∆∗, Gi)] − 1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(∆∗, Gi)
+
+∥∥∥∥ 
+
+> 2
+
+∣∣∣∣ (Wi)i∈BCm
+
+]] 
+
+≤ n−1E[E{∥ ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) − ψ∗ 
+
+> i
+
+(∆∗, Gi)∥2 | (Wi)i∈BCm }]= n−1E[E{∥ (D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{̂ G(m} 
+
+> i
+
+− Gi)∥2 | (Wi)i∈BCm }]
+
+≤ n−1CE [E{∥ Si{̂ G(m} 
+
+> i
+
+− Gi)∥2 | (Wi)i∈BCm }]= n−1CE [E{
+
+> J
+
+∑
+
+> j=1
+
+N −1
+
+> ij Ni
+
+∑
+
+> k=1
+
+Sijk (̂ g(m) 
+
+> j
+
+(Xik ) − gj (Xik )) 2 | (Wi)i∈BCm }]= n−1
+
+> J
+
+∑
+
+> j=1
+
+CE [E{
+
+> Ni
+
+∑
+
+> k=1
+
+E[N −1 
+
+> ij
+
+Sijk | Ni, (Wi)i∈BCm }]E[( ̂ g(m) 
+
+> j
+
+(Xik ) − gj (Xik )) 2 | Ni, (Wi)i∈BCm }] | (Wi)i∈BCm }]= n−1C
+
+> J
+
+∑
+
+> j=1
+
+E[( ̂ g(m) 
+
+> j
+
+(Xik ) − gj (Xik )) 2]= o(n−1),
+
+where first inequality (third line) results from the independence of data across i, the fifth line uses the fact that || (D∗ 
+
+> i
+
+−μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+|| 2 ≤ C for a constant C, the seventh line uses Assumption 3, the eighth line uses Assumption 1(2), and the last line results is implied by the convergence condition on nuisance function estimation. By definition, n = I/M and M is a fixed integer, 7and thus we have o(n) = o(I). Then, we can obtain that, by Chebyshev inequality, 1
+
+M
+
+> M
+
+∑
+
+> m=1
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) − 1
+
+M
+
+> M
+
+∑
+
+> m=1
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(∆∗, Gi) = op(I−1/2).
+
+By solving the estimating equation ∑Mm=1 
+
+∑ 
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(β∗,̂ G(m) 
+
+> i
+
+) = 0, we have ̂
+
+β∗ =
+
+{ M∑
+
+> m=1
+
+∑
+
+> i∈Bm
+
+(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+)T(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+)
+
+}−1 { M∑
+
+> m=1
+
+∑
+
+> i∈Bm
+
+(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+)T(SiYi − Sî G(m) 
+
+> i
+
+)
+
+}
+
+.
+
+Then, we have ̂
+
+β∗ − ∆∗ = ( ̂ V∗)−1 1
+
+M
+
+> M
+
+∑
+
+> m=1
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+)T(SiYi − Sî G(m) 
+
+> i
+
+) − ∆∗
+
+= ( ̂ V∗)−1
+
+( 1
+
+M
+
+> M
+
+∑
+
+> m=1
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+)T(SiYi − Sî G(m) 
+
+> i
+
+) − 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+)T(SiD∗ 
+
+> i
+
+− Siμ∗ 
+
+> i
+
+)∆∗
+
+)
+
+= ( ̂ V∗)−1
+
+( 1
+
+M
+
+> M
+
+∑
+
+> m=1
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+)
+
+)
+
+= ( V∗ + op(1)) −1
+
+( 1
+
+M
+
+> M
+
+∑
+
+> m=1
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(∆∗, Gi) + op(I−1/2)
+
+)
+
+= ( V∗ + op(1)) −1
+
+( 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+ψ∗ 
+
+> i
+
+(∆∗, Gi) + op(I−1/2)
+
+)
+
+.
+
+By central limit theorem, we have 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+ψ∗ 
+
+> i
+
+(∆∗, Gi) − Eψ∗ 
+
+> i
+
+(∆∗, Gi) = Op(I−1/2).
+
+Since V∗ is positive definite, we obtain ̂
+
+β∗ − ∆∗ = ( V∗ + op(1)) −1
+
+( 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+ψ∗ 
+
+> i
+
+(∆∗, Gi) + op(I−1/2)
+
+)
+
+= ( V∗ + op(1)) −1(Op(I−1/2) + op(I−1/2)) = Op(I−1/2).
+
+Furthermore, by central limit theorem, we know I−1 ∑Ii=1 ψ∗ 
+
+> i
+
+(∆∗, Gi) convergence to normal 8distribution. Then, for 
+
+√I(̂ β∗ − ∆∗) = ( V∗)−1 1
+
+√I
+
+> I
+
+∑
+
+> i=1
+
+ψ∗ 
+
+> i
+
+(∆∗, Gi) + op(1) ,
+
+by Delta theorem, √I(̂ β∗ − ∆∗) convergence to normal distribution N (0, Σ∗), where 
+
+Σ∗ = ( V∗)−1E{ψ∗ 
+
+> i
+
+(∆∗, Gi)ψ∗ 
+
+> i
+
+(∆∗, Gi)T}(V∗)−1
+
+Part IV (Consistency of the variance estimator) 
+
+In this part, we show that ̂ Σ∗ from equation (1) converges to Σ∗ in probability. Suppose ̂
+
+ψ∗ 
+
+> i
+
+= ψ∗ 
+
+> i
+
+(̂ β∗,̂ G(m) 
+
+> i
+
+) and ψ∗ 
+
+> i
+
+= ψ∗ 
+
+> i
+
+(∆∗, Gi), then we have 
+
+∥∥∥∥
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+̂
+
+ψ∗
+
+> i
+
+̂ ψ∗
+
+> i
+> T
+
+− 1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+ψ∗
+
+> i
+> T
+
+∥∥∥∥ ≤ 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥̂ψ∗
+
+> i
+
+̂ ψ∗
+
+> i
+> T
+
+− ψ∗ 
+
+> i
+
+ψ∗
+
+> i
+> T
+
+∥≤ 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)( ̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)T∥ + 2
+
+n
+
+∑
+
+> i∈Bm
+
+∥(̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)ψ∗
+
+> i
+> T
+
+∥≤ 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)∥2 + 2 
+
+( 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)∥2
+
+)1/2( 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥ψ∗ 
+
+> i
+
+∥2
+
+)1/2
+
+≤
+
+( 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)∥2
+
+)1/2{( 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)∥2
+
+)1/2
+
++ 2 
+
+( 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥ψ∗ 
+
+> i
+
+∥2
+
+)1/2}
+
+.
+
+Because both ̂ ψ∗ 
+
+> i
+
+and ψ∗ 
+
+> i
+
+are vectors, the third inequality can be satisfied by applying Cauchy inequality. By using law of large number, we have that n−1 ∑ 
+
+> i∈Bm
+
+∥ψ∗ 
+
+> i
+
+∥2 converges to E∥ψ∗ 
+
+> i
+
+∥2 in probability. Moreover, we have 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)∥2 = 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{Yi − (D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+}̂ β∗ −̂ G(m) 
+
+> i
+
+− ψ∗ 
+
+> i
+
+∥2
+
+= 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥ − (D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+}(̂ β∗ − ∆∗) + ( D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{Yi − (D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+}∆∗ −̂ G(m) 
+
+> i
+
+− ψ∗ 
+
+> i
+
+∥2
+
+≤ 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+}(̂ β∗ − ∆∗)∥2 + 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) − ψ∗ 
+
+> i
+
+(∆∗, Gi)∥2.
+
+The first term of the last line is bounded by 
+
+( 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+}∥ 2
+
+)
+
+∥(̂ β∗ − ∆∗)∥2 = Op(1) Op(I−1) = Op(I−1).
+
+9The equation is satisfied because D∗ 
+
+> i
+
+is the matrix of indicator function and by law of large number, n−1 ∑ 
+
+> i∈Bm
+
+∥(D∗ 
+
+> i
+
+−μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{D∗ 
+
+> i
+
+−μ∗ 
+
+> i
+
+}∥ 2 converges to E∥(D∗ 
+
+> i
+
+−μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{D∗ 
+
+> i
+
+−μ∗ 
+
+> i
+
+}∥ 2.Therefore, we further have 
+
+E[∥ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+)−ψ∗ 
+
+> i
+
+(∆∗, Gi)∥2] ≤ E[E{∥ ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) − ψ∗ 
+
+> i
+
+(∆∗, Gi)∥2 | (Wi)i∈BCm }]= E[E{∥ (D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{̂ G(m} 
+
+> i
+
+− Gi)∥2 | (Wi)i∈BCm }]
+
+≤ CE [E{∥ ̂G(m) 
+
+> i
+
+− Gi∥2 | (Wi)i∈BCm }]= CE [∥̂ G(m) 
+
+> i
+
+− Gi∥2] = op(1) .
+
+Then by Markov inequality, we can have 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥ψ∗ 
+
+> i
+
+(∆∗,̂ G(m) 
+
+> i
+
+) − ψ∗ 
+
+> i
+
+(∆∗, Gi)∥2 = op(1) .
+
+Therefore, we can obtain 
+
+∥∥∥∥
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+̂
+
+ψ∗
+
+> i
+
+̂ ψ∗
+
+> i
+> T
+
+− 1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+ψ∗
+
+> i
+> T
+
+∥∥∥∥
+
+> 2
+
+≤
+
+( 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)∥2
+
+){( 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥(̂ ψ∗ 
+
+> i
+
+− ψ∗ 
+
+> i
+
+)∥2
+
+)1/2
+
++ 2 
+
+( 1
+
+n
+
+∑
+
+> i∈Bm
+
+∥ψ∗ 
+
+> i
+
+∥2
+
+)1/2}2
+
+= op(1)( op(1) + Op(1)) 2 = op(1) .
+
+Furthermore, by law of large number, we have 1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+ψ∗ 
+
+> i
+> T
+
+− Eψ∗ 
+
+> i
+
+ψ∗ 
+
+> i
+> T
+
+= Op(I−1/2).
+
+Therefore, we can obtain 
+
+∥∥∥∥
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+̂
+
+ψ∗
+
+> i
+
+̂ ψ∗
+
+> i
+> T
+
+− Eψ∗ 
+
+> i
+
+ψ∗
+
+> i
+> T
+
+∥∥∥∥ ≤
+
+∥∥∥∥
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+̂
+
+ψ∗
+
+> i
+
+̂ ψ∗
+
+> i
+> T
+
+− 1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+ψ∗
+
+> i
+> T
+
+∥∥∥∥ +
+
+∥∥∥∥
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+ψ∗ 
+
+> i
+> T
+
+− Eψ∗ 
+
+> i
+
+ψ∗
+
+> i
+> T
+
+∥∥∥∥
+
+= op(1) + Op(I−1/2) = op(1) .
+
+10 Together with ∥̂V − V∥ = op(1), and again, because M is a fixed number, we have ̂
+
+Σ∗ − Σ∗ = ( ̂ V∗)−1
+
+{ 1
+
+M
+
+> M
+
+∑
+
+> m=1
+
+1
+
+n
+
+∑
+
+> i∈Bm
+
+ψ∗ 
+
+> i
+
+(̂ β∗,̂ G(m) 
+
+> i
+
+)ψ∗ 
+
+> i
+
+(̂ β∗,̂ G(m) 
+
+> i
+
+)T
+
+}
+
+(̂ V∗)−1 − Σ∗
+
+= ( V∗ + op(1)) −1(Eψ∗ 
+
+> i
+
+ψ∗ 
+
+> i
+> T
+
++ op(1))( V∗ + op(1)) −1 − Σ∗
+
+= op(1) .
+
+Therefore, by Slutsky’s Theorem, we obtain √I(̂ Σ∗)−1(̂ β∗ − ∆∗) d
+
+−→ N (0, I). 
+
+Part V (Minimal asymptotic variance under certain conditions) 
+
+In this part, we prove that, under the correct model specification, if gj (Xik ) = E[Yijk |Xik ]and Yijk is independent of Xik ′ for k̸ = k′ given Xik ,̂ β∗ achieves the smallest asymptotic variance. Without loss of generality, we assume Xik includes Ni as a covariate. Specifically, for every limit function Gi, we need to prove (V∗)−1E{ψ∗ 
+
+> i
+
+(∆∗, Gi)ψ∗ 
+
+> i
+
+(∆∗, Gi)T}(V∗)−1 − (V∗)−1E{ψ∗ 
+
+> i
+
+(∆∗, Gi)ψ∗ 
+
+> i
+
+(∆∗, Gi)T}(V∗)−1 ⪰ 0,
+
+where ⪰ represents the matrix is semi-positive definite. It is equivalent to proving Var {ψ∗ 
+
+> i
+
+(∆∗, Gi)} − Var {ψ∗ 
+
+> i
+
+(∆∗, Gi)} ⪰ 0,
+
+as Eψ∗ 
+
+> i
+
+(∆∗, Gi) = Eψ∗ 
+
+> i
+
+(∆∗, Gi) = 0. We can derive Var {ψ∗ 
+
+> i
+
+(∆∗, Gi)} − Var {ψ∗ 
+
+> i
+
+(∆∗, Gi)} = Var {ψ∗ 
+
+> i
+
+(∆∗, Gi) − ψ∗ 
+
+> i
+
+(∆∗, Gi)}+Cov {ψ∗ 
+
+> i
+
+(∆∗, Gi), ψ∗ 
+
+> i
+
+(∆∗, Gi) − ψ∗ 
+
+> i
+
+(∆∗, Gi)} + Cov {ψ∗ 
+
+> i
+
+(∆∗, Gi) − ψ∗ 
+
+> i
+
+(∆∗, Gi), ψ∗ 
+
+> i
+
+(∆∗, Gi)}.
+
+Therefore, we only need to prove Cov {ψ∗ 
+
+> i
+
+(∆∗, Gi), ψ∗ 
+
+> i
+
+(∆∗, Gi)−ψ∗ 
+
+> i
+
+(∆∗, Gi)} = E[ψ∗ 
+
+> i
+
+(∆∗, Gi){ψ∗ 
+
+> i
+
+(∆∗, Gi)−ψ∗ 
+
+> i
+
+(∆∗, Gi)}T] = 0.
+
+We have 
+
+E[ψ∗ 
+
+> i
+
+(∆∗, Gi){ψ∗ 
+
+> i
+
+(∆∗, Gi) − ψ∗ 
+
+> i
+
+(∆∗, Gi)}T]= E[( D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)TST 
+
+> i
+
+Si{(Yi − (D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+)∆∗ − Gi)}(Gi − Gi)TST 
+
+> i
+
+Si{D∗ 
+
+> i
+
+− μ∗ 
+
+> i
+
+}]= E
+
+[ J∑
+
+> j=1
+
+(D∗ 
+
+> ij
+
+− E[D∗ 
+
+> ij
+
+]) 1
+
+Nij Ni∑
+
+> k=1
+
+Sijk ϵ′
+
+> ijk J
+
+∑
+
+> j′=1
+
+(D∗ 
+
+> ij ′
+
+− E[D∗ 
+
+> ij ′
+
+]) T 1
+
+Nij ′
+
+> Ni
+
+∑
+
+> k′=1
+
+Sij ′k′
+
+{
+
+gj (Xik ′ ) − gj (Xik ′ )
+
+}]
+
+,
+
+(3) 11 where 
+
+ϵ′ 
+
+> ijk
+
+= Yijk − (D∗ 
+
+> ij
+
+− E[D∗ 
+
+> ij
+
+]) T∆∗ − gj (Xik ).
+
+If the partial linear model in the main paper is correctly specified, we have E[ϵ′ 
+
+> ijk
+
+| Zi, Xik ] = 0. Furthermore, Gi and Gi are the function of Xik ′ for k′ ∈ 1, ..., N i. If k = k′, then we have 
+
+E{ϵ′ 
+
+> ijk
+
+| Zi, Xik }(gj (Xik ) − gj (Xik )) = 0 .
+
+If k̸ = k′, then under the condition that Yijk is independent of Xik ′ for k̸ = k′ given Xik , we obtain 
+
+E{ϵ′ 
+
+> ijk
+
+| Zi, Xik }E{(gj (Xik ′ ) − gj (Xik ′ ) | Xik } = 0 .
+
+Denote A∗ 
+
+> jj ′
+
+= ( D∗ 
+
+> ij
+
+− E[D∗ 
+
+> ij
+
+])( D∗ 
+
+> ij ′
+
+− E[D∗ 
+
+> ij ′
+
+]) T, then, equation 3 is 
+
+E
+
+[ J∑
+
+> j=1
+
+(D∗ 
+
+> ij
+
+− E[D∗ 
+
+> ij
+
+]) 1
+
+Nij Ni∑
+
+> k=1
+
+Sijk ϵ′
+
+> ijk J
+
+∑
+
+> j′=1
+
+(D∗ 
+
+> ij ′
+
+− E[D∗ 
+
+> ij ′
+
+]) T 1
+
+Nij ′
+
+> Ni
+
+∑
+
+> k′=1
+
+Sij ′k′
+
+{
+
+gj (Xik ′ ) − gj (Xik ′ )
+
+}]
+
+= E
+
+[ J∑
+
+> j=1
+> J
+
+∑
+
+> j′=1
+
+A∗
+
+> jj ′
+
+1
+
+Nij Nij ′
+
+> Ni
+
+∑
+
+> k=1
+> Ni
+
+∑
+
+> k′=1
+
+Sijk Sij ′k′ ϵ′
+
+> ijk
+
+{
+
+gj (Xik ′ ) − gj (Xik ′ )
+
+}]
+
+= E
+
+[ J∑
+
+> j=1
+> J
+
+∑
+
+> j′=1
+
+A∗
+
+> jj ′
+
+1
+
+Nij Nij ′
+
+> Ni
+
+∑
+
+> k=1
+
+Sijk Sij ′kϵ′
+
+> ijk
+
+{
+
+gj (Xik ) − gj (Xik )
+
+}]
+
++ E
+
+[ J∑
+
+> j=1
+> J
+
+∑
+
+> j′=1
+
+A∗
+
+> jj ′
+
+1
+
+Nij Nij ′
+
+∑ 
+
+> k̸=k′
+
+Sijk Sij ′k′ ϵ′
+
+> ijk
+
+{
+
+gj (Xik ′ ) − gj (Xik ′ )
+
+}]
+
+= E
+
+[ J∑
+
+> j=1
+> J
+
+∑
+
+> j′=1
+
+A∗ 
+
+> jj ′
+
+E
+
+{
+
+1
+
+Nij Nij ′
+
+> Ni
+
+∑
+
+> k=1
+
+Sijk Sij ′k | Ni
+
+}
+
+E{ϵ′ 
+
+> ijk
+
+| Zi, Xik }
+
+{
+
+gj (Xik ) − gj (Xik )
+
+}]
+
++ E
+
+[ J∑
+
+> j=1
+> J
+
+∑
+
+> j′=1
+
+A∗ 
+
+> jj ′
+
+E
+
+{
+
+1
+
+Nij Nij ′
+
+∑ 
+
+> k̸=k′
+
+Sijk Sij ′k′ | Ni
+
+}
+
+E{ϵ′ 
+
+> ijk
+
+| Zi, Xik }E{(gj (Xik ′ ) − gj (Xik ′ ) | Xik }
+
+]
+
+= 0.
+
+For individual-randomized trial when Ni = 1, equation 3 can be simplified as 
+
+E
+
+[ J∑
+
+> j=1
+> J
+
+∑
+
+> j′=1
+
+A∗ 
+
+> jj ′
+
+Sijk Sij ′kϵ′
+
+> ijk
+
+{
+
+gj (Xik ) − gj (Xik )
+
+} ]
+
+= E
+
+[ J∑
+
+> j=1
+> J
+
+∑
+
+> j′=1
+
+A∗ 
+
+> jj ′
+
+E[Sijk Sij ′k]E[ϵ′ 
+
+> ijk
+
+| Zi, Xik ]
+
+{
+
+gj (Xik ) − gj (Xik )
+
+}]
+
+= 0 .
+
+12 Along with Assumptions 2 and 3 in the main paper, we have 
+
+E[ψ∗ 
+
+> i
+
+(∆∗, Gi){ψ∗ 
+
+> i
+
+(∆∗, Gi) − ψ∗ 
+
+> i
+
+(∆∗, Gi)}T] = 0.
+
+Hence, we have Var {ψ∗ 
+
+> i
+
+(∆∗, Gi)} − Var {ψ∗ 
+
+> i
+
+(∆∗, Gi)} = Var {ψ∗ 
+
+> i
+
+(∆∗, Gi) − ψ∗ 
+
+> i
+
+(∆∗, Gi)} ⪰ 0,
+
+which means when the nuisance is correctly specified, the estimator achieves the smallest asymptotic variance. 
+
+## B.2 Proof for Theorem 2 
+
+In this proof, we first establish pointwise and uniform convergence of the estimating function. Then, we establish the consistency and asymptotic normality of our estimator. Finally, we prove that the QIF estimator never reduces efficiency. Recall the definition 
+
+ψ∗ 
+
+> I
+
+(β∗,̂ G) = 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+˜ψ∗ 
+
+> I
+
+{β∗,̂ G(m} 
+
+> i
+
+) = 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+
+
+(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+Qi1Si
+
+{
+
+Yi − (D∗ 
+
+> i
+
+− μ∗)β∗ −̂ G(m)
+
+> i
+
+}
+
+...(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+QiL Si
+
+{
+
+Yi − (D∗ 
+
+> i
+
+− μ∗)β∗ −̂ G(m)
+
+> i
+
+} .
+
+To simplify notation, we further denote 
+
+H∗ 
+
+> i
+
+=
+
+
+
+(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+Qi1Si
+
+...(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+QiL Si
+
+ .
+
+According to Qu et al. (2000) and Hansen (1982), the estimation is equivalent to solving the estimating equation 
+
+Ψ∗ 
+
+> I
+
+(β∗,̂ G) = ∂ψ∗ 
+
+> I
+
+{β∗,̂ G}
+
+∂(β∗)T {C∗ 
+
+> I
+
+{β∗,̂ G}} −1ψ∗ 
+
+> I
+
+{β∗,̂ G} = 0.
+
+Part I (Point convergence of estimating function) 
+
+We first notice 
+
+∂ψ∗
+
+> I
+
+∂β∗ = − 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+
+
+(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+Qi1Si{D∗ 
+
+> i
+
+− μ∗}
+
+...(D∗ 
+
+> i
+
+− μ∗)TST 
+
+> i
+
+QiL Si{D∗ 
+
+> i
+
+− μ∗}
+
+
+
+13 is invariant to β∗ and G, and thus the law of large number implies ∂ψ∗ 
+
+> I
+
+/∂ β∗ converges in probability to E[∂ψ∗ 
+
+> I
+
+/∂ β∗]. Then, for any β∗ in a compact set, we have 
+
+E[ ˜ψ∗ 
+
+> I
+
+{β∗,̂ G(m} 
+
+> i
+
+) | (Wi)i∈BCm ] − E[ ˜ψ∗ 
+
+> I
+
+{β∗, Gi}] = E[E{H∗ 
+
+> i
+
+(̂ G(m) 
+
+> i
+
+− Gi)) } | (Wi)i∈BCm ] = 0.
+
+Following the same proof in Parts I, II, and III of Section B.1, we have E[ψ∗ 
+
+> I
+
+(∆∗, Gi)] = 0 and, 
+
+ψ∗ 
+
+> I
+
+(β∗,̂ G) − ψ∗ 
+
+> I
+
+(β∗, G) = op(I−1/2).
+
+C∗ 
+
+> I
+
+(β∗,̂ G) − C∗ 
+
+> I
+
+(β∗, G) = op(1) .
+
+Defining 
+
+Φ∗(β∗, G) = E
+
+[ ∂ψ∗
+
+> I
+
+∂(β∗)T
+
+]
+
+[E{C∗ 
+
+> I
+
+(β∗, G)}]−1Eψ∗ 
+
+> I
+
+(β∗, G),
+
+the above facts imply Φ∗(∆∗, G) = 0, i.e., unbiased estimating function, and 
+
+Ψ∗ 
+
+> I
+
+(β∗,̂ G) − Φ∗(β∗, G)= ∂ψ∗
+
+> I
+
+∂(β∗)T {C∗ 
+
+> I
+
+(β∗,̂ G)}−1ψ∗ 
+
+> I
+
+(β∗,̂ G) − E
+
+[ ∂ψ∗
+
+> I
+
+∂(β∗)T
+
+]
+
+[E{C∗ 
+
+> I
+
+(β∗, G)}]−1Eψ∗ 
+
+> I
+
+(β∗, G)=
+
+(
+
+E
+
+[ ∂ψ∗
+
+> I
+
+∂(β∗)T
+
+]
+
++ op(1) 
+
+)
+
+[EC∗ 
+
+> I
+
+(β∗, G) + op(1)] −1(E[ψ∗ 
+
+> I
+
+(β∗, G)] + op(1)) − Φ∗{β∗, G}
+
+= op(1) .
+
+Therefore, we proved the point consistency of Ψ∗ 
+
+> I
+
+(β∗,̂ G). 
+
+Part II (Uniform convergence of estimating function) 
+
+To obtain the uniform convergence, we show the stochastic equicontinuity of Ψ∗ 
+
+> I
+
+(β∗,̂ G). The simplest way is to show the Lipschitz continuity. To simplify the illustration of this part, because o(n) = o(I) and M is a fixed number, we assume ̂ G is estimated from training data ( Wi)train . Then, conditional on ( Wi)train , for δ > 0 and ( β∗, ˜β∗) from compact set B
+
+with ∥ ˜β∗ − β∗∥ < δ , we denote 
+
+M1 = 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)( ˜β∗ − β∗),
+
+14 and 
+
+M2 = 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)( ˜β∗ − β∗)ψ∗ 
+
+> I
+
+(β∗,̂ G)T + 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+ψ∗ 
+
+> I
+
+(β∗,̂ G){H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)( ˜β∗ − β∗)}T
+
++ 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)( ˜β∗ − β∗){H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)( ˜β∗ − β∗)}T
+
+Therefore, we have that, 
+
+∥{ C∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1 − { C∗ 
+
+> I
+
+(β∗,̂ G)}−1∥ = ∥{ C∗ 
+
+> I
+
+(β∗,̂ G) − M2}−1 − { C∗ 
+
+> I
+
+(β∗,̂ G)}−1∥
+
+= ∥{ C∗ 
+
+> I
+
+(β∗,̂ G)}−1 + {C∗ 
+
+> I
+
+(β∗,̂ G)}−1M2{C∗ 
+
+> I
+
+(β∗,̂ G) − M2}−1 − { C∗ 
+
+> I
+
+(β∗,̂ G)}−1∥
+
+= ∥{ C∗ 
+
+> I
+
+(β∗,̂ G)}−1M2{C∗ 
+
+> I
+
+(β∗,̂ G) − M2}−1∥≤ ∥{ C∗ 
+
+> I
+
+(β∗,̂ G)}−1∥∥ M2∥∥{ C∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1∥≤ L1δ, 
+
+for 
+
+L1 = ∥{ C∗ 
+
+> I
+
+(β∗,̂ G)}−1∥∥{ C∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1∥×
+
+[
+
+2
+
+∥∥∥∥∥
+
+1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)ψ∗ 
+
+> I
+
+(β∗,̂ G)T
+
+∥∥∥∥∥ +
+
+∥∥∥∥∥
+
+1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗){H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)}T
+
+∥∥∥∥∥ δ
+
+]
+
+,
+
+following the previous results, L1 converges to 
+
+∥{ EC∗ 
+
+> I
+
+(β∗,̂ G)}−1∥∥{ EC∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1∥× (2 ∥E[H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)ψ∗ 
+
+> I
+
+(β∗,̂ G)T]∥ + ∥E[H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗){H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)}T]∥δ),
+
+By definition, C∗ 
+
+> I
+
+(β∗,̂ G) and ψ∗ 
+
+> I
+
+(β∗,̂ G) are continuous function of β∗, and β∗, ˜β∗ are from compact set. Therefore, conditional on ( Wi)train , the formula above is bounded for δ < 1. 15 Then we have, 
+
+∥Ψ∗ 
+
+> I
+
+( ˜β∗,̂ G) − Ψ∗ 
+
+> I
+
+(β∗,̂ G)∥ ≤ 
+
+∥∥∥∥
+
+∂ψ∗
+
+> I
+
+∂(β∗)T
+
+∥∥∥∥ ∥{ C∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1ψ∗ 
+
+> I
+
+( ˜β∗,̂ G) − { C∗ 
+
+> I
+
+(β∗,̂ G)}−1ψ∗ 
+
+> I
+
+(β∗,̂ G)∥
+
+=
+
+∥∥∥∥
+
+∂ψ∗
+
+> I
+
+∂(β∗)T
+
+∥∥∥∥ ∥{ C∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1{ψ∗ 
+
+> I
+
+( ˜β∗,̂ G) − ψ∗ 
+
+> I
+
+(β∗,̂ G)} + [ {C∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1 − { C∗ 
+
+> I
+
+(β∗,̂ G)}−1]ψ∗ 
+
+> I
+
+(β∗,̂ G)∥≤
+
+∥∥∥∥
+
+∂ψ∗
+
+> I
+
+∂(β∗)T
+
+∥∥∥∥ [∥{ C∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1∥∥ M1∥ + ∥{ C∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1 − { C∗ 
+
+> I
+
+(β∗,̂ G)}−1∥∥ ψ∗ 
+
+> I
+
+(β∗,̂ G)∥]
+
+≤
+
+∥∥∥∥
+
+∂ψ∗
+
+> I
+
+∂(β∗)T
+
+∥∥∥∥[
+
+∥{ C∗ 
+
+> I
+
+( ˜β∗,̂ G)}−1∥
+
+∥∥∥∥∥
+
+1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+H∗ 
+
+> i
+
+(D∗ 
+
+> i
+
+− μ∗)
+
+∥∥∥∥∥ + L1∥ψ∗ 
+
+> I
+
+(β∗,̂ G)∥
+
+]
+
+δ
+
+≜ L2δ, 
+
+for I → ∞ , with high probability, L2 is bounded by some constant c1 for δ < 1. Therefore, conditional on ( Wi)train , for I → ∞ , for every ϵ > 0, there exists δ < min( ϵ/c 1, 1), we have 
+
+P ( sup   
+
+> β∗,˜β∗,∥˜β∗−β∗∥<δ
+
+∥Ψ∗ 
+
+> I
+
+( ˜β∗,̂ G) − Ψ∗ 
+
+> I
+
+(β∗,̂ G)∥ > ϵ | (Wi)train ) → 0.
+
+Then we have 
+
+P ( sup   
+
+> β∗,˜β∗,∥˜β∗−β∗∥<δ
+
+∥ΨI { ˜β∗,̂ G} − Ψ∗ 
+
+> I
+
+(β∗,̂ G)∥ > ϵ )
+
+≤ E[P ( sup   
+
+> β∗,˜β∗,∥˜β∗−β∗∥<δ
+
+∥Ψ∗ 
+
+> I
+
+( ˜β∗,̂ G) − Ψ∗ 
+
+> I
+
+(β∗,̂ G)∥ > ϵ | (Wi)train )] → 0,
+
+since P (sup β∗, ˜β∗,∥ ˜β∗−β∗∥<δ ∥Ψ∗ 
+
+> I
+
+( ˜β∗,̂ G) − Ψ∗ 
+
+> I
+
+(β∗,̂ G)∥ > ϵ | (Wi)train ) is uniformly integrable. Therefore, we proved the stochastic equicontinuity of Ψ∗ 
+
+> I
+
+(β∗,̂ G). Following Arzel` a–Ascoli theorem, we have that, for I → ∞ ,sup 
+
+> β∗
+
+∥Ψ∗ 
+
+> I
+
+(β∗,̂ G) − Φ∗(β∗, G)∥ p
+
+→ 0.
+
+Then 5.9 theorem in Van der Vaart (2000) and Hansen (1982) imply ̂ β∗ 
+
+> QIF
+
+converges to ∆∗
+
+in probability. 
+
+Part III (Asymptotic normality) 
+
+Following the proof in Part III of Section B.1, along with the consistency of ̂ β∗
+
+> QIF
+
+, we have 
+
+C∗ 
+
+> I
+
+(̂ β∗
+
+> QIF
+
+,̂ G) − C∗ 
+
+> I
+
+(∆∗, G) = op(1) .
+
+By law of large number, C∗ 
+
+> I
+
+(∆∗, G) converges to EC∗ 
+
+> I
+
+(∆∗, G) in probability, and thus we 16 have C∗ 
+
+> I
+
+(̂ β∗
+
+> QIF
+
+,̂ G) − EC∗ 
+
+> I
+
+(∆∗, G) = op(1). Then, we analyze the convergence rate of ̂ β∗
+
+> QIF
+
+. We already have that 
+
+ψ∗ 
+
+> I
+
+(∆∗,̂ G) − ψ∗ 
+
+> I
+
+(∆∗, G) = 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+˜ψ∗ 
+
+> I
+
+{∆∗,̂ G(m} 
+
+> i
+
+) − 1
+
+I
+
+> I
+
+∑
+
+> i=1
+
+˜ψ∗ 
+
+> I
+
+{∆∗, Gi} = op(I−1/2).
+
+Then we have 
+
+√I(̂ β∗ 
+
+> QIF
+
+− ∆∗)=
+
+(
+
+− ∂ψ∗
+
+> I
+
+∂(β∗)T {C∗ 
+
+> I
+
+(̂ β∗
+
+> QIF
+
+,̂ G)}−1 ∂ψ∗
+
+> I
+
+∂β∗
+
+)−1 ∂ψ∗
+
+> I
+
+∂(β∗)T {C∗ 
+
+> I
+
+(̂ β∗
+
+> QIF
+
+,̂ G)}−1 1
+
+√I
+
+> I
+
+∑
+
+> i=1
+
+H∗ 
+
+> i
+
+(Yi −̂ G(m) 
+
+> i
+
+) − √I∆∗
+
+=
+
+(
+
+− ∂ψ∗
+
+> I
+
+∂(β∗)T {C∗ 
+
+> I
+
+(̂ β∗
+
+> QIF
+
+,̂ G)}−1 ∂ψ∗
+
+> I
+
+∂β∗
+
+)−1 ∂ψ∗
+
+> I
+
+∂(β∗)T {C∗ 
+
+> I
+
+(̂ β∗
+
+> QIF
+
+,̂ G)}−1√Iψ∗ 
+
+> I
+
+{∆∗,̂ G}
+
+=
+
+(
+
+−E
+
+[ ∂ψ∗
+
+> I
+
+∂(β∗)T
+
+]
+
+[E{C∗ 
+
+> I
+
+(∆∗, G)}]−1E
+
+[∂ψ∗
+
+> I
+
+∂β∗
+
+]) −1
+
+E
+
+[ ∂ψ∗
+
+> I
+
+∂(β∗)T
+
+]
+
+[E{C∗ 
+
+> I
+
+(∆∗, G)}]−1√Iψ∗ 
+
+> I
+
+(∆∗, G) + op(1) =
+
+(
+
+−E
+
+[ ∂ψ∗
+
+> I
+
+∂(β∗)T
+
+]
+
+[E{C∗ 
+
+> I
+
+(∆∗, G)}]−1E
+
+[∂ψ∗
+
+> I
+
+∂β∗
+
+]) −1
+
+ψE (∆∗, G) + op(1) where 
+
+ψE (∆∗, G) = √IE 
+
+[ ∂ψ∗
+
+> I
+
+∂(β∗)T
+
+]
+
+[E{C∗ 
+
+> I
+
+(∆∗, G)}]−1ψ∗ 
+
+> I
+
+(∆∗, G),
+
+and we have E[ψE (∆∗, G)] = 0. Therefore, we obtain that ̂ β∗ 
+
+> QIF
+
+− ∆∗ = Op(I−1/2) and 
+
+√I(̂ β∗ 
+
+> QIF
+
+− ∆∗) converges to normal distribution with mean 0 and variance 
+
+Σ∗ 
+
+> QIF
+
+=
+
+(
+
+E
+
+[ ∂ψ∗
+
+> I
+
+∂(β∗)T
+
+]
+
+[E{C∗ 
+
+> I
+
+(∆∗, G)}]−1E
+
+[∂ψ∗
+
+> I
+
+∂β∗
+
+]) −1
+
+.
+
+By C∗ 
+
+> I
+
+(̂ β∗
+
+> QIF
+
+,̂ G)−EC∗ 
+
+> I
+
+(∆∗, G) = op(1), it is straightfoward that the variance estimator ̂ Σ∗
+
+> QIF
+
+in Equation (2) converges to Σ∗ 
+
+> QIF
+
+in probability. Then, by Slutsky’s Theorem, we can have that √Î Σ−1QIF (̂ β∗ 
+
+> QIF
+
+− ∆∗) d
+
+−→ N (0, I). 
+
+Part IV (No variance increase by QIF) 
+
+Finally, we prove that using QIF methods leads to a smaller variance compared to ba-sic estimators. Without loss of generality, We consdier use two correlation matrices for QIF. These two matrices construct two estimating equations for the extended score function 17 (ψT 
+
+> 1
+
+, ψT 
+
+> 2
+
+)T. Then, the asymptotic variance of the basic method is 
+
+Σ1 =
+
+(
+
+E( ˙ψ1
+
+> T
+
+)[ E{ψ1ψT 
+
+> 1
+
+}]−1E ˙ψ1
+
+)−1
+
+,
+
+where ˙ψ1 = E[∂ψ1/∂ β∗]. The asymptotic variance of the QIF is 
+
+Σ2 =
+
+(
+
+E
+
+( ˙ψ1
+
+˙ψ2
+
+)T
+
+E
+
+(ψ1ψT 
+
+> 1
+
+ψ1ψT
+
+> 2
+
+ψ2ψT 
+
+> 1
+
+ψ2ψT
+
+> 2
+
+)−1
+
+E
+
+( ˙ψ1
+
+˙ψ2
+
+))−1
+
+.
+
+To prove Σ1 − Σ2 ⪰ 0, we only need to prove Σ−12 − Σ−11 ⪰ 0. By using Schur Complement for 
+
+E
+
+(ψ1ψT 
+
+> 1
+
+ψ1ψT
+
+> 2
+
+ψ2ψT 
+
+> 1
+
+ψ2ψT
+
+> 2
+
+)
+
+≜ E
+
+(A BC D
+
+)
+
+,
+
+we have 
+
+E
+
+(ψ1ψT 
+
+> 1
+
+ψ1ψT
+
+> 2
+
+ψ2ψT 
+
+> 1
+
+ψ2ψT
+
+> 2
+
+)−1
+
+= E
+
+(A−1 + A−1BS −1CA −1 −A−1BS −1
+
+−S−1CA −1 S−1
+
+)
+
+,
+
+where S = D − CA −1B. Then, notice B = CT,
+
+Σ−12 − Σ−11 =˙ψ1
+
+> T
+
+(A−1 + A−1BS −1CA −1) ˙ψ1 − ˙ψ1
+
+> T
+
+A−1BS ‘−1 ˙ψ2 − ˙ψ2
+
+> T
+
+S−1CA −1 ˙ψ1 + ˙ψ2
+
+> T
+
+S−1 ˙ψ2 − ˙ψ1
+
+> T
+
+A−1 ˙ψ1
+
+= ˙ψ1
+
+> T
+
+A−1BS −1CA −1 ˙ψ1 − ˙ψ1
+
+> T
+
+A−1BS −1 ˙ψ2 − ˙ψ2
+
+> T
+
+S−1CA −1 ˙ψ1 + ˙ψ2
+
+> T
+
+S−1 ˙ψ2
+
+= ( S−1/2CA −1 ˙ψ1 − S−1/2 ˙ψ2)T(S−1/2CA −1 ˙ψ1 − S−1/2 ˙ψ2) ⪰ 0.
+
+Therefore, we prove that QIF methods with more specified matrices can improve the effi-ciency. This proof can be easily generalized to more specified matrices if you treat ψ2 as a larger estimating equation that consists of equations with different pre-specified matrices. 
+
+# C Additional results for simulation 
+
+## C.1 Complete simulation results under various machine learning methods 
+
+Tables 1-6 exhibit the simulation results for constant and duration-specific treatment effects under different machine learning methods, including unadjusted, linear regression, regres-sion tree, random forest (RF), XGBoost, SVM, neural network (NNet), and superlearner (SL) that uses an ensemble of regression trees, random forests, generalized linear models, and support vector machines. The summary results indicate that Superlearner, Regression 18 Tree, and Random Forest consistently achieve the best overall performance. Furthermore, QIF can obtain additional efficiency gains. We also compare the performance of different machine learning methods with mixed-effect model. The linear mixed-effects model exhibits noticeable undercoverage in many settings. These conclusions further validate the properties of our estimator mentioned in the main paper.     
+
+> Table 1: Summary results for estimating the constant treatment effect with different machine learning methods on cluster-randomized trials with I= 20 clusters. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP).
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted -0.051 0.872 0.859 0.94 Linear -0.011 0.614 0.547 0.942 Tree -0.031 0.537 0.463 0.958 RF -0.028 0.539 0.497 0.954 XGBoost -0.017 0.486 0.423 0.951 SVM -0.014 0.552 0.560 0.968 NNet -0.001 0.714 0.686 0.964 SL -0.024 0.474 0.415 0.952 
+
+QIF Unadjusted 0.021 0.313 0.327 0.954 Linear 0.017 0.271 0.263 0.952 Tree -0.018 0.322 0.294 0.934 RF 0.010 0.215 0.211 0.95 XGBoost -0.008 0.241 0.226 0.945 SVM -0.007 0.275 0.283 0.96 NNet 0.003 0.494 0.483 0.939 SL 0.002 0.248 0.225 0.936 
+
+Random effects Linear 0.018 0.252 0.263 0.97 
+
+19 Table 2: Summary results for estimating the constant treatment effect with different machine learning methods on cluster-randomized trials with I = 100 clusters. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted -0.016 0.436 0.431 0.956 Linear 0.002 0.242 0.241 0.952 Tree -0.001 0.120 0.110 0.96 RF -0.005 0.168 0.157 0.945 XGBoost -0.003 0.127 0.125 0.953 SVM -0.002 0.183 0.199 0.968 NNet -0.007 0.203 0.243 0.976 SL -0.003 0.123 0.112 0.959 
+
+QIF Unadjusted 0.014 0.136 0.140 0.958 Linear 0.007 0.094 0.095 0.95 Tree 0.004 0.069 0.068 0.944 RF 0.006 0.062 0.063 0.945 XGBoost 0.002 0.064 0.063 0.942 SVM 0.003 0.085 0.939 0.971 NNet -0.005 0.154 0.184 0.978 SL 0.006 0.057 0.057 0.944 
+
+Random effects Linear 0.007 0.124 0.129 0.963 
+
+20 Table 3: Summary results for estimating the constant treatment effect with different machine learning methods on individual-randomized trials with I = 1000 individuals. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted 0.006 0.347 0.353 0.952 Linear 0.005 0.209 0.219 0.965 Tree -0.001 0.077 0.075 0.962 RF 0.001 0.118 0.118 0.953 XGBoost 0.001 0.102 0.096 0.96 SVM 0.000 0.142 0.153 0.973 NNet -0.002 0.110 0.114 0.96 SL 0.000 0.063 0.058 0.961 
+
+QIF Unadjusted 0.014 0.181 0.177 0.946 Linear 0.003 0.109 0.112 0.952 Tree 0.017 0.040 0.040 0.958 RF 0.004 0.058 0.056 0.948 XGBoost 0.001 0.048 0.044 0.94 SVM 0.004 0.081 0.083 0.967 NNet -0.002 0.089 0.085 0.957 SL 0.000 0.037 0.034 0.934 
+
+Random effects Linear 0.010 0.138 0.095 0.812 
+
+21 Table 4: Summary results for estimating the averaged duration-specific treatment effect with different ma-chine learning methods on cluster-randomized trials with I = 20 clusters. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted -0.037 1.081 1.085 0.934 Linear 0.005 0.712 0.700 0.947 Tree -0.016 0.572 0.483 0.954 RF -0.020 0.617 0.581 0.949 XGBoost -0.015 0.547 0.509 0.971 SVM 0.001 0.646 0.690 0.963 NNet -0.007 0.737 0.732 0.97 SL -0.006 0.518 0.462 0.957 
+
+QIF Unadjusted -0.002 0.767 0.803 0.943 Linear -0.003 0.581 0.572 0.949 Tree -0.015 0.354 0.347 0.958 RF 0.016 0.420 0.408 0.942 XGBoost -0.001 0.357 0.338 0.96 SVM 0.016 0.540 0.571 0.965 NNet 0.026 0.664 0.651 0.96 SL 0.010 0.377 0.328 0.943 
+
+Random effects Linear -0.007 0.552 0.459 0.911 
+
+22 Table 5: Summary results for estimating the averaged duration-specific treatment effect with different ma-chine learning methods on cluster-randomized trials with I = 100 clusters. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted 0.032 0.595 0.611 0.953 Linear 0.021 0.361 0.360 0.942 Tree 0.000 0.160 0.133 0.973 RF 0.009 0.198 0.195 0.946 XGBoost -0.002 0.156 0.0.155 0.98 SVM 0.019 0.276 0.298 0.966 NNet 0.017 0.295 0.309 0.976 SL 0.004 0.143 0.124 0.96 
+
+QIF Unadjusted -0.034 0.381 0.351 0.928 Linear 0.003 0.253 0.241 0.944 Tree 0.003 0.071 0.070 0.95 RF 0.008 0.118 0.110 0.935 XGBoost -0.019 0.081 0.085 0.952 SVM -0.002 0.196 0.187 0.945 NNet 0.013 0.183 0.174 0.961 SL 0.006 0.071 0.069 0.939 
+
+Random effects Linear -0.015 0.309 0.213 0.824 
+
+23 Table 6: Summary results for estimating the averaged duration-specific treatment effect with different ma-chine learning methods on individual-randomized trials with I = 1000 individuals. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted -0.014 0.479 0.484 0.945 Linear -0.008 0.327 0.327 0.949 Tree -0.006 0.208 0.208 0.952 RF -0.009 0.259 0.263 0.953 XGBoost -0.006 0.174 0.176 0.955 SVM -0.004 0.143 0.149 0.964 NNet -0.009 0.445 0.454 0.961 SL -0.003 0.138 0.140 0.953 
+
+QIF Unadjusted -0.001 0.399 0.394 0.942 Linear -0.007 0.276 0.279 0.946 Tree -0.007 0.162 0.163 0.952 RF -0.003 0.204 0.204 0.945 XGBoost -0.004 0.121 0.118 0.942 SVM -0.003 0.090 0.093 0.96 NNet -0.016 0.382 0.328 0.943 SL -0.004 0.077 0.075 0.954 
+
+Random effects Linear 0.044 0.295 0.116 0.558 
+
+## C.2 Simulation design for period-specific and saturated treatment effect structures. 
+
+In this section, we present the simulation design for period-specific and saturated treat-ment effect structures. This simulation includes both cluster-randomized and individual-randomized trials. For cluster-randomized trials, we generate 1,000 realizations under two trial sizes, with 
+
+I = 20 and I = 100 clusters. When I = 20, we set J = 3, Ni = 20, and Nij uniformly from [5 , 15]. When I = 100, we set J = 5, Ni = 500, and sample Nij uniformly from [5 , 35]. We independently generate four covariates: one cluster-level covariate Xi1 ∼ N (0 , 1) and three individual-level covariates, Xik 2 ∼ Bernoulli(0 .5) and Xik 3, X ik 4 ∼ N (0 , 1). Sampling indicators Sijk follows uniform distribution given Nij and Ni. Treatment assignments Zi are generated independently across clusters, with equal probability to start treatment in periods 1, . . . , J .24 Under the period-specific setting, outcomes are generated as 
+
+Yijk = I{Zi ≤ j} βj (X) + exp( Xik 1Xik 2) + 1 
+
+> 2
+
+X2 
+
+> ik 4
+
++ I{Xik 4 > −1} + 2 I{Xik 3 > 1}
+
++ I{Xik 1 > 0.5}(j + 1) + σi + αij + τik + ϵijk ,
+
+where σi, α ij , τ ik ∼ N (0 , 0.1), ϵijk ∼ N (0 , 0.7) and βj (X) = 1 + (Xik 3 − Xi·3
+
+) ∗ j/ 2 + (X3 
+
+> ik 4
+
+−
+
+X3
+
+> i·4
+
+) ∗ j/J . Under the saturated structure, outcomes are generated as 
+
+Yijk = βjd (X) + exp( Xik 1Xik 2) + Xik 4 + I{Xik 4 > −1} + I{Xik 3 > 1}
+
++ I{Xik 1 > 0.5}(j + 1) /2 + σi + αij + τik + ϵijk ,
+
+with βjd (X) = I{d > 0}{ 1 + ( Xik 3 − Xi. 3)( J − j)/4 + ( X3 
+
+> ik 4
+
+− X3
+
+> i. 4
+
+) ∗ d/ 8} for d = j − Zi + 1. For individual randomized trials, we generate 1,000 datasets setting I = 1000 with J =20. By design, Ni = 1, and we set Nij ∼ Bernoulli(0 .5). Covariates and treatments are generated as in cluster-randomized trials. Under the period-specific setting, outcomes are generated as 
+
+Yijk = I{Zi ≤ j} β′ 
+
+> j
+
+(X) + exp( Xik 1Xik 2)/2 + 1 
+
+> 2
+
+X2 
+
+> ik 4
+
++ I{Xik 4 > −1} + 2 I{Xik 3 > 1}
+
++ I{Xik 1 > 0.5}(j + 1) + τik + ϵijk ,
+
+where τik ∼ N (0 , 0.1), ϵijk ∼ N (0 , 0.9) and β′ 
+
+> j
+
+(X) = 1 + (Xik 3 − Xi·3
+
+) ∗ j/J + (X3 
+
+> ik 4
+
+− X3
+
+> i·4
+
+)/J .Under the saturated structure, outcomes are generated as 
+
+Yijk = β′
+
+> jd
+
+(X) + 1
+
+2X3 
+
+> ik 3
+
++ 1
+
+2X3 
+
+> ik 4
+
++ J + 1 
+
+2 Xik 1Xik 2 + I{Xik 4 > 0.5} + τik + ϵijk 
+
+with β′
+
+> jd
+
+(X) = I{d > 0}{ 1 + ( Xik 3 − Xi. 3) ∗ j + ( X3 
+
+> ik 4
+
+− X3
+
+> i. 4
+
+) ∗ d} for d = j − Zi + 1. Tables 7-12 present the simulation results for estimating the average period-specific and saturated treatment effects using different machine learning methods and mixed-effect mod-els. Across all settings, our proposed estimators show negligible bias and achieve close-to-nominal 95% coverage. Furthermore, covariate adjustment, machine learning–based mod-eling, and QIF all lead to efficiency gains. These results further support our asymptotic theory. Linear mixed models exhibit noticeable undercoverage in the large-sample setting, which is consistent with what we report in the main paper. 25 Table 7: Summary results for estimating the averaged period-specific treatment effect with different machine learning methods on cluster-randomized trials with I = 20 clusters. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted -0.022 0.663 0.656 0.932 Linear -0.003 0.445 0.440 0.965 Tree -0.021 0.380 0.349 0.95 RF -0.015 0.388 0.367 0.961 XGBoost -0.012 0.362 0.366 0.969 SVM -0.006 0.408 0.436 0.966 NNet -0.011 0.515 0.534 0.964 SL -0.012 0.341 0.323 0.953 LM -0.005 0.430 0.193 0.644 
+
+QIF Unadjusted -0.002 0.379 0.364 0.924 Linear -0.009 0.321 0.293 0.935 Tree -0.018 0.294 0.253 0.93 RF 0.015 0.258 0.246 0.947 XGBoost -0.017 0.254 0.249 0.941 SVM -0.011 0.305 0.298 0.946 NNet -0.002 0.466 0.458 0.945 SL 0.001 0.255 0.245 0.938 
+
+Random effects Linear 0.006 0.307 0.260 0.919 
+
+26 Table 8: Summary results for estimating the averaged period-specific treatment effect with different machine learning methods on cluster-randomized trials with I = 100 clusters. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted 0.022 0.531 0.532 0.951 Linear 0.011 0.235 0.235 0.958 Tree 0.004 0.248 0.216 0.954 RF 0.006 0.279 0.257 0.967 XGBoost 0.006 0.276 0.262 0.968 SVM 0.004 0.243 0.262 0.975 NNet 0.007 0.251 0.273 0.977 SL 0.006 0.205 0.177 0.95 
+
+QIF Unadjusted 0.017 0.175 0.170 0.952 Linear 0.002 0.108 0.108 0.95 Tree -0.000 0.111 0.108 0.942 RF 0.009 0.085 0.084 0.962 XGBoost 0.008 0.090 0.089 0.959 SVM 0.002 0.106 0.115 0.973 NNet 0.003 0.144 0.153 0.977 SL 0.003 0.062 0.062 0.95 
+
+Random effects Linear 0.001 0.139 0.117 0.899 
+
+27 Table 9: Summary results for estimating the averaged period-specific treatment effect with different machine learning methods on individual-randomized trials with I = 20 individuals. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted 0.004 0.348 0.349 0.953 Linear 0.002 0.212 0.221 0.965 Tree -0.001 0.080 0.080 0.954 RF 0.001 0.109 0.109 0.951 XGBoost 0.001 0.084 0.085 0.959 SVM 0.001 0.149 0.158 0.966 NNet 0.002 0.111 0.110 0.956 SL -0.001 0.069 0.068 0.948 
+
+QIF Unadjusted 0.005 0.156 0.153 0.946 Linear -0.002 0.101 0.101 0.955 Tree 0.001 0.042 0.043 0.952 RF 0.001 0.050 0.050 0.944 XGBoost 0.003 0.036 0.034 0.937 SVM 0.001 0.077 0.076 0.938 NNet -0.004 0.073 0.072 0.949 SL 0.001 0.028 0.027 0.957 
+
+Random effects Linear 0.012 0.186 0.100 0.713 
+
+28 Table 10: Summary results for estimating the averaged saturated treatment effect with different machine learning methods on cluster-randomized trials with I = 20 clusters. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted -0.024 0.696 0.637 0.951 Linear -0.006 0.442 0.384 0.941 Tree -0.027 0.473 0.391 0.953 RF -0.018 0.471 0.387 0.958 XGBoost -0.019 0.432 0.369 0.978 SVM -0.014 0.428 0.409 0.967 NNet -0.015 0.507 0.466 0.96 SL -0.013 0.395 0.305 0.95 
+
+QIF Unadjusted 0.005 0.553 0.592 0.943 Linear 0.011 0.346 0.310 0.949 Tree -0.006 0.336 0.312 0.949 RF 0.013 0.305 0.287 0.951 XGBoost -0.014 0.271 0.269 0.967 SVM 0.009 0.312 0.304 0.963 NNet 0.012 0.398 0.386 0.97 SL 0.008 0.244 0.218 0.954 
+
+Random effects Linear 0.009 0.308 0.288 0.944 
+
+29 Table 11: Summary results for estimating the averaged saturated treatment effect with different machine learning methods on cluster-randomized trials with I = 100 clusters. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE ASE CP 
+
+Independence Unadjusted 0.009 0.267 0.257 0.949 Linear 0.007 0.197 0.190 0.942 Tree 0.002 0.135 0.121 0.959 RF 0.004 0.157 0.145 0.953 XGBoost 0.003 0.165 0.156 0.953 SVM 0.001 0.149 0.156 0.978 NNet 0.005 0.186 0.223 0.981 SL 0.000 0.124 0.105 0.951 
+
+QIF Unadjusted -0.006 0.158 0.150 0.934 Linear 0.001 0.145 0.136 0.939 Tree 0.001 0.087 0.088 0.961 RF 0.012 0.094 0.095 0.948 XGBoost -0.026 0.095 0.098 0.953 SVM 0.005 0.091 0.098 0.968 NNet 0.007 0.197 0.145 0.972 SL 0.002 0.063 0.064 0.954 
+
+Random effects Linear -0.003 0.132 0.105 0.89 
+
+30 Table 12: Summary results for estimating the averaged saturated treatment effect with different machine learning methods on individual-randomized trials with I = 1000 individuals. We report the bias, empirical standard error (ESE), average of estimated standard errors (ASE), and coverage probability of the 95% confidence interval (CP). 
+
+Correlation Method Bias ESE MSE CP 
+
+Independence Unadjusted -0.005 0.390 0.381 0.948 Linear 0.001 0.258 0.260 0.947 Tree -0.009 0.170 0.164 0.946 RF -0.006 0.201 0.197 0.952 XGBoost -0.003 0.129 0.122 0.943 SVM -0.002 0.099 0.099 0.957 NNet 0.021 0.462 0.484 0.977 SL -0.002 0.091 0.089 0.96 
+
+QIF Unadjusted 0.007 0.142 0.145 0.957 Linear -0.001 0.123 0.121 0.943 Tree -0.012 0.093 0.096 0.946 RF 0.002 0.067 0.067 0.953 XGBoost -0.009 0.062 0.061 0.938 SVM -0.007 0.064 0.066 0.947 NNet -0.015 0.282 0.268 0.932 SL 0.001 0.044 0.044 0.947 
+
+Random effects Linear 0.008 0.208 0.088 0.607 
+
+# D Imbalance of baseline covariates of the second real data. 
+
+Figure 1 exhibits the imbalance of baseline covariates, use of force among the treatment and control groups. This figure indicates that officers in training have a lower baseline use of force compared to those in the control group. 31 0.05 0.06 0.07 0.08 0.09 20 30 40 50 60 70 
+
+> Day Baseline use of force type
+> control treated
+
+Figure 1: Imbalance of baseline use of force in the Chicago training program. 
+
+# References 
+
+Hansen, L. P. (1982). Large sample properties of generalized method of moments estimators. 
+
+Econometrica: Journal of the econometric society , pages 1029–1054. Qu, A., Lindsay, B. G., and Li, B. (2000). Improving generalised estimating equations using quadratic inference functions. Biometrika , 87(4):823–836. Van der Vaart, A. W. (2000). Asymptotic statistics , volume 3. Cambridge university press. 32

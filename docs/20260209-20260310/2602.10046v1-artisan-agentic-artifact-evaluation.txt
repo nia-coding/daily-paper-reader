@@ -1,0 +1,491 @@
+Title: Artisan: Agentic Artifact Evaluation
+
+URL Source: https://arxiv.org/pdf/2602.10046v1
+
+Published Time: Wed, 11 Feb 2026 02:23:10 GMT
+
+Number of Pages: 21
+
+Markdown Content:
+# Artisan: Agentic Artifact Evaluation 
+
+DOEHYUN BAEK, University of Stuttgart, Germany 
+
+MICHAEL PRADEL, CISPA Helmholtz Center for Information Security, Germany Artifact evaluation has become standard practice in the software engineering community to ensure the reproducibility of research results. However, the current manual process is labor-intensive, and hence, done only as a one-time assessment for a subset of all papers. To support the artifact evaluation effort, we present Artisan, an automated LLM agent for reproducing research results given a paper and its artifact. The approach is enabled by two key contributions: First, we frame the reproduction problem as a code generation task where the goal is to generate a reproduction script that, when executed, reproduces the results reported in a paper. Unlike prior work on automatically reproducing research results, this formulation allows for running the script independently of the agent and for assessing the reproduction process at a fine-grained level. Second, we design automated judging mechanism that guides the agent toward the expected results without revealing them and that prevent trivial solutions, such as simply copying checked-in results. To evaluate Artisan, we introduce Artisan-Bench, the first benchmark assessing the ability to generate reproduction scripts and the first benchmark for automated artifact evaluation in software engineering. Artisan-Bench comprises 60 tasks derived from 23 software engineering papers, covering different research areas and programming languages. We validate all tasks in Artisan-Bench for reproducibility to ensure that the tasks are feasible. Our experiments show that Artisan is effective, producing 44/60 reproduction scripts and outperforming the best available baseline, a vanilla LLM agent (mini-swe-agent), by 3.14 × in terms of reproduction scripts generated while taking $0.45 and 48 minutes, on average per task. Beyond validating reproducibility, Artisan helped uncover 20 new errors in either the paper or artifact, further demonstrating the practical utility of our approach. 
+
+ACM Reference Format: 
+
+Doehyun Baek and Michael Pradel. 2026. Artisan: Agentic Artifact Evaluation. 1, 1 (February 2026), 21 pages. https://doi.org/10.1145/nnnnnnn.nnnnnnn 
+
+1 INTRODUCTION 
+
+Since the pilot of artifact evaluation at ESEC/FSE 2011 [ 26 ], artifact evaluation has become standard practice in the software engineering community, subsequently being adopted in the programming languages [ 27 ], security [ 35 ], and database communities [ 7]. One of its main goals is reproducibility ,defined as the ability of a different team to obtain similar experimental outcomes using the same experimental setup [ 6]. Reproducibility is generally regarded by participants of artifact evaluation committees as one of the most important goals of artifact evaluation [ 21 ]. In addition, studies report that artifact evaluation leads to more available, maintained, and documented artifacts [46]. Despite these benefits, artifact evaluation in its current manual form is notoriously labor-intensive. Reports indicate that evaluating a single artifact can take eight to ten hours, i.e., often longer than reviewing the paper itself [ 20 ]. The current process yields the Artifacts Evaluated badge as its out-come [ 6], which provides limited signal regarding reproducibility: First, the badge is coarse-grained, i.e., even if an artifact has the badge, some parts of the paper may not be reproducible. Second, 
+
+Authors’ addresses: Doehyun Baek, doehyunbaek@gmail.com, University of Stuttgart, Stuttgart, Germany; Michael Pradel, michael@binaervarianz.de, CISPA Helmholtz Center for Information Security, Stuttgart, Germany. Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than ACM must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org. 
+
+© 2026 Association for Computing Machinery. XXXX-XXXX/2026/2-ART $15.00 https://doi.org/10.1145/nnnnnnn.nnnnnnn , Vol. 1, No. 1, Article . Publication date: February 2026.                 
+
+> arXiv:2602.10046v1 [cs.SE] 10 Feb 2026 2Doehyun Baek and Michael Pradel
+> Table 1. Comparison of existing approaches and Artisan.
+> Manual Rating-based Output-based Artisan
+> evaluation agents [22, 24] agents [10, 39] (our work)
+> Saves manual effort ✓✓✓
+> Fine-grained assessment ✓✓
+> Executable evidence ✓
+> Detects copied-results script ✓
+> Targets SE artifacts ✓✓
+
+the badge is a one-time assessment, i.e, it signals that the artifact worked at the time of manual artifact evaluation, but does not imply it works now. In fact, recent work on the reproducibility of artifacts [ 33 ] indicates that, among 100 ICSE papers with artifacts that were studied, only 14 reproduce the original findings. Motivated by this limitation, we pose the question: What if we task LLM agents with generating code that reproduces the results? Automated artifact evaluation powered by code-generating agents would offer the following benefits: (1) It significantly reduces manual effort. (2) It scales to a much larger number of papers and artifacts. (3) It provides a fine-grained assessment of specific research results. (4) It can be run before the submission of a paper. (5) It can be run continually in the future. This paper presents Artisan, the first automated artifact evaluation approach utilizing an LLM agent tasked with code generation. Given a table with numerical results from a research paper, Artisan autonomously takes actions to reproduce the results. The approach is enabled by two key contributions: First, we formulate artifact reproduction as a code generation task, where the agent generates a reproduction script that independently reproduces the paper’s reported results based on the code and data given in the artifact. Second, we introduce automated judging mechanism that steers the agent toward correct results without exposing them, while preventing shortcuts like copying pre-computed results. Artisan is closely related to, but differs in several ways from, recent work in ML and NLP on automated research reproduction, summarized in Table 1. These approaches can be classified based on the agents’ output. Both rating-based and output-based agents, when unable to reproduce the results, lack credible evidence that the error lies with the paper or the artifact. Given that agents are an emerging technique, failures are typically attributed to the agents. To our knowledge, there are no reports of errors in artifacts identified by agents during reproduction attempts. Artisan differs by having the agent generate a reproduction script, which is executable independently of agents. When the paper’s results disagree with those produced by running the reproduction script, which we term paper-artifact inconsistencies , it acts as a credible evidence that the error is in the side of paper or artifact. To evaluate Artisan, we develop Artisan-Bench, the first benchmark assessing LLM agents’ capabilities to generate reproduction scripts. Artisan-Bench comprises 60 tasks derived from 23 software engineering papers. We manually validate all tasks in Artisan-Bench for reproducibility, and the benchmark covers diverse software engineering techniques and programming languages not covered by the existing benchmarks. Evaluating Artisan on the benchmark shows that Artisan is effective, producing 44/60 reproduction scripts and outperforming the best available baseline, a vanilla agent (mini-swe-agent), by 3.14 ×. The approach is also efficient, taking an average of $0.45 and 48 minutes per task. Beyond validating reproducibility, Artisan also helped identify 20 previously unknown inconsistencies between papers and their artifacts, further demonstrating the practical utility of our approach.  
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. Artisan: Agentic Artifact Evaluation 3
+> Fig. 1. Overview of Artisan.
+
+In summary, this paper contributes the following: 
+
+• Artisan, the first automated artifact evaluation approach leveraging code generation capabilities of an LLM agent guided by automated judging mechanism. 
+
+• Artisan-Bench, the first benchmark that evaluates LLM agents’ capabilities in generating repro-duction scripts on software engineering papers. 
+
+• An empirical evaluation showing that Artisan is effective and efficient, while clearly outperform-ing existing baselines. 
+
+• Both Artisan and Artisan-Bench are publicly available. 
+
+2 APPROACH 
+
+We first define the problem we address (Section 2.1) and give a brief overview of the approach (Section 2.2). Then, we present in detail the preparation mechanisms (Section 2.3), tools (Section 2.4), and judging mechanism (Section 2.5) that enable our approach. 
+
+2.1 Problem Definition 
+
+We address the following problem: given a research paper 𝑝 , a table 𝑡 with numerical results from 
+
+𝑝 , and an artifact URL 𝑢 , automatically generate a reproduction script 𝑠 that reproduces 𝑡 using the artifact. The reproduction script 𝑠 should contain all logic needed to reproduce the table from scratch, from running the artifact to formatting outputs into the final table. The reproduction script 
+
+𝑠 may reuse existing artifact code or replace it when necessary. If the artifact already provides a script that fully regenerates the target table, then 𝑠 can simply call it. 1 If reproduction requires multiple scripts, then 𝑠 should run them in the right order. If provided scripts are non-functional (e.g., an obsolete Dockerfile ), 𝑠 may fix them, so the table can still be reproduced. Our approach enforces two properties. First, the approach must produce a reproduction script that runs without an agent. Prior work [ 10 , 22 , 24 , 39 ] employs LLM agents to reproduce results directly and output a rating or numbers. Users of these agents must blindly trust the agent output or inspect long agent trajectories. Generating a reproduction script avoids this: users can run and audit the generated script instead of the agent’s trajectory. Second, the generated script should reproduce results as fully as possible within the time budget. Prior work [ 10 , 22 , 24 , 39 ] focuses only on whether outputs match, not how they are produced. In practice, there are multiple ways to reproduce results with different levels of completeness. Ignoring the method of reproduction can  
+
+> 1As shown in Section 3.4, most artifacts do not include such scripts. , Vol. 1, No. 1, Article . Publication date: February 2026. 4Doehyun Baek and Michael Pradel
+
+Algorithm 1 High-level algorithm of Artisan                                                                                       
+
+> 1: Input: Paper 𝑝 , Table 𝑡 , Artifact URL 𝑢
+> 2: Output: Reproduction script 𝑠
+> 3: step_limit ←30 , 𝐻 ← []
+> 4: 𝑡 obfs ←obfuscate_table (𝑡 )⊲Prep: table obfuscation
+> 5: 𝑎 ←download_artifact (𝑢 )⊲Prep: artifact download
+> 6: UserPrompt ←construct_prompt (𝑝, 𝑡 obfs , 𝑎 )
+> 7: while step_limit >0do
+> 8: thought ,cmd ←LLM (SystemPrompt ,UserPrompt , 𝐻 )
+> 9: if cmd ≠“submit” then
+> 10: obs ←execute (cmd )⊲Tool: bash or format tool
+> 11: else
+> 12: 𝑠 ←read_script ()
+> 13: if 𝐽 output (𝑠 )≠“OK” then ⊲Judge: output check
+> 14: obs ←Warning (“Output mismatch” )
+> 15: else
+> 16: if 𝐽 method (𝑠 )== “CopyRepro” then ⊲Judge: method check
+> 17: obs ←Warning (“Method rejected” )
+> 18: else
+> 19: return 𝑠 ⊲Final output
+> 20: 𝐻 . append (thought ,cmd ,obs )
+> 21: step_limit ←step_limit −1
+
+misalign with user intent, e.g., if the script merely copies checked-in results rather than actually reproducing them, the user learns nothing about the results’ reproducibility. 
+
+2.2 Overview 
+
+Figure 1 gives an overview of Artisan. Given a paper, a table, and an artifact URL, Artisan generates a reproduction script that reproduces the table from scratch using the artifact. Artisan is an LLM agent, i.e., an LLM-based system that uses tools to autonomously interact with the environment to achieve a given goal [ 11 ]. It follows a five-step workflow: (1) Download the artifact, (2) Read the README, (3) Find relevant commands (4) Execute them, and (5) Create a reproduction script. To implement the workflow, Artisan first prepares inputs (Section 2.3) by obfuscating table digits with question marks to avoid exposing expected results, and by downloading the artifact with the given URL. The agent uses two tools (Section 2.4): a general bash tool for standard CLI operations, and a task-specific format tool to transform execution outputs into the expected table format. Once the agent submits a script, a two-tier judge (Section 2.5) runs it to verify the output matches the expected results, then checks the reproduction method is meaningful rather than copying the checked-in results. In case the submitted script fails either of the two judging steps, the agent is given corresponding feedback and continues its iteration. Otherwise, Artisan outputs the submitted script as the final reproduction script. The high-level control-flow of Artisan is summarized in Algorithm 1. First, Artisan obfuscates the input table 𝑡 (line 4) and downloads the artifact (line 5). The results of the preparation mechanisms are used to construct a user prompt to be handed to the LLM (line 6). If the command invoked by the LLM is a tool call, one of our tools is executed (line 10). In case of the special “submit” command, the algorithm checks the output of the submitted script (line 13), and if successful, also the method of reproduction (line 16). If the submitted script passes both judging steps, Artisan outputs it as the final reproduction script (line 19). Otherwise, the algorithm resumes the agentic loop. 
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026.
+
+Artisan: Agentic Artifact Evaluation 5
+
+THOUGHT : To avoid embedding the exact table text directly in the script (per instructions), I 'll embed a base64-encoded version of the expected table... ↩→
+
+ACTION : bash -lc "b64=\$(base64 -w0 expected.md) 
+
+RESULT : Encoding successful 
+
+(a) Example trajectory of agent attempting to hardcode expected results using base64 encoding. 
+
+THOUGHT : ...I 'll use `curl ` with `-L ` to follow redirects and save the Zenodo artifact... 
+
+ACTION : curl -L 'https://zenodo.org/records/10529665/files?download=1 ' -o /workspace/artifact.zip 
+
+RESULT : Download successful 
+
+THOUGHT : ...I 'll list the files inside the ZIP to see its structure and identify the README path. 
+
+ACTION : unzip -l /workspace/artifact.zip 
+
+RESULT : Either this file is not a zipfile, or it constitutes one disk of a multi-part archive. 
+
+(b) Example trajectory of agent attempting to use wrong artifact repository APIs. 
+
+THOUGHT : ...The single command below writes the script, makes it executable, and submits it. 
+
+ACTION : {Submits the script without formatting} 
+
+RESULT : {Mismatch Results} 
+
+THOUGHT : I need to inspect the exact aggregated output that was produced earlier... 
+
+ACTION : cat /workspace/repro.txt 
+
+RESULT : {Results not formatted} 
+
+THOUGHT : ...I 'll display the reproduction output that was saved to /workspace/repro.txt. 
+
+ACTION : cat /workspace/repro.txt 
+
+RESULT : {Results not formatted} 
+
+(c) Example trajectory of agent struggling to format execution output into expected format. 
+
+THOUGHT : I now need to author the `repro_unimocg_table_2.sh ` script using the provided template. 
+
+ACTION : {Writes script that contains wrong awk usage} 
+
+RESULT : Write successful 
+
+THOUGHT : The reproduction script is now authored.... 
+
+ACTION : echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT 
+
+RESULT : Agentic Loop Exits 
+
+(d) Example trajectory of agent authoring script that triggers runtime error. 
+
+THOUGHT : ...but the artifact already includes the aggregated fingerprint summary that contains Table 1 
+
+ACTION : cp Unimocg_Artifact/summaries/summary_results_fingerprint.txt /workspace/expected.md 
+
+RESULT : Copy Successful 
+
+THOUGHT : ...I 'll create the required submission script ... by copying the precomputed summary... 
+
+ACTION : {Writes script that copies the checked-in result} 
+
+RESULT : Write Successful 
+
+THOUGHT : ...the final required step is to signal completion by printing the mandated completion token. 
+
+ACTION : echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT 
+
+RESULT : Agentic Loop Exits 
+
+(e) Example trajectory of agent authoring script that copies results. Fig. 2. Challenges in automated artifact evaluation. 
+
+2.3 Preparation Mechanisms 
+
+We provide two preparation mechanisms to obfuscate the input table (Section 2.3.1) and download the artifact from the input URL (Section 2.3.2). 
+
+2.3.1 Table Obfuscation. The key objective of our approach is guiding the agent toward the expected results. One option is to provide the expected table as a reference for the agent to follow. However, during the development of Artisan, we found that LLM agents may directly use the expected table when given in unobfuscated form. Figure 2a shows an example trajectory of an agent exploiting the given expected table, where the agent encodes the expected table using 
+
+, Vol. 1, No. 1, Article . Publication date: February 2026. 6 Doehyun Baek and Michael Pradel          
+
+> **Table 3: Evaluation Results**
+> | Project Name | A+ | TW | | ------------ | -- | -- | | MarginSwap |6 | 1 | | PoolTogether | 15 | 1 | | Tracer | 10 | 1 | | Yield Micro |4 | 1 |
+
+(a) Table before obfuscation.          
+
+> **Table 3: Evaluation Results**
+> | Project Name | A+ | TW | | ------------ | -- | -- | | MarginSwap |? | ? | | PoolTogether | ?? | ? | | Tracer | ?? | ? | | Yield Micro |? | ? |
+
+(b) Table after obfuscation.    
+
+> Switched global version to 0.8.3
+> 'solc --version 'running Reference: ScType Annotation count: 6 Function count: 20 Executing Group 1 [*] Tested 1 warning for MarginSwap
+
+(c) Execution output. Fig. 3. Example obfuscation and execution outputs for Table 3 of ScType [49]. 
+
+base64 encoding and decodes it at runtime to avoid directly hard-coding the expected table in the reproduction script. To address this challenge, our preparation mechanism obfuscates the numerical values of the expected table before giving it to the agent. Figure 3 shows an example of the obfuscation mechanism. Given the input table (Figure 3a), our obfuscation mechanism replaces the digits that appear at the “A+” column (annotations) and “TW” column (total warnings) with question marks, resulting in the obfuscated table (Figure 3b). The obfuscated table is then given to the agent as a table to reproduce. This achieves the goal of guiding the agent while not revealing the expected outputs. 
+
+2.3.2 Artifact Download. A typical artifact URL points to a repository hosting the artifact, such as Zenodo, Figshare, or GitHub. Given such a URL, the agent must first download the artifact file before it can proceed with reproducing the results. However, we found that agents often struggle to find the correct way to download the actual artifact file given the artifact URL. Figure 2b shows an example, where the agent is given the artifact’s Zenodo URL and presumes the artifact is downloadable through a canonical file-download endpoint. However, this endpoint does not exist, and the agent downloads an HTML file containing “Page not found”. The agent, assuming a successful download, attempts to unzip the file and realizes it is not a valid ZIP archive. To address this challenge, we provide a download mechanism, which the agent can invoke with only the URL of the research artifact. Given this URL, the download mechanism first queries the repository to obtain the list of files contained in the artifact. It then downloads each file, caching any file that has not been retrieved before. Finally, it locates the README file by searching for files whose names begin with “README” among all downloaded contents, including those stored inside ZIP or TAR archives. Although simple, this strategy effectively saves the agent several steps that would otherwise be spent reasoning about repository-specific APIs. The download mechanism currently supports Zenodo, Figshare, and GitHub. 
+
+2.4 Tools 
+
+We provide the bash tool (Section 2.4.1) for general CLI interaction and the format tool (Section 2.4.2) developed specifically for the challenge of automated artifact evaluation. 
+
+2.4.1 Bash Tool. We utilize the bash tool of mini-swe-agent [ 42 ] to handle generic CLI usage tasks, encompassing reading file, writing file, and running commands. We found that the bash tool is enough to handle most general CLI usage that arises in the task of automated artifact evaluation. The vanilla mini-swe-agent we compare against in the evaluation contains only the bash tool. 
+
+2.4.2 Format Tool. Even after an agent successfully reproduces results by running a sequence of commands, the outputs rarely match the exact format shown in the paper. While the agent can try to write a missing formatting script, we find it often fails. Figure 2c illustrates a typical trajectory:         
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. Artisan: Agentic Artifact Evaluation 7
+> || Calls | Count ||---|:-----------|----------:| || Resolved | 7,799,929 | || Unresolved | 260,249 |
+
+(a) Part of the expected results.        
+
+> || Calls | Count ||---|:-----------|----------:| || Resolved | 7,799,929 | || Unresolved | 168,482 |
+
+(b) Part of the actual results.        
+
+> || Calls | Count ||---|:-----------|----------:| || Resolved | 7,799,929 | || Unresolved | ???,??? |
+
+(c) Feedback given to the agent. Fig. 4. Example of the mismatched results feedback for Table 2 of Drosos et al. [17]. 
+
+the agent runs the right commands and submits the reproduction script containing them, but the execution output is formatted differently from the paper, so the judge rejects it. The agent inspects the output yet does not realize that the formatting discrepancy is the cause, and repeatedly reruns the same command without making progress. To address this, we implement the format tool: an LLM-based formatter that takes an obfuscated table plus arbitrary execution outputs and produces properly formatted results. Execution outputs may be unstructured logs or tables in other formats (e.g., CSV or LaTeX). Figure 3 shows an example input: the obfuscated table is tabular (Figure 3b), but the execution output is a log file without tabular structure (Figure 3c). The format tool prompts an LLM to fill in question marks in the obfuscated table with digits extracted from the execution output, and the LLM locates the annotation count (6) and warning count (1) for MarginSwap and populates the table. To mitigate LLM non-determinism, we cache format-tool results so identical inputs return cached outputs. 
+
+2.5 Judging Mechanism 
+
+A key component of Artisan is to automatically judge whether the reproduction script generates correct output with appropriate method. We present a two-tier judging mechanism that combines an execution-based output judge (Section 2.5.1) and an LLM-based method judge (Section 2.5.2). 
+
+2.5.1 Execution-Based Output Judge. Previous work on rating-based agents [ 22 , 24 ] and output-based agents [ 10 , 39 ] for reproducibility asked agents to yield simple numerical results as a final output. However, as Artisan asks the agents to output reproduction script, there are additional failure modes that arise when the script triggers syntax or runtime errors. Often, the agents successfully execute commands to reproduce the research results, but there is some fault in the submitted script, which can be often addressed by giving an error message as a feedback. Figure 2d shows an example trajectory of an agent facing this challenge. The agent writes a reproduction script that utilizes awk to extract research results from an execution output, but uses awk syntax that is invalid with the standard POSIX awk. Unfortunately, the agent submits the script without running it and signals completion. To address this challenge, the output judge runs the submitted script in a fresh container envi-ronment and classifies the result into four categories: 
+
+• Static error : The submitted script is missing from the expected path or fails to run because of a syntax error. 
+
+• Runtime error : The submitted script runs but produces a runtime error. 
+
+• Mismatched results : The submitted script runs to completion without any error, but the results differ from the expected values. 
+
+• Success : The submitted script runs to completion without any error, and the results match the expected values. In the first three cases, Artisan gives corresponding feedback to the agent, allowing it to continue its iteration. Importantly, in the case of mismatched results, the output judge reveals parts of the result the agent got right, but not the parts it got wrong. Figure 4 gives an example of this feedback  
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. 8Doehyun Baek and Michael Pradel
+> cat Unimocg_Artifact/summaries/summary_results_fingerprint.txt > /workspace/repro.txt
+
+(a) Example copied-results scripts for Table 2 of Unimocg [19]. 
+
+> docker-compose run pmsat python parse_all_results_timeouts.py benchmarkingset-rc2-results > /workspace/repro.log
+
+(b) Example last-mile reproduction scripts for Table 3 of Wallner et al. [43].   
+
+> docker-compose run pmsat /bin/bash -c "cd /pmsat-inference && python -m pip install 'numpy<2 '&& python run_pmsat_on_traces.py examples-results/ping_pong_example/info.json -nmax 7 && MPLBACKEND=Agg python parse_single_run_results.py TRACE-results/92e710ef352c4739cd7569794272588a" > /workspace/repro.log
+> ↩→
+> ↩→
+
+(c) Example full reproduction scripts for Table 2 of Wallner et al. [43]. Fig. 5. Examples of three kinds of reproduction methods. 
+
+mechanism. Suppose Figure 4a is the expected result of the reproduction, and Figure 4b is the actual result obtained after running the submitted reproduction script. The output judge detects that the “Resolved Count” matches (7,799,929) but the “Unresolved Count” does not match (260,249 expected vs. 168,482 actual). Hence, it provides the feedback shown in Figure 4c, which further guides the agents without leaking the expected results. 
+
+2.5.2 LLM-Based Method Judge. While developing Artisan, we encountered many cases where the LLM agent produces a reproduction script that yields the correct results for the wrong reasons. A typical scenario is when the agent hard-codes the expected results inside of the reproduction script or simply copies them from pre-computed results that are part of the artifact. Figure 2e shows an example trajectory of an LLM agent facing this challenge. Upon discovering that the artifact contains the research results of Table 1 checked in, the agent writes a reproduction script that utilizes these results and signals completion. As the overall goal is to reproduce the research results, such “short-cuts” are undesirable. To address this challenge, if the submitted script passes the output judge, the method judge, an LLM-as-judge evaluating the method of reproduction, is invoked. The method judge classifies the reproduction method into three categories: 
+
+• Copied results : The submitted script just copies the expected values from the checked-in results or the paper without any meaningful reproduction. An example is shown in Figure 5a, where the script copies checked-in results. 
+
+• Last-mile reproduction : The submitted script performs a lightweight reproduction, skipping some time-consuming steps. An example is shown in Figure 5b, where the script uses checked-in raw data and processes it to generate results. Although this falls short of full reproduction, we judge this to be a valid reproduction. This is because the full reproduction of some experiments may take hundreds of hours (as in the example), and verifying that the analysis of the raw data matches the paper’s results is still valuable. 
+
+• Full reproduction : The submitted script performs the most complete reproduction possible. This is the ideal case, especially if it can be achieved within a reasonable time. An example is shown in Figure 5c, where the script performs the full reproduction, from raw data generation to analysis, on one example. If the method judge classifies the submitted script as either last-mile reproduction or full repro-duction, Artisan accepts the submitted script as the final reproduction script. In contrast, scripts classified as copied-results are rejected, and the approach yields control back to the agent, asking it to find an alternative, more complete reproduction method.  
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. Artisan: Agentic Artifact Evaluation 9
+
+3 BENCHMARK 
+
+In this section, we present the methodology used to construct Artisan-Bench. We first state the scope and requirements we target (Section 3.1), then describe the selection of papers (Section 3.2) and tasks (Section 3.3). Finally, we explain the ground truth scripts we prepare for each task (Section 3.4). 
+
+3.1 Scope and Requirements 
+
+Our construction of Artisan-Bench is guided by two requirements: (1) We require a manual val-idation of the reproducibility for all tasks. This requirement is motivated by SWE-Bench [ 25 ], where subsequent efforts, such as SWE-Bench Verified [ 16 ] and Wang et al. [ 45 ], highlight the importance of manual validation to avoid overestimating or underestimating agent capabilities. (2) The benchmark should cover a wide range of software engineering areas and programming languages. This requirement is motivated by the fact that existing benchmarks [ 10 , 24 , 39 ] focus on machine learning and natural language processing techniques implemented in Python, R, and Stata, and no benchmark currently exists for software engineering research reproduction. 
+
+3.2 Paper Selection 
+
+Guided by these requirements, we curate a set of 23 papers following the process below. (1) Papers with badges. We gather 114 papers from four flagship software engineering venues (ICSE, FSE, ASE, ISSTA) in 2024 with ACM Artifacts Available and Artifacts Evaluated—Reusable 
+
+badges [ 6]. We manually locate links to the accompanying artifacts. For FSE and ISSTA, the ACM Digital Library lists artifact links. For ICSE and ASE, we prioritize links to the artifacts found in the paper. If we fail to find such links in the paper, we search the web for the paper title. (2) Docker. We exclude 42 papers whose artifacts are not packaged using Docker, which yields 72 remaining papers. This reflects the fact that Docker and related virtualization technologies are now standard in artifact evaluation [ 1 –3 ]. To implement this, we case-insensitively search Markdown and PDF files for the term “docker”. (3) Non-public APIs. We exclude nine papers that rely on non-public APIs, yielding 63 remaining papers. To implement this, we search Python files and Jupyter notebooks for “openai” or “anthropic”. We also search Markdown files for “etherscan”. This excludes seven papers using OpenAI APIs and two papers using Etherscan APIs. (4) Specialized hardware. We exclude 19 papers that require GPUs or other specialized hardware, yielding 44 remaining papers. This is to maintain accessibility across hardware setups, similar to previous work [ 10 ]. We search for common GPU keywords (e.g., cuda , cudnn , tensorflow ,
+
+> nvidia-smi
+
+, gpus ) in source code files. (5) Reproducibility budget. We exclude 21 papers to enforce an eight-hour reproducibility budget, yielding the final set of 23 papers. We first filter out 12 papers deemed infeasible by searching for the keyword “hour”; these explicitly mention experiment times exceeding the limit (four take >12 hours, seven >24 hours, and one >125 hours). We then try to manually reproduce the remaining 32 papers. We exclude nine papers that we could not reproduce any of the tables within the budget. These failures stemmed from missing datasets (2x), missing raw data (2x), missing generation scripts (2x), non-deterministic outputs (2x), or an inaccessible Docker image (1x). For the papers we could manually reproduce some of the tables, we include the paper in the benchmark but exclude the tables we fail to reproduce. The selected 23 papers cover a wide range of software engineering areas and programming languages. Specifically, we classify five papers as empirical studies, five as static analysis, two as  
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. 10 Doehyun Baek and Michael Pradel
+
+security, two as dynamic analysis, two as software maintenance, one papers in each of fuzzing, mutation testing, model-based testing, mobile applications, program repair, test automation, and AI4SE. Notably, there is a possible under-representation of AI4SE and SE4AI techniques, which is mainly due to our exclusion of papers using non-public APIs and GPUs. Nevertheless, one paper [ 28 ] makes use of classical machine learning techniques (Random Forest and XGBoost) and uses neither non-public APIs nor GPUs. In terms of programming languages, our selection covers Python (13x), Java (4x), Rust (2x), Scala (2x), OCaml (1x), and Bash (1x). 
+
+3.3 Task Selection 
+
+From the 23 selected papers, we curate 60 tasks. Starting from all 89 tables contained in the 23 papers, we exclude 21 non-result tables, which contain descriptions of evaluation setups (14x) or the approach (7x). We also exclude six tables that we fail to reproduce during our paper selection process and one table that requires 400 GB of RAM to reproduce (Table 3 of Unimocg [ 19 ]). Finally, we exclude one table that only contains non-deterministic results (Table 3 of PPT4J [36]). When trying to reproduce tables, it may become obvious that either the paper or artifact contains some errors, leading to inconsistencies between the two. As part of this work, we found 20 cases where either the paper or the artifact is erroneous, which we discuss in detail in Section 4.6. In these cases, plus three cases where the paper authors claim the results of the artifact could be slightly different from those in the paper [ 40 ], we use the corrected version of the table as the task in our benchmark. Moreover, in some cases, we include only a part of the table as the task: for 15 tables because we could only partially reproduce the results, and for four tables because some results are non-deterministic and hence excluded. 
+
+3.4 Ground Truth Scripts 
+
+For each task, we prepare a ground truth script that reproduces the table from scratch using the artifact. In total, we create 30 full reproduction scripts and 30 last-mile reproduction scripts. Note that we do not utilize these ground truth scripts for our automated judging mechanism (Section 2.5); rather, they serve as executable evidence that reproduction is possible for each table in the evaluation set. To quantitatively characterize the complexity of the ground truth scripts, we report the number of non-blank, non-comment lines of code (LoC) in each script. On average, the non-blank, non-comment LoC is 71.8, with a median of 57. We also manually analyze all the ground truth scripts for how simple the ground truth scripts can be and find that only six scripts are simple, i.e., the expected table can be produced with a single command. Most scripts require multiple commands invocation, complex formatting logic, or sometimes fix to the outdated or buggy artifact code. Even in the case where the ground truth script is simple 2, LLM agents evaluated still make mistakes while formatting the output into a expected table. Table 2 compares Artisan-Bench with existing benchmarks for automated research reproduction. Artisan-Bench is the only benchmark in software engineering and covers several programming languages not represented in the existing benchmarks. As many software engineering experiments involve time-consuming tasks (e.g., dynamic analysis), we set a relatively high time limit of eight hours per task. Although the number of papers covered (23) is lower in Artisan-Bench due to the manual validation required, the number of tasks (60) is comparable to the existing benchmarks. Note that a single task in Artisan-Bench typically corresponds to multiple tasks in the existing benchmarks as a single table usually contains multiple numerical research results.      
+
+> 2python scripts/descriptives/evaluation.py -csv data/results/rq1a.csv reproduces Table 2 of Drosos et al. [17]. , Vol. 1, No. 1, Article . Publication date: February 2026. Artisan: Agentic Artifact Evaluation 11
+
+Table 2. Comparison of prior benchmarks and Artisan-Bench. 
+
+SUPER [10] CORE-Bench [39] Repro-Bench [24] Artisan-Bench (Ours) 
+
+Domain ML, NLP Computer science, Social sciences, Medicine Social sciences Software engineering Programming languages Python Python, R Stata, R, MATLAB, Julia, Python Python, Java, Rust, Scala, OCaml, Bash Time limit 10 minutes 45 minutes 2 hours 8 hours #Papers 45 90 1 112 23 #Tasks 45 2 90 3 112 60      
+
+> 137 in computer science. 2Expert set. SUPER additionally provides 152 masked sets and 604 auto sets. 3CORE-Bench-Hard. CORE-Bench additionally provides 90 CORE-Bench-Easy and CORE-Bench-Medium.
+
+4 EVALUATION 
+
+To evaluate our approach, we answer the following research questions: 
+
+• RQ1. Effectiveness : How effective is Artisan at generating successful reproduction scripts? 
+
+• RQ2. Efficiency : How efficient is Artisan in terms of monetary cost and execution time? 
+
+• RQ3. Ablation study : What is the impact of our core technical contributions, i.e., output judge, method judge, and format tool? 
+
+• RQ4. Construction and detection of copied-results scripts : How do agents construct copied-results scripts, and how accurate is the method judge at detecting them? 
+
+• RQ5. Discovery of paper-artifact inconsistencies : What paper-artifact inconsistencies does Artisan help discover? 
+
+4.1 Experimental Setup 
+
+4.1.1 Agent Framework and LLM Usage. We use mini-swe-agent [ 42 ], version 1.14.4, as the base agent framework for building Artisan. We implement the preparation mechanisms, judging mecha-nism, and the format tool, in Python 3.12.10. As the LLM behind the format tool and method judge, we use gpt-5-mini-2025-08-07. 
+
+4.1.2 Baselines. As baselines, we select the default versions of mini-swe-agent [ 42 ], SWE-agent [ 48 ], and OpenHands [ 44 ]. We choose mini-swe-agent, which Artisan builds on, because comparing against mini-swe-agent enables a thorough empirical study of Artisan’s contributions. We choose SWE-agent and OpenHands as established state-of-the-art approaches for general software engi-neering tasks. 
+
+4.1.3 Settings. For all baselines and Artisan, we experiment with two proprietary models (gpt-5.1-2025-11-13 and gpt-5-mini-2025-08-07) and one open-weight model (DeepSeek V3.2 Reasoner). We use a step limit of 30 and a cost limit of USD 1 per task. For mini-swe-agent and OpenHands, we provide the identical user prompt instructing on the table to reproduce and workflows to follow. For SWE-agent, we use the same user prompt as in mini-swe-agent but add one instruction to adapt SWE-agent’s hard-coded APR task to our setting. For Artisan, we additionally provide instructions for our preparation mechanisms, judging mechanism, and the format tool.                                                                                                           
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. 12 Doehyun Baek and Michael Pradel
+> Table 3. Comparison of Artisan with baselines. DeepSeek stands for DeepSeek V3.2 Reasoner. Full rep. stands for full reproduction, Last. rep. stands for last-mile reproduction, Copy res. stands for copied-results, Mis. res. stands for mismatched results, Run. err. stands for runtime error, and Stat. err. stands for static error. Success and Failure numbers are sum over tasks. Cost and Time are average per task.
+> ID Success Failure Cost Time Full rep. Last. rep. Copy res. Mis. res. Run. err. Stat. err. SWE-agent – w/ DeepSeek 0106746 $0.03 8.9 min – w/ gpt-5-mini 00910 10 31 $0.05 3.1 min – w/ gpt-5.1 03415 830 $0.32 6.5 min OpenHands – w/ DeepSeek 3006645 $0.03 12.8 min – w/ gpt-5-mini 01125 15 18 $0.04 23.1 min – w/ gpt-5.1 57412 527 $0.24 21.6 min mini-swe-agent – w/ DeepSeek 32516 331 $0.03 50.4 min – w/ gpt-5-mini 00439 13 4$0.06 33.1 min – w/ gpt-5.1 9512 22 93$0.26 13.8 min Artisan – w/ DeepSeek 11 8415 517 $0.05 63.1 min – w/ gpt-5-mini 15 9624 60$0.14 42.9 min – w/ gpt-5.1 24 20 210 40$0.45 48.0 min
+
+4.1.4 Metrics. To evaluate effectiveness (RQs 1 and 3), we classify the scripts submitted by the baselines and Artisan into six categories, following the classification introduced in Section 2.5. For the three categories where the results of the submitted script fail to match the expected result, we automatically classify them based on the execution outputs (Section 2.5.1). For the three categories where the results of the submitted script match the expected result, we manually classify the reproduction method (Section 2.5.2). As a single metric of overall effectiveness, we report the sum of full reproduction scripts and last-mile reproduction scripts generated by each approach, which we consider successful reproduction. 
+
+4.2 RQ1: Effectiveness 
+
+4.2.1 End-to-end effectiveness. The left-hand side of Table 3 shows the effectiveness of Artisan and the baselines on Artisan-Bench. Artisan with GPT-5.1 gives the best result, successfully reproducing the expected table in 44/60 tasks (24 full reproductions and 20 last-mile reproductions). Notably, Artisan outperforms all baselines even when using weaker LLMs than the baselines. We find several factors contributing to the overall effectiveness of Artisan. First, Artisan generates far fewer reproduction scripts with static or runtime errors. Even with GPT-5.1, the baselines generate many scripts with either static or runtime errors (38/60 by SWE-agent and 32/60 by OpenHands). In contrast, Artisan with GPT-5.1 generates such scripts for only 4/60 tasks, and even with GPT-5 mini, for only 6/60 tasks. Second, the Artisan produces scripts that perform the actual reproduction, rather than scripts that produce incorrect results or trivially copy checked-in results. For mini-swe-agent, switching from DeepSeek V3.2 Reasoner to GPT-5 mini reduces static or runtime errors from 34/60 to 17/60, and GPT-5.1 reduces them further to 12/60. However, these reductions largely shift failures into other categories: GPT-5 mini increases mismatched results  
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. Artisan: Agentic Artifact Evaluation 13
+> To reproduce Table 3, run:
+> ``` bash python scripts/rq4.py data/results/qualitative_results.json --table3 ↩→
+> ```
+
+Fig. 6. Part of the README of Drosos et al. [ 17 ]artifact.   
+
+> # Table 3 (correct order) smod <- summary(glmer( ... )) smod$coefficients[,4] <-p.adjust(smod$coefficients[,4], "BH") ↩→
+> mc <- smod$coefficients # Adjusted p-values # Table 5 (buggy order) smod <- summary(glmer( ... )) mc <- smod$coefficients # Raw p-values smod$coefficients[,4] <-p.adjust(smod$coefficients[,4], "BH") ↩→
+
+Fig. 7. Part of the R code of of Zid et al. [ 50 ] artifact. Comments are ours. 
+
+Fig. 8. Tradeoff between effectiveness and cost. 
+
+scripts (16 to 39), while GPT-5.1 increases copied-results scripts (5 to 12). In contrast, relative to Artisan with DeepSeek V3.2 Reasoner, Artisan with GPT-5.1 reduces failures across all fronts: static error from 17 to 0, runtime error from 5 to 4, mismatched results from 15 to 10, and copied-results from 4 to 2. We attribute both of these improvements to our two-tier judging mechanism, which guides the agent toward both the correct output and the correct reproduction method. 
+
+4.2.2 Reasons for success. To analyze the reasons for successful reproduction, we select tasks where all of the approaches (excluding SWE-agent) succeed in reproduction and tasks where only one approach succeeds in reproduction. We find a pattern for success on 5/6 tasks where all OpenHands, mini-swe-agent and Artisan successfully reproduce the expected table: the instructions for reproducibility are clearly documented in the README. If this condition is met, the reproduction task becomes significantly easier, as the agent can effortlessly locate commands to exercise the artifact. Figure 6 shows a part of the README where it explains about the instructions to reproduce Table 3 of Drosos et al. [ 17 ]. In our user prompt given to the agents, we instruct it to run grep commands to search for the mention of the expected table, and the grep returns a hit to this part of the README. Although these five tasks might not be very challenging for an agent, we argue that they reveal a desirable characteristic that the artifacts should display. Not all tasks in Artisan-Bench are so straightforward. For 24 tasks, only Artisan produces a successful reproduction. 3 We present an analysis of Table 5 of Zid et al. [ 50 ], where Artisan is the only agent capable of reproduction. What makes this particularly interesting is that Table 3 of the same paper is a much easier table to reproduce, and is also reproduced by mini-swe-agent. In the paper, Tables 3 and 5 report BH-adjusted p-values. In contrast, the artifact code for Table 5 records raw p-values and applies BH only afterward, which means the recorded outputs remain unadjusted (Figure 7). Trying to reproduce Table 5, Artisan first writes a reproduction script with the raw p-value and submits it. However, our output judge rejects this submission and notifies the agent that the p-values do not match. Then, after probing the artifact, the agent realizes that the paper  
+
+> 3SWE-agent and OpenHands do not have any tasks where they are the sole successful approach. mini-swe-agent is the only successful approach on one task. , Vol. 1, No. 1, Article . Publication date: February 2026. 14 Doehyun Baek and Michael Pradel
+> Fig. 9. Breakdown of wall-clock time by activity.
+
+uses the adjusted p-value, unlike the R code in the artifact. The agent adds code to post-process the raw p-value with BH adjustment, and passes the automated judging. This showcases that our automated judging mechanism is especially crucial in challenging cases where the reproduction is not straightforward. 
+
+4.2.3 Reasons for failure. Across the 10 tasks that no approach (including Artisan) can repro-duce, we observe two failure modes. (1) Irreproducible checked-in results (5/10): In Bouzenia and Pradel [ 13 ], prior Jupyter runs for Tables 1–5 are checked in, but re-running the notebook no longer yields them because the underlying code/data that produced results of the paper is missing. For Tables 1 and 3, the agents executes the Jupyter notebooks fresh and obtain the expected results. For Tables 2, 4, and 5, agents try to reproduce these stale values, repeatedly fail judging, and hit the step limit. Tables 2 and 3 of NPETest [ 29 ] similarly contain the checked-in results which are not reproducible any more, leading to the agent failures. This suggests a need for stronger guidance when there are paper–artifact inconsistencies. (2) Buggy artifact code (1/10): In AXA [ 37 ], a Docker-shipped bash script used for counting changes in lines of code contains errors. The erronous bash script contains a stray + and a missing term in a sum, leading to different results. Agents execute the erronous script, obtain incorrect counts, and fail to repair it. This motivates automated program repair technique that is applicable to the artifacts to aid the reproduction process. 
+
+4.3 RQ2: Efficiency 
+
+Money. We report the average per-task monetary cost of LLM queries on the right-hand side of Table 3. For Artisan, this includes the costs of the format tool (Section 2.4.2) and the method judge (Section 2.5.2). We generally observe Artisan to be impose higher costs than the baselines, which is caused by it taking all the steps required to actually run the experiments instead of failing early. Figure 8 puts costs and effectiveness in relation, showing that Artisan establishes a new Pareto front. Artisan with GPT-5.1 pushes the effectiveness boundary, improving 3.14 × in terms of successful reproductions (44 vs. 14), while Artisan with DeepSeek V3.2 Reasoner remains quite effective (19/60 successful reproductions) and highly cost-efficient (20 tasks runnable with $1). 
+
+Time. We report the average wall-clock time spent by each approach per task on the right-hand side of Table 3. The time measurements include all agent activities, including the time to run the reproduced experiments themselves. Thus, Artisan taking more time than the baselines is a sign                                  
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. Artisan: Agentic Artifact Evaluation 15
+> Table 4. Ablation study of Artisan using GPT-5.1.
+> ID Success Failure Cost Time Full rep. Last. rep. Copy res. Mis. res. Run. err. Stat. err. Artisan – w/o Output Judge 13 14 119 13 0$0.28 12.3 min – w/o Method Judge 918 21 831$0.43 32.0 min – w/o Format Tool 17 18 913 21$0.46 52.0 min – Full 24 20 210 40$0.45 48.0 min
+
+that it successfully performs long-running experiments. Figure 9 shows where time is spent during a task for Artisan with GPT-5.1, where Execution time refers to running agent commands and the judging mechanism. Execution time dominates the overall time for long runs, while LLM time contributes noticeable overhead for shorter runs, confirming our observation that taking longer time per task is due to it successfully running long-running experiments. 
+
+4.4 RQ3: Ablation Study 
+
+Table 4 summarizes our ablation study, which uses three variants of Artisan that exclude the output judge, the method judge, and the format tool, respectively. Omitting the output judge increases the number of reproduction scripts with runtime error (4 to 13) and mismatched results (10 to 19). In principle, agents can check for errors or mismatches themselves by running the generated scripts, but enforcing this check on submission attempt makes a significant difference. Reduction in monetary cost and wall-clock time is not a desirable sign; it merely indicates that the agent exits early with non-functional reproduction scripts. Without the method judge, we see a dramatic increase in copied-results scripts (2 to 21), showing that the method judge is crucial for inducing the agent to seek a more complete reproduction method. Omitting the format tool decreases successful reproductions (44 to 35) and increases copied-results scripts (2 to 9). These two effects are related: When given the liberty to format the reproduced table as they like, the agent often directly copies the expected results. Providing the format tool to the agent reduces such behavior by simplifying the task of correctly formatting the output. 
+
+4.5 RQ4. Construction and detection of copied-results scripts 
+
+4.5.1 How do agents construct copied-results scripts? During development and evaluation of Artisan, we observed many cases where agents generated copied-results scripts (Section 2.5.2). While similar misalignment issues are reported in other domains [ 8 , 32 ], to our knowledge, this is the first report of such misalignment in artifact evaluation. To understand how agents construct copied-results scripts, we sample 30 cases and manually classify their strategies: In 12/30 cases, agents directly copy checked-in research results. In 7/30 cases, agents convert the paper PDF to text and copy expected tables. In 7/30 cases, agents copy outputs from included Jupyter notebooks. In 3/30 cases, agents infer results from surrounding paper text despite table obfuscation. Finally, in one case, an agent downloads the preprint by searching for it on arXiv. These diverse strategies indicate that preventing specific misalignment types is infeasible, confirming our decision to use a method judge to detect copied-results scripts.   
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. 16 Doehyun Baek and Michael Pradel
+> docker run -d --init --entrypoint bash -v" ${ PWD }":/data --name shell mdipenta/rexp:latest -c 'sleep infinity '
+> docker exec shell /bin/bash -c "cd /data/icse/icse && R --no-save < FuncConstructs-Statistics.r" cat icse/icse/results/Table-3-RQ1-lambda.txt > repro.txt
+
+Fig. 10. Part of the full reproduction scripts reproducing Table 3 Zid et al. [ 50 ], which is misclassified as copied-results scripts. Table 5. Accuracy of method judge. 
+
+Predicted Actual Full Last Copy Full 28 1 1
+
+Last-Mile 11 18 1
+
+Copy 0 3 27 
+
+4.5.2 How accurate is the method judge in detecting copied-results scripts? We evaluate the method judge using 30 sam-pled copied-results scripts and 60 ground truth scripts (Sec-tion 3.4). Table 5 presents the accuracy results. The method judge achieves 81% accuracy (73/90). Successful reproductions misclassified as copied-results occur in only 3% of cases (2/60), which is acceptable as Artisan can still progress toward more complete scripts. Conversely, 10% of copied-results scripts are misclassified as successful reproductions (3/30), a rate miti-gated by manual validation of final reproduction scripts. Figure 10 shows an example where the method judge misclassifies a full reproduction script as a copied-results script. Here, Table-3-RQ1-lambda.txt is generated by running the R script, so the output copied with cat is not a checked-in result. However, the method judge incorrectly identifies this file as checked-in and flags it as a copied-results script. Since the method judge cannot execute scripts, it cannot determine if the copied file is pre-computed. Using more capable tools, such as LLM agents, could reduce such misclassifications. 
+
+4.6 RQ5. Discovery of Paper-Artifact In 
+
+By using Artisan, we encounter 20 inconsistencies between the papers or the artifacts. We identify these cases by noticing inconsistencies between the paper results and the output of the reproduction script when the reproduction script appears to contain no apparent error. We do not include cases where artifacts themselves warn about possible inconsistencies; thus, all 20 cases we report are newly discovered inconsistencies that have not been disclosed publicly before. Table 6 summarizes the paper-artifact inconsistencies we find. Overall, we find 20 paper-artifact inconsistencies from 13 papers, i.e. 57% of the studied papers. All these 13 paper underwent an artifact evaluation in major SE conferences and were awarded the Artifacts Evaluated – Reusable badge. Still, with the aid of Artisan, we find inconsistencies in up to 29 entries in a single table, with values differing by up to 8.13 × 10 285960 . The discovery of paper-artifact inconsistencies is supported by Artisan and the reproduction scripts it generates, but it is not entirely automated. Given the reproduction script, it is ultimately up to a human expert to decide if there is indeed a bug, and if so, where the bug lies. To provide more insight into the paper-artifact inconsistencies we find, we manually analyze the reasons for the inconsistencies, leading to five categories: 
+
+• Artifact difference (9/20): The artifact (code and data) used for the paper differs from the artifact publicly available. 
+
+• Transcription error (5/20): Inconsistencies that likely stemmed from the manual process of transcribing artifact values to the paper. 
+
+• Rounding error (4/20): Inconsistencies due to incorrect rounding. 
+
+• Artifact error (2/20): Errors in the artifact. We report our findings (excluding round errors, as they are obvious but minor issues) to the paper authors, and 14/16 of the reported inconsistencies are confirmed. For the two artifact errors, one has already been fixed by the authors, and the other is planned to be fixed. Automated artifact  
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. Artisan: Agentic Artifact Evaluation 17
+
+Table 6. Inconsistencies found between paper and artifact. TI stands for table index. #DE stands for the count of different entries for a table. § denotes confirmation by the authors. 
+
+Paper TI #DE Paper Value Artifact Value Reason 
+
+action [13] 1 4 0.30 0.32 Artifact difference §
+
+action [13] 2 29 33.8 36.2 Artifact difference §
+
+action [13] 3 1 66.3 66.4 Rounding error action [13] 4 21 -55.14 -62.63 Artifact difference §
+
+action [13] 5 5 -10.41 -99.78 Artifact difference §
+
+axa [37] 1 2 14 1 Artifact error §
+
+bazel [4] 5 4 28 29 Transcription error §
+
+dypybench [12] 3 1 1701 1543 Artifact error §1 
+
+interference [18] 2 4 8.13 × 10 285960 8.58 × 10 506 Transcription error §
+
+lasapp [9] 1 1 1549 1553 Artifact difference §
+
+llm [34] 3 4 1.15 0.15 Transcription error §
+
+npetest [29] 2 27 100 68 Artifact difference §
+
+npetest [29] 3 2 73 74 Artifact difference §
+
+pmsat [43] 3 1 0.6 0.5 Rounding error pmsat [43] 5 1 17.33 17.3 Rounding error pythonic [50] 3 5 0.14 0.24 Transcription error pythonic [50] 9 1 0.04 0.05 Rounding error rust [30] 1 6 98.88% 98.93% Artifact difference §
+
+sctype [49] 3 2 1 2 Transcription error urcrat [23] 1 1 72199 72201 Artifact difference §
+
+> 1Fixed by https://github.com/sola-st/DyPyBench/commit/bccfda7
+
+evaluation enables early detection of such reproducibility issues, saving time and avoiding their propagation into future research that builds on the affected papers. 
+
+5 THREATS TO VALIDITY 
+
+Our results are influenced by the step limit (30 steps) and cost limit ($1). With GPT-5.1, step limits are hit by SWE-agent (18/60), OpenHands (22/60), mini-swe-agent (6/60), and Artisan (16/60), suggesting that early stopping in most tasks limits effectiveness more than incomplete exploration. The cost limit represents a reasonable budget for automated reproduction of a single table. Additionally, our evaluation is limited to Docker-packaged papers without non-public APIs or GPUs, as described in Section 3.2. We focus on this subset to reduce manual and computational costs. 
+
+6 RELATED WORK 
+
+Artifact Evaluation. Artifact evaluation was introduced at ESEC/FSE 2011 [ 26 ] and adopted by the programming languages [ 27 ], security [ 35 ], and database communities [ 7]. Recent work has examined artifact evaluation processes, identifying reproducibility and reusability as primary goals [ 21 ] and showing that evaluated artifacts are more available, documented, and maintained [ 46 ]. Others measured reproducibility of LLM-based software engineering research, reporting that half of the papers with the Artifacts Evaluated – Reusable badge were incomplete or non-functional one year later [ 5 ]. However, none of these efforts automate artifact evaluation itself. Our work tackles this problem and paves the way for automated artifact evaluation research. 
+
+Automated Research Reproduction. Recent work leverages LLM agents for reproducibility, defined as enabling a different team to obtain similar experimental outcomes using the same setup [ 6 ].  
+
+> , Vol. 1, No. 1, Article . Publication date: February 2026. 18 Doehyun Baek and Michael Pradel
+
+SUPER [ 10 ] introduces a benchmark evaluating agents’ ability to set up and execute tasks from research repositories. CORE-Bench [ 39 ] also evaluates agents on reproducing research results, expanding to more scientific disciplines (e.g., social science, medicine), while REPRO-Bench [ 24 ]targets social science papers. Unlike SUPER and CORE-Bench, REPRO-Bench is rating-based: the agent outputs a reproducibility score from 1 to 4. Heye et al. [ 22 ] develop an LLM-based system that supports artifact evaluation by outputting a reproducibility score, setting up environments, and identifying pitfalls. Our approach and benchmark differ from prior work as follows: (1) We formulate the problem as a code generation task, enabling independent assessment of generated reproduction scripts. (2) We provide an automated judging mechanism that evaluates both the output and the method of reproduction. (3) We cover diverse software engineering techniques and programming languages not previously addressed. 
+
+Automated Research Replication. There is a related but distinct problem of research replication, defined as the ability of a different team to obtain similar experimental outcomes using a different setup [ 6]. Liang et al. [ 31 ] studied LLMs for replicating empirical software engineering research, finding them to effective at identifying assumptions and boilerplate code. PaperBench [ 41 ] evaluates LLM agents on replicating ML papers and reports a top replication score of 21.0%, below the human baseline. PaperCoder [ 38 ] is a multi-agent LLM framework for automated research replication via planning, analysis, and generation. Xiang et al. [ 47 ] introduce SciReplicate-Bench, a replication benchmark for 36 NLP papers an multi-agent approach for it. Our work fundamentally differs in the problem addressed (reproduction vs. replication) and in augmenting the real-world artifact evaluation process. 
+
+General Software Engineering LLM Agents. There is a growing trend of using LLM agents for software engineering tasks. RepairAgent [ 11 ] is the first LLM agent for automated program repair. ExecutionAgent [ 14 ] automatically sets up projects and runs test suites. SWE-agent [ 48 ] enhances LLM agents’ ability to use computers for SWE-Bench [ 25 ]. MLE-Bench [ 15 ] benchmarks LLM agents in ML engineering. Our work differs by focusing on automated artifact evaluation. 
+
+7 CONCLUSION 
+
+We present Artisan, the first agent that automates the process of artifact evaluation with LLM agents. Our main technical contribution is the problem definition of reproducing research results as a code generation task and development of the automated judging mechanism. To evaluate Artisan, we develop Artisan-Bench, a new benchmark that evaluates LLM agents’ ability to reproduce tables from software engineering research papers. Our evaluation shows that Artisan is effective and efficient. Furthermore, Artisan has added benefit of aiding the discovery of paper-artifact inconsistencies. We envision Artisan paving the way for further research in the task of automated artifact evaluation, empowering researchers to automatically reproduce previous research and furthering the advancement of science. 
+
+DATA AVAILABILITY 
+
+Our code and data are available at https://github.com/doehyunbaek/artisan 
+
+REFERENCES        
+
+> [1] ASE 2024 2024. Artifact Evaluation Track — ASE 2024 (Call for Artifacts) . ASE 2024. https://conf.researchr.org/track/ase-2024/ase-2024-artifact-evaluation-track#Call-for-Artifacts [2] ICSE 2024 2024. Artifact Evaluation — ICSE 2024 . ICSE 2024. https://conf.researchr.org/track/icse-2024/icse-2024-artifact-evaluation [3] ESEC/FSE 2024 2024. Artifacts — FSE 2024 (Call for Artifacts) . ESEC/FSE 2024. https://2024.esec-fse.org/track/fse-2024-artifacts , Vol. 1, No. 1, Article . Publication date: February 2026.
+
+Artisan: Agentic Artifact Evaluation 19 
+
+[4] Mahmoud Alfadel and Shane McIntosh. 2024. The Classics Never Go Out of Style: An Empirical Study of Downgrades from the Bazel Build Technology. In Proceedings of the 46th IEEE/ACM International Conference on Software Engineering, ICSE 2024, Lisbon, Portugal, April 14-20, 2024 . ACM, 233:1–233:12. https://doi.org/10.1145/3597503.3639169 [5] Florian Angermeir, Maximilian Amougou, Mark Kreitz, Andreas Bauer, Matthias Linhuber, Davide Fucci, Fabiola Moyón Constante, Daniel Méndez, and Tony Gorschek. 2025. Reflections on the Reproducibility of Commercial LLM Perfor-mance in Empirical Software Engineering Studies. CoRR abs/2510.25506 (2025). https://doi.org/10.48550/ARXIV.2510. 25506 arXiv:2510.25506 [6] Association for Computing Machinery. 2020. Artifact Review and Badging — Current . https://www.acm.org/publications/ policies/artifact-review-and-badging-current Version 1.1. [7] Manos Athanassoulis, Peter Triantafillou, Raja Appuswamy, Rajesh Bordawekar, Badrish Chandramouli, Xuntao Cheng, Ioana Manolescu, Yannis Papakonstantinou, and Nesime Tatbul. 2022. Artifacts Availability & Reproducibility (VLDB 2021 Round Table). SIGMOD Rec. 51, 2 (2022), 74–77. https://doi.org/10.1145/3552490.3552511 [8] Bowen Baker, Joost Huizinga, Leo Gao, Zehao Dou, Melody Y. Guan, Aleksander Madry, Wojciech Zaremba, Jakub Pachocki, and David Farhi. 2025. Monitoring Reasoning Models for Misbehavior and the Risks of Promoting Obfuscation. 
+
+CoRR abs/2503.11926 (2025). https://doi.org/10.48550/ARXIV.2503.11926 arXiv:2503.11926 [9] Markus Böck, Michael Schröder, and Jürgen Cito. 2024. Language-Agnostic Static Analysis of Probabilistic Programs. In Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering, ASE 2024, Sacramento, CA, USA, October 27 - November 1, 2024 , Vladimir Filkov, Baishakhi Ray, and Minghui Zhou (Eds.). ACM, 78–90. https://doi.org/10.1145/3691620.3695031 [10] Ben Bogin, Kejuan Yang, Shashank Gupta, Kyle Richardson, Erin Bransom, Peter Clark, Ashish Sabharwal, and Tushar Khot. 2024. super: Evaluating Agents on Setting Up and Executing Tasks from Research Repositories. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing, EMNLP 2024, Miami, FL, USA, November 12-16, 2024 , Yaser Al-Onaizan, Mohit Bansal, and Yun-Nung Chen (Eds.). Association for Computational Linguistics, 12622–12645. https://doi.org/10.18653/V1/2024.EMNLP-MAIN.702 [11] Islem Bouzenia, Premkumar T. Devanbu, and Michael Pradel. 2025. RepairAgent: An Autonomous, LLM-Based Agent for Program Repair. In 47th IEEE/ACM International Conference on Software Engineering, ICSE 2025, Ottawa, ON, Canada, April 26 - May 6, 2025 . IEEE, 2188–2200. https://doi.org/10.1109/ICSE55347.2025.00157 [12] Islem Bouzenia, Bajaj Piyush Krishan, and Michael Pradel. 2024. DyPyBench: A Benchmark of Executable Python Software. Proc. ACM Softw. Eng. 1, FSE (2024), 338–358. https://doi.org/10.1145/3643742 [13] Islem Bouzenia and Michael Pradel. 2024. Resource Usage and Optimization Opportunities in Workflows of GitHub Actions. In Proceedings of the 46th IEEE/ACM International Conference on Software Engineering, ICSE 2024, Lisbon, Portugal, April 14-20, 2024 . ACM, 25:1–25:12. https://doi.org/10.1145/3597503.3623303 [14] Islem Bouzenia and Michael Pradel. 2025. You Name It, I Run It: An LLM Agent to Execute Tests of Arbitrary Projects. 
+
+Proc. ACM Softw. Eng. 2, ISSTA (2025), 1054–1076. https://doi.org/10.1145/3728922 [15] Jun Shern Chan, Neil Chowdhury, Oliver Jaffe, James Aung, Dane Sherburn, Evan Mays, Giulio Starace, Kevin Liu, Leon Maksin, Tejal Patwardhan, Aleksander Madry, and Lilian Weng. 2025. MLE-bench: Evaluating Machine Learning Agents on Machine Learning Engineering. In The Thirteenth International Conference on Learning Representations, ICLR 2025, Singapore, April 24-28, 2025 . OpenReview.net. https://openreview.net/forum?id=6s5uXNWGIh [16] Neil Chowdhury, James Aung, Chan Jun Shern, Oliver Jaffe, Dane Sherburn, Giulio Starace, Evan Mays, Rachel Dias, Marwan Aljubeh, Mia Glaese, Carlos E. Jimenez, John Yang, Leyton Ho, Tejal Patwardhan, Kevin Liu, and Aleksander Madry. 2024. Introducing SWE-bench Verified. https://openai.com/index/introducing-swe-bench-verified/ [17] Georgios-Petros Drosos, Thodoris Sotiropoulos, Diomidis Spinellis, and Dimitris Mitropoulos. 2024. Bloat beneath Python’s Scales: A Fine-Grained Inter-Project Dependency Analysis. Proc. ACM Softw. Eng. 1, FSE (2024), 2584–2607. https://doi.org/10.1145/3660821 [18] Florian Eder and Stefan Winter. 2024. Efficient Detection of Test Interference in C Projects. In Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering, ASE 2024, Sacramento, CA, USA, October 27 -November 1, 2024 , Vladimir Filkov, Baishakhi Ray, and Minghui Zhou (Eds.). ACM, 166–178. https://doi.org/10.1145/ 3691620.3694995 [19] Dominik Helm, Tobias Roth, Sven Keidel, Michael Reif, and Mira Mezini. 2024. Unimocg: Modular Call-Graph Algorithms for Consistent Handling of Language Features. In Proceedings of the 33rd ACM SIGSOFT International Symposium on Software Testing and Analysis, ISSTA 2024, Vienna, Austria, September 16-20, 2024 , Maria Christakis and Michael Pradel (Eds.). ACM, 51–62. https://doi.org/10.1145/3650212.3652109 [20] Ben Hermann. 2022. What Has Artifact Evaluation Ever Done for Us? IEEE Secur. Priv. 20, 5 (2022), 96–99. https: //doi.org/10.1109/MSEC.2022.3184234 [21] Ben Hermann, Stefan Winter, and Janet Siegmund. 2020. Community expectations for research artifacts and evaluation processes. In ESEC/FSE ’20: 28th ACM Joint European Software Engineering Conference and Symposium on the Foundations of Software Engineering, Virtual Event, USA, November 8-13, 2020 , Prem Devanbu, Myra B. Cohen, and Thomas , Vol. 1, No. 1, Article . Publication date: February 2026. 20 Doehyun Baek and Michael Pradel 
+
+Zimmermann (Eds.). ACM, 469–480. https://doi.org/10.1145/3368089.3409767 [22] David Heye, Karl Kindermann, Robin Decker, Johannes Lohmöller, Anastasiia Belova, Sandra Geisler, Klaus Wehrle, and Jan Pennekamp. 2025. Supporting Artifact Evaluation with LLMs: A Study with Pub-lished Security Research Papers. In Proceedings of the 2025 IEEE International Conference on Big Data .IEEE. https://www.comsys.rwth-aachen.de/publication/2025/2025_heye_supporting-artifact-evaluation-with-llms/ 2025_heye_supporting-artifact-evaluation-with-llms.pdf [23] Jaemin Hong and Sukyoung Ryu. 2024. To Tag, or Not to Tag: Translating C’s Unions to Rust’s Tagged Unions. In 
+
+Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering, ASE 2024, Sacramento, CA, USA, October 27 - November 1, 2024 , Vladimir Filkov, Baishakhi Ray, and Minghui Zhou (Eds.). ACM, 40–52. https://doi.org/10.1145/3691620.3694985 [24] Chuxuan Hu, Liyun Zhang, Yeji Lim, Aum Wadhwani, Austin Peters, and Daniel Kang. 2025. REPRO-Bench: Can Agentic AI Systems Assess the Reproducibility of Social Science Research?. In Findings of the Association for Computational Linguistics, ACL 2025, Vienna, Austria, July 27 - August 1, 2025 , Wanxiang Che, Joyce Nabende, Ekaterina Shutova, and Mohammad Taher Pilehvar (Eds.). Association for Computational Linguistics, 23616–23626. https://aclanthology.org/ 2025.findings-acl.1210/ [25] Carlos E. Jimenez, John Yang, Alexander Wettig, Shunyu Yao, Kexin Pei, Ofir Press, and Karthik R. Narasimhan. 2024. SWE-bench: Can Language Models Resolve Real-world Github Issues?. In The Twelfth International Conference on Learning Representations, ICLR 2024, Vienna, Austria, May 7-11, 2024 . OpenReview.net. https://openreview.net/forum? id=VTF8yNQM66 [26] Shriram Krishnamurthi. 2013. Artifact evaluation for software conferences. ACM SIGSOFT Softw. Eng. Notes 38, 3 (2013), 7–10. https://doi.org/10.1145/2464526.2464530 [27] Shriram Krishnamurthi and Jan Vitek. 2015. The real software crisis: repeatability as a core value. Commun. ACM 58, 3 (2015), 34–36. https://doi.org/10.1145/2658987 [28] Gichan Lee, Hansae Ju, and Scott Uk-Jin Lee. 2024. NeuroJIT: Improving Just-In-Time Defect Prediction Using Neurophysiological and Empirical Perceptions of Modern Developers. In Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering, ASE 2024, Sacramento, CA, USA, October 27 - November 1, 2024 , Vladimir Filkov, Baishakhi Ray, and Minghui Zhou (Eds.). ACM, 594–605. https://doi.org/10.1145/3691620.3695056 [29] Myungho Lee, Jiseong Bak, Seokhyeon Moon, Yoonchan Jhi, and Hakjoo Oh. 2024. Effective Unit Test Generation for Java Null Pointer Exceptions. In Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering, ASE 2024, Sacramento, CA, USA, October 27 - November 1, 2024 , Vladimir Filkov, Baishakhi Ray, and Minghui Zhou (Eds.). ACM, 1044–1056. https://doi.org/10.1145/3691620.3695484 [30] Chenghao Li, Yifei Wu, Wenbo Shen, Zichen Zhao, Rui Chang, Chengwei Liu, Yang Liu, and Kui Ren. 2024. Demystifying Compiler Unstable Feature Usage and Impacts in the Rust Ecosystem. In Proceedings of the 46th IEEE/ACM International Conference on Software Engineering, ICSE 2024, Lisbon, Portugal, April 14-20, 2024 . ACM, 24:1–24:13. https://doi.org/10. 1145/3597503.3623352 [31] Jenny T. Liang, Carmen Badea, Christian Bird, Robert DeLine, Denae Ford, Nicole Forsgren, and Thomas Zimmermann. 2024. Can GPT-4 Replicate Empirical Software Engineering Research? Proc. ACM Softw. Eng. 1, FSE (2024), 1330–1353. https://doi.org/10.1145/3660767 [32] Monte MacDiarmid, Benjamin Wright, Jonathan Uesato, Joe Benton, Jon Kutasov, Sara Price, Naia Bouscal, Sam Bowman, Trenton Bricken, Alex Cloud, Carson Denison, Johannes Gasteiger, Ryan Greenblatt, Jan Leike, Jack Lindsey, Vlad Mikulik, Ethan Perez, Alex Rodrigues, Drake Thomas, Albert Webson, Daniel Ziegler, and Evan Hubinger. 2025. Natural Emergent Misalignment from Reward Hacking in Production RL. arXiv:2511.18397 [cs.AI] https: //arxiv.org/abs/2511.18397 [33] Al Muttakin, Saikat Mondal, and Chanchal Roy. 2026. The State of Open Science in Software Engineering Research: A Case Study of ICSE Artifacts. arXiv:2601.02066 [cs.SE] https://arxiv.org/abs/2601.02066 [34] Daye Nam, Andrew Macvean, Vincent J. Hellendoorn, Bogdan Vasilescu, and Brad A. Myers. 2024. Using an LLM to Help With Code Understanding. In Proceedings of the 46th IEEE/ACM International Conference on Software Engineering, ICSE 2024, Lisbon, Portugal, April 14-20, 2024 . ACM, 97:1–97:13. https://doi.org/10.1145/3597503.3639187 [35] Daniel Olszewski, Allison Lu, Carson Stillman, Kevin Warren, Cole Kitroser, Alejandro Pascual, Divyajyoti Ukirde, Kevin R. B. Butler, and Patrick Traynor. 2023. "Get in Researchers; We’re Measuring Reproducibility": A Reproducibility Study of Machine Learning Papers in Tier 1 Security Conferences. In Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security, CCS 2023, Copenhagen, Denmark, November 26-30, 2023 , Weizhi Meng, Christian Damsgaard Jensen, Cas Cremers, and Engin Kirda (Eds.). ACM, 3433–3459. https://doi.org/10.1145/3576915. 3623130 [36] Zhiyuan Pan, Xing Hu, Xin Xia, Xian Zhan, David Lo, and Xiaohu Yang. 2024. PPT4J: Patch Presence Test for Java Binaries. In Proceedings of the 46th IEEE/ACM International Conference on Software Engineering, ICSE 2024, Lisbon, Portugal, April 14-20, 2024 . ACM, 225:1–225:12. https://doi.org/10.1145/3597503.3639231 , Vol. 1, No. 1, Article . Publication date: February 2026. Artisan: Agentic Artifact Evaluation 21 
+
+[37] Tobias Roth, Julius Näumann, Dominik Helm, Sven Keidel, and Mira Mezini. 2024. AXA: Cross-Language Analysis through Integration of Single-Language Analyses. In Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering, ASE 2024, Sacramento, CA, USA, October 27 - November 1, 2024 , Vladimir Filkov, Baishakhi Ray, and Minghui Zhou (Eds.). ACM, 1195–1205. https://doi.org/10.1145/3691620.3696193 [38] Minju Seo, Jinheon Baek, Seongyun Lee, and Sung Ju Hwang. 2025. Paper2Code: Automating Code Generation from Scientific Papers in Machine Learning. CoRR abs/2504.17192 (2025). https://doi.org/10.48550/ARXIV.2504.17192 arXiv:2504.17192 [39] Zachary S. Siegel, Sayash Kapoor, Nitya Nadgir, Benedikt Stroebl, and Arvind Narayanan. 2024. CORE-Bench: Fostering the Credibility of Published Research Through a Computational Reproducibility Agent Benchmark. Trans. Mach. Learn. Res. 2024 (2024). https://openreview.net/forum?id=BsMMc4MEGS [40] Yahui Song, Xiang Gao, Wenhua Li, Wei-Ngan Chin, and Abhik Roychoudhury. 2024. ProveNFix: Temporal Property-Guided Program Repair. Proc. ACM Softw. Eng. 1, FSE (2024), 226–248. https://doi.org/10.1145/3643737 [41] Giulio Starace, Oliver Jaffe, Dane Sherburn, James Aung, Jun Shern Chan, Leon Maksin, Rachel Dias, Evan Mays, Benjamin Kinsella, Wyatt Thompson, Johannes Heidecke, Amelia Glaese, and Tejal Patwardhan. 2025. PaperBench: Evaluating AI’s Ability to Replicate AI Research. In Forty-second International Conference on Machine Learning, ICML 2025, Vancouver, BC, Canada, July 13-19, 2025 . OpenReview.net. https://openreview.net/forum?id=xF5PuTLPbn [42] SWE-agent contributors. 2025. mini-swe-agent. https://github.com/SWE-agent/mini-swe-agent. GitHub repository, MIT License. Version v1.14.4. [43] Felix Wallner, Bernhard K. Aichernig, and Christian Burghard. 2024. It’s Not a Feature, It’s a Bug: Fault-Tolerant Model Mining from Noisy Data. In Proceedings of the 46th IEEE/ACM International Conference on Software Engineering, ICSE 2024, Lisbon, Portugal, April 14-20, 2024 . ACM, 29:1–29:13. https://doi.org/10.1145/3597503.3623346 [44] Xingyao Wang, Boxuan Li, Yufan Song, Frank F. Xu, Xiangru Tang, Mingchen Zhuge, Jiayi Pan, Yueqi Song, Bowen Li, Jaskirat Singh, Hoang H. Tran, Fuqiang Li, Ren Ma, Mingzhang Zheng, Bill Qian, Yanjun Shao, Niklas Muennighoff, Yizhe Zhang, Binyuan Hui, Junyang Lin, and et al. 2025. OpenHands: An Open Platform for AI Software Developers as Generalist Agents. In The Thirteenth International Conference on Learning Representations, ICLR 2025, Singapore, April 24-28, 2025 . OpenReview.net. https://openreview.net/forum?id=OJd3ayDDoF [45] You Wang, Michael Pradel, and Zhongxin Liu. 2025. Are "Solved Issues" in SWE-bench Really Solved Correctly? An Empirical Study. CoRR abs/2503.15223 (2025). https://doi.org/10.48550/ARXIV.2503.15223 arXiv:2503.15223 [46] Stefan Winter, Christopher Steven Timperley, Ben Hermann, Jürgen Cito, Jonathan Bell, Michael Hilton, and Dirk Beyer. 2022. A retrospective study of one decade of artifact evaluations. In Proceedings of the 30th ACM Joint European Software Engineering Conference and Symposium on the Foundations of Software Engineering, ESEC/FSE 2022, Singapore, Singapore, November 14-18, 2022 , Abhik Roychoudhury, Cristian Cadar, and Miryung Kim (Eds.). ACM, 145–156. https://doi.org/10.1145/3540250.3549172 [47] Yanzheng Xiang, Hanqi Yan, Shuyin Ouyang, Lin Gui, and Yulan He. 2025. SciReplicate-Bench: Benchmarking LLMs in Agent-driven Algorithmic Reproduction from Research Papers. CoRR abs/2504.00255 (2025). https://doi.org/10. 48550/ARXIV.2504.00255 arXiv:2504.00255 [48] John Yang, Carlos E. Jimenez, Alexander Wettig, Kilian Lieret, Shunyu Yao, Karthik Narasimhan, and Ofir Press. 2024. SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering. In Advances in Neural Information Processing Systems 38: Annual Conference on Neural Information Processing Systems 2024, NeurIPS 2024, Vancouver, BC, Canada, December 10 - 15, 2024 , Amir Globersons, Lester Mackey, Danielle Belgrave, Angela Fan, Ulrich Paquet, Jakub M. Tomczak, and Cheng Zhang (Eds.). http://papers.nips.cc/paper_files/paper/2024/hash/ 5a7c947568c1b1328ccc5230172e1e7c-Abstract-Conference.html [49] Brian Zhang. 2024. Towards Finding Accounting Errors in Smart Contracts. In Proceedings of the 46th IEEE/ACM International Conference on Software Engineering, ICSE 2024, Lisbon, Portugal, April 14-20, 2024 . ACM, 138:1–138:13. https://doi.org/10.1145/3597503.3639128 [50] Cyrine Zid, Fiorella Zampetti, Giuliano Antoniol, and Massimiliano Di Penta. 2024. A Study on the Pythonic Functional Constructs’ Understandability. In Proceedings of the 46th IEEE/ACM International Conference on Software Engineering, ICSE 2024, Lisbon, Portugal, April 14-20, 2024 . ACM, 237:1–237:13. https://doi.org/10.1145/3597503.3639211 , Vol. 1, No. 1, Article . Publication date: February 2026.

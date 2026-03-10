@@ -1,0 +1,1012 @@
+Title: Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration?
+
+URL Source: https://arxiv.org/pdf/2603.03202v2
+
+Published Time: Thu, 05 Mar 2026 01:31:02 GMT
+
+Number of Pages: 32
+
+Markdown Content:
+# Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Dadi Guo * 1 Yuejin Xie * 2 Qingyu Liu * 3 Jiayu Liu 1 Zhiyuan Fan 1 Qihan Ren 4 Shuai Shao 4 Tianyi Zhou 5
+
+Dongrui Liu † 4 Yi R. (May) Fung † 1
+
+Abstract 
+
+As large language models (LLMs) advance their mathematical capabilities toward the IMO level, the scarcity of challenging, high-quality problems for training and evaluation has become a signif-icant bottleneck. Simultaneously, recent code agents have demonstrated sophisticated skills in agentic coding and reasoning, suggesting that code execution can serve as a scalable envi-ronment for mathematical experimentation. In this paper, we investigate the potential of code agents to autonomously evolve existing math problems into more complex variations. We introduce a multi-agent framework designed to perform problem evolution while validating the solvability and increased difficulty of the gen-erated problems. Our experiments demonstrate that, given sufficient test-time exploration, code agents can synthesize new, solvable problems that are structurally distinct from and more chal-lenging than the originals. This work provides empirical evidence that code-driven agents can serve as a viable mechanism for synthesizing high-difficulty mathematical reasoning problems within scalable computational environments. Our data is available at https://github.com/ TarferSoul/Code2Math .
+
+1. Introduction 
+
+Recent large language models (LLMs) have achieved sub-stantial advances in mathematical reasoning, reaching performance comparable to International Mathematical Olympiad (IMO)–level problem solving (Huang & Yang, 2025; Shao et al., 2025b; DeepSeek-AI et al., 2025; Gao 
+
+*Equal contribution 1The Hong Kong University of Science and Technology 2Huazhong University of Science and Tech-nology 3Zhejiang University 4Shanghai Jiao Tong University 
+
+5University of Michigan. Correspondence to: Yi R.(May) Fung 
+
+<yrfung@ust.hk >, Dongrui Liu <drliu96@sjtu.edu.cn >.
+
+Preprint. March 5, 2026. SEED PROBLEM : A list of positive integers has the following properties: (1) 
+
+The sum of the items in the list is 30. (2)The unique mode of the list is 9. (3) 
+
+The median of the list is a positive integer that does not appear in the list itself. 
+
+Find the sum of the squares of all the items in the list.                                                                       
+
+> def solve_max_n (TARGET_SUM):
+> best_n = 0
+> best_configs = []
+> for f in range(2, 50):
+> for M in range(1, 10):
+> for h in range(f, 100):
+> cost_L = 0
+> possible_L = True
+> if M < 2:
+> possible_L = False
+> else:
+> capacity_L = (M - 1) *(f - 1)
+> if h > capacity_L :
+> possible_L = False
+> else:
+> full_vals = h // (f - 1)
+> remainder = h % (f - 1)
+> cost_L += (f - 1) *(full_vals *(full_vals + 1) // 2)
+> cost_L += remainder *(full_vals + 1)
+> max_val_used =full_vals + (1 if remainder > 0 else 0)
+> if max_val_used >= M:
+> possible_L = False
+> if not possible_L :
+> continue
+> cost_U = 10 *f
+> needed = h - f
+> candidates_U = []
+> for val in range(M + 1, 10):
+> candidates_U.append (val )
+> current_needed = needed
+> for val in candidates_U :
+> if current_needed <= 0: break
+> take = min( current_needed , f - 1)
+> cost_U += take *val
+> current_needed -= take
+> next_val = 11
+> while current_needed > 0:
+> take = min( current_needed , f - 1)
+> cost_U += take *next_val
+> current_needed -= take
+> next_val += 1
+> total_sum =cost_L +cost_U
+> if total_sum <= TARGET_SUM:
+> n = 2 *h
+> if n > best_n :
+> best_n = n
+> best_configs = [(f, M, h, total_sum )]
+> elif n == best_n :
+> best_configs.append ((f, M, h, total_sum ))
+> return best_n ,best_configs
+> print( solve_max_n (32 0))
+
+Explorat e by Code 
+
+Python Output : (72, [(19, 3, 36, 312), (20, 3, 36, 317)]) 
+
+EVOLVED PROBLEM : A list of positive integers has a sum of 323. The list 
+
+satisfies three conditions:(1) The unique mode of the list is 10. (2) The median 
+
+of the list is a positive integer that does not appear in the list. (3) The list 
+
+contains the maximum possible number of items consistent with the first two 
+
+conditions. Find this maximum number of items. 
+
+Figure 1. Example of code-driven problem evolution. The agent analyzes the seed problem and performs computational exploration to enumerate valid configurations under structural constraints. The empirical findings are then abstracted into an evolved problem with increased combinatorial and structural complexity. 
+
+et al., 2025b). While these results demonstrate the effec-tiveness of current training paradigms, they also expose an emerging bottleneck: further progress increasingly depends on the availability of novel and high-difficulty mathematical problems. Such problems are difficult to scale through man-ual curation, as their construction typically requires deep do-main expertise and significant human effort. Consequently, the scarcity of sufficiently challenging and diverse math-ematical problems has become a limiting factor for both training and evaluation, motivating the search for automated approaches to synthesizing high-difficulty mathematical rea-soning data. Many challenging mathematical problems arise from ex-ploratory processes such as conjecture formation, counterex-ample search, and systematic experimentation over struc-1
+
+> arXiv:2603.03202v2 [cs.CL] 4 Mar 2026 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration?
+
+tured spaces. These processes are inherently computational, involving iterative hypothesis testing and verification rather than purely deductive reasoning. Recent advances in code agents (Yang et al., 2025b; DeepSeek-AI et al., 2025) com-bine strong reasoning capabilities with access to scalable and executable computational environments (Huang et al., 2025c), enabling large-scale simulation, symbolic manip-ulation, and automated verification (Cheng et al., 2026). For example, a code agent can empirically explore numer-ical sequences to uncover latent patterns, or exhaustively search for counterexamples to validate or refute candidate propositions. Such capabilities closely mirror the work-flows through which human mathematicians discover and refine new problems. This alignment suggests that code agents provide a promising mechanism for autonomously exploring mathematical spaces and synthesizing novel, chal-lenging problems, offering a scalable source of high-quality mathematical reasoning data. In this paper, we investigate whether code agents can au-tonomously evolve existing mathematical problems into new, more challenging ones. We aim to answer three re-search questions: 1) Are the evolved problems mathemati-cally sound and solvable? 2) Do they present a genuine increase in difficulty for current reasoning models? 3) How efficient is the problem evolution process? To study these questions, we collect 100 seed problems from diverse sources, including textbooks, regional competitions, and mainstream benchmarks like the IMO and AIME. These problems serve as a baseline for the agents to explore sys-tematic modifications and provide a controlled setting for evaluating solvability and difficulty escalation. Given that adapting mathematical problems is a long-horizon task involving long contexts (Luo et al., 2025), we decompose this task into three stages assigned to dis-tinct agents: the Evolution Agent , the Solvability Verifica-tion Agent , and the Difficulty Verification Agent (You et al., 2026), thereby forming a multi-agent system (Tran et al., 2025; Han et al., 2024). Leveraging Theory of Mind (Chen et al., 2025b; Qian et al., 2024; 2025; Liu et al., 2025c), we instruct the Evolution Agent to anticipate the solver’s likely reasoning paths and strategically inject new Aha moments 
+
+(Guo et al., 2025b) into the problem, thereby trying to make the entry point elusive even for experienced competitor. Tak-ing the evolved problem and proposed solution as input, the 
+
+Solvability Verification Agent checks for inconsistencies in the problem statement and validates the solution’s feasibility. Any detected flaw causes the output to be rejected. This verification relies on the premise that a logically flawless solution demonstrates the existence of at least one solution path, thereby providing strong evidence that the problem is solvable. We then define difficulty as the Burden of Discov-ery , referring to the challenge of uncovering the key insight to solve the problem, which serves as the criteria for the 
+
+Difficulty Verification Agent to assess difficulty increase. Our multi-agent system operates under the test-time scaling paradigm (Muennighoff et al., 2025; Zhang et al., 2025), specifically by leveraging multiple rollouts (Wang et al., 2025c) from the Evolution Agent to satisfy the criteria of the two verification agents. This design serves a dual pur-pose: it aims to provide the agent with ample opportunities for exploration to satisfy the basic validation criteria, while simultaneously providing metrics of its efficiency in prob-lem creation ( e.g. , rollout count). Unlike previous scaling paradigms that rely solely on text-based long-chain reason-ing (Wei et al., 2022), this agent can write code and leverage Python libraries related to math ( e.g. , SymPy , NetworkX ,
+
+itertools ) (Li et al., 2023). This allows it to perform sym-bolic computation and obtain deterministic intermediate results to guide its actions. We conduct experiments using models including 
+
+DeepSeek-Chat , DeepSeek-Reasoner , Gemini-3-Pro-Preview-Thinking , Kimi-K2-Thinking and Seed-2.0-Pro to evolve problems, and evaluate the results across 6 distinct solver models. The results indicate that the agent-generated problems maintain a high solvability rate, exemplified by 
+
+DeepSeek-Reasoner achieving a 94/98 (approx. 96%) agree-ment rate with the external judge. Crucially, we observe a capability asymmetry where models can autonomously construct challenges that exceed their own solving baselines. This demonstrates that agents can synthesize Burden of Discovery beyond their immediate reasoning capacity. However, this process is computationally intensive, with an average of 1.56 to 6.55 failures per success and complex cases often requiring over 10 iterations. Furthermore, we also conduct a case study to illustrate how code execution serves as the primary engine for exploration, facilitating the transition from simple verification to deep structural exploration. • We propose a novel system that decomposes the long-horizon task of problem adaptation into three specialized agents, allowing systematic exploration, validation, and difficulty assessment. The framework leverages code ex-ecution to facilitate symbolic reasoning and structured exploration, enabling the generation of mathematically sound and progressively challenging problems. • We conduct large-scale experiments using three LLMs as evolution agents and evaluate the generated problems across six distinct solver models. Our results show that the framework achieves high solvability rates while suc-cessfully producing problems that significantly exceed the difficulty level of their seed problems. • Our study reveals several key findings: (1) code-driven exploration enables systematic discovery of hard-to-find insights; (2) models can engineer difficulties that surpass 2Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+their own reasoning baselines; (3) the problem generation process, while effective, involves notable computational overhead and iterative refinement, highlighting trade-offs between exploration efficiency and difficulty enhance-ment. 
+
+2. Related Works 
+
+2.1. Data Synthesis through Exploration 
+
+Recently, many studies have leveraged models’ ability to explore environments to synthesize new data. AgentE-volver (Zhai et al., 2025), WebExplorer (Liu et al., 2025a), TaskCraft (Shi et al., 2025), Go-Browse (Gandhi & Neubig, 2025) and Cognitive Kernel-Pro (Fang et al., 2025) enable models to explore within environments, thereby progres-sively generating agent data. TRACE (Guo et al., 2025c) and AutoCode (Zhou et al., 2025) demonstrates the capa-bility of multi-agent systems to evolve general-purpose and coding tasks through exploration, and incorporates a veri-fication mechanism. These works tend to focus on agent task generation, rarely involving mathematical reasoning tasks. AlphaGeometry (Trinh et al., 2024) demonstrates exceptional performance by exploring the creation of new geometric problems from known geometric structures but relying on a specialized symbolic deduction engine only for geometry. 
+
+2.2. Math Problem Adaptation and Generation 
+
+Many research works adapt mathematical problems to serve as new training and benchmark data. MATH-Perturb (Huang et al., 2025b), EvolMathEval (Wang et al., 2025a) and Benchmark Self-Evolving (Wang et al., 2025b) adapt math-ematical problems from existing benchmarks to evaluate the reasoning robustness of models. These works often rely on manual efforts or instruct LLMs to perform modifications based on simple rules, failing to exploit the intrinsic poten-tial of the agents themselves. Another line of works such as R-zero (Huang et al., 2025a), Self-Question Language Model (Chen et al., 2025a), UltraLogic (Liu et al., 2026b), SANDMath (Manem et al., 2025) and RLVE (Zeng et al., 2025) has models or environment directly generate math problems and train on those problems. On one hand, these works fail to leverage the agentic capabilities of models; on the other hand, they may lack evaluation of the quality of the generated problems. 
+
+3. Method 
+
+In this section, we introduce the seed problems used for evo-lution, the multi-agent framework including three different agents, and the evaluation method. 
+
+3.1. Data for Evolution 
+
+We collect 100 mathematical problems from diverse sources, covering various fields such as algebra, combinatorics, cal-culus, sequences, and graph theory. The data is sourced from standard mathematics problem books, recent regional exams or competitions, the IMO, and common benchmarks such as AIME-2024 and AIME-2025. The diverse sources ensure diversity in both problem content and difficulty lev-els. We select an additional 6 pairs of problems to serve as examples for adaptation and evaluation. These include expert demonstrations as well as pairs generated through reverse creation (Sun et al., 2025) by LLMs ( i.e. , derived by first constructing a simple problem from a complex one, then providing the logic to adapt the simple version back to the complex one). 
+
+3.2. Multi-Agent System 
+
+Our multi-agent system consists of three agents: the Evo-lution Agent , the Solvability Verification Agent , and the 
+
+Difficulty Verification Agent . In this section, we introduce the design of each agent individually. 3.2.1. E VOLUTION AGENT 
+
+The Evolution Agent takes a seed problem and its solution steps as input. We design this agent to operate in two phases. In the first phase, it analyzes the solution of the input prob-lem to identify the cognitive bottleneck for a solver. In the second phase, it performs free exploration based on the original problem to design a more challenging new prob-lem. Drawing inspiration from Theory of Mind (Chen et al., 2025b), we define difficulty here as the Burden of Discov-ery . Specifically, we require the agent to anticipate how an experienced competition solver would approach the prob-lem, and then deliberately conceal potential insights to make them difficult to uncover, thereby creating an Aha moment 
+
+(Guo et al., 2025b) within the solution process of the new problem. Additionally, we offer guidance on potential di-rections by encouraging the agent to explore areas such as tighter mathematical bounds, more sophisticated combina-torial constructions, and underlying patterns in numerical sequences. The output of the Evolution Agent comprises the new problem statement and the proposed solution steps. 3.2.2. S OLVABILITY VERIFICATION AGENT 
+
+Determining problem solvability (Peng et al., 2025; Liu et al., 2026a) is a non-trivial endeavor, as flaws may ex-tend beyond surface-level errors in the description of the problem to subtle inconsistencies embedded deep within the underlying logic, which are elusive to detection. Therefore, we design the Solvability Verification Agent to operate in two stages. Phase one involves detecting obvious surface-level errors. In the second phase, it scrutinizes the solution 3Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? Evolution Agent    
+
+> System prompt
+> Seed problem
+> Solution
+> Phase 1
+> Analyze cognitive
+> bottleneck
+> Phase 2
+> Thought
+> Empirical Inquiry
+> Observation
+> Solvability
+> Verification Agent
+> Check surface -level
+> errors
+> Check logical errors
+> Difficulty
+> Verification Agent
+> Evaluate the relative
+> difficulty
+> Code
+> Tools
+> Symbolic computation Constraint satisfaction
+> Graph Tools Combinatorial enumeration
+> Generate
+> Filter
+> Support Support
+> Input
+> Solution
+> Evolved
+> problem
+> Candidate
+> problems
+> …
+
+Figure 2. Overview of our multi-agent system. Our pipeline consists of three components: the Evolution Agent , the Solvability Verification Agent , and the Difficulty Verification Agent . It is equipped with code tools related to mathematics. The framework takes an original problem and its solution as input and outputs a validated new problem along with a solution for reference. 
+
+steps proposed by the Evolution Agent for correctness. The rationale is that a flawless logical chain in the proposed so-lution implies the existence of at least one solution, thereby serving as a proxy metric for solvability. Conversely, if the proposed solution contains logical flaws, we discard the problem even if it is intrinsically solvable. Given that many of the selected problems lack a deterministic final answer (e.g. , proof problems), we use a set of failure modes (Guo et al., 2025a; Yuan et al., 2025; Liu et al., 2026a) to assist the agent in diagnosing and categorizing errors within the solution steps. 3.2.3. D IFFICULTY VERIFICATION AGENT 
+
+The Difficulty Verification Agent receives the original prob-lem, the adapted problem, and their respective solution steps as inputs. Utilizing the ToM-based approach described above, the agent evaluates the relative difficulty of the two problems to determine whether the adapted problem intro-duces an Aha moment that is more difficult for an experi-enced competition solver to uncover. To rigorously assess the quality of generated adaptations, the Difficulty Verification Agent executes a 5-point scoring mechanism that distinguishes between Artificial Complexity 
+
+and Cognitive Depth . Validations falling below the accep-tance threshold (Scores 1-2) represent failures to induce a genuine increased difficulty. Specifically, Score 1 indicates an unchanged or regressed solution path, while Score 2 cap-tures a common pitfall in problem generation which increase difficulty solely through computational tedium or repetitive procedures. By penalizing these tedious modifications, we ensure the agent does not mistake labor-intensive algebra for intellectual challenge. Successful adaptations start at Score 3, where the problem effectively breaks standard solution templates and forces a deviation from rote application. Higher evaluations (Scores 4-5) are reserved for adaptations that demonstrate anti-templating capabilities which turning standard heuristics into traps and requiring profound Aha moments . The high-est tier, Score 5, serves as a gold standard for mathematical beauty, rewarding problems that offer not only a cognitive challenge but also aesthetic satisfaction through deep sym-metries or unexpected conceptual connections. 
+
+3.3. Test-time Exploration through Code 
+
+Leveraging the test-time scaling paradigm, our approach involves generating multiple rollouts per input to satisfy the criteria of our dual-verification system. Agents are explic-itly governed to utilize code as a tool for empirical inquiry. For instance, they may run numerical simulations to probe for tighter inequality bounds, print out sequences to intu-itively spot regularities, or validate their hypotheses by ac-tively searching for counter-examples. We equip the agent with a comprehensive Python sandbox containing a curated suite of libraries spanning symbolic computation ( SymPy ), constraint satisfaction ( Z3 ), graph theory ( NetworkX ), and combinatorial enumeration ( itertools ). This rich toolset empowers the agent to perform rigorous empirical verifi-cation across diverse mathematical domains, ranging from 4Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+high-precision arithmetic to complex topological analysis. 
+
+3.4. Evaluation Method 
+
+We conduct evaluations on the solvability of the generated questions, the increase in difficulty, the efficiency of the model in evolving questions, and the role of code during exploration, respectively. 
+
+Solvability. There is no deterministic way to assess the solvability of a natural language math problem, so we adopt an LLM-as-a-judge approach (Gu et al., 2024). Our ear-lier multi-agent framework already includes a solvability check, but frameworks based on different models can vary a lot. Therefore, we introduce a unified third-party model to perform the check in a consistent manner. To maximize the reliability of the evaluation, this third party must be a model with strong and dependable reasoning ability (in our experiments, we chose GPT-5.2-high ) (OpenAI, 2025). A problem is deemed solvable only when the third-party judge and the agent reach agreement. 
+
+Difficulty. We evalaute different models on the original questions and on the new questions that pass the solvabil-ity check, observing whether their accuracy and reasoning length change. Lower accuracy and more reasoning tokens indicate that the evolved questions are harder. Accuracy is also evaluated using GPT-5.2-high as the judge to determine whether there are logical errors in the solution process. 
+
+Efficiency. We use the average number of Evolution Agent 
+
+rollouts to get a qualified new question as a metric to evalu-ate the agent’s efficiency. In addition, we also compile the distribution of rollout counts across different models as an auxiliary metric. 
+
+4. Experiments 
+
+In this section, we present our experimental setup and the results of our experiments. 
+
+4.1. Setup Models. Our model selection strategy distinguishes be-tween the evolutionary and evaluation phases to ensure robust generation and rigorous assessment. For the multi-agent evolving system, we employ DeepSeek-Chat ,
+
+DeepSeek-Reasoner (DeepSeek-AI et al., 2025), Gemini-3-Pro-Preview-Thinking (Google, 2025), Kimi-K2-Thinking 
+
+(Team et al., 2025) and Seed-2.0-Pro (Seed, 2026) as the base models responsible for problem evolution and initial verification. In the subsequent evaluation phase, we assess the evolved problems using a diverse set of six solver models to track performance variations: DeepSeek-Chat , DeepSeek-Reasoner , Qwen3-235B-A22B-Thinking-2507 (Yang et al., 2025a), Gemini-3-Flash-Thinking (Google, 2025), GPT 5.2-Medium , and GPT 5.2-High (OpenAI, 2025). To ensure rigorous quality control, we utilize GPT 5.2-High , which is currently considered the state-of-the-art, as the external judge model to evaluate both the intrinsic solvability of the problems and the correctness of the step-by-step solutions generated by the solver models. 
+
+Agentic Environment. The multi-agent evolving system is built upon the Smolagents framework (Roucher et al., 2025), which enables agents to execute user-defined Python code within a controlled environment. To support complex problem generation and verification, we equip the agents with a comprehensive toolset. This includes standard util-ity libraries for general-purpose functionality ( json , math ,
+
+random , statistics , as well as itertools and collections for efficient data manipulation. For precision and textual pro-cessing, we include fractions , decimal , re , and functools .Furthermore, the environment supports advanced scientific and symbolic computing through numpy , scipy , pandas ,
+
+openpyxl , sympy , mpmath , and z3 , alongside networkx for graph operations. 
+
+Implementation Details. We collect 100 mathematical problems from diverse sources to serve as seed inputs (detailed in Section 3.1); consequently, our experimental pipeline is designed such that each original problem corre-sponds to exactly one evolved problem instance. For the evolutionary process, we impose a maximum agent trajec-tory length of 30 steps and a rollout budget of 20 attempts. An evolution instance is deemed successful only if a gen-erated problem passes both verification agents within these 20 rollouts; otherwise, the evolution is recorded as a fail-ure and terminated. In the evaluation phase, we enforce strict resource constraints to ensure efficiency: a timeout is triggered if a model exceeds either the maximum token limit or a 30-minute wall-clock duration. We allow each solver model up to three attempts per problem; a consistent timeout across all attempts results in a failure. To ensure reproducibility and deterministic outputs during evaluation, all models are queried with a temperature of 0, utilizing their respective default maximum token limits. 
+
+Evaluation Metrics. To comprehensively assess the system, we utilize the following metrics: • Evolution Success Count ( ESC ): The total number of problems that successfully pass both verification agents within the 20-rollout limit. • Certified Solvability Count ( CSC ): The number of evolved problems (and their canonical solutions) that are independently verified as solvable by the external judge model. • Agreement Rate ( AR ): The ratio of the Certified Solvabil-ity Count to the Evolution Success Count. This measures the consistency between the internal Solvability Verifica-tion Agent and the external judge. 5Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+• Solve Rate ( SR ): The proportion of evolved problems correctly solved by a specific solver model. This is deter-mined by the judge model, which evaluates the solver’s step-by-step reasoning and final answer for errors. To quantify the progression of problem complexity, we re-port both Origin-SR and Evolution-SR , corresponding to the accuracy on the original seed dataset and the evolved dataset, respectively. We posit that a decrease in per-formance (i.e., Evolution-SR > Origin-SR ) reflects an increase in difficulty, with a larger divergence between the two metrics indicating a greater degree of evolution. • Average Token Consumption ( ATC ): The mean number of output tokens generated by solver models when solving each problem. For problems where solvers timed out, we impute the maximum token limit to reflect the excessive computational effort. We use this metric as a proxy for problem-solving difficulty, as harder problems typically require more extensive reasoning chains. 
+
+4.2. Result Analysis Solvability Verification. The high Agreement Rates (AR) observed in Table 1 serve as a quantitative validation of the framework’s reliability, particularly the effectiveness of the 
+
+Solvability Verification Agent . As defined in the method-ology, AR measures the consistency between the internal verification agent and the external judge ( GPT-5.2-High ). Across different evolution models, we observe consistently high agreement. When DeepSeek-Reasoner acts as the evo-lution agent, it achieves an AR of 94/98 (approximately 96%), while DeepSeek-Chat reaches 83/94 (approximately 88%). The problems evolved by Gemini-3-Pro-Preview-Thinking all pass the external solvability check (98/98). Sim-ilarly, Seed-2.0-Pro achieves an AR of 83/97 (approximately 86%), and Kimi-K2-Thinking attains 74/90 (approximately 82%). This consistently high level of agreement indicates that the internal solvability verification based on scrutinizing proposed solution steps for logical flaws is effective at filter-ing out invalid generations. Overall, the results suggest that the framework reliably maintains mathematical soundness in the evolved problems, with strong consistency against an independent state-of-the-art judge. 
+
+Difficulty Escalation. The autonomously increasing prob-lem difficulty is supported by the reduction in Solve Rates (SR) from the seed set (Origin-SR) to the evolved set (Evolution-SR) in Table 1. Across most solver–evolver combinations, the gap (Evolution-SR − Origin-SR ) is neg-ative, indicating that the evolved problems are systemati-cally harder for current solvers. For example, on problems evolved by DeepSeek-Reasoner , the close-source solver 
+
+Gemini-3-Flash-Thinking drops from 56% to 35% ( −21 ), and the state-of-the-art solver GPT-5.2-High decreases from 70% to 64% ( −6). Moreover, evolvers such as Gemini-3-Pro-Preview-Thinking and Seed-2.0-Pro yield compara-ble degradations on strong solvers (e.g., GPT-5.2-High :70% →61%, −9), while DeepSeek-Chat shows limited im-pact on the strongest solver (approximately ±0 on GPT-5.2-High ). Taken together, these results suggest that the proposed pipeline can inject additional Burden of Discov-ery forcing solvers to depart from template-like solution paths, rather than merely producing superficial paraphrases. Finally, we observe a capability asymmetry: in some set-tings, models can generate evolved instances that substan-tially reduce the solve rates of other (sometimes stronger) solvers, hinting at potential room for self-evolution (Gao et al., 2025a; Shao et al., 2025a) via iterative, code-driven exploration. 
+
+Role of Reasoning Strength in the Evolution Agent. 
+
+The cross-model evaluation further highlights the impor-tance of strong reasoning capabilities in the Evolution Agent .Table 1 reveals a noticeable performance gap between 
+
+DeepSeek-Chat and DeepSeek-Reasoner in their ability to induce difficulty escalation. When DeepSeek-Chat acts as the evolution agent, its impact on the strongest solver, GPT-5.2-High , is limited (70% → 70%). In contrast, problems evolved by DeepSeek-Reasoner reduce GPT-5.2-High ’s ac-curacy from 70% to 64%, and lead to larger degradations for other solvers such as Gemini-3-Flash-Thinking .These observations suggest that stronger reasoning and ex-ploratory capabilities in the evolution phase are associated with more consistent and transferable difficulty increases across solver models. In particular, reasoning-enhanced agents appear more capable of introducing structural mod-ifications that deviate from standard solution templates, thereby increasing the effective Burden of Discovery .
+
+Model Robustness. The evaluation exposes significant variance in how different solver models handle agent-evolved complexity. While most models experience a drop in accuracy on the evolved set, the extent of this de-cline varies. Open-source models like Qwen3-235B-A22B-Thinking show a slight decline (e.g., -1%) but start from a much lower baseline of 20%, whereas high-performing close-source models maintain higher baselines but suffer steeper absolute drops in accuracy (e.g., Gemini-3-Flash-Thinking dropping 21% on DeepSeek-Reasoner evolved problems). This indicates that the evolved problems ef-fectively differentiate between models, creating a more dis-criminatory benchmark that exposes limitations in reasoning robustness even in models that perform well on standard seed problems. The results suggest that the anti-templating nature of the evolved problems successfully targets the rea-soning capabilities of strong models. 
+
+Computational Cost and Cognitive Depth. To further substantiate the escalation in problem complexity beyond mere accuracy drops, Figure 3 visualizes the distribution of 6Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Table 1. Cross-model evaluation of problem evolution effectiveness. The first column indicates the LLM used in the evolutionary phase, while each group of columns corresponds to a solver model used in the evaluation phase. AR denotes the Agreement Rate, reported as ESC/CSC . Origin-SR (%) and Evolution-SR (%) represent the solve rates on the original seed problems and the evolved problems, respectively. The difference ( Evolution-SR − Origin-SR ) measures the extent of problem evolution, where a smaller (more negative) value indicates a greater increase in difficulty introduced by the evolutionary process. LLM in the evolutionary phase DeepSeek-Chat DeepSeek-Reasoner Gemini-3-Pro-Thinking Kimi-K2-Thinking Seed-2.0-Pro AR Origin-SR Evolution-SR AR Origin-SR Evolution-SR AR Origin-SR Evolution-SR AR Origin-SR Evolution-SR AR Origin-SR Evolution-SR Open-source DeepSeek-Chat 83/94 16 19 +3 94/98 16 9−7 98/98 16 7−9 74/90 16 11 −5 83/97 16 9−7                                                                                 
+
+> DeepSeek-Reasoner 83/94 48 34 −14 94/98 48 36 −12 98/98 48 8−40 74/90 48 39 −983/97 48 26 −22
+> Qwen3-235B-A22B-Thinking 83/94 20 15 −594/98 20 19 −198/98 20 18 −274/90 20 14 −683/97 20 11 −9
+> Close-source Gemini-3-Flash-Thinking 83/94 56 33 −23 94/98 56 35 −21 98/98 56 24 −32 74/90 56 28 −28 83/97 56 24 −32
+> GPT-5.2-Medium 83/94 70 59 −11 94/98 70 55 −15 98/98 70 52 −18 74/90 70 58 −12 83/97 70 51 −19
+> GPT-5.2-High 83/94 70 70 ±094/98 70 64 −698/98 70 61 −974/90 70 67 −383/97 70 61 −9010000 20000 30000 40000 50000
+> Average Tokens per Problem
+> 0
+> 1
+> 2
+> 3
+> 4
+> 5
+> 6
+> Density
+> 1e 5Token Distribution Comparison
+> Original (median=9,606)
+> DS-Chat Evolved (median=11,434)
+> DS-Reasoner Evolved (median=17,277)
+> Gemini-3-Pro Evolved (median=12,726)
+> Kimi-K2 Evolved (median=14,231)
+> Seed-2-Pro Evolved (median=16,626)
+
+Figure 3. Distribution of Average Token Consumption ( ATC )across original and agent-evolved problems.For each problem, we compute the average output tokens across all solver models. Timeout samples (where solvers failed to produce output) are assigned the maximum token limit to reflect their high difficulty 
+
+Average Token Consumption (ATC), revealing a significant rightward shift for agent-evolved problems compared to the seed dataset. This distributional change indicates that the evolved problems successfully force solvers out of efficient, retrieval-based solution paths, necessitating more extensive test-time computation to bridge the reasoning gap. The pro-nounced fat tail in the high-token region specifically high-lights the injection of the Burden of Discovery : unlike seed problems that may adhere to standard competition templates which allowing for concise, heuristic-driven solutions, the evolved problems compel models to engage in prolonged ex-ploration, hypothesis testing, and self-correction to uncover the necessary Aha moments . Consequently, this elevated token usage serves as a quantitative proxy for the deepen-ing of cognitive engagement, confirming that the difficulty increase stems not from superficial complexity, but from a structural expansion of the reasoning steps required to tackle the agent-synthesized curriculum. 
+
+Efficiency and Failure Analysis. Table 2 reports the av-erage number of failed rollouts during the evolution process, together with the breakdown into failures caused by solvabil-ity verification and difficulty verification. Across models, generating a qualified evolved problem typically requires multiple attempts. DeepSeek-Chat and DeepSeek-Reasoner 
+
+Table 2. Average number of failures during problem evolution, and the average numbers due to solvability and difficulty verification failures, respectively. 
+
+Model Total Solvability Difficulty 
+
+Deepseek-Chat 4.11 2.65 1.46 Deepseek-Reasoner 3.10 2.08 1.02 Gemini-3-Pro-Preview-Thinking 1.56 0.46 1.10 Seed-2.0-Pro 2.57 0.78 1.79 Kimi-K2-Thinking 6.55 5.71 0.84 
+
+require on average 4.11 and 3.10 failed rollouts, respectively, before producing a problem that satisfies both verification agents. Seed-2.0-Pro exhibits moderate efficiency (2.57 failures on average), while Gemini-3-Pro-Preview-Thinking 
+
+achieves the lowest average failure count (1.56). In con-trast, Kimi-K2-Thinking shows the highest average number of failures (6.55). Importantly, the majority of failures across models stem from the Solvability Verification Agent , rather than the diffi-culty assessment stage. This indicates that ensuring logical consistency and mathematical soundness remains a primary bottleneck in autonomous problem evolution. While diffi-culty enhancement introduces additional constraints, produc-ing a fully valid solution chain for newly evolved problems proves to be the dominant challenge. Figure 4 further illustrates the distribution of rollout counts. Although a substantial fraction of problems converge within fewer than three attempts, a non-negligible tail requires more than ten rollouts to obtain a qualified result. This long-tail behavior highlights a trade-off: strict dual verifica-tion improves reliability but incurs notable computational overhead (Liu et al., 2025b). 
+
+4.3. Case Study 
+
+This example illustrates how the framework transforms a localized inequality proof into a structurally richer extremal characterization problem. The original seed problem re-quires proving a fixed upper bound using a direct quadratic argument derived from the range condition (Y −a)( b−Y ) ≥
+
+0. In contrast, the evolved problem generalizes the setting by asking for the maximum fourth central moment as a func-7Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration?         
+
+> Figure 4. Efficiency Analysis of Agentic Problem Evolution. We visualize the distribution of failure counts encountered during the evolutionary process across three base models: DeepSeek-Chat, DeepSeek-Reasoner, and Gemini-3-Pro-Preview-Thinking. The histograms depict the Total Failures (left), decomposed into rejections by the Solvability Verification Agent (middle) and the Difficulty Verification Agent (right).
+
+tion of μ, thereby requiring analysis of the entire family of admissible distributions. 
+
+Case Study of Autonomous Problem Evolution 
+
+Evolver: DeepSeek-Reasoner 
+
+Original Problem: 
+
+Given that X is a random variable satisfying 
+
+0 ≤ X ≤ 1 and E (X − E [X]) 3 = 0 , prove that 
+
+E (X − E [X]) 4 ≤ 116 .
+
+Evolved Problem: 
+
+Let X be a random variable with 0 ≤ X ≤ 1 almost surely. Denote μ = E[X] and assume that the third central moment is zero, i.e., 
+
+E (X − μ)3 = 0 .
+
+For a given μ ∈ (0 , 1) , determine the maximum possi-ble value of the fourth central moment 
+
+E (X − μ)4
+
+as a function of μ. Show that this maximum is attained by a distribution supported on at most three points: the endpoints −μ and 1 − μ, and an interior point t, where 
+
+t satisfies the quadratic equation 
+
+t2 + 2(1 − 2μ)t − μ(1 − μ) = 0 .
+
+Express the maximum value in terms of μ and t, and then derive an explicit formula in terms of μ alone. Finally, prove that the global maximum over all μ is 116 ,and characterize the distribution that attains this global maximum. Solving the evolved problem demands recognizing that the extremum of E[( X − μ)4] under moment constraints is achieved by a discrete distribution with finite support. This shifts the task from applying a single inequality to char-acterizing extremal distributions and deriving the associ-ated algebraic conditions, including the quadratic equation 
+
+t2 + 2(1 − 2μ)t − μ(1 − μ) = 0 . The resulting solution requires integrating tools from moment theory and polyno-mial approximation, rather than relying on a direct bounding trick. Importantly, the evolved formulation preserves the original bound 116 as a special case within a broader parametric analysis. This demonstrates that the framework can produce structurally expanded problems that deepen the underlying analysis while remaining mathematically coherent. 
+
+5. Conclusion and Discussion 
+
+We presented a code-driven framework for autonomously evolving mathematical problems through test-time explo-ration and dual verification. By combining executable envi-ronments with structured reasoning, the system generates mathematically valid problems that are empirically harder for contemporary solvers, as reflected by consistent declines in solve rates and increased reasoning effort across models. The evolution process often requires multiple rollouts to satisfy solvability and difficulty criteria, with logical consis-tency emerging as a primary bottleneck, revealing a trade-off between reliability and computational efficiency. While code execution enables local validation and structural prob-ing, more systematic mechanisms for structural synthesis remain to be explored. Future work may improve rollout efficiency, strengthen solv-ability guarantees, and evaluate whether similar exploratory strategies generalize beyond mathematical reasoning. Over-all, executable exploration appears to be a viable direction for autonomous difficulty scaling in structured reasoning domains. 8Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Impact Statement 
+
+This paper presents work whose goal is to advance the field of machine learning. There are many potential societal consequences of our work, none of which we feel must be specifically highlighted here. 
+
+References 
+
+Chen, L., Prabhudesai, M., Fragkiadaki, K., Liu, H., and Pathak, D. Self-questioning language models. arXiv preprint arXiv:2508.03682 , 2025a. Chen, R., Jiang, W., Qin, C., and Tan, C. Theory of mind in large language models: Assessment and enhancement. 
+
+arXiv preprint arXiv:2505.00026 , 2025b. Cheng, D., Huang, S., Gu, Y., Song, H., Chen, G., Dong, L., Zhao, W. X., Wen, J.-R., and Wei, F. Llm-in-sandbox elicits general agentic intelligence, 2026. URL https: //arxiv.org/abs/2601.16206 .DeepSeek-AI, Liu, A., Mei, A., Lin, B., Xue, B., Wang, B.-L., Xu, B., Wu, B., Zhang, B., Lin, C., Dong, C., Lu, C., Zhao, C., Deng, C., Xu, C., Ruan, C., Dai, D., Guo, D., Yang, D., Chen, D., Li, E., Zhou, F., Lin, F., Dai, F., Hao, G., Chen, G., Li, G., Zhang, H., Xu, H., Li, H., Liang, H., Wei, H., Zhang, H., sheng Luo, H., Ji, H., Ding, H., Tang, H., Cao, H., Gao, H., Qu, H., Zeng, H., Huang, J., Li, J., Xu, J., Hu, J., Chen, J., Xiang, J., Yuan, J., Cheng, J., Zhu, J., Ran, J., Jiang, J., Qiu, J., Li, J., Song, J.-M., Dong, K., Gao, K., Guan, K., Huang, K., Zhou, K., wei Huang, K., Yu, K., Wang, L., Zhang, L., Wang, L., Zhao, L., Yin, L., Guo, L., Luo, L.-L., Ma, L., Wang, L., Zhang, L., Di, M. S., Xu, M. Y., Zhang, M., Zhang, M., Tang, M., Zhou, M., Huang, P., Cong, P., Wang, P., Wang, Q., Zhu, Q., Li, Q., Chen, Q., Du, Q., Xu, R., Ge, R., Zhang, R., Pan, R., Wang, R., Yin, R., Xu, R., Shen, R., Zhang, R., Liu, S. H., Lu, S., Zhou, S., Chen, S., Cai, S., Chen, S., Hu, S., Liu, S., Hu, S., Ma, S., Wang, S., Yu, S., Zhou, S., Pan, S., Zhou, S., Ni, T., Yun, T., Pei, T., Ye, T., Yue, T., Zeng, W., Liu, W., Liang, W., Pang, W., Luo, W., Gao, W., Zhang, W., Gao, X., Wang, X., Bi, X., Liu, X., Wang, X., Chen, X., Zhang, X., Nie, X., Cheng, X., Liu, X., Xie, X., Liu, X., Yu, X., Li, X., Yang, X., Li, X., Chen, X., Su, X., Pan, X., Lin, X., Fu, X., Wang, Y. Q., Zhang, Y., Xu, Y., Ma, Y., Li, Y., Zhao, Y., Sun, Y., Wang, Y., Qian, Y., Yu, Y., Zhang, Y., Ding, Y., Shi, Y., Xiong, Y., He, Y., Zhou, Y., Zhong, Y., Piao, Y., Wang, Y., Chen, Y., Tan, Y., Wei, Y., Ma, Y., Liu, Y., Yang, Y., Guo, Y., Wu, Y., Wu, Y., Cheng, Y., Ou, Y., Xu, Y., Wang, Y., Gong, Y., Wu, Y., Zou, Y.-H., Li, Y., Xiong, Y., Luo, Y.-W., mei You, Y., Liu, Y., Zhou, Y., Wu, Z. F., Ren, Z., Zhao, Z., Ren, Z., Sha, Z., Fu, Z., Xu, Z., Xie, Z., guo Zhang, Z., Hao, Z., Gou, Z., Ma, Z., Yan, Z., Shao, Z., Huang, Z., Wu, Z., Li, Z., Zhang, Z., Xu, Z., Wang, Z., Gu, Z., Zhu, Z., Li, Z.-R., Zhang, Z., Xie, Z., Gao, Z., Pan, Z., Yao, Z., Feng, B., Li, H., Cai, J. L., Ni, J., Xu, L., Li, M., Tian, N., Chen, R. J., Jin, R., Li, S. S., Zhou, S., Sun, T., Li, X. Q., Jin, X., Shen, X., Chen, X., Song, X., Zhou, X., Zhu, Y. X., Huang, Y., Li, Y., Zheng, Y., Zhu, Y., Ma, Y., Huang, Z., Xu, Z., Zhang, Z., Ji, D.-L., Liang, J., Guo, J., Chen, J., Xia, L., Wang, M., Li, M., Zhang, P., Chen, R., Sun, S., Wu, S.-K., Ye, S.-Y., T.Wang, Xiao, W. L., An, W., Wang, X., Sun, X., Wang, X., Tang, Y., Zha, Y., Zhang, Z.-N., Ju, Z., Zhang, Z., and Qu, Z. Deepseek-v3.2: Pushing the frontier of open large language models. 2025. URL https://api.semanticscholar. org/CorpusID:283448719 .Fang, T., Zhang, Z., Wang, X., Wang, R., Qin, C., Wan, Y., Ma, J.-Y., Zhang, C., Chen, J., Li, X., et al. Cogni-tive kernel-pro: A framework for deep research agents and agent foundation models training. arXiv preprint arXiv:2508.00414 , 2025. Gandhi, A. and Neubig, G. Go-browse: Training web agents with structured exploration. arXiv preprint arXiv:2506.03533 , 2025. Gao, H.-a., Geng, J., Hua, W., Hu, M., Juan, X., Liu, H., Liu, S., Qiu, J., Qi, X., Wu, Y., et al. A survey of self-evolving agents: What, when, how, and where to evolve on the path to artificial super intelligence. arXiv preprint arXiv:2507.21046 , 2025a. Gao, S., Gu, Y., Wu, Z., Kong, L., Zhang, W., Cai, Z., Zheng, F., Ma, T., Shen, J., Zhao, H., Zhang, D., Zhang, H., Liu, K., Lyu, C., Duan, Y., Chen, C., Ma, N., Gao, J., Lyu, H., Lin, D., and Chen, K. Long-horizon reasoning agent for olympiad-level mathematical problem solving. 2025b. URL https://api.semanticscholar. org/CorpusID:283737095 .Google. Gemini 3 pro - model card. Technical re-port, Google, 2025. URL https://storage. googleapis.com/deepmind-media/ Model-Cards/Gemini-3-Pro-Model-Card. pdf .Gu, J., Jiang, X., Shi, Z., Tan, H., Zhai, X., Xu, C., Li, W., Shen, Y., Ma, S., Liu, H., et al. A survey on llm-as-a-judge. The Innovation , 2024. Guo, D., Liu, J., Fan, Z., He, Z., Li, H., Li, Y., Wang, Y., and Fung, Y. R. Mathematical proof as a litmus test: Reveal-ing failure modes of advanced large reasoning models. 
+
+arXiv preprint arXiv:2506.17114 , 2025a. Guo, D., Yang, D., Zhang, H., Song, J., Zhang, R., Xu, R., Zhu, Q., Ma, S., Wang, P., Bi, X., et al. Deepseek-r1: In-centivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 , 2025b. 9Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Guo, D., Zhou, T., Liu, D., Qian, C., Ren, Q., Shao, S., Fan, Z., Fung, Y. R., Wang, K., Zhang, L., and Shao, J. Towards self-evolving benchmarks: Synthe-sizing agent trajectories via test-time exploration under validate-by-reproduce paradigm. ArXiv , abs/2510.00415, 2025c. URL https://api.semanticscholar. org/CorpusID:281706192 .Han, S., Zhang, Q., Yao, Y., Jin, W., and Xu, Z. Llm multi-agent systems: Challenges and open problems. arXiv preprint arXiv:2402.03578 , 2024. Huang, C., Yu, W., Wang, X., Zhang, H., Li, Z., Li, R., Huang, J., Mi, H., and Yu, D. R-zero: Self-evolving reasoning llm from zero data. arXiv preprint arXiv:2508.05004 , 2025a. Huang, K., Guo, J., Li, Z., Ji, X., Ge, J., Li, W., Guo, Y., Cai, T., Yuan, H., Wang, R., et al. Math-perturb: Benchmarking llms’ math reasoning abilities against hard perturbations. arXiv preprint arXiv:2502.06453 , 2025b. Huang, Y. and Yang, L. F. Winning gold at imo 2025 with a model-agnostic verification-and-refinement pipeline. 
+
+arXiv preprint arXiv:2507.15855 , 2025. Huang, Y., Li, S., Liu, M., Liu, W., Huang, S., Fan, Z., Chan, H. P., and Fung, Y. R. Environment scaling for interactive agentic experience collection: A survey. arXiv preprint arXiv:2511.09586 , 2025c. Langley, P. Crafting papers on machine learning. In Langley, P. (ed.), Proceedings of the 17th International Conference on Machine Learning (ICML 2000) , pp. 1207–1216, Stan-ford, CA, 2000. Morgan Kaufmann. Li, C., Liang, J., Zeng, A., Chen, X., Hausman, K., Sadigh, D., Levine, S., Fei-Fei, L., Xia, F., and Ichter, B. Chain of code: Reasoning with a language model-augmented code emulator. arXiv preprint arXiv:2312.04474 , 2023. Liu, J., Li, Y., Zhang, C., Li, J., Chen, A., Ji, K., Cheng, W., Wu, Z., Du, C., Xu, Q., Song, J., Zhu, Z., Chen, W., Zhao, P., and He, J. Webexplorer: Explore and evolve for train-ing long-horizon web agents. ArXiv , abs/2509.06501, 2025a. URL https://api.semanticscholar. org/CorpusID:281204359 .Liu, J., Qian, C., Su, Z., Zong, Q., Huang, S., He, B., and Fung, Y. R. Costbench: Evaluating multi-turn cost-optimal planning and adaptation in dynamic en-vironments for llm tool-use agents. arXiv preprint arXiv:2511.02734 , 2025b. Liu, J., Zong, Q., Wang, W., and Song, Y. Revisiting epis-temic markers in confidence estimation: Can markers accurately reflect large language models’ uncertainty? In Che, W., Nabende, J., Shutova, E., and Pilehvar, M. T. (eds.), Proceedings of the 63rd Annual Meet-ing of the Association for Computational Linguistics (Volume 2: Short Papers) , pp. 206–221, Vienna, Aus-tria, July 2025c. Association for Computational Linguis-tics. ISBN 979-8-89176-252-7. doi: 10.18653/v1/2025. acl-short.18. URL https://aclanthology.org/ 2025.acl-short.18/ .Liu, J., Wang, R., Zong, Q., Zeng, Q., Zheng, T., Shi, H., Guo, D., Xu, B., Li, C., and Song, Y. Naacl: Noise-aware verbal confidence calibration for llms in rag sys-tems. arXiv preprint arXiv:2601.11004 , 2026a. Liu, Y., Liu, Y., Li, Z., Huang, Y., Feng, X., Hu, Z., Hu, J., Yan, J., Lian, F., and Liu, Y. Ultralogic: Enhancing llm reasoning through large-scale data synthesis and bipolar float reward. arXiv preprint arXiv:2601.03205 , 2026b. Luo, H., Zhang, H., Zhang, X., Wang, H., Qin, Z., Lu, W., Ma, G., He, H., Xie, Y., Zhou, Q., Hu, Z., Mi, H., Wang, Y., Tan, N., Chen, H., Fung, Y. R., Yuan, C., and Shen, L. Ultrahorizon: Benchmarking agent capabilities in ultra long-horizon scenarios, 2025. URL https: //arxiv.org/abs/2509.21766 .Manem, C., Brahma, P. P., Mishra, P., Liu, Z., and Barsoum, E. Sand-math: Using llms to generate novel, difficult and useful mathematics questions and answers. arXiv preprint arXiv:2507.20527 , 2025. Muennighoff, N., Yang, Z., Shi, W., Li, X. L., Fei-Fei, L., Hajishirzi, H., Zettlemoyer, L., Liang, P., Cand `es, E., and Hashimoto, T. B. s1: Simple test-time scaling. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing , pp. 20286– 20332, 2025. OpenAI. Update to gpt-5 system card: Gpt-5.2. Technical report, OpenAI, 2025. URL https://cdn.openai.com/pdf/ 3a4153c8-c748-4b71-8e31-aecbde944f8d/ oai_5_2_system-card.pdf .Peng, D., Chen, Q., Liu, B., Guan, J., Qin, L., Yan, Z., Liu, J., Zhang, J., and Che, W. Learning the boundary of solvability: Aligning llms to detect unsolvable problems. 
+
+arXiv preprint arXiv:2512.01661 , 2025. Qian, C., He, B., Zhuang, Z., Deng, J., Qin, Y., Cong, X., Zhang, Z., Zhou, J., Lin, Y., Liu, Z., and Sun, M. Tell me more! towards implicit user intention understanding of language model driven agents, 2024. URL https: //arxiv.org/abs/2402.09205 .Qian, C., Liu, Z., Prabhakar, A., Liu, Z., Zhang, J., Chen, H., Ji, H., Yao, W., Heinecke, S., Savarese, S., Xiong, C., and Wang, H. Userbench: An interactive gym environment 10 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+for user-centric agents, 2025. URL https://arxiv. org/abs/2507.22034 .Roucher, A., del Moral, A. V., Wolf, T., von Werra, L., and Kaunism ¨aki, E. ‘smolagents‘: a smol library to build great agentic systems. https://github.com/ huggingface/smolagents , 2025. Seed, B. Seed2.0 model card. Technical report, Bytedance, 2026. Shao, S., Ren, Q., Qian, C., Wei, B., Guo, D., Yang, J., Song, X., Zhang, L., Zhang, W., Liu, D., et al. Your agent may misevolve: Emergent risks in self-evolving llm agents. 
+
+arXiv preprint arXiv:2509.26354 , 2025a. Shao, Z., Luo, Y., Lu, C., Ren, Z., Hu, J., Ye, T., Gou, Z., Ma, S., and Zhang, X. Deepseekmath-v2: Towards self-verifiable mathematical reasoning, 2025b. Shi, D., Cao, J., Chen, Q., Sun, W., Li, W., Lu, H., Dong, F., Qin, T., Zhu, K., Liu, M., Yang, J., Zhang, G., Liu, J., Zhang, C., Wang, J., Jiang, Y. E., and Zhou, W. Taskcraft: Automated gen-eration of agentic tasks. ArXiv , abs/2506.10055, 2025. URL https://api.semanticscholar. org/CorpusID:279318561 .Sun, Q., Cheng, K., Ding, Z., Jin, C., Wang, Y., Xu, F., Wu, Z., Jia, C., Chen, L., Liu, Z., et al. Os-genesis: Automating gui agent trajectory construction via reverse task synthesis. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pp. 5555–5579, 2025. Team, K., Bai, Y., Bao, Y., Chen, G., Chen, J., Chen, N., Chen, R., Chen, Y., Chen, Y., Chen, Y., et al. Kimi k2: Open agentic intelligence. arXiv preprint arXiv:2507.20534 , 2025. Tran, K.-T., Dao, D., Nguyen, M.-D., Pham, Q.-V., O’Sullivan, B., and Nguyen, H. D. Multi-agent collab-oration mechanisms: A survey of llms. arXiv preprint arXiv:2501.06322 , 2025. Trinh, T. H., Wu, Y., Le, Q. V., He, H., and Luong, T. Solv-ing olympiad geometry without human demonstrations. 
+
+Nature , 625(7995):476–482, 2024. Wang, S., Liu, M., Li, Z., Li, A., Wang, Y., Peng, X., and Zheng, Z. Evolmatheval: Towards evolvable bench-marks for mathematical reasoning via evolutionary test-ing. arXiv preprint arXiv:2508.13003 , 2025a. Wang, S., Long, Z., Fan, Z., Huang, X.-J., and Wei, Z. Benchmark self-evolving: A multi-agent framework for dynamic llm evaluation. In Proceedings of the 31st in-ternational conference on computational linguistics , pp. 3310–3328, 2025b. Wang, Y., Fan, Z., Liu, J., and Fung, Y. R. M. Diversity-enhanced reasoning for subjective questions. 
+
+CoRR , abs/2507.20187, 2025c. doi: 10.48550/ARXIV. 2507.20187. URL https://doi.org/10.48550/ arXiv.2507.20187 .Wei, J., Wang, X., Schuurmans, D., Bosma, M., Xia, F., Chi, E., Le, Q. V., Zhou, D., et al. Chain-of-thought prompting elicits reasoning in large language models. Advances in neural information processing systems , 35:24824–24837, 2022. Yang, A., Li, A., Yang, B., Zhang, B., Hui, B., Zheng, B., Yu, B., Gao, C., Huang, C., Lv, C., Zheng, C., Liu, D., Zhou, F., Huang, F., Hu, F., Ge, H., Wei, H., Lin, H., Tang, J., Yang, J., Tu, J., Zhang, J., Yang, J., Yang, J., Zhou, J., Zhou, J., Lin, J., Dang, K., Bao, K., Yang, K., Yu, L., Deng, L.-C., Li, M., Xue, M., Li, M., Zhang, P., Wang, P., Zhu, Q., Men, R., Gao, R., Liu, S.-Q., Luo, S., Li, T., Tang, T., Yin, W., Ren, X., Wang, X., Zhang, X., Ren, X., Fan, Y., Su, Y., Zhang, Y.-C., Zhang, Y., Wan, Y., Liu, Y., Wang, Z., Cui, Z., Zhang, Z., Zhou, Z., and Qiu, Z. Qwen3 technical report. ArXiv , abs/2505.09388, 2025a. URL https://api.semanticscholar. org/CorpusID:278602855 .Yang, J., Liu, X., Lv, W., Deng, K., Guo, S., Jing, L., Li, Y., Liu, S., Luo, X., Luo, Y., Pan, C., Shi, E., Tan, Y., Tao, R., Wu, J., Wu, X., Wu, Z., Zan, D., Zhang, C., Zhang, W., Zhu, H., Zhuo, T. Y., Cao, K., Cheng, X., Dong, J., Fang, S., Fei, Z., Guan, X., Guo, Q., Han, Z., James, J., Luo, T., Li, R., Li, Y., Liang, Y., Liu, C., Liu, J., Liu, Q., Liu, R., Loakman, T., Meng, X., Peng, C., Peng, T., Shi, J., Tang, M., Wang, B., Wang, H., Wang, Y., Xu, F., Xu, Z., Yuan, F., Zhang, G., Zhang, J., Zhang, X., Zhou, W., Zhu, H., Zhu, K., Dai, B., Liu, A., Li, Z., Lin, C., Liu, T., Peng, C., Shen, K., Qin, L., Song, S., Zhan, Z., Zhang, J., Zhang, J., Zhang, Z., and Zheng, B. From code foundation models to agents and applications: A comprehensive survey and practical guide to code intelligence, 2025b. URL https://arxiv.org/abs/2511.18538 .You, R., Cai, H., Zhang, C., Xu, Q., Liu, M., Yu, T., Li, Y., and Li, W. Agent-as-a-judge. arXiv preprint arXiv:2601.05111 , 2026. Yuan, Y., Mang, Q., Chen, J., Wan, H., Liu, X., Xu, J., Huang, J.-T., Wang, W., Jiao, W., and He, P. Curing miracle steps in llm mathematical rea-soning with rubric rewards. ArXiv , abs/2510.07774, 2025. URL https://api.semanticscholar. org/CorpusID:281951384 .Zeng, Z., Ivison, H., Wang, Y., Yuan, L., Li, S. S., Ye, Z., Li, S., He, J., Zhou, R., Chen, T., et al. Rlve: Scaling up rein-forcement learning for language models with adaptive ver-11 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+ifiable environments. arXiv preprint arXiv:2511.07317 ,2025. Zhai, Y., Tao, S., Chen, C., Zou, A., Chen, Z., Fu, Q., Mai, S., Yu, L., Deng, J., Cao, Z., Liu, Z., Ding, B., and Zhou, J. Agentevolver: Towards efficient self-evolving agent sys-tem, 2025. URL https://arxiv.org/abs/2511. 10395 .Zhang, Q., Lyu, F., Sun, Z., Wang, L., Zhang, W., Hua, W., Wu, H., Guo, Z., Wang, Y., Muennighoff, N., et al. A survey on test-time scaling in large language mod-els: What, how, where, and how well? arXiv preprint arXiv:2503.24235 , 2025. Zhou, S., Zheng, Z., Liu, K., Shen, Z., Cheng, Z., Chen, Z., He, H., Yao, J., Mao, H., Mang, Q., et al. Autocode: Llms as problem setters for competitive programming. 
+
+arXiv preprint arXiv:2510.12803 , 2025. 12 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+A. Appendix 
+
+In this appendix, we present the prompts used for the three types of agents as well as some cases of evolution. Note that the solvability of the presented problems is determined jointly by the judge model GPT-5.2-High and the validation agents, without manual verification. Due to the specialized expertise required to rigorously assess problems at this level of competition, and the practical difficulty of obtaining external expert review, these problems have not undergone human auditing. Given the seriousness and rigor inherent to mathematical problem formulation, we provide these examples solely for community reference and further examination. 
+
+A.1. Prompt Templates Evolution Agent Prompt Template 
+
+Part 1: Your Mission and Core Principles You are an expert agent specializing in Mathematical Problem Adaptation. Your task is to analyze a given problem and solution, identify its primary bottleneck (what makes it difficult), and the core mathematical insight required to solve it. Using this analysis, you will then formulate a novel, higher-order problem of substantially greater difficulty, and provide a comprehensive, step-by-step solution for the new problem. Part 2: Your Working Process Your entire process is a continuous, step-by-step cycle. In each round, analyze the original problem and think carefully about potential directions for adapting the problem, then write code (for example, using sympy for symbolic math) to explore and validate those directions. - Code is your whiteboard for performing symbolic algebra, testing numeric cases, or verifying properties needed to construct the new problem. - After your code is executed, you will receive deterministic output (for example, a simplified expression or a numerical result). Part 3: Critical Mandates (Non-Negotiable Process Rules) Workflow Mandate: Exploration First, Final Answer Last (VERY IMPORTANT) Your process has two phases: 1) Exploration Phase Move beyond simple derivation. First, adopt the mindset of an elite mathematical competitor and analyze the provided solution to identify the original problem’s true bottleneck. Locate the precise conceptual hurdle or non-obvious starting point that causes difficulty. After isolating this core challenge, engineer a more formidable obstacle. Either escalate the existing bottleneck or design a new, related one, ensuring that the path to the solution is significantly more obscured. This design process must be iterative, using deep mathematical knowledge and computational validation with Python libraries to confirm the integrity and heightened difficulty of your construct. Examples of valued insights: - Combinatorics: A delicate construction or a clever bijective argument based on keen observation, not just a standard formula. - Sequences or Number Theory: A subtle underlying pattern, hidden periodicity, or a law governing the distribution of terms. - Analysis: A key qualitative property of a function (such as symmetry, bounds, or geometric meaning of its derivative) that standard procedures would overlook. 2) Finalization Phase This is your very last action. After completing derivations and being confident in your new problem, call the final answer tool with a correctly formatted Python dictionary. Part 4: Guiding Principles of Mathematical Construction (Content Rules) 1) The Golden Rule of Problem Design: The Burden of Discovery and Insight (CRITICAL PRINCIPLE) Maximize conceptual difficulty to force a hard-won “Eureka” moment. The adapted problem must be constructed so that even a competition-level solver struggles to find the entry point. The solution should only be reachable after extensive observation, experimentation, and trial to unearth the deep insight. Avoid superficial difficulty such as heavier calculations or more procedural steps; the challenge must originate from the intellectual leap required to begin. 2) Principle of Logical Integrity and Solvability (CRITICAL PRINCIPLE) Ensure the constructed problem is well-defined, solvable, and unambiguous. Clearly state conditions and constraints. Aim for challenging but fair puzzles. 3) New Problem Categories and Answer Formatting (CRITICAL PRINCIPLE) Create challenging math problems in one of the following categories. Match the output format to the problem type. Category 1: Definitive Answer Problems (Calculation or Derivation) - Accepted answer types: number, simplified algebraic expression, function, interval or set of numbers. - Output format: -“new problem”: the problem statement. - “new solution steps”: the full derivation and step-by-step logic. - “new answer”: the final computed result. - If the answer format could be ambiguous, specify it in “new problem” (for example, “give your answer as a fraction in simplest terms” or “express the function in polynomial form”). Category 2: Proof-Based Problems - Nature: ask the solver to prove a mathematical statement. - Output format: - “new problem”: the statement to prove. - “new solution steps”: a complete, rigorous, and logically sound proof. - “new answer”: None. Category 3: Algorithm Design Problems - Nature: ask the solver to design an algorithm meeting specific constraints. - Output format: - “new problem”: the algorithm design task and constraints. -“new solution steps”: a clear description of the algorithm, proof of correctness, and time/space complexity analysis. - “new answer”: a concise description of the algorithm’s output if applicable. When adapting, preserve the fundamental nature of the original problem. If the original required a numerical result, the adapted problem should also have an answer that is simple to verify. For proof or algorithm design problems, maintain the original format. Part 5: Final Output Specification Final Output Format (VERY IMPORTANT) After exploration, your final action is to call the final answer tool. Its argument must be a single, valid Python dictionary with exactly three keys: “new problem”, “new solution steps”, and “new answer”. Key Descriptions - “new problem”: a clear, complete, self-contained description of the evolved problem. - “new solution steps”: a numbered, human-readable summary of the key logical steps for the solution (derivation, proof, or algorithm). - “new answer”: for definitive-result problems, a string representing the value; for proof or algorithm problems, use the Python literal None. Part 6: Available Resources Examples: demonstrations. These show adaptations of math problems and illustrate the workflow and baseline for increasing difficulty. In practice, you must rigorously explore the subject and elevate complexity to the maximum possible extent. Do not oversimplify. Part 7: Final Checklist 1) Strictly follow all formatting requirements. 2) You may draw inspiration from high-level competitions (e.g., IMO), but do not copy or superficially adapt known problems. Now begin! 
+
+Figure 5. The prompt template of our Evolution Agent .
+
+A.2. Case Study 
+
+13 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Solvability Verification Agent Prompt Template 
+
+Part 1: Your Role & Mission You are the Lead Mathematical Solvability Auditor. Your sole purpose is to ruthlessly stress-test a given mathematical problem to ensure it is logically sound, non-contradictory, and correctly solvable. You act as a firewall against ”bad math”. You do not care if the problem is interesting or hard; you only care if it is broken. You will receive: 1. `problem text `: The statement of the new problem. 2. `proposed solution `: The step-by-step derivation provided by the creator. 3. `answer `: The expected final result. - Note: This is NOT limited to numerical values. It can be an algebraic expression, a tuple, a set of values, or a function. - For Proof Problems: If the problem asks to ”Prove that...” or ”Show that...”, this field may be `None `, `null `,or a placeholder string (e.g., ”N/A”). In these cases, the ”answer” is considered the successful completion of the logical argument in the solution steps. Your work is separated into two distinct phases. You must pass Phase 1 (The Static Check) before moving to Phase 2 (The Logic Audit). Part 2: Phase 1 - Static Problem Analysis (The ”Sanity Check”) Before looking at the solution steps, you must validate the `problem text `ıtself. You are looking for internal inconsistencies or definitions that are mathematically illegal. Verification Checklist for Phase 1: 1. Domain & Value Rationality: - Are all constants and variables within valid domains? (e.g., denominators ̸ = 0, even roots of negatives, arcsin( x) where |x| > 1, logarithms of non-positive numbers). - Are the physical/geometric values inherently possible? (e.g., Probability P ∈ [0 , 1] , Triangle sides satisfy 
+
+a + b > c , Friction coefficient μ > 0, Mass m ≥ 0). 2. Constraint Consistency (Over-definition Check): - Does the problem provide too many conditions that contradict each other? - Action: You MUST attempt to model the problem’s geometric or algebraic constraints in Python (e.g., using `sympy `or geometric coordinate geometry). If the constraints lead to an empty set (e.g., ”Find a real number x such that x > 5 and x < 3”), the problem is INVALID. If the problem fails Phase 1 (contains illegal definitions or contradictions), you stop immediately and report the error. Part 3: Phase 2 - Step-by-Step Logic Audit (The ”Deep Dive”) If the problem text is valid, you proceed to audit the `proposed solution `. You must verify each step S 1, S 2, ...S n extensively. For Every Step, Perform These 3 Checks: 1. Conflict Check: Does the intermediate conclusion obtained in this step contradict the original `problem text `? (e.g., The problem says x is an integer, but this step derives x = 0 .5). 2. Derivation Verification (The Code Audit): - Do not trust the text. Use Python to independently calculate the transformation from Step N to Step N + 1 . - Validating an integral? Use `sympy.integrate `. Solving an equation? Use `sympy.solve `. 3. Logical Fallacy Detection: check if the step commits any of the following specific errors. Formal Failure Modes (The ”Red Flags”): - [Transformation Error]: Recasting a target statement into a non-equivalent or strictly weaker one (e.g., proving A ⇒ B when A ⇐⇒ B was required). - [Over Generalization]: Drawing a universal conclusion from special cases (e.g., verifying for n = 1 , 2, 3 and assuming for all n). - [Invalid Construction]: Introducing an object that cannot exist (e.g., ”Let f (x) be a polynomial with infinite roots”). - [Wrong Division]: Case analysis that misses possibilities (e.g., checking x > 0 and x < 0 but forgetting x = 0 ). - [Circular Reasoning]: Using the conclusion as a hidden premise. - [Logic Violation]: Algebraic illegal moves (e.g., dividing by a variable that could be zero). - [Hidden Assumption]: Using a theorem without verifying its preconditions (e.g., applying L’Hopital’s rule without checking 0/0 form). - [Boundary Neglect]: Ignoring edge cases in optimization or integration limits. - [Vague Argument]: Using ”obviously” or hand-waving instead of rigorous derivation. Final Holistic Review (The ”Verdict”): - Determine whether there are failure modes in the overall logical chain. - Determine whether the final logical conclusion actually answers the specific question asked in ` problem text `.Part 4: Your Interactive Workflow: A Multi-Turn Process Your entire process is a continuous, step-by-step cycle. In each round, you should think carefully, then write code (e.g., using `sympy `for symbolic math) to validate your thoughts. - Remember code is your whiteboard for performing symbolic algebra, testing numeric cases, or verifying properties. - After your code is executed, you will receive the deterministic output of your code (e.g., a simplified expression, a numerical result). Part 5: Final Output Specification Your final output must be a single call to the `final answer `tool. The only argument must be a Python dictionary with exactly two keys: `”status” `and `”reason” `.Example of a final answer (Passing Scenario): ”status”: ”PASS”, ”reason”: ”The problem text is rigorous and self-consistent. The proposed solution’s derivation was verified step-by-step using Python/SymPy. The logic chain is complete and accurate.” Example of a final answer (Failing Scenario): ”status”: ”FAIL”, ”reason”: ”The solution fails at Step 4 due to a [Wrong Division] error. The logical argument assumes x ¿ 0, but the problem domain allows for x = 0, which leads to a singularity. Furthermore, the Global check reveals a sufficiency failure; the final answer includes a value that satisfies the derived equation but violates the initial geometric constraints.” Part 6: Notes 1. Your final output must be a single call to the `final answer `tool. 2. Be meticulous and objective. Your role is a strict verifier. Any discrepancy must be reported and result in a failure. Now begin your audit. 
+
+Figure 6. The prompt template of our Solvability Verification Agent .
+
+14 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Difficulty Verification Agent Prompt Template 
+
+Part 1: Your Mission & Role You are a Specialist in Mathematical Problem Difficulty Assessment. Your mission is to determine if a new problem represents a significant and elegant leap in difficulty compared to an original question, warranting a PASS status. You must embody the mindset of an experienced mathematician and educator. Your evaluation should confirm that the adapted problem’s difficulty is elevated in terms of conceptual depth and mathematical insight, rather than simply being made more tedious through increased computational complexity or longer but straightforward procedures. Your judgment is about whether the path to its solution requires a fundamentally deeper level of thinking. A minor increase in difficulty is insufficient and must result in a FAIL. You will be provided with the original problem and its solution, followed by the new problem and its solution. You are to assume the provided solutions are mathematically correct. Your exclusive focus is on comparing the required problem-solving methodologies. Part 2: The Core Difficulty Assessment Criteria To receive a PASS, the new task must satisfy the following high-level conditions: The Nature of the Increased Difficulty: Insight over Execution The difficulty increase must stem from a higher-order cognitive demand, not merely from increased computational labor. You must strictly filter out ”trivial” difficulty increases, which automatically lead to a FAIL. - INVALID (FAIL) Difficulty Increases: - Computational Inflation: Using larger numbers, more complex functions that don’t change the underlying logic, or requiring more steps of a known algorithm. - Variable Substitution: Simply changing variables or the presentation format without altering the core solution strategy. - Minor Twists: Adding a simple, straightforward condition that is easily handled by a small modification to the original method. - VALID (Required for PASS) Difficulty Increases: - The adapted problem actively resists solution by common templates or straightforward, algorithmic approaches. Its solution path should not be immediately apparent, forcing the solver beyond mere pattern-matching or procedural execution. For clarification, consider a problem that a student in a standard curriculum would find very challenging, but which a student trained for math Olympiads would instantly recognize as a standard problem type solvable by a learned trick. This is a form of pseudo-difficulty based on specialized training, not the universal conceptual depth we seek, and should be avoided. - The solution of the new problem requires a Eureka moment or a non-obvious insight. This insight should either be entirely new to the problem or represent a significantly deeper, elegant and more sophisticated application of the insight required for the original problem. To be specific, we highly value insights that stem from a genuine mathematical discovery. Favored examples include: - In Combinatorics: Devising a delicate construction or a clever bijective argument based on keen observation, rather than just applying a standard formula. - In Sequences or Number Theory: Uncovering a subtle underlying pattern, a hidden periodicity, or a law governing the distribution of terms. - In Analysis: Grasping a key qualitative property of a function (e.g., its symmetry, bounds, or the geometric implication of its derivative) that standard procedures would overlook. - The adapted problem, in its statement or conclusion, represents a clear mathematical escalation from the original. This means the new problem is not just different, but fundamentally deeper. We specifically value adaptations that achieve one of the following: - Generalize the Original Result: The new problem asks to prove a broader theorem, for which the original problem’s result is merely a specific instance or a stepping stone. - Optimize a Condition: The new problem seeks a provably tighter bound or an exact, optimal constant, where the original might have only asked for a simpler inequality or estimate. - Refine the Constraints: The new problem introduces a more subtle or elegant set of constraints that fundamentally alters the problem’s landscape, demanding a more sophisticated understanding to even begin the analysis. In essence, these three criteria work in concert to substantially elevate the burden of discovery. The adapted problem should be constructed such that its entry point or the key idea is deliberately obscured. A successful adaptation is one where the solver’s primary struggle is not with the complexity of computation or the length of the deduction, but with the profound, creative challenge of finding that first crucial insight. Part 3: Your Analytical Workflow Your task is a purely intellectual process of comparison and judgment, culminating in a single, final tool call. 1. Analyze the Original: First, deeply understand the original question and its original solution steps. Classify its difficulty and the core insight required to solve it. 2. Analyze the New: Next, analyze the new problem and its new solution steps. Deconstruct the argument to pinpoint the crucial logical steps and insights required. 3. Compare and Contrast: Directly compare the methodologies. Is the new method just a more laborious version of the old one, or is it fundamentally different? Does it fit the Difficulty Assessment Criteria? 4. Formulate Judgment: Based on the comparison, make a final decision. Does the new problem represent a significant and elegant leap in difficulty, or is the increase minor/computational? This decision directly determines the PASS/FAIL status. 5. Final Output: Once your judgment is formed, proceed directly to the final parts to call the final answer tool. To calibrate your assessment, you must adopt a specific persona: imagine you are evaluating the problem from the perspective of a skilled and experienced competitor in mathematical olympiads. This is not a novice. This individual has a robust toolkit of standard theorems, inequalities, and problem-solving heuristics. They can quickly identify common patterns and apply standard techniques. Therefore, when you analyze the adapted problem, ask yourself these critical questions: - Would this problem force such a competitor to pause and think? Or would the solution path be immediately obvious to them? - Are their go-to, standard techniques (e.g., a straightforward application of AM-GM, pigeonhole principle, or modular arithmetic) insufficient or intentionally misleading here? - Does the problem present a genuine, non-trivial challenge that would give even this skilled solver a sense of accomplishment upon finding the solution? A problem that is easily dispatched by this benchmark competitor, even if difficult for a layperson, has failed to create a sufficient burden of discovery and should be judged accordingly. Part 4: Your Interactive Workflow: A Multi-Turn Process Your entire process is a continuous, step-by-step cycle. In each round, you should think carefully, then write code (e.g., using sympy for symbolic math) to validate your thoughts. - Remember code is your whiteboard for performing symbolic algebra, testing numeric cases, or verifying properties. - After your code is executed, you will receive the deterministic output of your code (e.g., a simplified expression, a numerical result). Part 5: Final Output Specification Your final output must be a single call to the final answer tool. The only argument must be a Python dictionary with exactly three keys: ”status”, ”score”, and ”reason”. - ”score”: Must be an integer from 1 to 5. You will determine this score based on the scoring rubric below. - ”status”: Must be one of two exact string values: ”PASS” or ”FAIL”. This value is strictly determined by the score: - If score is 3, 4, or 5, status must be ”PASS”. - If score is 1 or 2, status must be ”FAIL”. - ”reason”: A detailed string of text explaining why you assigned that specific score, referencing the rubric. You will use the following criteria to score the quality of the adaptation. Your reason text must justify your choice of score. - Score 1 (FAIL -Unacceptable): - Fails to change the core solution path of the original problem. - May even lower the difficulty by removing key constraints or adding unhelpful but trivial information. - The burden of discovery is unchanged or reduced. - Score 2 (FAIL - Poor Adaptation): - The difficulty is increased, but only superficially. - This increase comes from increased computational complexity (e.g., solving a messier polynomial) or more procedural steps (e.g., applying the same simple idea three times instead of once). - It does not require any new, profound insight. A skilled solver would find it ”tedious,” not ”difficult.” The burden of discovery is not meaningfully increased. - Score 3 (PASS - Acceptable / Borderline): - A competent adaptation that successfully increases the burden of discovery. - It manages to break the standard templates required for the original problem, forcing the solver to pause and think of a new angle. - The adaptation might lack elegance, or the new Eureka insight might be relatively straightforward for a top competitor, but it meets the minimum requirement of creating a non-trivial obstacle. - Score 4 (PASS - Excellent): - A high-quality, impressive adaptation that fully aligns with our goals. - Anti-Templating: Renders standard solution methods ineffective or turns them into traps. - Requires Eureka: The solution depends on one or more non-trivial, insightful ”Aha!” moments. - Mathematical Advancement: The adapted problem is more mathematically interesting—perhaps by connecting different fields, refining constraints, or representing a more general, profound statement. - It provides a genuine challenge and a sense of accomplishment for the skilled competitor. - Score 5 (PASS - Exemplary / Perfect): - Meets all the criteria for a score of 4, but additionally possesses a striking quality of mathematical beauty. - This could be found in the problem’s surprising simplicity, its deep symmetry, an unexpected connection between disparate fields, or its power as a toy model that illustrates a grander concept. - The Eureka moment is not just a key to the solution but also a source of aesthetic satisfaction and a moment of genuine mathematical enlightenment for the solver. This is an adaptation worthy of a textbook. 
+
+Figure 7. The prompt template of our Difficulty Verification Agent .
+
+15 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Solvability Evaluator Prompt Template 
+
+Your Task: 1. Check if the problem statement has any logical errors, contradictions, or is ill-defined. 2. Check if the problem is mathematically solvable. Examine the provided reference solution. If the solution is correct as is, or if it can be modified and supplemented to solve the problem, then the problem is considered solvable. Be lenient with the solution; rough drafts with errors are acceptable if they can be corrected to successfully solve the problem. Response Format (JSON): 
+
+{
+
+”has logic error”: true/false, ”logic error description”: ”description of logic error if any, or null”, ”is solvable”: true/false, ”solution correct”: true/false, ”solution issues”: [”list of issues in solution, empty if correct”], ”overall valid”: true/false, ”reason”: ”brief explanation of your verdict” 
+
+}
+
+Important: - A problem is valid if it has no logic errors and is solvable. - Small bugs in the reference solution (calculation errors, typos) should not invalidate the problem. - Only mark solution correct as false if there are fundamental errors in the approach. - Respond with only the JSON, no additional text.  
+
+> Figure 8. The prompt template of the solvability evaluator.
+
+Solver Prompt Template 
+
+Role: You are a distinguished mathematics expert with a strong academic background and a Gold Medal Math Olympiad coach. You excel at solving complex problems in algebra, geometry, calculus, and statistics, placing the highest importance on logical rigor and step-by-step clarity. Task: Solve the mathematical problem provided by the user. Guidelines: 1. Deep Reasoning: Before providing the final answer, you must break down the problem and derive each step in detail. 2. LaTeX Formatting: All mathematical formulas and variables must be written in LaTeX format (e.g., x2 + y2 = z2). 3. Output Format: Output the result strictly as a valid JSON object based on the schema below. Do not output any conversational text, explanations, or Markdown outside of the JSON object. Output JSON Schema: 
+
+{
+
+”question summary”: ”A brief summary of the problem”, ”solution steps”: [ ”step number”: 1, ”description”: ”Detailed text explanation of this step”, ”calculation”: ”Key calculations or formulas involved in this step (in LaTeX)” , ”step number”: 2, ”description”: ”...”, ”calculation”: ”...” ], ”final answer”: ”The final concise answer (numerical value or expression in LaTeX)” 
+
+} 
+
+> Figure 9. The prompt template of the problem solver.
+
+16 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Solution Evaluator Prompt Template 
+
+Role: You are a strict and precise Mathematics Examiner. Your task is to evaluate a student’s solution to a given math problem based strictly on the validity of their logic and result. Input Data: - **Problem**: problem - **Student’s Solution Steps**: solution steps - **Student’s Final Answer**: final answer Evaluation Rules 1. **Logic Check**: Review the student’s solution steps. Determine if the mathematical derivation is logically sound and mathematically valid. 2. **Consistency Check**: Verify that the final answer naturally follows from the steps provided. 3. **Scoring**: Assign a score based strictly on the rubric below. Scoring Rubric - **1.0 (Perfect)**: - The reasoning is logically sound and complete. - The calculation steps are error-free. - The final answer is correct. - **0.5 (Minor Flaws)**: - The final answer is **correct**. - The core reasoning logic is correct. - BUT there are minor presentation errors, non-standard notation, or slightly skipped trivial steps that do not affect the validity of the result. - **0.0 (Incorrect)**: - The final answer is **incorrect**. - OR the final answer is correct but derived from fundamentally wrong logic (lucky guess). - OR the solution is completely missing or irrelevant. Output Format Output **only** a valid JSON object. Do not output any markdown code blocks or additional text. 
+
+{
+
+”score”: number, either 0, 0.5, or 1, ”reason”: ”string, a concise explanation of why this score was given, citing specific errors or confirming correctness” 
+
+} 
+
+> Figure 10. The prompt template of the solution evaluator.
+
+17 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 1 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem: 
+
+Given two distinct points P (x1, y 1) and Q(x2, y 2) on the quadratic function y = x2 + bx − 14 , if both points P and 
+
+Q are on the left side of the axis of symmetry, and x1 and x2 are integers with x1 < x 2, prove that x1 −x2 +y1 −y2 > 0.
+
+Evolved Problem: 
+
+Let fn(x) = x3 + nx 2 for a positive integer n. Let Sn be the set of all triangles riangleABC such that the vertices 
+
+A, B, C are distinct points on the graph of y = fn(x) and their x-coordinates are integers strictly less than the inflec-tion point of the graph. Let ∆n be the minimum possible area of such a triangle in Sn. Calculate the value of P2025  
+
+> n=1
+
+∆n.
+
+Comment: 
+
+The adaptation creates an exemplary problem that transforms a specific inequality about integers on a quadratic curve into a rich geometric-algebraic optimization problem on a cubic curve. 
+
+Justification: 1. **Mathematical Depth (Score 5 Criteria):** The problem creates a deep connection between the geometry of the cubic curve (inflection point, collinearity condition) and number theory. The ’Eureka’ moment is realizing that the area of a triangle on the curve y = x3 + nx 2 factorizes into a product of coordinate differences and a linear term 
+
+(x1 + x2 + x3 + n). This mirrors the collinearity condition ( x1 + x2 + x3 = −n) and generalizes the original problem’s reliance on x1 + x2 vs −b.2. **Anti-Templating:** The solution path is unique. It requires deriving the specific area determinant, recognizing the product-minimization implies consecutive integers, and then solving the modular arithmetic constraints imposed by the 
+
+inflection point. It is far from a standard template. 3. **Elegant Complexity:** Unlike a mere computational increase, the move to a cubic curve introduces the inflection point as the natural boundary (analogous to the axis of symmetry), making the constraint intrinsic to the function’s geometry. The resulting periodic sequence (5, 4, 6) is aesthetically satisfying.” 
+
+18 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 2 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From IMO 2025): 
+
+Let n ≥ 3 be a given integer. A line in the plane is called **sunny** if it is not parallel to the x-axis, the y-axis, or the line x + y = 0 .Consider the set of points Sn = {(a, b ) ∈ Z+ | a + b ≤ n + 1 }. We want to cover all points in Sn using exactly n
+
+distinct lines. 
+
+Determine all possible values of k (where k is a non-negative integer) such that there exists a configuration of n lines covering Sn with exactly k sunny lines. 
+
+Evolved Problem: 
+
+Let n ≥ 1 be an integer. Consider the set of points Sn = {(x, y ) ∈ Z2 | x ≥ 1, y ≥ 1, x + y ≤ n + 1 }. We wish to cover all points in Sn using exactly n lines in the Euclidean plane, such that no two lines are parallel (i.e., all n lines have pairwise distinct slopes). 
+
+Find the largest possible value of n for which such a configuration exists. 
+
+Comment: 
+
+The adaptation is exemplary. It transforms a problem relying on an artificial definition (’sunny lines’) into a natural optimization problem (’distinct slopes’) that forces the solver to rediscover the geometric constraints. By removing the explicit distinction between boundary and non-boundary lines, the problem elevates the burden of discovery, requiring the solver to recognize that the three boundary directions are limited resources that bound the maximum problem size. The derivation of n=6 is elegant, rigorous, and logically deeper than the original classification task. 
+
+19 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 3 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From IMO 2024): 
+
+Let a1, a 2, a 3, . . . be an infinite sequence of positive integers, and let N be a positive integer. Suppose that, for each 
+
+n > N , the number an is equal to the number of times an−1 appears in the list (a1, a 2, . . . , a n−1). Prove that at least one of the sequences a1, a 3, a 5, . . . and a2, a 4, a 6, . . . is eventually periodic. 
+
+Evolved Problem: 
+
+Let a1 = 1 , a 2 = 1 . For n > 2, let an be the sum of the number of times an−1 has appeared in the sequence 
+
+(a1, . . . , a n−1) and the number of times an−2 has appeared in the same sequence. Prove that every integer k ≥ 2
+
+appears in the sequence a1, a 2, . . . .
+
+Comment: 
+
+This is an excellent adaptation that merits a score of 4. 
+
+1. **Shift in Paradigm:** The problem transforms the goal from proving **periodicity** (which relies on identifying a finite set of states and applying the Pigeonhole Principle) to proving **surjectivity** (which requires establishing unboundedness and identifying a specific constructive mechanism). This effectively invalidates the ’tower/block’ visualization and the finite-state automaton approach used in the original problem. 2. **Burden of Discovery:** The adaptation elevates the difficulty by hiding the generative mechanism. While the original problem is a technical exercise in bounding relative heights, the new problem is a structural puzzle. The core insight—that the number 2 appears infinitely often and acts as a ’cursor’ which, when paired with a ’fresh’ number, generates the sequence k, k + 1 , k + 2 , . . . —is a non-trivial ’Eureka’ moment. The solver must realize that the most 
+
+frequent element (2) is paradoxically the engine that creates all the unique large numbers. 3. **Mathematical Depth:** The adaptation adds elegance by connecting the *frequency* of terms to the *value* of future terms in a surprising way. It satisfies the ’Anti-Templating’ and ’Requires Eureka’ criteria perfectly, offering a genuine challenge for a skilled competitor that cannot be solved by rote application of standard sequence techniques. 
+
+20 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 4 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From IMO 2023): 
+
+Determine all composite integers n > 1 that satisfy the following property: if d1 < d 2 < · · · < d k are all the positive divisors of n, then di divides di+1 + di+2 for every 1 ≤ i ≤ k − 2.
+
+Evolved Problem: 
+
+Determine all composite integers n > 1 satisfying the following property: if d1 < d 2 < ... < d k are all the positive divisors of n, then the difference di+1 − di divides the difference di+2 − di+1 for every 1 ≤ i ≤ k − 2.
+
+Comment: 
+
+This is an excellent adaptation that transforms a routine divisibility exercise into a rigorous structural analysis challenge. **Justification for Score 4:** 
+
+1. **Escalation of Insight:** The original problem is easily solved using a standard ’Tail Strategy’ (inspecting only the largest divisors n, n/p, n/q ), which quickly leads to a contradiction for non-prime-powers. The new problem renders this simple heuristic insufficient. It requires a **bi-directional analysis**: the solver must derive constraints from the *start* of the divisor chain (proving q = 2 p − 1) and synthesize them with constraints from the *end* (limiting the exponents). 2. **Anti-Templating:** The condition di+1 − di | di+2 − di+1 governs the *growth rate* of the divisors. This is not a standard template. It forces the solver to discover that the divisors must locally resemble an arithmetic progression, a specific structural insight not present in the original. 
+
+3. **Richer Solution Set:** The emergence of specific families of composite solutions ( n = p(2 p − 1) k and n = 2 k · 3)adds a non-trivial layer of complexity. Distinguishing the case p = 2 from p > 2 requires careful handling of the gap ratios, demonstrating a clear leap in difficulty. 
+
+21 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 5 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From IMO 2023): 
+
+Let x1, x 2, . . . , x 2023 be pairwise different positive real numbers. Define the sequence an by an =q
+
+(x1 + · · · + xn)( 1 
+
+> x1
+
++ · · · + 1 
+
+> xn
+
+). Given that an is an integer for every n = 1 , 2, . . . , 2023 , prove that a2023 ≥ 3034 .
+
+Evolved Problem: 
+
+Let x1, x 2, . . . , x 2025 be a strictly increasing sequence of positive real numbers. Define the sequence an by: 
+
+an =
+
+vuut nX
+
+> i=1
+
+xi
+
+! nX
+
+> i=1
+
+1
+
+xi
+
+!
+
+Given that an is an integer for every n = 1 , 2, . . . , 2025 , find the minimum possible value of a2025 .
+
+Comment: 
+
+The adaptation transforms a standard inequality problem into a sophisticated sequence analysis task. By changing the constraint from ’distinct’ to ’strictly increasing’, it forces the solver to abandon local algebraic tricks (like the original’s 2-step grouping) in favor of a global structural analysis involving recurrence relations and convexity. The discovery that the monotonicity of inputs enforces a minimum integer step size of 2 (via a derived second-difference inequality) is a profound insight that qualitatively changes the problem. The result is mathematically elegant, optimizes the bound significantly, and requires a high-level ’Eureka’ moment regarding the behavior of the recurrence function. 
+
+Case 6 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From IMO 2022): 
+
+Let k be a positive integer and let S be a finite set of odd prime numbers. Prove that there is at most one way (up to rotation and reflection) to place the elements of S around a circle such that the product of any two neighbors is of the form x2 + x + k for some positive integer x.
+
+Evolved Problem: 
+
+Let k be a fixed positive integer. Let P be the set of all odd prime numbers. We define a simple undirected graph 
+
+G = ( P, E ) where an edge {p, q } exists between distinct primes p, q ∈ P if and only if their product is of the form 
+
+pq = n2 + n + k for some non-negative integer n. Prove that the graph G contains no subgraph homeomorphic to the complete graph K4 (i.e., G contains no subdivision of K4). 
+
+Comment: 
+
+This is an excellent adaptation that elevates a specific combinatorial puzzle into a structural graph theory theorem. It retains the deep number-theoretic bottlenecks of the original (quadratic reciprocity/descent) but requires the solver to 
+
+apply them in a more abstract topological context (proving the absence of a K4 subdivision via graph reduction). This shifts the challenge from ’finding a unique path’ to ’characterizing a graph class’, which represents a significant and elegant increase in conceptual depth. 
+
+22 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 7 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From IMO 2021): 
+
+Let n ≥ 100 be an integer. Ivan writes the numbers n, n + 1 , . . . , 2n each on different cards. He then shuffles these 
+
+n + 1 cards, and divides them into two piles. Prove that at least one of the piles contains two cards such that the sum of their numbers is a perfect square. 
+
+Evolved Problem: 
+
+Let n ≥ 100 be an integer. Ivan writes the numbers n, n + 1 , . . . , 2n each on different cards. He then shuffles these 
+
+n + 1 cards and divides them into three piles. Prove that at least one of the piles contains two cards x and y such that either their sum x + y or their absolute difference |x − y| is a perfect square. 
+
+Comment: 
+
+This is an excellent adaptation that significantly raises the burden of discovery. 1. **Shift in Combinatorial Hardness:** Moving from 2 piles (requiring a K3) to 3 piles (requiring a K4) changes the fundamental goal. While K3s are common and easy to parameterize, K4s are rare and structurally demanding. 
+
+2. **The ’Mixed-Constraint’ Insight:** The introduction of the ’absolute difference’ condition is not merely an additive complication; it is the key that makes the problem solvable. A K4 based solely on sums or solely on differences is nearly impossible to find in the given range. The solver must have the ’Eureka’ moment that the K4 must be constructed by **interweaving** sum-edges and difference-edges (specifically, the elegant {x, x + 1 , y, y + 1 } ’prism’ structure). This forces the solver out of the standard ’system of equations’ template used in the original problem and into a task requiring genuine structural insight. 3. **Anti-Templating:** The adaptation invalidates the straightforward algebraic approach of the original (solving 
+
+a + b = k2) and demands a creative construction. It successfully transforms a standard Diophantine exercise into a 
+
+complex graph-theoretic challenge. 
+
+23 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 8 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From IMO 2021): 
+
+Show that the inequality Pni=1 
+
+Pnj=1 
+
+p|xi − xj | ≤ Pni=1 
+
+Pnj=1 
+
+p|xi + xj | holds for all real numbers 
+
+x1, x 2, . . . , x n.
+
+Evolved Problem: 
+
+Determine the set of all positive real numbers p such that for every positive integer n and every sequence of vectors 
+
+v1, v 2, . . . , v n in a real Hilbert space H, the following inequality holds: 
+
+> n
+
+X
+
+> i=1
+> n
+
+X
+
+> j=1
+
+∥vi − vj ∥p ≤
+
+> n
+
+X
+
+> i=1
+> n
+
+X
+
+> j=1
+
+∥vi + vj ∥p
+
+Comment: 
+
+This is an exemplary adaptation. It transforms a problem solvable by a specific elementary trick (shifting and concavity for p=1/2) into a profound question regarding the geometry of Hilbert spaces. The adaptation effectively destroys the original solution method (which fails for p ¿ 1 due to convexity) and forces the solver to discover a much more powerful, dimension-independent tool: the integral representation of negative definite kernels (Schoenberg/Levy-Khintchine). The resulting proof is mathematically beautiful, reducing a complex norm inequality to a trivial identity for complex numbers. 
+
+24 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 9 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From Chinese Gaokao): 
+
+Let n ∈ N∗. Prove that sin 2 x · sin 2 2x · sin 2 4x · · · · · sin 2 2nx ≤ 3n 
+
+> 4n
+
+.
+
+Evolved Problem: 
+
+Let fn(x) = Qn−1 
+
+> k=0
+
+sin 2(2 kx). We define two asymptotic limits describing the behavior of this sequence: 
+
+1. The **Analytic Mean Limit**, A, defined by the limit of the n-th root of the average value over the interval [0 , π ]:
+
+A = lim 
+
+> n→∞
+
+ 1
+
+π
+
+Z π
+
+> 0
+
+fn(x) dx 
+
+1/n 
+
+2. The **Probabilistic Limit**, B, defined as the almost-everywhere limit of the geometric mean: 
+
+B = lim 
+
+> n→∞
+
+ fn(x)1/n 
+
+(You may assume that this limit exists and is constant for almost all x ∈ [0 , π ] in the sense of Lebesgue measure.) Calculate the value of the ratio AB .
+
+Comment: 
+
+This is an exemplary adaptation (Score 5) that transforms a standard inequality problem into a profound exploration of the asymptotic properties of chaotic dynamical systems. 1. **Conceptual Depth:** The adaptation elevates the mathematical landscape from elementary calculus (analyzing a recurrence relation’s fixed point) to advanced analysis. It requires two distinct, sophisticated insights: - **Harmonic Analysis (for Limit A):** Recognizing that the integral of the product simplifies due to the orthogonality of the cosine 
+
+terms (a property of Riesz products/lacunary series). The ’Eureka’ moment is realizing the binary uniqueness of the frequencies prevents cancellation, allowing for an exact integration. - **Ergodic Theory (for Limit B):** Recognizing the geometric mean limit as a Birkhoff average over the ergodic doubling map. This replaces an intractable trajectory calculation with a standard log-sine integral. 2. **Mathematical Significance:** The problem highlights the subtle difference between the ’Analytic Mean’ (dom-inated by large outliers) and the ’Probabilistic Limit’ (the typical behavior almost everywhere). It demonstrates that while the original problem’s bound ( 0.75 n) holds, the typical decay ( 0.25 n) is much faster, providing a deeper understanding of the sequence’s behavior. 
+
+3. **Elegance:** Despite the high-level machinery required, the final result is a clean integer ratio, and the solution path is aesthetically satisfying. It perfectly embodies the criteria of ’Anti-Templating’ and ’Mathematical Beauty’. 
+
+25 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 10 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From AIME-2024): 
+
+A list of positive integers has the following properties: (1) The sum of the items in the list is 30. (2) The unique mode of the list is 9. (3) The median of the list is a positive integer that does not appear in the list itself. Find the sum of the squares of all the items in the list. 
+
+Evolved Problem: 
+
+A list of positive integers has a sum of 323. The list satisfies three conditions: (1) The unique mode of the list is 10. (2) The median of the list is a positive integer that does not appear in the list. (3) The list contains the maximum possible number of items consistent with the first two conditions. Find this maximum number of items. 
+
+Comment: 
+
+This is an excellent adaptation that transforms a simple arithmetic logic puzzle into a sophisticated constructive optimization challenge. 
+
+**Scoring Justification:** 1. **Shift in Cognitive Demand:** The original problem involves trivial case-checking of small partitions summing to 30. The adapted problem, with a sum of 323 and a goal of maximization, makes brute force impossible. It forces the solver to model the problem algebraically, identifying variables for the list length ( n = 2 h), the mode frequency ( f ), and the median value ( M ). 2. **Required Insight (The ’Eureka’ Element):** The problem creates a non-trivial optimization landscape. The solver must discover that the median acts as a ’gate’ for density (choosing M = 3 optimally allows packing 1s and 2s) and that there is a critical trade-off between the mode frequency and the sum: increasing the frequency of the mode (10) allows for more ’cheap’ numbers (1s and 2s) to be added to the list, but effectively taxes the sum budget. Balancing this ’capacity vs. cost’ is a genuine mathematical hurdle. 3. 
+
+**Elegant Tuning:** The constraints are fine-tuned such that the maximum length (74) hits the sum target (323) exactly, indicating a high level of craftsmanship in the problem design. It merits a score of 4 for successfully elevating the burden of discovery from local arithmetic to global optimization. 
+
+Case 11 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From AIME-2024): 
+
+Alice chooses a set A of positive integers. Bob lists all finite nonempty sets B of positive integers such that the maximum element of B belongs to A. Bob’s list has 2024 sets. Find the sum of the elements of A. 
+
+Evolved Problem: 
+
+Alice chooses a finite set A of positive integers such that the distance between any two distinct elements of A is at least 3 (i.e., |x − y| ≥ 3 for all distinct x, y in A). Bob lists all finite nonempty sets B of positive integers that satisfy two conditions: 1. The maximum element of B belongs to A. 2. The distance between any two distinct elements of B is at least 3. Bob finds that there are exactly 2024 sets in his list. Determine the sum of the elements of A. 
+
+Comment: 
+
+This is an exemplary adaptation. It transforms a routine problem about binary representation into a sophisticated 
+
+challenge involving combinatorial recurrence relations and Ostrowski’s numeration systems. The adaptation is mathematically beautiful because it perfectly generalizes the Gap ≥ 1 hidden structure of binary numbers to a Gap ≥ 3
+
+structure. The solver must derive the recurrence relation (an = an−1 + an−3) from scratch and realize that the constraints on set A imply a unique greedy decomposition in this custom number system. This creates a high burden of discovery and offers deep mathematical insight. 
+
+26 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 12 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From AIME-2024): 
+
+Find the number of triples of nonnegative integers (a, b, c) satisfying a + b + c = 300 and 
+
+a2b + a2c + b2a + b2c + c2a + c2b = 6 , 000 , 000 .
+
+Evolved Problem: 
+
+Find the number of triples of positive integers (a, b, c) satisfying a + b + c = 1729 and (ab + bc + ca )3 = abc (a + b + c)3.
+
+Comment: 
+
+This is an exemplary adaptation that transforms a contrived algebraic puzzle into a deep structural problem connecting algebra and number theory. **1. Elevation of Insight (Algebraic):** The original problem relies on a numerical coincidence (manufactured coefficients) that allows the solver to spot that 100 is a root of the cubic polynomial describing the variables. This is 
+
+a specific ’trick’ that dissolves the problem instantly. The new problem replaces this with a homogeneous algebraic identity: (ab + bc + ca )3 = abc (a + b + c)3 implies that a, b, c form a Geometric Progression. This is a robust mathematical property, not a numerical artifact, and realizing it requires a significantly deeper insight into symmetric polynomials. **2. Elevation of Technique (Number Theoretic):** Once the structure is identified, the original problem trivializes to a basic partition count ( b+c = 200 ). The new problem, however, evolves into a rich number-theoretic task: parametrizing the geometric progression on integers ( x = ku 2, y = kuv, z = kv 2) and solving the resulting Diophantine equation 
+
+k(u2 + uv + v2) = 1729 . This requires knowledge of binary quadratic forms (specifically related to Eisenstein integers) 
+
+and the behavior of primes modulo 3, moving the problem from simple arithmetic to multiplicative number theory. **3. Aesthetic and Depth:** The adaptation replaces arbitrary constants with the Hardy-Ramanujan number 1729, which is thematically appropriate for a problem involving cubic structures. The solution path moves elegantly from a symmetric identity to a specific study of the quadratic form u2 + uv + v2, demonstrating the kind of ’mathematical beauty’ and cross-disciplinary connection (Algebra to Number Theory) that characterizes a perfect score. 
+
+27 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 13 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From AIME-2024): 
+
+Let b ≥ 2 be an integer. Call a positive integer n b-eautiful if it has exactly two digits in base b and these two digits sum to √n. Example: 81 is 13-eautiful since 81 = (6 3) 13 and 6 + 3 = √81 . Find the least integer b ≥ 2 for which there are more than ten b-eautiful integers. 
+
+Evolved Problem: 
+
+Let b ≥ 2 be an integer. A positive integer n is called ”circular” in base b if it has exactly two digits in base b, say 
+
+n = ( xy )b (where x ∈ { 1, . . . , b − 1} and y ∈ { 0, . . . , b − 1}), and the sum of the squares of these two digits equals n
+
+(i.e., x2 + y2 = n). Find the least integer b ≥ 2 for which there are more than 20 circular integers. 
+
+Comment: 
+
+The adaptation is exemplary. It transforms a problem of elementary divisibility and partitions into a sophisticated challenge involving Diophantine geometry and the Sum of Two Squares Theorem. The ’Eureka’ moment—completing the square to reveal a circle equation (2 x − b)2 + (2 y − 1) 2 = b2 + 1 —is elegant and conceptually deep. This step 
+
+bridges the domain of digit problems with the theory of Gaussian integers, satisfying the criteria for mathematical advancement and aesthetic beauty. While the provided solution missed the true minimum (b=132), the problem design itself is robust and represents a significant and elegant leap in difficulty. 
+
+Case 14 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From IMO-2025): 
+
+An infinite sequence a1, a 2, . . . consists of positive integers has each of which has at least three proper divisors. Suppose that for each n ≥ 1, an+1 is the sum of the three largest proper divisors of an. Determine all possible values of a1.
+
+Evolved Problem: 
+
+For a positive integer n, let Σk(n) denote the sum of the k largest proper divisors of n. We say that k is admissible if there exists an integer n having at least k proper divisors such that Σk(n) = n.Determine the set of all admissible integers k in the range 1 ≤ k ≤ 6.
+
+Comment: 
+
+The adaptation extracts the core fixed-point condition of the original problem and generalizes it into a profound structural question. It introduces a significant conceptual barrier: realizing that the ’sum of k largest divisors’ condition 
+
+transforms into a ’divisor-closed Egyptian Fraction’ problem. This insight is non-trivial and turns a calculation-heavy problem into a elegant logical challenge involving deep properties of integer divisors. The result (3, 5) is clean, surprising, and aesthetically pleasing. 
+
+28 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 15 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From IMO-2025): 
+
+Alice and Bazzaz are playing the inekolaty game, a two-player game whose rules depend on a positive real number λ
+
+which is known to both players. On the nth turn of the game (starting with n = 1) the following happens: - If n is odd, Alice chooses a nonnegative real number xn such that 
+
+x1 + x2 + · · · + xn ≤ λn. 
+
+- If n is even, Bazzaz chooses a nonnegative real number xn such that 
+
+x21 + x22 + · · · + x2 
+
+> n
+
+≤ n. 
+
+If a player cannot choose a suitable xn, the game ends and the other player wins. If the game goes on forever, neither player wins. All chosen numbers are known to both players. Determine all values of λ for which Alice has a winning strategy and all those for which Bazzaz has a winning strategy. 
+
+Evolved Problem: 
+
+Alice and Bazzaz are playing the Inekolaty game, a two-player game whose rules depend on a positive real number λ
+
+which is known to both players. On the n-th turn of the game (starting with n = 1 ) the following happens: - If n is not divisible by 3 (i.e., n ≡ 1, 2 (mod 3) ), Alice chooses a nonnegative real number xn such that 
+
+> n
+
+X
+
+> i=1
+
+x2 
+
+> i
+
+≤ λn. 
+
+- If n is divisible by 3 (i.e., n ≡ 0 (mod 3) ), Bazzaz chooses a nonnegative real number xn such that 
+
+> n
+
+X
+
+> i=1
+
+xi ≤ n. 
+
+If a player cannot choose a suitable xn, the game ends and the other player wins. If the game goes on forever, neither player wins. All chosen numbers are known to both players. Determine all values of λ for which Alice has a winning strategy and all those for which Bazzaz has a winning strategy. 
+
+Comment: 
+
+The adaptation successfully elevates the problem by introducing a strategic degree of freedom (2 moves vs 1 move) that creates a conceptual trap. In the original problem, the player with the quadratic constraint had only one move, making their strategy trivial. In the new problem, that player has two moves, forcing the solver to choose between ’concentration’ (playing one big move) and ’distribution’ (playing two equal moves). Crucially, while the original problem rewards concentration for the linear-constrained player, the new problem demands distribution for the quadratic-constrained player ( x1 = x2 via AM-QM). This forces the solver to understand the fundamental difference between maximizing L1 norm under L2 constraint versus L2 under L1, rather than simply applying a ’play large moves’ heuristic. The adaptation creates a genuine burden of discovery where the standard intuition leads to the wrong answer. 
+
+29 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 16 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From CMO-2025): 
+
+Consider n red cards and n blue cards. Initially, every red card shows 0 and every blue card shows 1. One operation selects a red card with value x and a blue card with value y with x < y , and sets both values to x+y 
+
+> 2
+
+. The goal is to perform finitely many operations so that the sum of the red card values exceeds 100 . Find the minimal positive integer n.
+
+Evolved Problem: 
+
+Consider n red cards, n white cards, and n green cards. Initially, every red card has value 0, every white card has value 
+
+1, and every green card has value 2. An operation consists of selecting two cards with distinct values x and y (where 
+
+x < y ) and replacing both values with x+y 
+
+> 2
+
+. The goal is to perform finitely many operations such that the sum of the values of the red cards exceeds 100 . Find the minimal positive integer n for which this is possible. 
+
+Comment: 
+
+The adaptation successfully elevates the problem from finding a static combinatorial bound to analyzing a dynamic 
+
+process with decaying contributions. It introduces a non-trivial trap: the value gained from the first phase is largely ’quenched’ by the second phase. This requires the solver to understand linearity and error propagation, rather than simply applying the original formula twice. The shift from a pure combinatorial identity to an asymptotic stability analysis represents a significant and elegant leap in difficulty. 
+
+30 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 17 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From CMO-2025): 
+
+There are 30 colors of cards, with 70 cards for each color. Initially, choose any 70 cards and arrange them in a single stack from top to bottom. One operation is: choose a card X from the bottom 20 cards whose color does not appear among the top 50 cards; then choose a card Y from the top 50 cards whose color appears at least twice among the top 50; remove X and insert it immediately above Y. Repeat until no such X can be chosen. (I) Prove that only finitely 
+
+many operations can be performed. (II) Over all initial configurations and sequences of valid operations, determine the maximal possible number of operations. 
+
+Evolved Problem: 
+
+Let there be a deck of N distinct cards with values 1, 2, . . . , N . We maintain a ’Buffer’ consisting of exactly K cards, arranged in a specific vertical order from top to bottom (positions 1 to K). The remaining N − K cards form a ’Reserve’. Initially, you may distribute the N cards between the Buffer and the Reserve and arrange the Buffer’s order in any way you choose. 
+
+An operation consists of the following steps: 1. Choose a card X from the Reserve. 2. Choose a card Y from the Buffer such that X < Y . 3. Insert X into the Buffer immediately above Y (at the position Y currently occupies). 4. The cards originally at Y ’s position and below are shifted down by one position. 5. The card that ends up at position K + 1 (the overflow) is removed from the Buffer and placed into the Reserve. Let f (N, K ) be the maximum number of operations that can be performed starting from an optimal initial configuration. (I) Prove that for any finite N , the sequence of operations must eventually terminate. (II) Calculate the exact value of 
+
+f (10 , 3) .
+
+Comment: 
+
+The adaptation transforms a problem with arbitrary constants and a somewhat ad-hoc ’color count’ metric into a pristine, generalized combinatorial problem involving permutations and order theory. 1. **Mathematical Elevation**: The original solution relies on an arithmetic progression derived from a specific ’worst-case’ construction. The new problem’s solution ( f (N, K ) = PKj=1 inomN j − (2 K − 1) ) links the dynamical process to the volume of a Hamming ball in the Boolean lattice (the number of subsets of size ≤ K). This is a profound structural insight that elevates the problem from a puzzle to a theorem. 
+
+2. **Burden of Discovery**: The optimal initial configuration in the new problem is far less obvious than in the original. The solver cannot simply ’guess’ the worst case; they must understand the underlying state graph’s properties. My computational verification confirmed that the pattern holds, but establishing it requires a non-trivial ’Aha!’ moment connecting the operation to subset generation. 3. **Elegance**: By stripping away the ’30 colors, 70 cards’ clutter and replacing it with parameters N, K , the adapter has created a problem of textbook quality that tests deep combinatorial intuition rather than just careful accounting. 
+
+31 Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration? 
+
+Case 18 
+
+Evolver: Gemini-3-Pro-Preview-Thinking 
+
+Original Problem (From CMO-2025): 
+
+Given an odd integer n > 1 such that every prime divisor p of n satisfies gcd( p − 1, n ) = 1 . Determine the number of arrays (a, b, c ) that satisfy: (1) a, b, c ∈ { 1, 2, . . . , n } and gcd( a, b, c, n ) = 1 ; (2) there exists a permutation 
+
+x1, x 2, . . . , x n of {1, 2, . . . , n } such that for all 1 ≤ k ≤ n, n | ax k+2 +bx k+1 +cx k, where indices are taken modulo n.
+
+Evolved Problem: 
+
+Given an odd integer n > 1 such that every prime divisor p of n satisfies gcd( p − 1, n ) = 1 . Determine the number of arrays (a, b, c, d ) that satisfy: (1) a, b, c, d ∈ { 1, 2, . . . , n }, d = 1 , and gcd( a, b, c, n ) = 1 ; (2) there exists a permutation x1, x 2, . . . , x n of {1, 2, . . . , n } such that for all 1 ≤ k ≤ n, xk+3 + ax k+2 + bx k+1 + cx k ≡ 0 (mod n),where indices are taken modulo n. (Note: the recurrence is xk+3 + ax k+2 + bx k+1 + cx k ≡ 0)
+
+Comment: 
+
+The adaptation is excellent. It elevates the difficulty from handling a specific edge case to mastering a general structural 
+
+property. 1. **Generalization of Difficulty:** In the original problem, the rigorous analysis of ’lifting’ (determining which coefficient perturbations preserve the permutation property) was only strictly necessary for the prime p = 3 . For all other primes, a standard heuristic (’all lifts work’) sufficed. The new problem forces this rigorous analysis for *every* prime. The solver cannot bypass the ’stability condition’ of the recurrence; they must derive it. 2. **Structural Depth:** By increasing the order to 3, the problem introduces a free parameter (the third root y) for the characteristic polynomial. This requires the solver to not only identify the ’double root 1’ condition (insight from the original) but also to classify and sum over the possible behaviors of the third root. This integrates the ’root finding’ and 
+
+’lifting’ phases in a way that is more complex and mathematically satisfying than the original. 3. **Anti-Templating:** The new problem invalidates the ’count roots and multiply by powers of p’ template. The density of valid solutions is non-trivial ( < 1) for all cases, requiring a genuine understanding of how the recurrence coefficients influence the distribution of values modulo pk.
+
+32

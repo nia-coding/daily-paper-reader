@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-03-10T06:30:31.324926+00:00",
-  "updated_date": "20260209-20260310",
+  "generated_at": "2026-03-10T19:33:12.281636+00:00",
+  "updated_date": "20260310",
   "carryover_days": 9,
   "items": [
     {
@@ -69,24 +69,23 @@
       "published": "2026-03-03T13:12:33+00:00",
       "link": "https://arxiv.org/pdf/2603.02960v1",
       "tags": [
-        "keyword:PR EF",
         "keyword:SR AI",
         "query:SR AI"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Architectures for autonomous epistemic AI agents",
-      "llm_evidence_cn": "自主认知AI智能体的架构",
-      "llm_evidence": "自主认知AI智能体的架构",
-      "canonical_evidence": "自主认知AI智能体的架构",
-      "llm_tldr_en": "Discusses the evolution of LLMs into epistemic agents that autonomously pursue goals and shape knowledge.",
-      "llm_tldr_cn": "探讨了LLM演变为自主追求目标并塑造知识环境的认知智能体。",
-      "llm_tldr": "探讨了LLM演变为自主追求目标并塑造知识环境的认知智能体。",
+      "llm_evidence_en": "Epistemic AI agents in complex multi-agent interactions and knowledge curation",
+      "llm_evidence_cn": "复杂多智能体交互和知识策展中的认识论人工智能智能体",
+      "llm_evidence": "复杂多智能体交互和知识策展中的认识论人工智能智能体",
+      "canonical_evidence": "复杂多智能体交互和知识策展中的认识论人工智能智能体",
+      "llm_tldr_en": "The paper discusses the reliability and calibration of LLMs acting as autonomous epistemic agents in society.",
+      "llm_tldr_cn": "本文讨论了作为自主认识智能体的大语言模型在社会中的可靠性和校准问题。",
+      "llm_tldr": "本文讨论了作为自主认识智能体的大语言模型在社会中的可靠性和校准问题。",
       "llm_tags": [
         "query:sr-ai"
       ],
       "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "How do autonomous agents evolve from large language models?",
-      "matched_requirement_id": "req-42",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-29",
       "selection_source": "carryover_cache",
       "paper_id": "2603.02960v1",
       "carry_days": 1
@@ -340,23 +339,22 @@
       "published": "2026-03-08T02:49:45+00:00",
       "link": "https://arxiv.org/pdf/2603.07427v1",
       "tags": [
-        "keyword:SR AI",
         "query:SR AI"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "automated framework for autonomous agent risk evaluation and decision making",
-      "llm_evidence_cn": "自主智能体风险评估与决策的自动化框架",
-      "llm_evidence": "自主智能体风险评估与决策的自动化框架",
-      "canonical_evidence": "自主智能体风险评估与决策的自动化框架",
-      "llm_tldr_en": "Presents AutoControl Arena for evaluating autonomous agent risks through logic-narrative decoupling.",
-      "llm_tldr_cn": "提出 AutoControl Arena，通过逻辑与叙事解耦评估自主智能体风险。",
-      "llm_tldr": "提出 AutoControl Arena，通过逻辑与叙事解耦评估自主智能体风险。",
+      "llm_evidence_en": "Three-agent framework for autonomous agent risk evaluation",
+      "llm_evidence_cn": "用于自主智能体风险评估的三智能体框架",
+      "llm_evidence": "用于自主智能体风险评估的三智能体框架",
+      "canonical_evidence": "用于自主智能体风险评估的三智能体框架",
+      "llm_tldr_en": "Introduces an automated framework for evaluating frontier AI risks using a multi-agent system.",
+      "llm_tldr_cn": "介绍了一个利用多智能体系统评估前沿人工智能风险的自动化框架。",
+      "llm_tldr": "介绍了一个利用多智能体系统评估前沿人工智能风险的自动化框架。",
       "llm_tags": [
         "query:sr-ai"
       ],
       "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Autonomous AI agents architecture and decision making",
-      "matched_requirement_id": "req-26",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-29",
       "selection_source": "carryover_cache",
       "paper_id": "2603.07427v1",
       "carry_days": 1
@@ -403,78 +401,6 @@
       "matched_requirement_id": "req-46",
       "selection_source": "carryover_cache",
       "paper_id": "2602.17084v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.07191v1",
-      "title": "Governance Architecture for Autonomous Agent Systems: Threats, Framework, and Engineering Practice",
-      "abstract": "Autonomous agents powered by large language models introduce a class of execution-layer vulnerabilities -- prompt injection, retrieval poisoning, and uncontrolled tool invocation -- that existing guardrails fail to address systematically. In this work, we propose the Layered Governance Architecture (LGA), a four-layer framework comprising execution sandboxing (L1), intent verification (L2), zero-trust inter-agent authorization (L3), and immutable audit logging (L4). To evaluate LGA, we construct a bilingual benchmark (Chinese original, English via machine translation) of 1,081 tool-call samples -- covering prompt injection, RAG poisoning, and malicious skill plugins -- and apply it to OpenClaw, a representative open-source agent framework. Experimental results on Layer 2 intent verification with four local LLM judges (Qwen3.5-4B, Llama-3.1-8B, Qwen3.5-9B, Qwen2.5-14B) and one cloud judge (GPT-4o-mini) show that all five LLM judges intercept 93.0-98.5% of TC1/TC2 malicious tool calls, while lightweight NLI baselines remain below 10%. TC3 (malicious skill plugins) proves harder at 75-94% IR among judges with meaningful precision-recall balance, motivating complementary enforcement at Layers 1 and 3. Qwen2.5-14B achieves the best local balance (98% IR, approximately 10-20% FPR); a two-stage cascade (Qwen3.5-9B->GPT-4o-mini) achieves 91.9-92.6% IR with 1.9-6.7% FPR; a fully local cascade (Qwen3.5-9B->Qwen2.5-14B) achieves 94.7-95.6% IR with 6.0-9.7% FPR for data-sovereign deployments. An end-to-end pipeline evaluation (n=100) demonstrates that all four layers operate in concert with 96% IR and a total P50 latency of approximately 980 ms, of which the non-judge layers contribute only approximately 18 ms. Generalization to the external InjecAgent benchmark yields 99-100% interception, confirming robustness beyond our synthetic data.",
-      "authors": [
-        "Yuxu Ge"
-      ],
-      "primary_category": "cs.CR",
-      "categories": [
-        "cs.CR",
-        "cs.AI"
-      ],
-      "published": "2026-03-07T13:05:14+00:00",
-      "link": "https://arxiv.org/pdf/2603.07191v1",
-      "tags": [
-        "keyword:SR AI",
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "governance architecture for autonomous agent systems",
-      "llm_evidence_cn": "自主智能体系统的治理架构",
-      "llm_evidence": "自主智能体系统的治理架构",
-      "canonical_evidence": "自主智能体系统的治理架构",
-      "llm_tldr_en": "Proposes a layered governance architecture to address execution-layer vulnerabilities in autonomous agents.",
-      "llm_tldr_cn": "提出分层治理架构，以解决自主智能体系统中的执行层漏洞。",
-      "llm_tldr": "提出分层治理架构，以解决自主智能体系统中的执行层漏洞。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Autonomous AI agents architecture and decision making",
-      "matched_requirement_id": "req-26",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.07191v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2602.11301v1",
-      "title": "The PBSAI Governance Ecosystem: A Multi-Agent AI Reference Architecture for Securing Enterprise AI Estates",
-      "abstract": "Enterprises are rapidly deploying large language models, retrieval augmented generation pipelines, and tool using agents into production, often on shared high performance computing clusters and cloud accelerator platforms that also support defensive analytics. These systems increasingly function not as isolated models but as AI estates: socio technical systems spanning models, agents, data pipelines, security tooling, human workflows, and hyperscale infrastructure. Existing governance and security frameworks, including the NIST AI Risk Management Framework and systems security engineering guidance, articulate principles and risk functions but do not provide implementable architectures for multi agent, AI enabled cyber defense.   This paper introduces the Practitioners Blueprint for Secure AI (PBSAI) Governance Ecosystem, a multi agent reference architecture for securing enterprise and hyperscale AI estates. PBSAI organizes responsibilities into a twelve domain taxonomy and defines bounded agent families that mediate between tools and policy through shared context envelopes and structured output contracts. The architecture assumes baseline enterprise security capabilities and encodes key systems security techniques, including analytic monitoring, coordinated defense, and adaptive response. A lightweight formal model of agents, context envelopes, and ecosystem level invariants clarifies the traceability, provenance, and human in the loop guarantees enforced across domains. We demonstrate alignment with NIST AI RMF functions and illustrate application in enterprise SOC and hyperscale defensive environments. PBSAI is proposed as a structured, evidence centric foundation for open ecosystem development and future empirical validation.",
-      "authors": [
-        "John M. Willis"
-      ],
-      "primary_category": "cs.AI",
-      "categories": [
-        "cs.AI",
-        "cs.CR"
-      ],
-      "published": "2026-02-11T19:21:35+00:00",
-      "link": "https://arxiv.org/pdf/2602.11301v1",
-      "tags": [
-        "keyword:SR AI",
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Multi-agent AI reference architecture for enterprise estates",
-      "llm_evidence_cn": "企业级多智能体AI参考架构",
-      "llm_evidence": "企业级多智能体AI参考架构",
-      "canonical_evidence": "企业级多智能体AI参考架构",
-      "llm_tldr_en": "Proposes a reference architecture for governing and securing complex multi-agent AI systems in enterprises.",
-      "llm_tldr_cn": "提出了一种用于管理和保护企业复杂多智能体AI系统的参考架构。",
-      "llm_tldr": "提出了一种用于管理和保护企业复杂多智能体AI系统的参考架构。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "What are the latest architectures for multi agent systems?",
-      "matched_requirement_id": "req-43",
-      "selection_source": "carryover_cache",
-      "paper_id": "2602.11301v1",
       "carry_days": 1
     },
     {
@@ -598,42 +524,6 @@
       "matched_requirement_id": "req-42",
       "selection_source": "carryover_cache",
       "paper_id": "2602.23729v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.03018v1",
-      "title": "REGAL: A Registry-Driven Architecture for Deterministic Grounding of Agentic AI in Enterprise Telemetry",
-      "abstract": "Enterprise engineering organizations produce high-volume, heterogeneous telemetry from version control systems, CI/CD pipelines, issue trackers, and observability platforms. Large Language Models (LLMs) enable new forms of agentic automation, but grounding such agents on private telemetry raises three practical challenges: limited model context, locally defined semantic concepts, and evolving metric interfaces.   We present REGAL, a registry-driven architecture for deterministic grounding of agentic AI systems in enterprise telemetry. REGAL adopts an explicitly architectural approach: deterministic telemetry computation is treated as a first-class primitive, and LLMs operate over a bounded, version-controlled action space rather than raw event streams.   The architecture combines (1) a Medallion ELT pipeline that produces replayable, semantically compressed Gold artifacts, and (2) a registry-driven compilation layer that synthesizes Model Context Protocol (MCP) tools from declarative metric definitions. The registry functions as an \"interface-as-code\" layer, ensuring alignment between tool specification and execution, mitigating tool drift, and embedding governance policies directly at the semantic boundary.   A prototype implementation and case study validate the feasibility of deterministic grounding and illustrate its implications for latency, token efficiency, and operational governance. This work systematizes an architectural pattern for enterprise LLM grounding; it does not propose new learning algorithms, but rather elevates deterministic computation and semantic compilation to first-class design primitives for agentic systems.",
-      "authors": [
-        "Yuvraj Agrawal"
-      ],
-      "primary_category": "cs.AI",
-      "categories": [
-        "cs.AI",
-        "cs.SE"
-      ],
-      "published": "2026-03-03T14:13:39+00:00",
-      "link": "https://arxiv.org/pdf/2603.03018v1",
-      "tags": [
-        "keyword:SR AI",
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "agentic automation in enterprise telemetry and cross-application workflows",
-      "llm_evidence_cn": "企业遥测与跨应用工作流中的智能体自动化",
-      "llm_evidence": "企业遥测与跨应用工作流中的智能体自动化",
-      "canonical_evidence": "企业遥测与跨应用工作流中的智能体自动化",
-      "llm_tldr_en": "REGAL provides a registry-driven architecture for grounding agentic AI in enterprise telemetry systems.",
-      "llm_tldr_cn": "REGAL为企业遥测系统中的智能体AI提供了一种注册驱动的确定性落地架构。",
-      "llm_tldr": "REGAL为企业遥测系统中的智能体AI提供了一种注册驱动的确定性落地架构。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Cross-application automated workflows and agent orchestration",
-      "matched_requirement_id": "req-33",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.03018v1",
       "carry_days": 1
     },
     {
@@ -814,23 +704,22 @@
       "published": "2026-03-03T06:37:50+00:00",
       "link": "https://arxiv.org/pdf/2603.02654v1",
       "tags": [
-        "keyword:SR AI",
         "query:SR AI"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "multi-agent reinforcement learning and coordination framework",
-      "llm_evidence_cn": "多智能体强化学习与协作框架",
-      "llm_evidence": "多智能体强化学习与协作框架",
-      "canonical_evidence": "多智能体强化学习与协作框架",
-      "llm_tldr_en": "Proposes GPAE to improve sample efficiency and coordination in multi-agent reinforcement learning.",
-      "llm_tldr_cn": "提出GPAE框架，通过精确的单体优势估计提升多智能体强化学习的样本效率与协作能力。",
-      "llm_tldr": "提出GPAE框架，通过精确的单体优势估计提升多智能体强化学习的样本效率与协作能力。",
+      "llm_evidence_en": "multi-agent coordination and policy optimization",
+      "llm_evidence_cn": "多智能体协作与策略优化",
+      "llm_evidence": "多智能体协作与策略优化",
+      "canonical_evidence": "多智能体协作与策略优化",
+      "llm_tldr_en": "Enhances multi-agent reinforcement learning coordination through precise per-agent advantage estimation.",
+      "llm_tldr_cn": "通过精确的单体优势估计，增强多智能体强化学习中的协作效率和样本效率。",
+      "llm_tldr": "通过精确的单体优势估计，增强多智能体强化学习中的协作效率和样本效率。",
       "llm_tags": [
         "query:sr-ai"
       ],
       "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "What are the latest architectures for multi agent systems?",
-      "matched_requirement_id": "req-43",
+      "matched_query_text": "Multi agent coordination protocols and collaborative error correction",
+      "matched_requirement_id": "req-26",
       "selection_source": "carryover_cache",
       "paper_id": "2603.02654v1",
       "carry_days": 1
@@ -1063,45 +952,6 @@
       "carry_days": 1
     },
     {
-      "id": "2602.11209v1",
-      "title": "SAFuzz: Semantic-Guided Adaptive Fuzzing for LLM-Generated Code",
-      "abstract": "While AI-coding assistants accelerate software development, current testing frameworks struggle to keep pace with the resulting volume of AI-generated code. Traditional fuzzing techniques often allocate resources uniformly and lack semantic awareness of algorithmic vulnerability patterns, leading to inefficient resource usage and missed vulnerabilities. To address these limitations, we present a hybrid testing framework that leverages LLM-guided adaptive fuzzing to detect algorithmic vulnerabilities efficiently. Our system SAFuzz integrates prompt-based behavioral diversification, harness generation with problem-specific oracles, and an LLM-based predictor to enable adaptive resource allocation and dynamic early stopping. Evaluating SAFuzz on CSES algorithmic problems, we improve vulnerability discrimination precision from 77.9% to 85.7% and achieve a 1.71x reduction in time cost compared to SOTA GreenFuzz while maintaining comparable recall. We further observe that combining our approach with existing unit test generation methods yields complementary gains, increasing the bug detection recall from 67.3% to 79.5%.",
-      "authors": [
-        "Ziyi Yang",
-        "Kalit Inani",
-        "Keshav Kabra",
-        "Vima Gupta",
-        "Anand Padmanabha Iyer"
-      ],
-      "primary_category": "cs.SE",
-      "categories": [
-        "cs.SE",
-        "cs.CR"
-      ],
-      "published": "2026-02-11T02:19:50+00:00",
-      "link": "https://arxiv.org/pdf/2602.11209v1",
-      "tags": [
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "LLM-guided adaptive fuzzing for software development",
-      "llm_evidence_cn": "LLM 引导的软件开发自适应模糊测试",
-      "llm_evidence": "LLM 引导的软件开发自适应模糊测试",
-      "canonical_evidence": "LLM 引导的软件开发自适应模糊测试",
-      "llm_tldr_en": "Presents SAFuzz, a framework using LLMs to detect algorithmic vulnerabilities in generated code efficiently.",
-      "llm_tldr_cn": "提出 SAFuzz 框架，利用 LLM 高效检测生成代码中的算法漏洞。",
-      "llm_tldr": "提出 SAFuzz 框架，利用 LLM 高效检测生成代码中的算法漏洞。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "How is AI automating software engineering tasks in SWE bench scenarios?",
-      "matched_requirement_id": "req-46",
-      "selection_source": "carryover_cache",
-      "paper_id": "2602.11209v1",
-      "carry_days": 1
-    },
-    {
       "id": "2602.16662v1",
       "title": "Evaluating Collective Behaviour of Hundreds of LLM Agents",
       "abstract": "As autonomous agents powered by LLM are increasingly deployed in society, understanding their collective behaviour in social dilemmas becomes critical. We introduce an evaluation framework where LLMs generate strategies encoded as algorithms, enabling inspection prior to deployment and scaling to populations of hundreds of agents -- substantially larger than in previous work. We find that more recent models tend to produce worse societal outcomes compared to older models when agents prioritise individual gain over collective benefits. Using cultural evolution to model user selection of agents, our simulations reveal a significant risk of convergence to poor societal equilibria, particularly when the relative benefit of cooperation diminishes and population sizes increase. We release our code as an evaluation suite for developers to assess the emergent collective behaviour of their models.",
@@ -1137,86 +987,6 @@
       "matched_requirement_id": "req-43",
       "selection_source": "carryover_cache",
       "paper_id": "2602.16662v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.07843v1",
-      "title": "How Neurotypical and Autistic Children Interact Nonverbally with Anthropomorphic Agents in Open-Ended Tasks",
-      "abstract": "What nonverbal behaviors should a robot respond to? Understanding how children-both neurotypical and autistic-engage with embodied artificial agents is critical for developing inclusive and socially interactive systems. In this paper, we study \"open-ended\" unconstrained interactions with embodied agents, where little is known about how children behave nonverbally when given few instructions. We conducted a Wizard-of-Oz study in which children were invited to interact nonverbally with 6 different embodied virtual characters displayed on a television screen. We collected 563 (141 unique) nonverbal behaviors produced by children and compare the childre's interaction patterns with those previously reported in an adult study. We also report the presence of repetitive face and hand movements, which should be considered in the development of nonverbally interactive artificial agents.",
-      "authors": [
-        "Chuxuan Zhang",
-        "Bermet Burkanova",
-        "Lawrence H. Kim",
-        "Grace Iarocci",
-        "Elina Birmingham",
-        "Angelica Lim"
-      ],
-      "primary_category": "cs.HC",
-      "categories": [
-        "cs.HC"
-      ],
-      "published": "2026-03-08T23:22:55+00:00",
-      "link": "https://arxiv.org/pdf/2603.07843v1",
-      "tags": [
-        "keyword:PR EF",
-        "keyword:SR AI",
-        "query:PR EF"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Study of child interaction with embodied artificial agents in open-ended tasks",
-      "llm_evidence_cn": "儿童在开放式任务中与具身人工智能体交互的研究",
-      "llm_evidence": "儿童在开放式任务中与具身人工智能体交互的研究",
-      "canonical_evidence": "儿童在开放式任务中与具身人工智能体交互的研究",
-      "llm_tldr_en": "Investigates nonverbal interaction patterns between children and embodied virtual agents in open tasks.",
-      "llm_tldr_cn": "研究了开放式任务中儿童与具身虚拟智能体之间的非语言交互模式。",
-      "llm_tldr": "研究了开放式任务中儿童与具身虚拟智能体之间的非语言交互模式。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Embodied artificial intelligence and physical interaction",
-      "matched_requirement_id": "req-27",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.07843v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.04378v1",
-      "title": "Robustness of Agentic AI Systems via Adversarially-Aligned Jacobian Regularization",
-      "abstract": "As Large Language Models (LLMs) transition into autonomous multi-agent ecosystems, robust minimax training becomes essential yet remains prone to instability when highly non-linear policies induce extreme local curvature in the inner maximization. Standard remedies that enforce global Jacobian bounds are overly conservative, suppressing sensitivity in all directions and inducing a large Price of Robustness. We introduce Adversarially-Aligned Jacobian Regularization (AAJR), a trajectory-aligned approach that controls sensitivity strictly along adversarial ascent directions. We prove that AAJR yields a strictly larger admissible policy class than global constraints under mild conditions, implying a weakly smaller approximation gap and reduced nominal performance degradation. Furthermore, we derive step-size conditions under which AAJR controls effective smoothness along optimization trajectories and ensures inner-loop stability. These results provide a structural theory for agentic robustness that decouples minimax stability from global expressivity restrictions.",
-      "authors": [
-        "Furkan Mumcu",
-        "Yasin Yilmaz"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AI",
-        "cs.CR",
-        "cs.MA"
-      ],
-      "published": "2026-03-04T18:41:45+00:00",
-      "link": "https://arxiv.org/pdf/2603.04378v1",
-      "tags": [
-        "keyword:SR AI",
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "robustness in autonomous multi-agent ecosystems",
-      "llm_evidence_cn": "自主多智能体生态系统的鲁棒性",
-      "llm_evidence": "自主多智能体生态系统的鲁棒性",
-      "canonical_evidence": "自主多智能体生态系统的鲁棒性",
-      "llm_tldr_en": "Introduces AAJR to improve the robustness of multi-agent LLM systems through trajectory-aligned regularization.",
-      "llm_tldr_cn": "引入 AAJR，通过轨迹对齐正则化提高多智能体 LLM 系统的鲁棒性。",
-      "llm_tldr": "引入 AAJR，通过轨迹对齐正则化提高多智能体 LLM 系统的鲁棒性。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Autonomous AI agents architecture and decision making",
-      "matched_requirement_id": "req-26",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.04378v1",
       "carry_days": 1
     },
     {
@@ -1266,84 +1036,6 @@
       "matched_requirement_id": "req-26",
       "selection_source": "carryover_cache",
       "paper_id": "2602.12662v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.07972v1",
-      "title": "Adaptive Collaboration with Humans: Metacognitive Policy Optimization for Multi-Agent LLMs with Continual Learning",
-      "abstract": "While scaling individual Large Language Models (LLMs) has delivered remarkable progress, the next frontier lies in scaling collaboration through multi-agent systems (MAS). However, purely autonomous MAS remain ''closed-world'' systems, constrained by the static knowledge horizon of pre-trained models. This limitation makes them brittle on tasks requiring knowledge beyond training data, often leading to collective failure under novel challenges. To address this, we propose the Human-In-the-Loop Multi-Agent Collaboration (HILA) framework, a principled paradigm for human--agent collaboration. HILA trains agents to learn a metacognitive policy that governs when to solve problems autonomously and when to defer to a human expert. To operationalize this policy, we introduce Dual-Loop Policy Optimization, which disentangles immediate decision-making from long-term capability growth. The inner loop applies Group Relative Policy Optimization (GRPO) with a cost-aware reward to optimize deferral decisions, while the outer loop implements continual learning, transforming expert feedback into high-quality supervised signals that strengthen the agent's reasoning ability. Experiments on challenging mathematical and problem-solving benchmarks show that HILA, equipped with Dual-Loop Policy Optimization, consistently outperforms advanced MAS, establishing a principled foundation for collaborative and continually improving agentic systems.",
-      "authors": [
-        "Wei Yang",
-        "Defu Cao",
-        "Jiacheng Pang",
-        "Muyan Weng",
-        "Yan Liu"
-      ],
-      "primary_category": "cs.AI",
-      "categories": [
-        "cs.AI"
-      ],
-      "published": "2026-03-09T05:18:07+00:00",
-      "link": "https://arxiv.org/pdf/2603.07972v1",
-      "tags": [
-        "keyword:SR AI",
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "metacognitive policy for multi-agent systems",
-      "llm_evidence_cn": "多智能体系统的元认知策略",
-      "llm_evidence": "多智能体系统的元认知策略",
-      "canonical_evidence": "多智能体系统的元认知策略",
-      "llm_tldr_en": "Proposes HILA for human-agent collaboration in multi-agent systems using metacognitive policies.",
-      "llm_tldr_cn": "提出 HILA 框架，利用元认知策略在多智能体系统中实现人机协作。",
-      "llm_tldr": "提出 HILA 框架，利用元认知策略在多智能体系统中实现人机协作。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "What are the latest architectures for multi agent systems?",
-      "matched_requirement_id": "req-43",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.07972v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.01952v1",
-      "title": "LiveCultureBench: a Multi-Agent, Multi-Cultural Benchmark for Large Language Models in Dynamic Social Simulations",
-      "abstract": "Large language models (LLMs) are increasingly deployed as autonomous agents, yet evaluations focus primarily on task success rather than cultural appropriateness or evaluator reliability. We introduce LiveCultureBench, a multi-cultural, dynamic benchmark that embeds LLMs as agents in a simulated town and evaluates them on both task completion and adherence to socio-cultural norms. The simulation models a small city as a location graph with synthetic residents having diverse demographic and cultural profiles. Each episode assigns one resident a daily goal while others provide social context. An LLM-based verifier generates structured judgments on norm violations and task progress, which we aggregate into metrics capturing task-norm trade-offs and verifier uncertainty. Using LiveCultureBench across models and cultural profiles, we study (i) cross-cultural robustness of LLM agents, (ii) how they balance effectiveness against norm sensitivity, and (iii) when LLM-as-a-judge evaluation is reliable for automated benchmarking versus when human oversight is needed.",
-      "authors": [
-        "Viet-Thanh Pham",
-        "Lizhen Qu",
-        "Thuy-Trang Vu",
-        "Gholamreza Haffari",
-        "Dinh Phung"
-      ],
-      "primary_category": "cs.AI",
-      "categories": [
-        "cs.AI"
-      ],
-      "published": "2026-03-02T15:04:16+00:00",
-      "link": "https://arxiv.org/pdf/2603.01952v1",
-      "tags": [
-        "keyword:SR AI",
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Multi-agent benchmark for social simulations and cultural norms",
-      "llm_evidence_cn": "社会模拟与文化规范的多智能体基准测试",
-      "llm_evidence": "社会模拟与文化规范的多智能体基准测试",
-      "canonical_evidence": "社会模拟与文化规范的多智能体基准测试",
-      "llm_tldr_en": "Presents LiveCultureBench for evaluating LLM agents in dynamic, multi-cultural social simulations.",
-      "llm_tldr_cn": "提出LiveCultureBench，在动态多文化社会模拟中评估LLM智能体。",
-      "llm_tldr": "提出LiveCultureBench，在动态多文化社会模拟中评估LLM智能体。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "What are the latest architectures for multi agent systems?",
-      "matched_requirement_id": "req-43",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.01952v1",
       "carry_days": 1
     },
     {
@@ -1434,86 +1126,6 @@
       "matched_requirement_id": "req-34",
       "selection_source": "carryover_cache",
       "paper_id": "2603.01209v2",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.03202v2",
-      "title": "Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration?",
-      "abstract": "As large language models (LLMs) advance their mathematical capabilities toward the IMO level, the scarcity of challenging, high-quality problems for training and evaluation has become a significant bottleneck. Simultaneously, recent code agents have demonstrated sophisticated skills in agentic coding and reasoning, suggesting that code execution can serve as a scalable environment for mathematical experimentation. In this paper, we investigate the potential of code agents to autonomously evolve existing math problems into more complex variations. We introduce a multi-agent framework designed to perform problem evolution while validating the solvability and increased difficulty of the generated problems. Our experiments demonstrate that, given sufficient test-time exploration, code agents can synthesize new, solvable problems that are structurally distinct from and more challenging than the originals. This work provides empirical evidence that code-driven agents can serve as a viable mechanism for synthesizing high-difficulty mathematical reasoning problems within scalable computational environments. Our data is available at https://github.com/TarferSoul/Code2Math.",
-      "authors": [
-        "Dadi Guo",
-        "Yuejin Xie",
-        "Qingyu Liu",
-        "Jiayu Liu",
-        "Zhiyuan Fan",
-        "Qihan Ren",
-        "Shuai Shao",
-        "Tianyi Zhou",
-        "Dongrui Liu",
-        "Yi R. Fung"
-      ],
-      "primary_category": "cs.CL",
-      "categories": [
-        "cs.CL"
-      ],
-      "published": "2026-03-03T17:55:10+00:00",
-      "link": "https://arxiv.org/pdf/2603.03202v2",
-      "tags": [
-        "keyword:SR AI",
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "autonomous evolution of problems via code agents",
-      "llm_evidence_cn": "通过代码智能体自主演化问题",
-      "llm_evidence": "通过代码智能体自主演化问题",
-      "canonical_evidence": "通过代码智能体自主演化问题",
-      "llm_tldr_en": "Explores using code agents to autonomously evolve and complexify math problems through exploration.",
-      "llm_tldr_cn": "研究利用代码智能体在执行环境中自主演化并增加数学问题的难度。",
-      "llm_tldr": "研究利用代码智能体在执行环境中自主演化并增加数学问题的难度。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Autonomous self-evolution and algorithm discovery in AI agents",
-      "matched_requirement_id": "req-24",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.03202v2",
-      "carry_days": 1
-    },
-    {
-      "id": "2602.10523v1",
-      "title": "Scale-Free delta-Level Coherent Output Synchronization of Multi-Agent Systems with Adaptive Protocols and Bounded Disturbances",
-      "abstract": "In this paper, we investigate scale-free delta-level coherent output synchronization for multi-agent systems (MAS) operating under bounded disturbances or noises. We introduce an adaptive scale-free framework designed solely based on the knowledge of agent models and completely agnostic to both the communication topology and the size of the network. We define the level of coherency for each agent as the norm of the weighted sum of the disagreement dynamics with its neighbors. We define each agents coherency level as the norm of a weighted sum of its disagreement dynamics relative to its neighbors. The goal is to ensure that the networks coherency level remains below a prescribed threshold delta, without requiring any a priori knowledge of the disturbance.",
-      "authors": [
-        "Anton A. Stoorvogel",
-        "Ali Saberi",
-        "Donya Nojavanzadeh"
-      ],
-      "primary_category": "eess.SY",
-      "categories": [
-        "eess.SY"
-      ],
-      "published": "2026-02-11T04:41:25+00:00",
-      "link": "https://arxiv.org/pdf/2602.10523v1",
-      "tags": [
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "adaptive protocols for multi-agent system synchronization",
-      "llm_evidence_cn": "多智能体系统同步的自适应协议",
-      "llm_evidence": "多智能体系统同步的自适应协议",
-      "canonical_evidence": "多智能体系统同步的自适应协议",
-      "llm_tldr_en": "Investigates scale-free coherent output synchronization for multi-agent systems under disturbances.",
-      "llm_tldr_cn": "研究了带扰动的多智能体系统在无标度框架下的相干输出同步问题。",
-      "llm_tldr": "研究了带扰动的多智能体系统在无标度框架下的相干输出同步问题。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Multi agent coordination protocols and collaborative error correction",
-      "matched_requirement_id": "req-40",
-      "selection_source": "carryover_cache",
-      "paper_id": "2602.10523v1",
       "carry_days": 1
     },
     {
@@ -1653,23 +1265,22 @@
       "published": "2026-03-07T08:00:48+00:00",
       "link": "https://arxiv.org/pdf/2603.07091v1",
       "tags": [
-        "keyword:SR AI",
         "query:SR AI"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "benchmarking small language models in software architecture tasks",
-      "llm_evidence_cn": "在软件架构任务中对小语言模型进行基准测试",
-      "llm_evidence": "在软件架构任务中对小语言模型进行基准测试",
-      "canonical_evidence": "在软件架构任务中对小语言模型进行基准测试",
-      "llm_tldr_en": "Evaluates the reasoning depth of small language models in the context of Software Engineering 2.0.",
-      "llm_tldr_cn": "在软件工程2.0背景下评估小语言模型的推理深度。",
-      "llm_tldr": "在软件工程2.0背景下评估小语言模型的推理深度。",
+      "llm_evidence_en": "evaluating small language models in software architecture and engineering",
+      "llm_evidence_cn": "评估小语言模型在软件架构和工程中的表现",
+      "llm_evidence": "评估小语言模型在软件架构和工程中的表现",
+      "canonical_evidence": "评估小语言模型在软件架构和工程中的表现",
+      "llm_tldr_en": "Benchmarks small language models on architectural decision tasks within the Software Engineering 2.0 paradigm.",
+      "llm_tldr_cn": "在软件工程2.0范式下，对小语言模型在架构决策任务上的表现进行了基准测试。",
+      "llm_tldr": "在软件工程2.0范式下，对小语言模型在架构决策任务上的表现进行了基准测试。",
       "llm_tags": [
         "query:sr-ai"
       ],
       "matched_query_tag": "query:sr-ai",
       "matched_query_text": "How is AI automating software engineering tasks in SWE bench scenarios?",
-      "matched_requirement_id": "req-46",
+      "matched_requirement_id": "req-32",
       "selection_source": "carryover_cache",
       "paper_id": "2603.07091v1",
       "carry_days": 1
@@ -1800,42 +1411,6 @@
       "carry_days": 1
     },
     {
-      "id": "2602.11242v1",
-      "title": "ReTracing: An Archaeological Approach Through Body, Machine, and Generative Systems",
-      "abstract": "We present ReTracing, a multi-agent embodied performance art that adopts an archaeological approach to examine how artificial intelligence shapes, constrains, and produces bodily movement. Drawing from science-fiction novels, the project extracts sentences that describe human-machine interaction. We use large language models (LLMs) to generate paired prompts \"what to do\" and \"what not to do\" for each excerpt. A diffusion-based text-to-video model transforms these prompts into choreographic guides for a human performer and motor commands for a quadruped robot. Both agents enact the actions on a mirrored floor, captured by multi-camera motion tracking and reconstructed into 3D point clouds and motion trails, forming a digital archive of motion traces. Through this process, ReTracing serves as a novel approach to reveal how generative systems encode socio-cultural biases through choreographed movements. Through an immersive interplay of AI, human, and robot, ReTracing confronts a critical question of our time: What does it mean to be human among AIs that also move, think, and leave traces behind?",
-      "authors": [
-        "Yitong Wang",
-        "Yue Yao"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-02-11T17:29:18+00:00",
-      "link": "https://arxiv.org/pdf/2602.11242v1",
-      "tags": [
-        "keyword:SR AI",
-        "query:SR AI"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Multi-agent embodied performance with quadruped robots and LLMs",
-      "llm_evidence_cn": "结合四足机器人与大语言模型的多智能体具身表演",
-      "llm_evidence": "结合四足机器人与大语言模型的多智能体具身表演",
-      "canonical_evidence": "结合四足机器人与大语言模型的多智能体具身表演",
-      "llm_tldr_en": "Uses LLMs and diffusion models to guide human-robot interaction and embodied movement.",
-      "llm_tldr_cn": "利用大语言模型和扩散模型指导人类与机器人的具身交互与动作生成。",
-      "llm_tldr": "利用大语言模型和扩散模型指导人类与机器人的具身交互与动作生成。",
-      "llm_tags": [
-        "query:sr-ai"
-      ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Embodied artificial intelligence and physical interaction",
-      "matched_requirement_id": "req-27",
-      "selection_source": "carryover_cache",
-      "paper_id": "2602.11242v1",
-      "carry_days": 1
-    },
-    {
       "id": "2602.16192v1",
       "title": "Revolutionizing Long-Term Memory in AI: New Horizons with High-Capacity and High-Speed Storage",
       "abstract": "Driven by our mission of \"uplifting the world with memory,\" this paper explores the design concept of \"memory\" that is essential for achieving artificial superintelligence (ASI). Rather than proposing novel methods, we focus on several alternative approaches whose potential benefits are widely imaginable, yet have remained largely unexplored. The currently dominant paradigm, which can be termed \"extract then store,\" involves extracting information judged to be useful from experiences and saving only the extracted content. However, this approach inherently risks the loss of information, as some valuable knowledge particularly for different tasks may be discarded in the extraction process. In contrast, we emphasize the \"store then on-demand extract\" approach, which seeks to retain raw experiences and flexibly apply them to various tasks as needed, thus avoiding such information loss. In addition, we highlight two further approaches: discovering deeper insights from large collections of probabilistic experiences, and improving experience collection efficiency by sharing stored experiences. While these approaches seem intuitively effective, our simple experiments demonstrate that this is indeed the case. Finally, we discuss major challenges that have limited investigation into these promising directions and propose research topics to address them.",
@@ -1894,23 +1469,22 @@
       "published": "2026-03-02T03:34:49+00:00",
       "link": "https://arxiv.org/pdf/2603.01414v1",
       "tags": [
-        "keyword:SR AI",
         "query:SR AI"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "jailbreaking embodied LLMs via action-level manipulation",
-      "llm_evidence_cn": "通过动作级操纵对具身大模型进行攻击",
-      "llm_evidence": "通过动作级操纵对具身大模型进行攻击",
-      "canonical_evidence": "通过动作级操纵对具身大模型进行攻击",
-      "llm_tldr_en": "Investigates security vulnerabilities in embodied LLMs where benign instructions lead to dangerous physical actions.",
-      "llm_tldr_cn": "研究具身大模型的安全漏洞，即良性指令可能导致危险的物理动作。",
-      "llm_tldr": "研究具身大模型的安全漏洞，即良性指令可能导致危险的物理动作。",
+      "llm_evidence_en": "embodied LLMs and physical action risks",
+      "llm_evidence_cn": "具身大语言模型与物理动作风险",
+      "llm_evidence": "具身大语言模型与物理动作风险",
+      "canonical_evidence": "具身大语言模型与物理动作风险",
+      "llm_tldr_en": "Introduces Blindfold, a framework to attack embodied LLMs by exploiting causal reasoning gaps in physical actions.",
+      "llm_tldr_cn": "引入Blindfold框架，通过利用物理动作背景下的因果推理漏洞来攻击具身大模型。",
+      "llm_tldr": "引入Blindfold框架，通过利用物理动作背景下的因果推理漏洞来攻击具身大模型。",
       "llm_tags": [
         "query:sr-ai"
       ],
       "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Embodied artificial intelligence and physical interaction",
-      "matched_requirement_id": "req-27",
+      "matched_query_text": "How does embodied AI integrate multimodal perception with physical action?",
+      "matched_requirement_id": "req-30",
       "selection_source": "carryover_cache",
       "paper_id": "2603.01414v1",
       "carry_days": 1
@@ -1974,23 +1548,22 @@
       "published": "2026-03-03T17:55:10+00:00",
       "link": "https://arxiv.org/pdf/2603.03202v1",
       "tags": [
-        "keyword:SR AI",
         "query:SR AI"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Autonomous evolution of math problems using multi-agent frameworks",
-      "llm_evidence_cn": "利用多智能体框架自主演化数学问题",
-      "llm_evidence": "利用多智能体框架自主演化数学问题",
-      "canonical_evidence": "利用多智能体框架自主演化数学问题",
-      "llm_tldr_en": "Explores code agents' ability to autonomously evolve complex math problems through exploration.",
-      "llm_tldr_cn": "探讨了代码智能体通过探索自主演化复杂数学问题的能力。",
-      "llm_tldr": "探讨了代码智能体通过探索自主演化复杂数学问题的能力。",
+      "llm_evidence_en": "Multi-agent framework for autonomous math problem evolution and exploration",
+      "llm_evidence_cn": "自主数学问题演化与探索的多智能体框架",
+      "llm_evidence": "自主数学问题演化与探索的多智能体框架",
+      "canonical_evidence": "自主数学问题演化与探索的多智能体框架",
+      "llm_tldr_en": "Explores using code agents to autonomously evolve and validate complex math problems for LLM training.",
+      "llm_tldr_cn": "研究利用代码智能体自主演化并验证复杂的数学问题，以辅助大模型训练。",
+      "llm_tldr": "研究利用代码智能体自主演化并验证复杂的数学问题，以辅助大模型训练。",
       "llm_tags": [
         "query:sr-ai"
       ],
       "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "Autonomous self-evolution and algorithm discovery in AI agents",
-      "matched_requirement_id": "req-24",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
       "selection_source": "carryover_cache",
       "paper_id": "2603.03202v1",
       "carry_days": 1
@@ -2054,19 +1627,19 @@
         "query:SR AI"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "distributed architecture for enterprise-cloud agent collaboration",
-      "llm_evidence_cn": "企业与云端智能体协作的分布式架构",
-      "llm_evidence": "企业与云端智能体协作的分布式架构",
-      "canonical_evidence": "企业与云端智能体协作的分布式架构",
-      "llm_tldr_en": "SplitAgent enables privacy-preserving collaboration between local privacy agents and cloud reasoning agents.",
-      "llm_tldr_cn": "SplitAgent 实现了企业侧隐私智能体与云端推理智能体之间的隐私保护协作架构。",
-      "llm_tldr": "SplitAgent 实现了企业侧隐私智能体与云端推理智能体之间的隐私保护协作架构。",
+      "llm_evidence_en": "enterprise-cloud agent collaboration architecture",
+      "llm_evidence_cn": "企业-云端智能体协作架构",
+      "llm_evidence": "企业-云端智能体协作架构",
+      "canonical_evidence": "企业-云端智能体协作架构",
+      "llm_tldr_en": "Presents SplitAgent, a distributed architecture for privacy-preserving collaboration between AI agents.",
+      "llm_tldr_cn": "提出SplitAgent，一种用于AI智能体之间隐私保护协作的分布式架构。",
+      "llm_tldr": "提出SplitAgent，一种用于AI智能体之间隐私保护协作的分布式架构。",
       "llm_tags": [
-        "query:sr-ai"
+        "query:sr-ai:composite"
       ],
-      "matched_query_tag": "query:sr-ai",
-      "matched_query_text": "What are the latest architectures for multi agent systems?",
-      "matched_requirement_id": "req-43",
+      "matched_query_tag": "query:sr-ai:composite",
+      "matched_query_text": "Papers central to ai 前沿与智能体协作, especially work that connects or combines: Diffusion-based Large Language Model; Neural long-term memory and infinite context architectures; Multi-agent coordination and agentic workflow orchestration; Multimodal perception and sensory integration in AI; Long-term and short-term memory mechanisms for AI agents; Cross-application automated workflows and agent orchestration; LLM tool use and external API calling capabilities; How do world models improve physical causality understanding in AI?; Latest advancements in Vision Language Action models for robot control; Architectures for infinite context and long term neural memory.",
+      "matched_requirement_id": "req-composite-sr-ai",
       "selection_source": "carryover_cache",
       "paper_id": "2603.08221v1",
       "carry_days": 1
@@ -2277,6 +1850,733 @@
       "matched_requirement_id": "req-43",
       "selection_source": "carryover_cache",
       "paper_id": "2602.11897v2",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.04380v1",
+      "title": "TaxonRL: Reinforcement Learning with Intermediate Rewards for Interpretable Fine-Grained Visual Reasoning",
+      "abstract": "Traditional vision-language models struggle with contrastive fine-grained taxonomic reasoning, particularly when distinguishing between visually similar species within the same genus or family. We introduce TaxonRL, a reinforcement learning approach using Group Relative Policy Optimization with intermediate rewards that decomposes the reasoning process into hierarchical taxonomic predictions. Our method incentivizes models to explicitly reason about species-level, genus-level, and family-level features before making final classifications. This structured approach is designed not only to boost accuracy but also to yield a transparent, verifiable decision-making process. On the challenging Birds-to-Words dataset, TaxonRL achieves 91.7\\% average accuracy, exceeding human performance (77.3\\%) while generating interpretable reasoning traces. We demonstrate strong cross-domain generalization, showing substantial gains in primate and marine species verification. Our results establish that enforcing structured, hierarchical reasoning provides a powerful and transferable framework for fine-grained visual discrimination.",
+      "authors": [
+        "Maximilian von Klinski",
+        "Maximilian Schall"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.CL"
+      ],
+      "published": "2026-03-04T18:45:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.04380v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Reinforcement learning for hierarchical reasoning without human labels",
+      "llm_evidence_cn": "无需人类标签的分层推理强化学习",
+      "llm_evidence": "无需人类标签的分层推理强化学习",
+      "canonical_evidence": "无需人类标签的分层推理强化学习",
+      "llm_tldr_en": "Uses reinforcement learning with intermediate rewards to improve interpretable fine-grained visual reasoning.",
+      "llm_tldr_cn": "利用带有中间奖励的强化学习来提升可解释的细粒度视觉推理能力。",
+      "llm_tldr": "利用带有中间奖励的强化学习来提升可解释的细粒度视觉推理能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.04380v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.04469v1",
+      "title": "Beyond Input Guardrails: Reconstructing Cross-Agent Semantic Flows for Execution-Aware Attack Detection",
+      "abstract": "Multi-Agent System is emerging as the \\textit{de facto} standard for complex task orchestration. However, its reliance on autonomous execution and unstructured inter-agent communication introduces severe risks, such as indirect prompt injection, that easily circumvent conventional input guardrails. To address this, we propose \\SysName, a framework that shifts the defensive paradigm from static input filtering to execution-aware analysis. By extracting and reconstructing Cross-Agent Semantic Flows, \\SysName synthesizes fragmented operational primitives into contiguous behavioral trajectories, enabling a holistic view of system activity. We leverage a Supervisor LLM to scrutinize these trajectories, identifying anomalies across data flow violations, control flow deviations, and intent inconsistencies. Empirical evaluations demonstrate that \\SysName effectively detects over ten distinct compound attack vectors, achieving F1-scores of 85.3\\% and 66.7\\% for node-level and path-level end-to-end attack detection, respectively. The source code is available at https://anonymous.4open.science/r/MAScope-71DC.",
+      "authors": [
+        "Yangyang Wei",
+        "Yijie Xu",
+        "Zhenyuan Li",
+        "Xiangmin Shen",
+        "Shouling Ji"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.MA"
+      ],
+      "published": "2026-03-04T01:59:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.04469v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reconstructing cross-agent semantic flows for multi-agent system orchestration",
+      "llm_evidence_cn": "重建多智能体系统编排中的跨智能体语义流",
+      "llm_evidence": "重建多智能体系统编排中的跨智能体语义流",
+      "canonical_evidence": "重建多智能体系统编排中的跨智能体语义流",
+      "llm_tldr_en": "Introduces a framework to detect attacks in multi-agent systems by analyzing contiguous behavioral trajectories.",
+      "llm_tldr_cn": "引入一种通过分析连续行为轨迹来检测多智能体系统中攻击行为的防御框架。",
+      "llm_tldr": "引入一种通过分析连续行为轨迹来检测多智能体系统中攻击行为的防御框架。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Multi agent coordination protocols and collaborative error correction",
+      "matched_requirement_id": "req-26",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.04469v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.04902v1",
+      "title": "AgentSCOPE: Evaluating Contextual Privacy Across Agentic Workflows",
+      "abstract": "Agentic systems are increasingly acting on users' behalf, accessing calendars, email, and personal files to complete everyday tasks. Privacy evaluation for these systems has focused on the input and output boundaries, but each task involves several intermediate information flows, from agent queries to tool responses, that are not currently evaluated. We argue that every boundary in an agentic pipeline is a site of potential privacy violation and must be assessed independently. To support this, we introduce the Privacy Flow Graph, a Contextual Integrity-grounded framework that decomposes agentic execution into a sequence of information flows, each annotated with the five CI parameters, and traces violations to their point of origin. We present AgentSCOPE, a benchmark of 62 multi-tool scenarios across eight regulatory domains with ground truth at every pipeline stage. Our evaluation across seven state-of-the-art LLMs show that privacy violations in the pipeline occur in over 80% of scenarios, even when final outputs appear clean (24%), with most violations arising at the tool-response stage where APIs return sensitive data indiscriminately. These results indicate that output-level evaluation alone substantially underestimates the privacy risk of agentic systems.",
+      "authors": [
+        "Ivoline C. Ngong",
+        "Keerthiram Murugesan",
+        "Swanand Kadhe",
+        "Justin D. Weisz",
+        "Amit Dhurandhar",
+        "Karthikeyan Natesan Ramamurthy"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-03-05T07:45:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.04902v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "evaluating privacy across agentic workflows and information flows",
+      "llm_evidence_cn": "评估智能体工作流和信息流中的隐私",
+      "llm_evidence": "评估智能体工作流和信息流中的隐私",
+      "canonical_evidence": "评估智能体工作流和信息流中的隐私",
+      "llm_tldr_en": "Introduces AgentSCOPE to assess privacy violations across intermediate boundaries in agentic pipelines.",
+      "llm_tldr_cn": "引入 AgentSCOPE 框架，用于评估智能体流水线中间边界处的隐私泄露风险。",
+      "llm_tldr": "引入 AgentSCOPE 框架，用于评估智能体流水线中间边界处的隐私泄露风险。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Cross-application automated workflows and agent orchestration",
+      "matched_requirement_id": "req-20",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.04902v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.02874v1",
+      "title": "Retrievit: In-context Retrieval Capabilities of Transformers, State Space Models, and Hybrid Architectures",
+      "abstract": "Transformers excel at in-context retrieval but suffer from quadratic complexity with sequence length, while State Space Models (SSMs) offer efficient linear-time processing but have limited retrieval capabilities. We investigate whether hybrid architectures combining Transformers and SSMs can achieve the best of both worlds on two synthetic in-context retrieval tasks. The first task, n-gram retrieval, requires the model to identify and reproduce an n-gram that succeeds the query within the input sequence. The second task, position retrieval, presents the model with a single query token and requires it to perform a two-hop associative lookup: first locating the corresponding element in the sequence, and then outputting its positional index. Under controlled experimental conditions, we assess data efficiency, length generalization, robustness to out of domain training examples, and learned representations across Transformers, SSMs, and hybrid architectures. We find that hybrid models outperform SSMs and match or exceed Transformers in data efficiency and extrapolation for information-dense context retrieval. However, Transformers maintain superiority in position retrieval tasks. Through representation analysis, we discover that SSM-based models develop locality-aware embeddings where tokens representing adjacent positions become neighbors in embedding space, forming interpretable structures. This emergent property, absent in Transformers, explains both the strengths and limitations of SSMs and hybrids for different retrieval tasks. Our findings provide principled guidance for architecture selection based on task requirements and reveal fundamental differences in how Transformers and SSMs, and hybrid models learn positional associations.",
+      "authors": [
+        "Georgios Pantazopoulos",
+        "Malvina Nikandrou",
+        "Ioannis Konstas",
+        "Alessandro Suglia"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-03T11:28:33+00:00",
+      "link": "https://arxiv.org/pdf/2603.02874v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "in-context retrieval in hybrid architectures",
+      "llm_evidence_cn": "混合架构中的上下文检索",
+      "llm_evidence": "混合架构中的上下文检索",
+      "canonical_evidence": "混合架构中的上下文检索",
+      "llm_tldr_en": "Evaluates in-context retrieval capabilities of Transformers, SSMs, and hybrid architectures for long sequences.",
+      "llm_tldr_cn": "评估 Transformer、SSM 及其混合架构在长序列中的上下文检索能力。",
+      "llm_tldr": "评估 Transformer、SSM 及其混合架构在长序列中的上下文检索能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Architectures for infinite context and long term neural memory",
+      "matched_requirement_id": "req-24",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.02874v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.07197v1",
+      "title": "$\\textbf{Re}^{2}$: Unlocking LLM Reasoning via Reinforcement Learning with Re-solving",
+      "abstract": "Reinforcement learning with verifiable rewards (RLVR) has shown promise in enhancing the reasoning performance of large language models (LLMs) by increasing test-time compute. However, even after extensive RLVR training, such models still tend to generate unnecessary and low-quality steps in their chain-of-thought (CoT), leading to inefficient overthinking and lower answer quality. We show that when the initial direction or quality of the CoT is suboptimal, the model often fails to reach the correct answer, even after generating several times more tokens than when the initial CoT is well-initialized. To this end, we introduce Reinforcement Learning with Re-solving (Re$^2$), in which LLMs learn to flexibly abandon unproductive reasoning paths and restart the solution process when necessary, rather than always committing to a final answer. Re$^2$ applies pure reinforcement learning without any preliminary supervised fine-tuning, successfully amplifying the rare redo behavior in vanilla models from only 0.5% to over 30%. This leads to substantial performance gains over standard RLVR under the same training compute budget, and also demonstrates notable improvements in test-time performance as the number of samples increases.",
+      "authors": [
+        "Pinzheng Wang",
+        "Shuli Xu",
+        "Juntao Li",
+        "Yu Luo",
+        "Dong Li",
+        "Jianye Hao",
+        "Min Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-07T13:17:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.07197v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "reinforcement learning for reasoning chains",
+      "llm_evidence_cn": "用于推理链的强化学习",
+      "llm_evidence": "用于推理链的强化学习",
+      "canonical_evidence": "用于推理链的强化学习",
+      "llm_tldr_en": "Introduces Re2 to help LLMs abandon unproductive reasoning paths and improve efficiency via reinforcement learning.",
+      "llm_tldr_cn": "引入 Re2，通过强化学习帮助大模型放弃无效推理路径并提高效率。",
+      "llm_tldr": "引入 Re2，通过强化学习帮助大模型放弃无效推理路径并提高效率。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.07197v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.05357v1",
+      "title": "DiSCTT: Consensus-Guided Self-Curriculum for Efficient Test-Time Adaptation in Reasoning",
+      "abstract": "Test-time adaptation offers a promising avenue for improving reasoning performance in large language models without additional supervision, but existing approaches often apply a uniform optimization objective across all inputs, leading to inefficient or unstable adaptation on heterogeneous reasoning problems. We propose DiSCTT, a difficulty-aware, consensus-guided self-curriculum framework that dynamically allocates test-time optimization strategies based on instance-level epistemic uncertainty estimated from agreement among sampled reasoning trajectories. Inputs with high consensus are consolidated via supervised fine-tuning using majority-agreed solutions as pseudo-labels, while low-consensus inputs are optimized via reinforcement learning with a consensus-regularized objective that encourages diversity under relevance constraints. Across a broad suite of mathematical and general reasoning benchmarks, DiSCTT consistently outperforms strong test-time adaptation baselines, achieving higher accuracy with reduced variance and substantially lower computation and wall-clock training times. These results demonstrate that explicitly accounting for instance difficulty and uncertainty enables more stable, efficient, and effective test-time adaptation for reasoning models.",
+      "authors": [
+        "Mohammad Mahdi Moradi",
+        "Sudhir Mudur"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-05T16:38:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.05357v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Self-curriculum for reasoning adaptation using reinforcement learning without human labels",
+      "llm_evidence_cn": "利用强化学习在无人工标签的情况下进行推理自适应的自课程学习",
+      "llm_evidence": "利用强化学习在无人工标签的情况下进行推理自适应的自课程学习",
+      "canonical_evidence": "利用强化学习在无人工标签的情况下进行推理自适应的自课程学习",
+      "llm_tldr_en": "A framework for test-time adaptation in LLM reasoning using consensus-guided self-curriculum and RL.",
+      "llm_tldr_cn": "一种利用共识引导的自课程和强化学习在测试时提升大模型推理能力的框架。",
+      "llm_tldr": "一种利用共识引导的自课程和强化学习在测试时提升大模型推理能力的框架。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.05357v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.01804v1",
+      "title": "Non-verbal Real-time Human-AI Interaction in Constrained Robotic Environments",
+      "abstract": "We study the ongoing debate regarding the statistical fidelity of AI-generated data compared to human-generated data in the context of non-verbal communication using full body motion. Concretely, we ask if contemporary generative models move beyond surface mimicry to participate in the silent, but expressive dialogue of body language. We tackle this question by introducing the first framework that generates a natural non-verbal interaction between Human and AI in real-time from 2D body keypoints. Our experiments utilize four lightweight architectures which run at up to 100 FPS on an NVIDIA Orin Nano, effectively closing the perception-action loop needed for natural Human-AI interaction. We trained on 437 human video clips and demonstrated that pretraining on synthetically-generated sequences reduces motion errors significantly, without sacrificing speed. Yet, a measurable reality gap persists. When the best model is evaluated on keypoints extracted from cutting-edge text-to-video systems, such as SORA and VEO, we observe that performance drops on SORA-generated clips. However, it degrades far less on VEO, suggesting that temporal coherence, not image fidelity, drives real-world performance. Our results demonstrate that statistically distinguishable differences persist between Human and AI motion.",
+      "authors": [
+        "Dragos Costea",
+        "Alina Marcu",
+        "Cristina Lazar",
+        "Marius Leordeanu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T12:38:43+00:00",
+      "link": "https://arxiv.org/pdf/2603.01804v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Real-time Human-AI interaction using body language and perception-action loops",
+      "llm_evidence_cn": "利用肢体语言和感知-动作循环进行实时人机交互",
+      "llm_evidence": "利用肢体语言和感知-动作循环进行实时人机交互",
+      "canonical_evidence": "利用肢体语言和感知-动作循环进行实时人机交互",
+      "llm_tldr_en": "A framework for real-time non-verbal Human-AI interaction using generative models for body motion.",
+      "llm_tldr_cn": "一个利用生成模型进行肢体动作实时非语言人机交互的框架。",
+      "llm_tldr": "一个利用生成模型进行肢体动作实时非语言人机交互的框架。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How does embodied AI integrate multimodal perception with physical action?",
+      "matched_requirement_id": "req-30",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.01804v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.07609v1",
+      "title": "From Logs to Agents: Reconstructing High-Level Creative Workflows from Low-Level Raw System Traces",
+      "abstract": "Current AI-based Creativity Support Tools (CSTs) generate massive amounts of low-level log data (e.g., clicks, parameter tweaks, metadata updates) that are hard to interpret as \"creative intent\". We argue that to enable future agentic systems to understand and assist users, we must first translate these noisy system traces into meaningful high-level user behavioral traces. We propose a method that parses raw csv/JSON logs into structured behavioral workflow graphs that map the provenance and flow of creative assets. By abstracting low-level system events into high-level behavioral tokens (e.g., MODIFY_Prompt, GENERATE_Image), this method enables downstream analyses like sequence mining and probabilistic modeling. We discuss how this structured workflow history is a prerequisite for \"Process-Aware Agents\" - systems capable of suggesting next design moves or explaining rationales based on a deeper understanding of the user's workflow patterns and history.",
+      "authors": [
+        "Tae Hee Jo",
+        "Kyung Hoon Hyun"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-03-08T12:43:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.07609v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Reconstructing high-level creative workflows from low-level system traces for agentic systems",
+      "llm_evidence_cn": "从底层系统追踪中重建高级创意工作流，以支持智能体系统",
+      "llm_evidence": "从底层系统追踪中重建高级创意工作流，以支持智能体系统",
+      "canonical_evidence": "从底层系统追踪中重建高级创意工作流，以支持智能体系统",
+      "llm_tldr_en": "A method to translate raw system logs into structured behavioral workflows to help agents assist users.",
+      "llm_tldr_cn": "一种将原始系统日志转化为结构化行为工作流的方法，旨在帮助智能体更好地辅助用户。",
+      "llm_tldr": "一种将原始系统日志转化为结构化行为工作流的方法，旨在帮助智能体更好地辅助用户。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the breakthroughs in cross application agentic workflows?",
+      "matched_requirement_id": "req-33",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.07609v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.01896v2",
+      "title": "Agentic Code Reasoning",
+      "abstract": "Can LLM agents explore codebases and reason about code semantics without executing the code? We study this capability, which we call agentic code reasoning, and introduce semi-formal reasoning: a structured prompting methodology that requires agents to construct explicit premises, trace execution paths, and derive formal conclusions. Unlike unstructured chain-of-thought, semi-formal reasoning acts as a certificate: the agent cannot skip cases or make unsupported claims. We evaluate across three tasks (patch equivalence verification, fault localization, and code question answering) and show that semi-formal reasoning consistently improves accuracy on all of them. For patch equivalence, accuracy improves from 78% to 88% on curated examples and reaches 93% on real-world agent-generated patches, approaching the reliability needed for execution-free RL reward signals. For code question answering on RubberDuckBench Mohammad et al. (2026), semi-formal reasoning achieves 87% accuracy. For fault localization on Defects4J Just et al. (2014), semi-formal reasoning improves Top-5 accuracy by 5 percentage points over standard reasoning. These results demonstrate that structured agentic reasoning enables meaningful semantic code analysis without execution, opening practical applications in RL training pipelines, code review, and static program analysis.",
+      "authors": [
+        "Shubham Ugare",
+        "Satish Chandra"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.PL"
+      ],
+      "published": "2026-03-02T14:17:06+00:00",
+      "link": "https://arxiv.org/pdf/2603.01896v2",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Agentic code reasoning and semi-formal reasoning for software engineering tasks",
+      "llm_evidence_cn": "用于软件工程任务的智能体代码推理和半形式化推理",
+      "llm_evidence": "用于软件工程任务的智能体代码推理和半形式化推理",
+      "canonical_evidence": "用于软件工程任务的智能体代码推理和半形式化推理",
+      "llm_tldr_en": "Introduces semi-formal reasoning to help LLM agents reason about code semantics without execution.",
+      "llm_tldr_cn": "引入半形式化推理，帮助 LLM 智能体在不执行代码的情况下推理代码语义。",
+      "llm_tldr": "引入半形式化推理，帮助 LLM 智能体在不执行代码的情况下推理代码语义。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How is AI automating software engineering tasks in SWE bench scenarios?",
+      "matched_requirement_id": "req-32",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.01896v2",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.07236v1",
+      "title": "HY-WU (Part I): An Extensible Functional Neural Memory Framework and An Instantiation in Text-Guided Image Editing",
+      "abstract": "Foundation models are transitioning from offline predictors to deployed systems expected to operate over long time horizons. In real deployments, objectives are not fixed: domains drift, user preferences evolve, and new tasks appear after the model has shipped. This elevates continual learning and instant personalization from optional features to core architectural requirements. Yet most adaptation pipelines still follow a static weight paradigm: after training (or after any adaptation step), inference executes a single parameter vector regardless of user intent, domain, or instance-specific constraints. This treats the trained or adapted model as a single point in parameter space. In heterogeneous and continually evolving regimes, distinct objectives can induce separated feasible regions over parameters, forcing any single shared update into compromise, interference, or overspecialization. As a result, continual learning and personalization are often implemented as repeated overwriting of shared weights, risking degradation of previously learned behaviors. We propose HY-WU (Weight Unleashing), a memory-first adaptation framework that shifts adaptation pressure away from overwriting a single shared parameter point. HY-WU implements functional (operator-level) memory as a neural module: a generator that synthesizes weight updates on-the-fly from the instance condition, yielding instance-specific operators without test-time optimization.",
+      "authors": [
+        "Tencent HY Team"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-07T14:40:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.07236v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "extensible functional neural memory framework for long time horizons",
+      "llm_evidence_cn": "面向长时程的可扩展功能性神经记忆框架",
+      "llm_evidence": "面向长时程的可扩展功能性神经记忆框架",
+      "canonical_evidence": "面向长时程的可扩展功能性神经记忆框架",
+      "llm_tldr_en": "HY-WU introduces a functional neural memory framework to support continual learning and personalization.",
+      "llm_tldr_cn": "HY-WU引入了一种功能性神经记忆框架，以支持持续学习和个性化需求。",
+      "llm_tldr": "HY-WU引入了一种功能性神经记忆框架，以支持持续学习和个性化需求。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Neural long-term memory and infinite context architectures",
+      "matched_requirement_id": "req-16",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.07236v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.05377v1",
+      "title": "OpenFrontier: General Navigation with Visual-Language Grounded Frontiers",
+      "abstract": "Open-world navigation requires robots to make decisions in complex everyday environments while adapting to flexible task requirements. Conventional navigation approaches often rely on dense 3D reconstruction and hand-crafted goal metrics, which limits their generalization across tasks and environments. Recent advances in vision--language navigation (VLN) and vision--language--action (VLA) models enable end-to-end policies conditioned on natural language, but typically require interactive training, large-scale data collection, or task-specific fine-tuning with a mobile agent. We formulate navigation as a sparse subgoal identification and reaching problem and observe that providing visual anchoring targets for high-level semantic priors enables highly efficient goal-conditioned navigation. Based on this insight, we select navigation frontiers as semantic anchors and propose OpenFrontier, a training-free navigation framework that seamlessly integrates diverse vision--language prior models. OpenFrontier enables efficient navigation with a lightweight system design, without dense 3D mapping, policy training, or model fine-tuning. We evaluate OpenFrontier across multiple navigation benchmarks and demonstrate strong zero-shot performance, as well as effective real-world deployment on a mobile robot.",
+      "authors": [
+        "Esteban Padilla",
+        "Boyang Sun",
+        "Marc Pollefeys",
+        "Hermann Blum"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-03-05T17:02:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.05377v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "visual-language grounded frontiers for general robot navigation",
+      "llm_evidence_cn": "基于视觉语言对齐边界的通用机器人导航",
+      "llm_evidence": "基于视觉语言对齐边界的通用机器人导航",
+      "canonical_evidence": "基于视觉语言对齐边界的通用机器人导航",
+      "llm_tldr_en": "OpenFrontier uses vision-language grounding to enable zero-shot open-world robot navigation.",
+      "llm_tldr_cn": "OpenFrontier利用视觉语言对齐技术实现了机器人在开放世界中的零样本导航。",
+      "llm_tldr": "OpenFrontier利用视觉语言对齐技术实现了机器人在开放世界中的零样本导航。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.05377v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.06915v1",
+      "title": "A Dynamic Self-Evolving Extraction System",
+      "abstract": "The extraction of structured information from raw text is a fundamental component of many NLP applications, including document retrieval, ranking, and relevance estimation. High-quality extractions often require domain-specific accuracy, up-to-date understanding of specialized taxonomies, and the ability to incorporate emerging jargon and rare outliers. In many domains--such as medical, legal, and HR--the extraction model must also adapt to shifting terminology and benefit from explicit reasoning over structured knowledge. We propose DySECT, a Dynamic Self-Evolving Extraction and Curation Toolkit, which continually improves as it is used. The system incrementally populates a versatile, self-expanding knowledge base (KB) with triples extracted by the LLM. The KB further enriches itself through the integration of probabilistic knowledge and graph-based reasoning, gradually accumulating domain concepts and relationships. The enriched KB then feeds back into the LLM extractor via prompt tuning, sampling of relevant few-shot examples, or fine-tuning using KB-derived synthetic data. As a result, the system forms a symbiotic closed-loop cycle in which extraction continuously improves knowledge, and knowledge continuously improves extraction.",
+      "authors": [
+        "Moin Amin-Naseri",
+        "Hannah Kim",
+        "Estevam Hruschka"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-06T22:26:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.06915v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "self-evolving extraction system using LLM and knowledge base",
+      "llm_evidence_cn": "利用大模型和知识库的自演化提取系统",
+      "llm_evidence": "利用大模型和知识库的自演化提取系统",
+      "canonical_evidence": "利用大模型和知识库的自演化提取系统",
+      "llm_tldr_en": "A toolkit that enables extraction systems to self-evolve and improve through structured reasoning.",
+      "llm_tldr_cn": "一种通过结构化推理使提取系统能够自我演化和改进的工具包。",
+      "llm_tldr": "一种通过结构化推理使提取系统能够自我演化和改进的工具包。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.06915v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.03119v1",
+      "title": "AI Space Physics: Constitutive boundary semantics for open AI institutions",
+      "abstract": "Agentic AI deployments increasingly behave as persistent institutions rather than one-shot inference endpoints: they accumulate state, invoke external tools, coordinate multiple runtimes, and modify their future authority surface over time. Existing governance language typically specifies decision-layer constraints but leaves the causal mechanics of boundary crossing underdefined, particularly for transitions that do not immediately change the external world yet expand what the institution can later do.   This paper introduces AI Space Physics as a constitutive semantics for open, self-expanding AI institutions. We define a minimal state model with typed boundary channels, horizon-limited reach semantics, and a membrane-witness discipline. The core law family (P-1, P-1a, P-1b, P-1c) requires witness completeness, non-bypass mediation, atomic adjudication-to-effect transitions, and replayable reconstruction of adjudication class. We explicitly separate second-order effects into structural expansion and policy broadening, and treat expansion transitions as governance-relevant even when immediate external deltas are zero.   The novelty claim is precise rather than expansive: this work does not introduce mediation as a concept; it reclassifies authority-surface expansion as a first-class boundary event with constitutive witness obligations. In this semantics, expansion without immediate commit remains adjudication-relevant.",
+      "authors": [
+        "Oleg Romanchuk",
+        "Roman Bondar"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LO"
+      ],
+      "published": "2026-03-03T15:54:27+00:00",
+      "link": "https://arxiv.org/pdf/2603.03119v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Coordination of multiple runtimes and agentic institutions",
+      "llm_evidence_cn": "多个运行时和智能体机构的协调",
+      "llm_evidence": "多个运行时和智能体机构的协调",
+      "canonical_evidence": "多个运行时和智能体机构的协调",
+      "llm_tldr_en": "Defines AI Space Physics as a semantics for coordinating and governing self-expanding AI institutions.",
+      "llm_tldr_cn": "定义了 AI 空间物理学，作为协调和治理自我扩展 AI 机构的语义框架。",
+      "llm_tldr": "定义了 AI 空间物理学，作为协调和治理自我扩展 AI 机构的语义框架。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Multi-agent coordination and agentic workflow orchestration",
+      "matched_requirement_id": "req-17",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.03119v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.08148v1",
+      "title": "Gradually Excavating External Knowledge for Implicit Complex Question Answering",
+      "abstract": "Recently, large language models (LLMs) have gained much attention for the emergence of human-comparable capabilities and huge potential. However, for open-domain implicit question-answering problems, LLMs may not be the ultimate solution due to the reasons of: 1) uncovered or out-of-date domain knowledge, 2) one-shot generation and hence restricted comprehensiveness. To this end, this work proposes a gradual knowledge excavation framework for open-domain complex question answering, where LLMs iteratively and actively acquire external information, and then reason based on acquired historical knowledge. Specifically, during each step of the solving process, the model selects an action to execute, such as querying external knowledge or performing a single logical reasoning step, to gradually progress toward a final answer. Our method can effectively leverage plug-and-play external knowledge and dynamically adjust the strategy for solving complex questions. Evaluated on the StrategyQA dataset, our method achieves 78.17% accuracy with less than 6% parameters of its competitors, setting new SOTA for ~10B-scale LLMs.",
+      "authors": [
+        "Chang Liu",
+        "Xiaoguang Li",
+        "Lifeng Shang",
+        "Xin Jiang",
+        "Qun Liu",
+        "Edmund Y. Lam",
+        "Ngai Wong"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-03-09T09:28:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.08148v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "LLMs iteratively acquire external information and query knowledge",
+      "llm_evidence_cn": "LLM 迭代获取外部信息并查询知识",
+      "llm_evidence": "LLM 迭代获取外部信息并查询知识",
+      "canonical_evidence": "LLM 迭代获取外部信息并查询知识",
+      "llm_tldr_en": "Proposes a framework for LLMs to actively excavate external knowledge for complex question answering.",
+      "llm_tldr_cn": "提出了一个让 LLM 主动挖掘外部知识以解决复杂问答问题的框架。",
+      "llm_tldr": "提出了一个让 LLM 主动挖掘外部知识以解决复杂问答问题的框架。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "LLM tool use and external API calling capabilities",
+      "matched_requirement_id": "req-21",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.08148v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.03784v1",
+      "title": "Specification-Driven Generation and Evaluation of Discrete-Event World Models via the DEVS Formalism",
+      "abstract": "World models are essential for planning and evaluation in agentic systems, yet existing approaches lie at two extremes: hand-engineered simulators that offer consistency and reproducibility but are costly to adapt, and implicit neural models that are flexible but difficult to constrain, verify, and debug over long horizons. We seek a principled middle ground that combines the reliability of explicit simulators with the flexibility of learned models, allowing world models to be adapted during online execution. By targeting a broad class of environments whose dynamics are governed by the ordering, timing, and causality of discrete events, such as queueing and service operations, embodied task planning, and message-mediated multi-agent coordination, we advocate explicit, executable discrete-event world models synthesized directly from natural-language specifications. Our approach adopts the DEVS formalism and introduces a staged LLM-based generation pipeline that separates structural inference of component interactions from component-level event and timing logic. To evaluate generated models without a unique ground truth, simulators emit structured event traces that are validated against specification-derived temporal and semantic constraints, enabling reproducible verification and localized diagnostics. Together, these contributions produce world models that are consistent over long-horizon rollouts, verifiable from observable behavior, and efficient to synthesize on demand during online execution.",
+      "authors": [
+        "Zheyu Chen",
+        "Zhuohuan Li",
+        "Chuanhao Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-04T06:50:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.03784v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "generation and evaluation of discrete-event world models",
+      "llm_evidence_cn": "离散事件世界模型的生成与评估",
+      "llm_evidence": "离散事件世界模型的生成与评估",
+      "canonical_evidence": "离散事件世界模型的生成与评估",
+      "llm_tldr_en": "Proposes a middle ground for world models combining explicit simulators with flexible learned models.",
+      "llm_tldr_cn": "提出了一种结合显式仿真器与灵活学习模型的世界模型中间方案。",
+      "llm_tldr": "提出了一种结合显式仿真器与灵活学习模型的世界模型中间方案。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do world models improve physical causality understanding in AI?",
+      "matched_requirement_id": "req-22",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.03784v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.01748v1",
+      "title": "Discrete World Models via Regularization",
+      "abstract": "World models aim to capture the states and dynamics of an environment in a compact latent space. Moreover, using Boolean state representations is particularly useful for search heuristics and symbolic reasoning and planning. Existing approaches keep latents informative via decoder-based reconstruction, or instead via contrastive or reward signals. In this work, we introduce Discrete World Models via Regularization (DWMR): a reconstruction-free and contrastive-free method for unsupervised Boolean world-model learning. In particular, we introduce a novel world-modeling loss that couples latent prediction with specialized regularizers. Such regularizers maximize the entropy and independence of the representation bits through variance, correlation, and coskewness penalties, while simultaneously enforcing a locality prior for sparse action changes. To enable effective optimization, we also introduce a novel training scheme improving robustness to discrete roll-outs. Experiments on two benchmarks with underlying combinatorial structure show that DWMR learns more accurate representations and transitions than reconstruction-based alternatives. Finally, DWMR can also be paired with an auxiliary reconstruction decoder, and this combination yields additional gains.",
+      "authors": [
+        "Davide Bizzaro",
+        "Luciano Serafini"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T11:17:38+00:00",
+      "link": "https://arxiv.org/pdf/2603.01748v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "unsupervised Boolean world-model learning for planning",
+      "llm_evidence_cn": "用于规划的无监督布尔世界模型学习",
+      "llm_evidence": "用于规划的无监督布尔世界模型学习",
+      "canonical_evidence": "用于规划的无监督布尔世界模型学习",
+      "llm_tldr_en": "Introduces DWMR for learning discrete world models via regularization to support symbolic reasoning.",
+      "llm_tldr_cn": "引入DWMR，通过正则化学习离散世界模型以支持符号推理。",
+      "llm_tldr": "引入DWMR，通过正则化学习离散世界模型以支持符号推理。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do world models improve physical causality understanding in AI?",
+      "matched_requirement_id": "req-22",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.01748v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.01783v1",
+      "title": "GAM-RAG: Gain-Adaptive Memory for Evolving Retrieval in Retrieval-Augmented Generation",
+      "abstract": "Retrieval-Augmented Generation (RAG) grounds large language models with external evidence, but many implementations rely on pre-built indices that remain static after construction. Related queries therefore repeat similar multi-hop traversal, increasing latency and compute. Motivated by schema-based learning in cognitive neuroscience, we propose GAM-RAG, a training-free framework that accumulates retrieval experience from recurring or related queries and updates retrieval memory over time. GAM-RAG builds a lightweight, relation-free hierarchical index whose links capture potential co-occurrence rather than fixed semantic relations. During inference, successful retrieval episodes provide sentence-level feedback, updating sentence memories so evidence useful for similar reasoning types becomes easier to activate later. To balance stability and adaptability under noisy feedback, we introduce an uncertainty-aware, Kalman-inspired gain rule that jointly updates memory states and perplexity-based uncertainty estimates. It applies fast updates for reliable novel signals and conservative refinement for stable or noisy memories. We provide a theoretical analysis of the update dynamics, and empirically show that GAM-RAG improves average performance by 3.95% over the strongest baseline and by 8.19% with 5-turn memory, while reducing inference cost by 61%. Our code and datasets are available at: https://anonymous.4open.science/r/GAM_RAG-2EF6.",
+      "authors": [
+        "Yifan Wang",
+        "Mingxuan Jiang",
+        "Zhihao Sun",
+        "Yixin Cao",
+        "Yicun Liu",
+        "Keyang Chen",
+        "Guangnan Ye",
+        "Hongfeng Chai"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-02T12:09:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.01783v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "gain-adaptive memory for evolving retrieval in RAG",
+      "llm_evidence_cn": "RAG中用于演化检索的增益自适应记忆",
+      "llm_evidence": "RAG中用于演化检索的增益自适应记忆",
+      "canonical_evidence": "RAG中用于演化检索的增益自适应记忆",
+      "llm_tldr_en": "Proposes GAM-RAG, a framework that updates retrieval memory over time based on experience.",
+      "llm_tldr_cn": "提出GAM-RAG框架，根据经验随时间更新检索记忆。",
+      "llm_tldr": "提出GAM-RAG框架，根据经验随时间更新检索记忆。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Long-term and short-term memory mechanisms for AI agents",
+      "matched_requirement_id": "req-19",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.01783v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.01641v1",
+      "title": "Learning Structured Reasoning via Tractable Trajectory Control",
+      "abstract": "Large language models can exhibit emergent reasoning behaviors, often manifested as recurring lexical patterns (e.g., \"wait,\" indicating verification). However, complex reasoning trajectories remain sparse in unconstrained sampling, and standard RL often fails to guarantee the acquisition of diverse reasoning behaviors. We propose a systematic discovery and reinforcement of diverse reasoning patterns through structured reasoning, a paradigm that requires targeted exploration of specific reasoning patterns during the RL process. To this end, we propose Ctrl-R, a framework for learning structured reasoning via tractable trajectory control that actively guides the rollout process, incentivizing the exploration of diverse reasoning patterns that are critical for complex problem-solving. The resulting behavior policy enables accurate importance-sampling estimation, supporting unbiased on-policy optimization. We further introduce a power-scaling factor on the importance-sampling weights, allowing the policy to selectively learn from exploratory, out-of-distribution trajectories while maintaining stable optimization. Experiments demonstrate that Ctrl-R enables effective exploration and internalization of previously unattainable reasoning patterns, yielding consistent improvements across language and vision-language models on mathematical reasoning tasks.",
+      "authors": [
+        "Po-Nien Kung",
+        "Zhen Yang",
+        "Jeffrey Luo",
+        "Cheng-Fu Yang",
+        "Haikang Deng",
+        "Zi-Yi Dou",
+        "Yinfei Yang",
+        "Nanyun Peng",
+        "Zhe Gan",
+        "Kai-Wei Chang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-02T09:18:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.01641v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "learning structured reasoning via trajectory control and reinforcement learning",
+      "llm_evidence_cn": "通过轨迹控制和强化学习学习结构化推理",
+      "llm_evidence": "通过轨迹控制和强化学习学习结构化推理",
+      "canonical_evidence": "通过轨迹控制和强化学习学习结构化推理",
+      "llm_tldr_en": "Proposes Ctrl-R to discover and reinforce diverse reasoning patterns in LLMs through trajectory control.",
+      "llm_tldr_cn": "提出Ctrl-R框架，通过轨迹控制在LLM中发现并强化多样化的结构化推理模式。",
+      "llm_tldr": "提出Ctrl-R框架，通过轨迹控制在LLM中发现并强化多样化的结构化推理模式。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.01641v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.05353v1",
+      "title": "InfoFlow KV: Information-Flow-Aware KV Recomputation for Long Context",
+      "abstract": "Retrieval-augmented generation (RAG) for long-context question answering is bottlenecked by inference-time prefilling over large retrieved contexts. A common strategy is to precompute key-value (KV) caches for individual documents and selectively recompute a small subset of tokens to restore global causal dependencies, but existing methods rely on heuristics or representation discrepancies without modeling whether selected tokens can effectively influence generation. We cast selective KV recomputation as an information flow problem and show that a simple attention-norm signal from the query reliably identifies tokens that are both semantically relevant and structurally positioned to propagate information, when computed under an inference-consistent RoPE geometry. We therefore reconstruct global positional assignments for retrieved chunks and introduce an information-flow-guided chunk reordering strategy. Experiments on LLM and VLM benchmarks demonstrate consistent gains over prior methods under comparable efficiency budgets.",
+      "authors": [
+        "Xin Teng",
+        "Canyu Zhang",
+        "Shaoyi Zheng",
+        "Danyang Zhuo",
+        "Tianyi Zhou",
+        "Shengjie Wang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-05T16:33:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.05353v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "KV recomputation for long context and information flow",
+      "llm_evidence_cn": "长上下文的KV重计算与信息流",
+      "llm_evidence": "长上下文的KV重计算与信息流",
+      "canonical_evidence": "长上下文的KV重计算与信息流",
+      "llm_tldr_en": "Introduces InfoFlow KV to optimize long-context inference by identifying semantically relevant tokens.",
+      "llm_tldr_cn": "引入InfoFlow KV，通过识别语义相关标记来优化长上下文推理性能。",
+      "llm_tldr": "引入InfoFlow KV，通过识别语义相关标记来优化长上下文推理性能。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Neural long-term memory and infinite context architectures",
+      "matched_requirement_id": "req-16",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.05353v1",
       "carry_days": 1
     }
   ]

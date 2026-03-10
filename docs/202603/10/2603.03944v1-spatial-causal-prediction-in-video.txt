@@ -1,0 +1,1188 @@
+Title: Spatial Causal Prediction in Video
+
+URL Source: https://arxiv.org/pdf/2603.03944v1
+
+Published Time: Thu, 05 Mar 2026 02:07:51 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# SCP: Spatial Causal Prediction in Video 
+
+## Yanguang Zhao 1 Jie Yang 1 Shengqiong Wu 1* Shutong Hu 1 Hongbo Qiu 2 Yu Wang 3
+
+## Guijia Zhang 2 Tan Kai Ze 1 Hao Fei 1 Chia-Wen Lin 4 Mong-Li Lee 1 Wynne Hsu 11National University of Singapore 2Shenzhen University 
+
+3Sichuan University 4National Tsing Hua University 
+
+## yanguangzhao@u.nus.edu swu@u.nus.edu 
+
+## Abstract 
+
+Spatial reasoning, the ability to understand spatial rela-tions, causality, and dynamic evolution, is central to hu-man intelligence and essential for real-world applications such as autonomous driving and robotics. Existing stud-ies, however, primarily assess models on visible spatio-temporal understanding, overlooking their ability to in-fer unseen past or future spatial states. In this work, we introduce Spatial Causal Prediction (SCP) , a new task paradigm that challenges models to reason beyond ob-servation and predict spatial causal outcomes. We fur-ther construct SCP-Bench , a benchmark comprising 2,500 QA pairs across 1,181 videos spanning diverse viewpoints, scenes, and causal directions, to support systematic eval-uation. Through comprehensive experiments on 23 state-of-the-art models, we reveal substantial gaps between hu-man and model performance, limited temporal extrapola-tion, and weak causal grounding. We further analyze key factors influencing performance and propose perception-enhancement and reasoning-guided strategies toward ad-vancing spatial causal intelligence. The project page is 
+
+https://guangstrip.github.io/SCP-Bench/ .
+
+## 1. Introduction 
+
+Spatial reasoning is a fundamental component of human intelligence that underpins the physical world understand-ing, enabling perception of spatial relations among objects, the grasp of causality and continuity, and the prediction of future spatial changes [8]. Endowing systems with spa-tial understanding allows them not only to perceive the visible scene but also to understand the underlying struc-tural regularities and dynamical physical laws, an ability crucial for a wide range of real-world applications such as autonomous driving [11, 19] and robotics [10, 42, 66]. Prior research has made significant progress toward this goal, with early work primarily focusing on static spa-
+
+> *
+
+Corresponding author: Shengqiong Wu. Static—S een               
+
+> Q1: At least how many metal
+> mixing bowls are visible in
+> the image?
+> Answer: At least three.
+> Q2: Is there a knife on the
+> cutting board?
+> Answer: Yes.
+> Dynamic—S een
+> Q1: What is the person in the image
+> holding?
+> Answer: A pair of tongs.
+> Q2: Which direction is the knife
+> handle facing?
+> Answer: To the left .
+> Dynamic— Unseen
+> Q1: From the perspec-
+> tive of the camera, w-
+> here will the food in t-
+> he mixing bowl be rel-
+> ative to the plate after
+> the mixing bowl is tilt-
+> ed over the plate?
+> Wrong
+> answer: To
+> the left of
+> the plate
+> Correct
+> answer: On
+> the plate
+> Q2: From the camera's
+> perspective, at the instant
+> the first visible stream of
+> dressing leaves the bottl-
+> e(future) ,where is the ch-
+> ef's knife relative to the c-
+> entral mixing bowl on the
+> cutting board?
+> Correct
+> answer:
+> Left of
+> the bowl
+> Wrong
+> answer:
+> In front of
+> the bowl
+
+Figure 1. Existing benchmarks primarily assess known static or 
+
+known dynamic reasoning based on fully observable scenes. A more challenging dynamic–unseen setting is to evaluate models’ ability to predict spatial outcomes from partial observations. 
+
+tial reasoning that assesses a model’s understanding of object layouts and spatial relations from single or multi-ple viewpoints [15, 26, 47, 53, 55, 57, 63]. More recent work [31, 65, 67] has extended this to spatio-temporal rea-soning by introducing videos or dynamic sequences. How-ever, existing efforts [33, 49, 53, 54, 59] remain largely limited to perceptual understanding of observed scenes, as-sessing whether models can reason about visible spatial at-tributes (e.g., object size, position, or relations) within given inputs, as shown in Fig. 1. In contrast, real-world spatial reasoning requires the ability to predict future spatial evo-lution and infer latent causal relations from dynamic obser-vations, beyond merely interpreting what is already visible. To advance research on causal and temporally aware spatial reasoning beyond the observed scene, we introduce 
+
+> arXiv:2603.03944v1 [cs.CV] 4 Mar 2026
+
+a new task paradigm, Spatial Causal Prediction (SCP) ,which addresses the limitations of existing studies confined to visible spatio-temporal understanding. Building on this formulation, we further introduce SCP-Bench , a bench-mark designed to systematically evaluate a model’s capac-ity to perceive, reason, and predict spatial causal dynam-ics. We curate various video sources from public datasets and platforms [1, 9, 20, 38], covering diverse viewpoints 
+
+(egocentric , exocentric , and hybrid perspectives ), and sce-narios (e.g., sports , driving , and factory/machine opera-tions ). Such a design allows SCP-Bench to assess not only visual perception but also a model’s grasp of phys-ical commonsense, causal continuity, and dynamical reg-ularities [4, 6, 41, 56]. To construct high-quality annota-tions, we develop a semi-automatic labeling pipeline com-bining model-assisted generation [35] with human verifica-tion. Following a QA-based task format, we define 8 spa-tial reasoning categories (e.g., relation , planning , relative size/speed/distance , spatial state ), spanning two causal di-rections , i.e., backward (cause inference) and forward (re-sult prediction). After rigorous manual validation, the final benchmark comprises 2,500 question–answer (QA) pairs across 1,181 high-quality video clips. With SCP-Bench, we further investigate three key research questions through ex-tensive experiments and in-depth analyses. 
+
+RQ1 (§5): How do current MLLMs perform on SCP? 
+
+We evaluate 23 representative state-of-the-art MLLMs [2, 3, 14, 32, 35, 37, 46, 49–52, 60] spanning both open-source and closed-source families under diverse task types, scenes, and settings. Our study yields several striking observations. 
+
+First , models [37, 49] specifically trained for spatial per-ception often underperform compared to general-purpose models without such specialization, exposing a mismatch between supervised spatial learning and causal generaliza-tion. Second , the performance gap between long-term and short-term spatial causal prediction is surprisingly small, in-dicating that current architectures offer limited temporal ex-trapolation benefits. Third , compared with human reason-ing, existing models fall short by roughly 22.37% in unseen spatio-temporal causal prediction, underscoring the signif-icant gap in causal understanding. Fourth , large open-source models with increased parameter scales achieve per-formance comparable to several closed-source systems on SCP-Bench, reflecting the rapid advancement of publicly available spatial reasoning models. 
+
+RQ2: (§6): Then, what affects their performance? 
+
+To answer this, we design a series of probing tasks to an-alyze characteristic error patterns and reasoning behaviors. Our results show that current models struggle not only with the spatial perception of visible content but also with pre-dicting unobserved spatial states. On the perception side, understanding dynamic video content remains notably more difficult than handling static visual inputs. Variations in 
+
+causal structure , motion dynamics , and the continuous evo-lution of spatial states often disrupt spatial consistency and result in fragile reasoning [18, 61]. On the prediction side, many models lack a solid grounding in physical common-sense, which substantially hinders accurate forecasting of unseen spatial configurations [7, 13]. 
+
+RQ3: (§7): How to improve their SCP capabilities? 
+
+We further investigate several approaches and paradigms for SCP models. Our experiments reveal that significantly scaling model size consistently yields substantial perfor-mance gains. Moreover, we demonstrate that enriching spa-tial perception with intermediate representations, such as dense video captions or spatial-interaction graphs, provides the predictor with more enriched scene information, lead-ing to slightly improved SCP performance. In addition, in-corporating prior knowledge of physical commonsense de-rived from large language models (LLMs) [35] or learned world models [44] significantly boosts prediction for unseen spatial states. Interestingly, both explicit chain-of-thought (CoT) [48] prompting and implicit self-thinking [21, 24] strategies offer limited improvements. Overall, this work contributes by 1 for the first for-mulating the Spatial Causal Prediction (SCP) task that ad-vances spatial intelligence from observed spatio-temporal understanding to inference over unseen past and future.  
+
+> 2
+
+We develop SCP-Bench, a high-quality benchmark de-signed to rigorously evaluate spatial reasoning across two causal directions, diverse scenes and viewpoints, and 8 spa-tial question categories. 3 We perform extensive eval-uation and in-depth analysis of existing models on SCP-Bench, uncovering when and why they fail and how to im-prove them, thereby paving the way for follow-up research. 
+
+## 2. Related Work 
+
+Spatial-aware MLLMs. Recent multimodal large lan-guage models (MLLMs) integrate the reasoning capability of large language models [5, 17, 34, 43] with the percep-tual strength of vision encoders [23, 27, 36, 39], achiev-ing remarkable progress in visual understanding and cross-modal reasoning [58]. These advances have inspired grow-ing interest in developing world models [22] and embodied agents [16, 28], where spatial understanding plays a central role in grounding models to the physical world. However, achieving robust visual spatial intelligence remains a ma-jor challenge, motivating recent efforts toward constructing spatial-aware MLLMs [12, 25, 37, 40, 49, 62]. In contrast to prior studies primarily focusing on spatial reasoning within observed scenes, our work evaluates models’ spatial causal intelligence in unseen videos, aligning more closely with the human ability to infer unobserved spatial dynamics, an ⑥ Appearance Order                         
+
+> Q: Who moves faster toward the hoop when
+> the ball in the air: the dark -jersey ball hand -
+> ler or his trailing teammate in dark
+> A: His trailing teammate in dark jersey
+> Cutpoint
+> Q: How many players wearing white jer -
+> seys are positioned inside the key (the
+> paint area) after the cut point? A: Two
+> Q: From the camera's perspective, what will player #31 in
+> the dark jersey do next: run toward a teammate to receive a
+> pass, jump to catch the ball, or run toward the basket?
+> A: Jump to catch the ball
+> Cutpoint
+> Q: When the black fencer spreads into a wide defensive stance
+> after shuffling back, which fencer is nearer to the right wall?
+> A: The black fencer
+> Q: From the camera's perspective, what will the black fencer's posture be in the next
+> moment: leaning forward to attack, standing upright, or leaning back to defend?
+> A: Leaning forward to attack
+> Cutpoint
+> Q: Which object did he engage with ea -
+> rlier : the handed white sauce bottle or
+> the black sauce bottle on the table?
+> A: The handed white sauce bottle
+> Q: Before the cut, which object is smaller: the
+> half red bell pepper lying on the cutting board
+> or the bottle in the chef's hand? A: The half red
+> bell pepper lying on the board
+> Q: Before the cut point, which object is further to the left:
+> the white sauce bottle in chef’s hand or the green peeler
+> on the table? A: The white sauce bottle in chef’s hand
+> ①Relative Speed ②Counting ③Planning
+> ④Relative Distance ⑤Spatial State
+> ⑦Relative Size ⑧Relation
+
+(a) QA Examples (b) Dataset Statistics 
+
+QA Instance: 2500 Video Clip: 1181 Figure 2. Overview of SCP-Bench. Left : Representative examples illustrating the eight task categories. Right : Data distribution across scene categories and task types. The benchmark comprises 2,500 QA pairs over 1,181 video clips. 
+
+essential capability for real-world embodied applications. 
+
+Benchmarking Spatial Intelligence. A number of benchmarks assess spatial reasoning in multimodal sys-tems. Early efforts center on 2D imagery (e.g., 3DSR-Bench [33], OmniSpatial [26], Spatial457 [47] and InternSpatial-Bench [15]), while VSI-Bench [53], MMSI-Bench [54] and All-Angles-Bench [55] probe multi-view and relational reasoning, and VLM4D [67] extends eval-uation to spatio-temporal video settings. However, these benchmarks largely emphasize static perception or frame-level understanding and thus overlook causal dependencies unfolding over time. More recent dynamic evaluations such as STI-Bench [31] and DSI-Bench [65] incorporate mo-tion, yet remain predominantly perceptual. In contrast, our SCP-Bench explicitly targets forward and backward spa-tial causal reasoning in dynamic videos, offering a princi-pled testbed for both predictive and diagnostic spatial intel-ligence. A comprehensive comparison with representative benchmarks is provided in Appendix §E. 
+
+## 3. SCP-Bench 
+
+Overview. We formulate SCP as a multi-choice QA task. Formally, given a video clip with only partial temporal con-text, along with a question and multiple candidate options, the model aims to select the option that best reflects the underlying spatial causal reasoning. We further introduce SCP-Bench, a benchmark designed to systematically evalu-ate this capability of MLLMs on the SCP task. Following, the benchmark design is detailed in Sec. §3.1, and the con-struction process is described in Sec. §3.2. 
+
+3.1. Benchmark Design 
+
+To ensure systematic and fine-grained evaluation of SCP, we design SCP-Bench around four complementary dimensions (i.e., question type , causal direction , perceptive setting , and 
+
+scene diversity ) that together define the benchmark’s struc-ture and scope. We detail these design components below. 
+
+Question Type. We design 8 task categories to capture variations in spatial causal structure, organized by difficulty. (1) Object-invariant identification (e.g., Relative Size ) fo-cuses on recognizing the correct entity when object size remains constant. (2) Attribute-dynamic reasoning (e.g., 
+
+Appearance Order , Relative Speed , Spatial State ) probes changes in object attributes under causal evolution. (3) Interaction-level inference (e.g., Counting , Planning , Re-lation ) requires higher-order reasoning over object interac-tions. Detailed definitions are provided in Appendix § B. 
+
+Causal Direction. Since the model observes only the vis-ible part before or after the cut point, the task naturally di-vides into two causal directions: backward inference, which reconstructs prior states, and forward prediction, which an-ticipates subsequent scene evolution. 
+
+Perspective Setting. Since spatial reasoning depends on how a scene is perceived, SCP-Bench includes both single-view and multi-view settings. The single-view setting pro-vides an ego (first-person) and exo (third-person) perspec-tive. The multi-view setting pairs a video with a reference image from another viewpoint. Specifically, this setting in-cludes ego–exo indicating that the video is observed from an ego view but answered from an exo view, with exo–ego 
+
+and exo–exo defined analogously. Scene             
+
+> View Num
+> Perspective
+> Step1 ：Dataset Collection Step3 ：QA Generation
+> Ego-Exo4D HD-EPIC
+> YouTube-8M ActivityNet
+> Step4 ：Filtering and Cutpoint Finding
+> Q：From the perspective of ... ,
+> when/while ... ,
+> what/which/how many ... ?
+> A：...
+> QA Candidates
+> Step5 ：Validation and Optimization
+> Suitable
+> QAs
+> Cutpoint
+> Keep
+> Repair
+> Disc ard
+> Data Source
+> Feature
+> GPT-5 Perspective Time
+> Spatial Question
+> Structured Template Coarse: Segments with Events
+> Videos Fine: Clips with Spatial Changes
+> ··· ··· ···
+> ···
+> Step2 ：Clip Selecting
+> Select
+> with
+> Caption
+> Propose
+> &
+> Select
+> Selected by
+> GPT-5
+
+Figure 3. Overview of the SCP-Bench construction pipeline. The process comprises five stages: (1) collection of diverse video sources, (2) clip selection with spatially dynamic segments, (3) generation of candidate QA pairs, (4) QA filtering and cutpoint identification, and (5) dataset validation and refinement. 
+
+Scene Diversity. To capture the breadth of environments in which spatial causal reasoning occurs, SCP-Bench in-cludes Artistic Performances , Animal Related , Sports Re-lated , Life Records , Factory/Machine Related , and Driving-view Related , ensuring that models are evaluated under di-verse visual dynamics and interaction patterns. 
+
+3.2. Construction Process 
+
+We show the detailed construction pipeline in Fig. 3, which comprises following five key steps: 
+
+▶ Step-1: Video Source Selection. To ensure the vari-ous attributes of SCP-Bench, we choose the synchronized ego–exo multi-view dataset Ego-Exo4D [20], the high-resolution egocentric dataset HD-EPIC [38], and YouTube-based datasets YouTube-8M [1] and ActivityNet [9]. 
+
+▶ Step-2: Automatic Clip Screening. Before gener-ating QAs, we apply an automated step to extract high-quality short clips. For each video, GPT-5 [35] expands the provided segments, produces dense temporally aligned captions, and filters for portions that exhibit clear spa-tial change. It then proposes candidate clips with explicit start–end timestamps, from which we retain the validated ones for downstream QA generation. 
+
+▶ Step-3: Candidate QA Generation. To generate chal-lenging and well-controlled QAs, we design a structured prompt template that explicitly encodes three complemen-tary dimensions. The perspective fixes the viewpoint from which the question and answer should be interpreted. The 
+
+time dimension specifies the unseen moment or temporal window, outside the visible part, that the model must infer. The spatial question type determines which category of spatial reasoning the QA should target. GPT-5 then uses this template to produce diverse and well-structured QA candi-dates for each selected clip. 
+
+▶ Step-4: Filtering and Cutpoint Finding. As our task is highly sensitive to space and time, all QA candidates are manually reviewed. We retain only questions that are unam-biguous, answerable from the clip, and genuinely grounded in spatial reasoning, while discarding duplicates or weakly supported items. For each approved QA, annotators first de-termine a precise cutpoint that separates the clip into visible and invisible parts, after which GPT-5 generates the corre-sponding distracted options. 
+
+▶ Step-5: Validation and Optimization. To ensure QA quality, annotators conduct multiple rounds of review to refine and correct candidate items. Unanswerable or in-valid samples are removed, while fixable issues, such as mismatched question types, unclear perspectives, ill-posed wording or targets, misaligned temporal windows or cut-points, and defective options, are revised and rechecked. After these, the remaining QAs constitute SCP-Bench. 
+
+## 4. Setups of Experiments and Analyses 
+
+In the following sections, we fundamentally explore the three tiers of critical questions as raised in Sec. §1. To com-prehensively evaluate existing models, we consider a wide range of MLLMs on SCP-Bench, including proprietary, open-source, and spatially specialized models. Specif-ically, we assess four proprietary models: GPT-5 [35], Gemini-2.5-Pro [14], Gemini-2.5-Flash [14], and Claude-4.5-Sonnet [3]. For open-source MLLMs, we include Qwen3-VL [52], Qwen3-Omni [51], InternVL3.5 [46], MiniCPM-V-4.5 [60], DeepSeek-VL2 [50], LLaVA-One-Vision [2, 30], and LLaVA-NeXT-Video [64]. Addition-ally, we evaluate two models specifically designed for spa-tial reasoning: Spatial-MLLM [49] and SpaceR [37]. All models are tested using their officially recommended con-figurations to ensure fair and representative results. Each model answers multiple-choice questions based on the in-put video, question, and answer options, with the accuracy rate serving as the primary evaluation metric. Further im-plementation details are provided in Appendix §D. 
+
+## 5. How Well Do Current Models Perform? 
+
+Overall Evaluation Results. Table 1 summarizes the overall performance of MLLMs on SCP-Bench. Current systems remain far below human level, underscoring the substantial gap in spatial causal prediction. GPT-5 attains the highest accuracy (66.24%), followed by Qwen3-VL-235B (61.04%) and InternVL3.5-241B (56.96%). Notably, several open-source models match or surpass proprietary ones on specific tasks, for example, outperforming GPT-5 in Table 1. Evaluation on the SCP-Bench. “Avg.” indicates the overall average accuracy. For each category, the best-performing closed model and open-source model in average score are both indicated in deep blue , and best performance on each task is boxed .                                                                                                                                                                                                                                    
+
+> Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State
+> Human Performance 89.61 97.60 81.20 92.26 85.70 86.70 97.62 91.61 84.17
+> •Closed Models
+> GPT-5 66.24 79.04 58.12 59.06 64.07 70.48 95.24 77.42 65.11
+> Gemini 2.5 Pro 55.84 69.28 54.87 52.76 46.20 63.47 88.10 67.10 62.41 Gemini 2.5 Flash 52.10 59.28 52.14 51.74 43.14 57.75 88.10 66.45 55.60 Claude Sonnet 4.5 56.14 68.86 52.14 57.43 45.65 60.90 80.95 68.39 63.90
+> •Open-source Models
+> Qwen3-VL-2B 43.04 41.92 42.74 45.01 40.85 44.41 59.52 47.10 40.65 Qwen3-VL-8B 47.52 54.49 51.28 49.29 42.33 49.47 90.48 46.45 46.40 Qwen3-VL-30B-A3B 54.16 65.27 52.14 54.79 46.22 56.65 85.71 66.45 57.19 Qwen3-VL-32B 56.84 59.88 51.28 58.66 52.63 57.98 90.48 67.10 55.04 Qwen3-VL-235B-A22B 61.04 67.07 54.70 60.90 55.03 63.03 97.62 74.84 63.31
+> Qwen3-Omni-30B-A3B 53.60 63.47 55.56 53.56 47.03 53.72 88.10 65.81 55.40 InternVL3.5-8B 50.52 59.88 54.70 54.79 43.82 54.52 61.90 58.71 44.96 InternVL3.5-38B 53.56 62.28 53.85 56.01 46.34 57.98 90.48 65.81 48.20 InternVL3.5-241B-A28B 56.96 67.07 60.68 61.10 46.11 60.37 90.48 68.39 60.07 MiniCPM-V-4.5 43.80 53.29 49.57 43.99 36.04 49.20 76.19 52.26 42.81 DeepSeek-VL2 38.08 45.51 38.46 39.51 29.41 45.74 73.81 53.55 33.81 NVILA-8B 34.40 36.53 36.75 38.09 30.66 30.05 59.52 38.71 37.05 NVILA-15B 45.28 54.49 45.30 48.07 35.35 52.13 73.81 50.97 49.28 LLaVA-OneVision-7B 36.48 42.51 37.61 37.07 31.24 38.30 64.29 46.45 35.61 LLaVA-OneVision-70B 50.84 64.67 52.99 48.68 44.39 53.46 78.57 61.94 51.80 LLaVA-OneVision-1.5-8B 45.52 56.29 47.01 46.44 39.13 50.27 80.95 51.61 41.73 LLaVA-NeXT-Video-7B 36.60 43.11 25.64 35.44 29.52 48.40 54.76 54.84 32.73
+> •Spatial Models
+> Spatial-MLLM 39.76 45.51 28.21 33.81 38.33 49.73 66.67 50.97 32.37 SpaceR 41.36 52.10 34.19 40.53 34.90 45.21 59.52 54.19 44.60
+
+Figure 4. Results across perspectives, view directions, and scenes. 
+
+Counting and Planning and achieving comparable results in 
+
+Relative Size , Relative Speed , and Spatial State . At the level of question types, the difficulty landscape becomes clearer. 
+
+Relative Size is consistently the easiest, whereas Object Re-lations , Planning , and Counting are the most challenging, as they require more abstract spatial causal reasoning and higher-order object interaction understanding. We further examine performance across perspectives, Short(0-2s) Mid(2-5s) Long( >5s) 
+
+35 40 45 50 55    
+
+> Acc.(%)
+> Qwen3-VL InternVL3.5 MiniCPM-V-4.5 Avg.
+
+Figure 5. Temporal extrapolation horizon analysis. Samples are grouped by the time gap between the cutpoint and future event: short (0–2s), mid (2–5s), and long ( > 5s). 
+
+causal directions, and scenarios (Fig. 4). Models exhibit clear difficulty with multi-view prediction compared to single-view reasoning, indicating limited perspective corre-spondence. In causal directionality, models perform better when inferring past (backward) events than future (forward) ones, likely because reasoning from known outcomes is eas-ier than anticipating unseen consequences. Finally, model performance remains relatively balanced across different scene categories, with slightly stronger results in driving-related and factory/machine environments. 
+
+The Impact of Temporal Extrapolation Horizon. We analyze how model performance varies with different tem-poral prediction ranges. Specifically, we divide the fu-ture duration between the cutpoint and the event comple-tion into three intervals: short (0–2s), mid (2–5s), and long (>5s). We compare three models of comparable size (8B), as shown in Fig. 5. Overall, model accuracy remains rela-tively stable across horizons, averaging around 46.8%. This indicates that dynamic frame sampling in existing MLLMs Setting Qwen3-VL InternVL3.5 MiniCPM-V-4.5 Base 47.52 50.52 43.80 Gold Video 54.96 ↑7.44 58.64 ↑8.12 43.72 ↓0.08 
+
+Caption w/o Video 46.76 ↓0.76 41.24 ↓9.28 45.76 ↑1.96 
+
+Table 2. Comparison between perception and reasoning. “Base” is the standard evaluation performance; “Gold Video” evaluates perceptual understanding using unseen part; “Caption w/o Video” tests reasoning based on captions alone. Green and red indicate performance gains and drops, respectively. Qwen3-VL    
+
+> 45
+> 50
+> 55
+> InternVL3.5
+> 50
+> 55
+> 60
+> MiniCPM-V-4.5
+> 40
+> 45
+> 50
+> 55
+> Spatial-MLLM
+> 39
+> 40
+> 41
+> 42
+> 43
+> Acc.(%)
+> Acc.(%)
+> Acc.(%)
+> Acc.(%)
+> Only Input Ground Truth Full Video Only Cut-point
+
+Figure 6. Visible Range Comparison. Only cutpoint uses the cut-point frame as input; Full video provides the entire clip; Ground truth includes only the unseen clips adjacent to the cutpoint. 
+
+mitigates sensitivity to temporal length difference, and also that the current temporal segmentation range may be too narrow to induce significant variation. 
+
+Causal Consistency Evaluation. To complement the above quantitative results, we conduct a case study to ex-amine whether models obey basic physical and temporal causal constraints. Given a video of a child on a swing, we construct three candidate event progressions after the swing reaches its closest point to the camera: continue forward, stop and reverse, or drift sideways. For each option, the model outputs a rationality judgment (Rationality), a con-fidence score (Confidence), and an explanation grounded in visible evidence frames under a fixed reference frame. As illustrated in Fig. 8, Qwen3-VL assigns high rational-ity and confidence to the “continue forward” option, em-phasizing local motion continuity while ignoring the phys-ical constraint that the swing should reverse at the turning point. In contrast, GPT-5 explicitly refers to the decelera-tion, brief stop, and backward motion near the extremum, and correctly rejects this anti-causal trajectory. This case shows that even when models perceive local motion cor-rectly, their explanations can still violate basic causal con-straints, revealing a gap in causal consistency for MLLMs. 
+
+> Key Takeaways: Performance in Spatial Causal Prediction
+
+• SCP is a formidable challenge for current MLLMs. 
+
+• Large open-source models perform on par with closed ones. 
+
+• MLLMs perform similarly across time ranges. Appr. Order Obj. Count Planning Relation Rel. Dist. Rel. Size Rel. Speed Spa. State  
+
+> -5 0510 15 20 25 30
+> Acc. (%)
+> Visible-Chance Disable-Chance
+
+Figure 7. Performance gap comparison. Accuracy improvements over the chance level for vision-enabled (w/ video) and vision-disabled (w/o video) settings across task categories. Setting Qwen3-VL InternVL3.5 MiniCPM-V-4.5 LLaVA-OV-1.5 Base 47.52 50.52 43.80 45.52 w/ Flip 46.76 ↓0.76 48.56 ↓1.96 42.24 ↓1.56 45.32 ↓0.2
+
+w/ CoT 51.52 ↑4.0 50.36 ↓0.16 44.88 ↑1.08 42.88 ↓2.64 
+
+Table 3. Comparison with flipped video input and CoT reasoning. “w/ Flip” reverses the input video temporally; “w/ CoT” applies step-by-step reasoning. 
+
+## 6. What Affects Spatial Causal Prediction? 
+
+Perception vs. Reasoning Decomposition. A robust so-lution to spatial causal prediction requires two essential components: accurate perception of the visual input and re-liable reasoning built upon that perception. To investigate which factor plays a more critical role in their poor per-formance, we design a controlled set of experiments. In one condition, we provide the models with the unseen parts of the clips, referred to as the Gold Video, thereby remov-ing the need for causal inference and turning the task into pure visual understanding. In contrast, we replace the visi-ble parts of the clips with dense captions generated by Tar-sier [45], thereby isolating perception and forcing the model to rely solely on textual reasoning. Table 2 shows that the model achieves an average accuracy of 52.44% with the Gold Video input, compared to 44.59% with dense captions, indicating that perception is not the primary bottleneck and that the main limitation lies in spatial causal reasoning. 
+
+Single-Frame vs. Multi-Frame Reasoning. To examine whether models truly leverage temporal continuity rather than static cues, we compare single-frame and multi-frame reasoning. Specifically, we evaluate model performance when given only the cutpoint frame versus the visible part. As shown in Fig. 6, all four models show a slight im-provement over the multi-frame condition when performing single-frame reasoning. This counterintuitive result sug-gests that temporal cues contribute minimally to model per-formance under the base spatial causal reasoning task set-ting, and the observed gains likely stem from static spatial perception rather than genuine temporal understanding. 
+
+Vision Causal Perception. To further evaluate whether MLLMs can perceive spatial causal logic in the video in-Cutpoint                       
+
+> Q: When the child approaches the camera with feet extended toward the lens, what will the swing do next after reaching its closest approach : continue forward, stop and
+> reverse, or d ri ft sideways?
+> Option1 :Continue forward Option2 :Stop and reverse Option3 :Drift sideways
+> Rationality: True
+> Confidence: 0.95
+> Rationality: False
+> Confidence: 0.97
+> As the child swings fo-
+> rward toward the cam-
+> era... There is no visual
+> evidence of the swin-
+> g stopping or drifting
+> sideways; it follows t-
+> he expected trajecto-
+> ry of a pendulum m-
+> otion.
+> As the child swings tow-
+> ard the camera with feet
+> out, the motion slows n-
+> ear the closest point. In
+> the next moments the
+> seat stops advancing
+> and begins moving b-
+> ack, not continuing fo-
+> rward past the camera.
+> The swing does not st-
+> op and reverse at the
+> closest point to the ca-
+> mera. it continues m-
+> oving forward due to
+> inertia. The video sh-
+> ows continuous moti-
+> on.
+> The swing decelerates
+> at the forward extreme,
+> then the chains angle b-
+> ack the other way and t-
+> he seat moves away fro-
+> m the camera. This sho-
+> ws the swing stopping
+> at its closest point and
+> reversing direction.
+> There is no visual evid-
+> ence of the swing drif-
+> ting sideways after re-
+> aching its closest appr-
+> oach. The swing main-
+> tains its forward arc,
+> consistent with the l-
+> aws of physics for a
+> pendulum .
+> The swing’s path is a st-
+> raight back-and-forth a-
+> rc toward and away fro-
+> m the camera. There is
+> no noticeable lateral
+> drift when it reaches t-
+> he closest approach; it
+> simply heads back.
+> Rationality: False
+> Confidence: 0.55
+> Rationality: True
+> Confidence: 0.88
+> Rationality: False
+> Confidence: 0.95
+> Rationality: False
+> Confidence: 0.91
+
+Figure 8. Causal consistency evaluation. Each option shows the model’s reasoning rationality, confidence score, and explanation, assessing whether MLLMs can infer spatial order consistent with physical and causal constraints. 
+
+put, we temporally reverse each input clip while keeping the question unchanged and compare performance with the original forward videos. As shown in Table 3, all models show a slight accuracy drop after reversal, with the largest drop being 1.96%. This small drop indicates limited sensi-tivity to temporal inversion, suggesting that current models have yet to develop a robust notion of spatial causality. 
+
+Visible Range Comparison. We investigate how the vis-ible range affects model performance. As shown in Fig. 6, models perform best when given the Gold Video input, where direct access to the answer period eliminates the need for spatial causal reasoning and allows performance gains through pure visual understanding. The full-video setting yields slightly lower accuracy but remains above the base condition, suggesting that when the Gold Video part is seen, the visible part introduces mild noise that weakens compre-hension. These results indicate that MLLMs perform well when the demand for SCP is minimal, but struggle to infer spatial causality beyond direct observation. 
+
+Is Visual Information Necessary? As the textual capa-bilities of models continue to improve, models can some-times derive correct answers from pure textual reasoning based solely on the knowledge gained during training. This raises the question: can spatial causal reasoning be achieved through pure text alone? We compare model performance with and without video input. The experimental results in Fig. 11 show that the model’s accuracy drops significantly when no video is provided. Furthermore, we used the Tar-sier to generate dense captions for the video; however, even when no video is provided but an auxiliary dense caption is available, the model’s performance still declines. This sug-gests that although dense captions can partially compensate for the absence of visual input, visual information itself re-mains indispensable for spatial causal prediction. 2B 4B 8B 30B 32B 38B 235B 241B 
+
+40 50 60  
+
+> 43 .04 50 .24 47 .52 54 .16 56 .84 61 .0 4 40 .84 46 .12 50 .52 52 .48 53 .56 56 .96
+
+43 .04 50 .24 47 .52 54 .16 56 .84 61 .04 40 .84 46 .12 50 .52 52 .48 53 .56 56 .96 
+
+Model Size Average Accuracy (%)  Qwen3-VL InternVL3.5 
+
+Figure 9. Performance comparison on different model sizes. 
+
+Key Takeaways: What Affects Spatial Causal Prediction 
+
+• Perception and Reasoning capabilities limit SCP. 
+
+• Visual information is important for SCP. 
+
+• MLLMs cannot construct temporal logic to com-plete reasoning within a video. 
+
+## 7. How to Improve Spatial Causal Prediction? 
+
+Model Scale-up Effect Analysis. We investigate whether enlarging model size leads to improved performance on SCP-Bench by comparing different variants of Qwen3-VL and InternVL3.5 across scales, as depicted in Fig. 9. Over-all, performance exhibits a clear upward trend with in-creased model size, confirming the positive correlation be-tween scaling and spatial reasoning capability. However, the improvement is not strictly monotonic, i.e., small-scale models (e.g., 4B vs. 8B) sometimes show performance fluc-tuations, suggesting that scaling benefits become more sta-ble and pronounced only when the model grows by a sub-stantial order of magnitude (e.g., 4B → 30B). 
+
+CoT Reasoning. We further explore the effect of incor-porating a vanilla CoT prompt [48] by adding the phrase “think step by step” in the prompt during inference. As shown in Table 3, this simple strategy yields modest im-Qwen3-VL InternVL3.5 MiniCPM-V-4.5  
+
+> 35 40 45 50
+> Acc.(%) Think No Think
+
+Figure 10. Performance with vs. without self-think reasoning. Appr. Order Obj. Count Planning Relation Rel. Dist. Rel. Size Rel. Speed Spa. State 30 40 50 60 70 80     
+
+> Performance (%) PureText Caption w/o V Caption w/ V SpatialGraph Original
+
+Figure 11. Comparison of perception enhancement strategies. 
+
+PureText uses only the question; Caption w/ V combines dense video captions with the video and question; Caption w/o V uses only captions with the question; SpatialGraph intro-duces spatial-interaction graph; Original is the baseline. 
+
+provements for certain models, for example, Qwen3-VL gains over 4% in accuracy. However, the effect is not consistent across architectures; some models show mini-mal sensitivity or even slight performance degradation, sug-gesting that the effectiveness of CoT prompting varies with model design and reasoning alignment. 
+
+Self-Think Reasoning. Recent MLLMs increasingly in-tegrate self-think reasoning through reinforcement learning. To assess the generalizable effectiveness in spatial causal prediction, we compare their performances with and with-out think-mode reasoning. As shown in Fig. 10, enabling think-mode does not yield consistent improvements; in fact, most models exhibit slight performance degradation, likely due to overextended reasoning chains that introduce noise and divert attention from essential spatial cues. 
+
+Perception Enhancement Strategy. To address the lim-ited perceptual capability of MLLMs, we explore several mechanisms designed to enhance spatial perception: (1) generating dense captions of the input video clip to enrich scene perception, and (2) constructing spatial-interaction graphs via prompts that capture key objects, environmental elements, and their spatial and interaction relations. The re-sults in Fig. 11 indicate that these perception enhancement strategies lead to only marginal improvements overall, with noticeable gains primarily in specific tasks such as Appear-ance Order and Relative Speed . The models fail to leverage spatial-interaction graphs for accurate spatial causal reason-ing. When using dense captions to enhance input, the mod-els also exhibit limited benefit, suggesting these perception-level augmentations alone are insufficient to substantially Appr. Order Obj. Count Planning Relation Rel. Dist. Rel. Size Rel. Speed Spa. State 40 50 60 70 80    
+
+> Performance (%) Text Image Video Original
+
+Figure 12. Unseen spatial causal scaffolds for enhanced reasoning. 
+
+Text provides textual descriptions of future spatial states; Image 
+
+employs generated future spatial images; Video uses generated future causal videos. 
+
+boost spatial causal reasoning. 
+
+Causal Prediction Enhancement Strategy. We further investigate which types of unseen spatial causal scaffolds are able to effectively enhance reasoning performance. Specifically, we evaluate three forms of auxiliary infor-mation: textual descriptions generated by GPT5 [35], the future spatial images produced by FLUX.1-dev-12B [29], and the future causal videos generated by Wan2.2-TI2V-5B [44]. As shown in Fig. 12, incorporating textual fu-ture predictions consistently improves performance across all tasks, likely because MLLMs are inherently more adept at processing and reasoning over textual information. In contrast, image- and video-based scaffolds provide limited gains, likely due to input length constraints, modality noise, and the inherent perception limitations of current MLLMs. Nevertheless, videos outperform images in dynamic-related tasks (e.g., Relative Size and Spatial State), benefiting from their richer temporal cues. 
+
+> Key Takeaways: How to Improve Spatial Causal Prediction
+
+• Notably increasing model size helps with SCP. 
+
+• Unseen spatial causal scaffolds can effectively en-hance model performance. 
+
+• Vanilla CoT and self-thinking mechanisms lead to slight improvements. 
+
+## 8. Conclusion 
+
+We introduce Spatial Causal Prediction (SCP) and SCP-Bench, establishing a new paradigm for predictive spatial reasoning beyond visible scenes. Extensive evaluations in-dicate that current MLLMs remain far from human-level performance, performing better on past inference than fu-ture prediction, and relying mainly on perceptual cues. In-depth controlled analyses show that reasoning, rather than perception, constitutes the major bottleneck. While explicit reasoning and structured spatial representations bring lim-ited gains, notably scaling up and integrating causal scaf-folds offer a promising path for better SCP performance. Acknowledgement 
+
+This work is supported by the Ministry of Education, Singapore, under its MOE AcRF TIER 3 Grant (MOE-MOET32022-0001). 
+
+## References 
+
+[1] Sami Abu-El-Haija, Nisarg Kothari, Joonseok Lee, Paul Natsev, George Toderici, Balakrishnan Varadarajan, and Sudheendra Vijayanarasimhan. Youtube-8m: A large-scale video classification benchmark. arXiv preprint arXiv:1609.08675 , 2016. 2, 4, 12 [2] Xiang An, Yin Xie, Kaicheng Yang, Wenkang Zhang, Xiuwei Zhao, Zheng Cheng, Yirui Wang, Songcen Xu, Changrui Chen, Chunsheng Wu, et al. Llava-onevision-1.5: Fully open framework for democratized multimodal training. 
+
+arXiv preprint arXiv:2509.23661 , 2025. 2, 4, 15 [3] Anthropic. Claude sonnet 4.5: Frontline coding & agent model, 2025. Accessed: Nov. 11, 2025. 2, 4, 15 [4] Alisson Azzolini, Junjie Bai, Hannah Brandon, Jiaxin Cao, Prithvijit Chattopadhyay, Huayu Chen, Jinju Chu, Yin Cui, Jenna Diamond, Yifan Ding, et al. Cosmos-reason1: From physical common sense to embodied reasoning. arXiv preprint arXiv:2503.15558 , 2025. 2 [5] Jinze Bai, Shuai Bai, Yunfei Chu, Zeyu Cui, Kai Dang, Xiaodong Deng, Yang Fan, Wenbin Ge, Yu Han, Fei Huang, et al. Qwen technical report. arXiv preprint arXiv:2309.16609 , 2023. 2 [6] Anton Bakhtin, Laurens van der Maaten, Justin Johnson, Laura Gustafson, and Ross Girshick. Phyre: A new bench-mark for physical reasoning. In Proceeding of the NeurIPS ,pages 5083–5094, 2019. 2 [7] Yonatan Bisk, Rowan Zellers, Jianfeng Gao, Yejin Choi, et al. Piqa: Reasoning about physical commonsense in natu-ral language. In Proceedings of the AAAI , pages 7432–7439, 2020. 2 [8] Ruth MJ Byrne and Philip N Johnson-Laird. Spatial reason-ing. Journal of memory and language , pages 564–575, 1989. 1[9] Fabian Caba Heilbron, Victor Escorcia, Bernard Ghanem, and Juan Carlos Niebles. Activitynet: A large-scale video benchmark for human activity understanding. In Proceed-ings of the CVPR , pages 961–970, 2015. 2, 4, 13 [10] Wenxiao Cai, Iaroslav Ponomarenko, Jianhao Yuan, Xiaoqi Li, Wankou Yang, Hao Dong, and Bo Zhao. Spatialbot: Pre-cise spatial understanding with vision language models. In 
+
+Proceedings of the ICRA , pages 9490–9498, 2025. 1 [11] Shitao Chen, Zhiqiang Jian, Yuhao Huang, Yu Chen, Zhuoli Zhou, and Nanning Zheng. Autonomous driving: cognitive construction and situation understanding. Science China In-formation Sciences , 2019. 1 [12] An-Chieh Cheng, Hongxu Yin, Yang Fu, Qiushan Guo, Rui-han Yang, Jan Kautz, Xiaolong Wang, and Sifei Liu. Spatial-rgpt: Grounded spatial reasoning in vision-language models. 
+
+Proceeding of NeurIPS , 2024. 2 [13] Wei Chow, Jiageng Mao, Boyi Li, Daniel Seita, Vitor Guizilini, and Yue Wang. Physbench: Benchmarking and enhancing vision-language models for physical world under-standing. arXiv preprint arXiv:2501.16411 , 2025. 2 [14] Gheorghe Comanici, Eric Bieber, Mike Schaekermann, Ice Pasupat, Noveen Sachdeva, Inderjit Dhillon, Marcel Blis-tein, Ori Ram, Dan Zhang, Evan Rosen, et al. Gemini 2.5: Pushing the frontier with advanced reasoning, multimodality, long context, and next generation agentic capabilities. arXiv preprint arXiv:2507.06261 , 2025. 2, 4, 15 [15] Nianchen Deng, Lixin Gu, Shenglong Ye, Yinan He, Zhe Chen, Songze Li, Haomin Wang, Xingguang Wei, Tian-shuo Yang, Min Dou, et al. Internspatial: A comprehen-sive dataset for spatial reasoning in vision-language models. 
+
+arXiv preprint arXiv:2506.18385 , 2025. 1, 3, 21 [16] Mengfei Du, Binhao Wu, Zejun Li, Xuan-Jing Huang, and Zhongyu Wei. Embspatial-bench: Benchmarking spatial un-derstanding for embodied tasks with large vision-language models. In Proceedings of the ACL , pages 346–355, 2024. 2, 21 [17] Luciano Floridi and Massimo Chiriatti. Gpt-3: Its nature, scope, limits, and consequences. Minds and machines , 2020. 2[18] Aaron Foss, Chloe Evans, Sasha Mitts, Koustuv Sinha, Am-mar Rizvi, and Justine T Kao. Causalvqa: A physically grounded causal reasoning benchmark for video models. 
+
+arXiv preprint arXiv:2506.09943 , 2025. 2 [19] Haoxiang Gao, Zhongruo Wang, Yaqian Li, Kaiwen Long, Ming Yang, and Yiqing Shen. A survey for foundation mod-els in autonomous driving. arXiv preprint arXiv:2402.01105 ,2024. 1 [20] Kristen Grauman, Andrew Westbury, Lorenzo Torresani, Kris Kitani, Jitendra Malik, Triantafyllos Afouras, Kumar Ashutosh, Vijay Baiyya, Siddhant Bansal, Bikram Boote, et al. Ego-exo4d: Understanding skilled human activity from first-and third-person perspectives. In Proceedings of the CVPR , pages 19383–19400, 2024. 2, 4, 12 [21] Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, et al. Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 , 2025. 2 [22] David Ha and J¨ urgen Schmidhuber. World models. arXiv preprint arXiv:1803.10122 , 2018. 2 [23] Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Doll´ ar, and Ross Girshick. Masked autoencoders are scalable vision learners. In Proceedings of the CVPR , pages 16000– 16009, 2022. 2 [24] Wenxuan Huang, Bohan Jia, Zijie Zhai, Shaosheng Cao, Zheyu Ye, Fei Zhao, Zhe Xu, Yao Hu, and Shaohui Lin. Vision-r1: Incentivizing reasoning capability in multimodal large language models. arXiv preprint arXiv:2503.06749 ,2025. 2 [25] Xiaohu Huang, Jingjing Wu, Qunyi Xie, and Kai Han. Mllms need 3d-aware representation supervision for scene under-standing. arXiv preprint arXiv:2506.01946 , 2025. 2 [26] Mengdi Jia, Zekun Qi, Shaochen Zhang, Wenyao Zhang, Xinqiang Yu, Jiawei He, He Wang, and Li Yi. Omnispatial: Towards comprehensive spatial reasoning benchmark for vi-sion language models. arXiv preprint arXiv:2506.03135 ,2025. 1, 3, 21 [27] Salman Khan, Muzammal Naseer, Munawar Hayat, Syed Waqas Zamir, Fahad Shahbaz Khan, and Mubarak Shah. Transformers in vision: A survey. ACM computing surveys (CSUR) , 2022. 2 [28] Anastasia Kirillova, Eugene Lyapustin, Anastasia Antsif-erova, and Dmitry Vatolin. Erqa: Edge-restoration qual-ity assessment for video super-resolution. arXiv preprint arXiv:2110.09992 , 2021. 2 [29] Black Forest Labs. Flux, 2024. 8, 20 [30] Bo Li, Yuanhan Zhang, Dong Guo, Renrui Zhang, Feng Li, Hao Zhang, Kaichen Zhang, Peiyuan Zhang, Yanwei Li, Zi-wei Liu, et al. Llava-onevision: Easy visual task transfer. 
+
+arXiv preprint arXiv:2408.03326 , 2024. 4, 15 [31] Yun Li, Yiming Zhang, Tao Lin, XiangRui Liu, Wenxiao Cai, Zheng Liu, and Bo Zhao. Sti-bench: Are mllms ready for precise spatial-temporal world understanding? arXiv preprint arXiv:2503.23765 , 2025. 1, 3, 21, 22 [32] Zhijian Liu, Ligeng Zhu, Baifeng Shi, Zhuoyang Zhang, Yuming Lou, Shang Yang, Haocheng Xi, Shiyi Cao, Yux-ian Gu, Dacheng Li, et al. Nvila: Efficient frontier visual language models. In Proceedings of the CVPR , pages 4122– 4134, 2025. 2 [33] Wufei Ma, Haoyu Chen, Guofeng Zhang, Yu-Cheng Chou, Jieneng Chen, Celso de Melo, and Alan Yuille. 3dsrbench: A comprehensive 3d spatial reasoning benchmark. In Pro-ceedings of the ICCV , pages 6924–6934, 2025. 1, 3, 21 [34] Humza Naveed, Asad Ullah Khan, Shi Qiu, Muhammad Saqib, Saeed Anwar, Muhammad Usman, Naveed Akhtar, Nick Barnes, and Ajmal Mian. A comprehensive overview of large language models. ACM Transactions on Intelligent Systems and Technology , 2025. 2 [35] OpenAI. Gpt-5: Large language model, 2025. Accessed: Nov. 11, 2025. 2, 4, 8, 15, 20 [36] Maxime Oquab, Timoth´ ee Darcet, Th´ eo Moutakanni, Huy Vo, Marc Szafraniec, Vasil Khalidov, Pierre Fernandez, Daniel Haziza, Francisco Massa, Alaaeldin El-Nouby, et al. Dinov2: Learning robust visual features without supervision. 
+
+arXiv preprint arXiv:2304.07193 , 2023. 2 [37] Kun Ouyang, Yuanxin Liu, Haoning Wu, Yi Liu, Hao Zhou, Jie Zhou, Fandong Meng, and Xu Sun. Spacer: Rein-forcing mllms in video spatial reasoning. arXiv preprint arXiv:2504.01805 , 2025. 2, 4, 15 [38] Toby Perrett, Ahmad Darkhalil, Saptarshi Sinha, Omar Emara, Sam Pollard, Kranti Kumar Parida, Kaiting Liu, Pra-jwal Gatti, Siddhant Bansal, Kevin Flanagan, et al. Hd-epic: A highly-detailed egocentric video dataset. In Proceedings of the CVPR , pages 23901–23913, 2025. 2, 4, 12 [39] Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al. Learn-ing transferable visual models from natural language super-vision. In Proceedings of the ICML , pages 8748–8763, 2021. 2[40] Arijit Ray, Jiafei Duan, Ellis Brown, Reuben Tan, Dina Bashkirova, Rose Hendrix, Kiana Ehsani, Aniruddha Kemb-havi, Bryan A Plummer, Ranjay Krishna, et al. Sat: Dynamic spatial aptitude training for multimodal language models. 
+
+arXiv preprint arXiv:2412.07755 , 2024. 2 [41] Ronan Riochet, Mario Ynocente Castro, Mathieu Bernard, Adam Lerer, Rob Fergus, V´ eronique Izard, and Emmanuel Dupoux. Intphys: A framework and benchmark for visual in-tuitive physics reasoning. arXiv preprint arXiv:1803.07616 ,2018. 2 [42] Chan Hee Song, Valts Blukis, Jonathan Tremblay, Stephen Tyree, Yu Su, and Stan Birchfield. Robospatial: Teaching spatial understanding to 2d and 3d vision-language models for robotics. In Proceedings of the CVPR , pages 15768– 15780, 2025. 1 [43] Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timoth´ ee Lacroix, Baptiste Rozi` ere, Naman Goyal, Eric Hambro, Faisal Azhar, et al. Llama: Open and efficient foundation language models. 
+
+arXiv preprint arXiv:2302.13971 , 2023. 2 [44] Team Wan, Ang Wang, Baole Ai, Bin Wen, Chaojie Mao, Chen-Wei Xie, Di Chen, Feiwu Yu, Haiming Zhao, Jianxiao Yang, et al. Wan: Open and advanced large-scale video gen-erative models. arXiv preprint arXiv:2503.20314 , 2025. 2, 8, 20 [45] Jiawei Wang, Liping Yuan, Yuchen Zhang, and Haomiao Sun. Tarsier: Recipes for training and evaluating large video description models. arXiv preprint arXiv:2407.00634 , 2024. 6, 15 [46] Weiyun Wang, Zhangwei Gao, Lixin Gu, Hengjun Pu, Long Cui, Xingguang Wei, Zhaoyang Liu, Linglin Jing, Shenglong Ye, Jie Shao, et al. Internvl3. 5: Advancing open-source multimodal models in versatility, reasoning, and efficiency. 
+
+arXiv preprint arXiv:2508.18265 , 2025. 2, 4, 15 [47] Xingrui Wang, Wufei Ma, Tiezheng Zhang, Celso M de Melo, Jieneng Chen, and Alan Yuille. Spatial457: A di-agnostic benchmark for 6d spatial reasoning of large muti-modal models. In Proceedings of the CVPR , pages 24669– 24679, 2025. 1, 3, 21 [48] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al. Chain-of-thought prompting elicits reasoning in large lan-guage models. Proceedings of NeurIPS , pages 24824– 24837, 2022. 2, 7 [49] Diankun Wu, Fangfu Liu, Yi-Hsin Hung, and Yueqi Duan. Spatial-mllm: Boosting mllm capabilities in visual-based spatial intelligence. arXiv preprint arXiv:2505.23747 , 2025. 1, 2, 4, 15 [50] Zhiyu Wu, Xiaokang Chen, Zizheng Pan, Xingchao Liu, Wen Liu, Damai Dai, Huazuo Gao, Yiyang Ma, Chengyue Wu, Bingxuan Wang, et al. Deepseek-vl2: Mixture-of-experts vision-language models for advanced multimodal understanding. arXiv preprint arXiv:2412.10302 , 2024. 4, 15 [51] Jin Xu, Zhifang Guo, Hangrui Hu, Yunfei Chu, Xiong Wang, Jinzheng He, Yuxuan Wang, Xian Shi, Ting He, Xinfa Zhu, et al. Qwen3-omni technical report. arXiv preprint arXiv:2509.17765 , 2025. 4, 15 [52] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, et al. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025. 2, 4, 15 [53] Jihan Yang, Shusheng Yang, Anjali W Gupta, Rilyn Han, Li Fei-Fei, and Saining Xie. Thinking in space: How mul-timodal large language models see, remember, and recall spaces. In Proceedings of the CVPR , pages 10632–10643, 2025. 1, 3, 21 [54] Sihan Yang, Runsen Xu, Yiman Xie, Sizhe Yang, Mo Li, Jingli Lin, Chenming Zhu, Xiaochen Chen, Haodong Duan, Xiangyu Yue, et al. Mmsi-bench: A benchmark for multi-image spatial intelligence. arXiv preprint arXiv:2505.23764 ,2025. 1, 3, 21 [55] Chun-Hsiao Yeh, Chenyu Wang, Shengbang Tong, Ta-Ying Cheng, Ruoyu Wang, Tianzhe Chu, Yuexiang Zhai, Yubei Chen, Shenghua Gao, and Yi Ma. Seeing from another perspective: Evaluating multi-view understanding in mllms. 
+
+arXiv preprint arXiv:2504.15280 , 2025. 1, 3, 21 [56] Kexin Yi, Chuang Gan, Yunzhu Li, Pushmeet Kohli, Jiajun Wu, Antonio Torralba, and Joshua B Tenenbaum. Clevrer: Collision events for video representation and reasoning. 
+
+arXiv preprint arXiv:1910.01442 , 2019. 2 [57] Baiqiao Yin, Qineng Wang, Pingyue Zhang, Jianshu Zhang, Kangrui Wang, Zihan Wang, Jieyu Zhang, Keshigeyan Chan-drasegaran, Han Liu, Ranjay Krishna, et al. Spatial mental modeling from limited views. In Structural Priors for Vision Workshop at ICCV , 2025. 1, 21, 22 [58] Shukang Yin, Chaoyou Fu, Sirui Zhao, Ke Li, Xing Sun, Tong Xu, and Enhong Chen. A survey on multimodal large language models. National Science Review , 2024. 2 [59] Songsong Yu, Yuxin Chen, Hao Ju, Lianjie Jia, Fuxi Zhang, Shaofei Huang, Yuhan Wu, Rundi Cui, Binghao Ran, Za-ibin Zhang, et al. How far are vlms from visual spatial in-telligence? a benchmark-driven perspective. arXiv preprint arXiv:2509.18905 , 2025. 1 [60] Tianyu Yu, Zefan Wang, Chongyi Wang, Fuwei Huang, Wenshuo Ma, Zhihui He, Tianchi Cai, Weize Chen, Yuxiang Huang, Yuanqian Zhao, et al. Minicpm-v 4.5: Cooking effi-cient mllms via architecture, data, and training recipe. arXiv preprint arXiv:2509.18154 , 2025. 2, 4, 15 [61] Chuanqi Zang, Hanqing Wang, Mingtao Pei, and Wei Liang. Discovering the real association: Multimodal causal rea-soning in video question answering. In Proceedings of the CVPR , pages 19027–19036, 2023. 2 [62] Xiaoyu Zhan, Wenxuan Huang, Hao Sun, Xinyu Fu, Changfeng Ma, Shaosheng Cao, Bohan Jia, Shaohui Lin, Zhenfei Yin, Lei Bai, et al. Actial: Activate spatial reasoning ability of multimodal large language models. arXiv preprint arXiv:2511.01618 , 2025. 2 [63] Wanyue Zhang, Yibin Huang, Yangbin Xu, JingJing Huang, Helu Zhi, Shuo Ren, Wang Xu, and Jiajun Zhang. Why do mllms struggle with spatial understanding? a system-atic analysis from data to architecture. arXiv preprint arXiv:2509.02359 , 2025. 1 [64] Yuanhan Zhang, Jinming Wu, Wei Li, Bo Li, Zejun Ma, Zi-wei Liu, and Chunyuan Li. Video instruction tuning with synthetic data. arXiv preprint arXiv:2410.02713 , 2024. 4, 15 [65] Ziang Zhang, Zehan Wang, Guanghao Zhang, Weilong Dai, Yan Xia, Ziang Yan, Minjie Hong, and Zhou Zhao. Dsi-bench: A benchmark for dynamic spatial intelligence. arXiv preprint arXiv:2510.18873 , 2025. 1, 3, 21, 22 [66] Enshen Zhou, Jingkun An, Cheng Chi, Yi Han, Shanyu Rong, Chi Zhang, Pengwei Wang, Zhongyuan Wang, Tiejun Huang, Lu Sheng, et al. Roborefer: Towards spatial referring with reasoning in vision-language models for robotics. arXiv preprint arXiv:2506.04308 , 2025. 1 [67] Shijie Zhou, Alexander Vilesov, Xuehai He, Ziyu Wan, Shuwang Zhang, Aditya Nagachandra, Di Chang, Dongdong Chen, Xin Eric Wang, and Achuta Kadambi. Vlm4d: To-wards spatiotemporal awareness in vision language models. In Proceedings of the ICCV , pages 8600–8612, 2025. 1, 3, 21, 22 SCP: Spatial Causal Prediction in Video 
+
+# Supplementary Material 
+
+## Contents 
+
+A. Limitation 12 
+
+A.1. Limitations in Spatial Pattern Coverage . . . 12 A.2. Inherent Limits of Scene Variety . . . . . . . 12 A.3. Data Scale Bounded by Quality Assurance . 12 
+
+B. Benchmark Construction Details 12 
+
+B.1. Video Sources . . . . . . . . . . . . . . . . 12 B.2. QA Candidates Generation Details . . . . . . 13 B.3. Manual Annotation Details . . . . . . . . . . 13 B.4. Quality Control . . . . . . . . . . . . . . . . 14 B.5. Statistics . . . . . . . . . . . . . . . . . . . 14 B.6. Human Performance . . . . . . . . . . . . . 14 
+
+C. Task Definition 14 D. Experimental Details 15 
+
+D.1. Model Setup . . . . . . . . . . . . . . . . . 15 D.2. How Well Do Current Models Perform? . . . 15 D.2.1. Baseline Experiment. . . . . . . . . 15 D.3. What Affects Spatial Causal Prediction? . . . 15 D.3.1. Perception vs. Reasoning Decompo-sition. . . . . . . . . . . . . . . . . 15 D.3.2. Single-Frame vs. Multi-Frame Rea-soning. . . . . . . . . . . . . . . . 16 D.3.3. Vision Causal Perception. . . . . . . 16 D.3.4. Visible Range Comparison. . . . . . 17 D.3.5. Is Visual Information Necessary? . . 17 D.4. How to Improve Spatial Causal Prediction? . 17 D.4.1. Model Scale-up Effect Analysis. . . 17 D.4.2. CoT Reasoning. . . . . . . . . . . . 18 D.4.3. Self-Think Reasoning. . . . . . . . . 19 D.4.4. Perception Enhancement Strategy. . . 19 D.4.5. Causal Prediction Enhancement Strategy. . . . . . . . . . . . . . . 20 
+
+E. Benchmark Comparison 21 F. Supplementary Results 22 
+
+F.1. Extended Causal Consistency Experiment . . 22 F.2. Physical Commonsense Probing Experiment 22 F.3. Error Case Analysis . . . . . . . . . . . . . 22 
+
+## A. Limitation 
+
+Although SCP-Bench provides a rigorous and carefully structured evaluation of spatial causal prediction, it still en-tails several potential limitations simply because the domain itself is inherently complex and difficult to capture in full. 
+
+A.1. Limitations in Spatial Pattern Coverage 
+
+SCP-Bench spans a wide range of spatial patterns, yet the space of possible configurations in real-world videos is ef-fectively unbounded. Some highly specialized or rare spa-tial structures are therefore naturally beyond the scope of the current benchmark. 
+
+A.2. Inherent Limits of Scene Variety 
+
+Although the dataset includes a broad collection of scenes, real-world environments exhibit far greater variability than any finite benchmark can capture. Certain niche or atypical scenarios inevitably remain under-represented. 
+
+A.3. Data Scale Bounded by Quality Assurance 
+
+SCP-Bench adopts a controlled data scale, as each item must pass rigorous checks on perspective, temporal clarity, and spatial precision. Meeting these requirements demands substantial validation effort, which keeps the dataset com-pact while preserving consistency and high fidelity. 
+
+## B. Benchmark Construction Details 
+
+B.1. Video Sources 
+
+To ensure that SCP-Bench provides comprehensive and re-liable evaluation coverage, we carefully considered both viewpoint diversity and scene variability when selecting video sources. The main data sources include: • Ego-Exo4D [20] provides synchronized egocentric and multiple aligned exocentric viewpoints across ac-tivities such as sports, household repairs, and every-day human interactions. Its multi-view alignment is essential for constructing multi-perspective questions in SCP-Bench. • HD-EPIC [38] contributes high-resolution egocentric recordings focused primarily on kitchen environments. These videos offer well-controlled, densely annotated footage but exhibit limited scene diversity due to their constrained capture settings. • YouTube-8M [1] supplies large-scale, in-the-wild content spanning thousands of scene categories and di-verse physical contexts. Its broad coverage helps en-rich SCP-Bench with varied object configurations, dy-namic motions, and unconstrained environments. • ActivityNet [9] contains long-form, human-centric ac-tivity videos with rich temporal structure and com-plex multi-object interactions. These properties make it a valuable source for identifying segments with clear causal dynamics and predictable spatial evolution. From these large-scale datasets, we perform careful, multi-stage filtering to extract clips that satisfy the requirements of spatial causal prediction. This ensures that the final bench-mark maintains high-quality visual content, diverse phys-ical scenarios, and balanced coverage across scene cate-gories, perspectives, causal directions, and question types. 
+
+B.2. QA Candidates Generation Details 
+
+To construct a large pool of QA candidates, we designed a fully automated generation pipeline with a two-stage filter-ing procedure that narrows data from long videos to seg-ments and then to short clips, since spatial causal reason-ing questions typically concern only specific portions of a video. QA candidates are generated around these clips to ensure precise alignment with the underlying events and their temporal boundaries. 
+
+▶ Segments Selecting. Starting from event-level struc-ture, we first collect the segment annotations provided by the original datasets and then use GPT-5 to propose addi-tional plausible segments directly from the videos. To fur-ther control the quality of the selected segments, GPT-5 is prompted to (i) generate a detailed description for each can-didate segment and (ii) filter these candidates based on mul-tiple criteria, including spatial dynamics, event coherence, and content clarity. This procedure yields segments that fea-ture well-defined events and distinct spatial changes. 
+
+▶ Clips Selecting. From the refined set of segments, we next identify the specific portions that exhibit meaningful spatial evolution. GPT-5 is prompted to propose candidate clip boundaries for each segment under the constraint that every clip must present a clear and coherent trajectory of spatial change, while avoiding rapid shot transitions, severe motion blur, and other forms of visual degradation. To en-sure reliability, each proposed clip is then independently re-evaluated by GPT-5 using only the clip itself. Clips dis-playing weak spatial variation, ambiguous dynamics, or un-stable visual quality are discarded. This process yields a curated collection of high-quality clips that are well-suited for generating SCP QA pairs. 
+
+▶ QA Generation. Given each selected clip, we design a prompting scheme that guides GPT-5 to generate reliable spatial causal prediction questions. Because spatial reason-ing is inherently sensitive to perspective , every question is required to explicitly specify its viewpoint, either a cam-era view or the perspective of a salient object, to avoid am-biguous interpretations. In line with our definition of spa-tial causal prediction, each question must also clearly iden-tify the unseen temporal region that the model needs to in-fer from the visible portion of the clip. The spatial ques-tion component then specifies the core phenomenon being tested and is constrained to one of our eight spatial reason-ing categories. To further guarantee answer determinism, the prompting template enforces precise spatial references, such as relative positions, motions, and object interactions, so that each question is tightly grounded in visual evidence and admits a single, verifiably correct answer. Using this pipeline, GPT-5 produces a large set of high-quality spatial causal prediction QA candidates that serve as the foundation for SCP-Bench. 
+
+B.3. Manual Annotation Details 
+
+Following automatic QA generation, human annotators per-form multiple rounds of selection, validation, and refine-ment to obtain the final version of SCP-Bench. To support this workflow, we develop 3 annotation tools that help anno-tators through (i) filtering QA candidates and defining cut-points, (ii) validating retained items, and (iii) refining cor-rectable items during annotation. 
+
+Filtering and Cutpoint Finding. Annotators first re-view the automatically generated candidates and determine which items satisfy the SCP task requirements. A key step in this stage is cutpoint identification, where annota-tors designate the timestamp separating the visible portion of the clip from the unseen region. These cutpoints en-sure that the answer is not directly observable in the vis-ible portion, yet remains inferable through spatial causal reasoning grounded in that visible evidence. As illustrated in Fig. 19, the filtering tool allows annotators to inspect each clip alongside its candidate questions, decide whether a question should be retained, and assign the corresponding cutpoint. The tool additionally provides a split-view inter-face, enabling annotators to preview the visible and unseen parts of the clip independently. For each retained question, GPT-5 subsequently generates additional distractor options to complete the multiple-choice set. 
+
+Validation and Optimization. Next, annotators use the validation tool (cf. Fig. 20) to simulate the actual SCP set-ting: each question must be answered strictly from the vis-ible portion of the clip. This process verifies whether the question is answerable, viewpoint-consistent, and aligned with the intended spatial causal reasoning. Items that fail validation are flagged along with a specific reason, e.g., “unclear perspective”, “answerable from visible region”, or “ambiguous spatial reference”. If a problematic item is deemed correctable, annotators use the repairing tool (Fig. 21) to edit its question wording, perspective speci-fication, temporal boundary, or answer set. Through re-peated rounds of validation and targeted refinement, anno-tators progressively resolve inconsistencies and remove in-valid items, ultimately yielding the finalized SCP-Bench. 
+
+B.4. Quality Control 
+
+To ensure the overall quality and reliability of SCP-Bench, we employ both a rigorous automated pipeline and a care-fully managed human annotation process. In the auto-mated stage , we leverage GPT-5, one of the strongest com-mercially available models, and implement a multi-stage fil-tering workflow that enforces strict constraints on segment selection, clip extraction, and QA generation, thereby en-suring the initial candidate pool is of high quality. In the hu-man annotation stage , all annotation tasks are conducted by seven well-trained annotators who have undergone ex-tensive instruction on the SCP task definition, selection rules, and evaluation criteria. As detailed in Sec. B.3, we design a suite of specialized annotation tools that support efficient inspection, consistent decision-making, and sys-tematic refinement of QA items. During validation stage ,annotators must provide brief justifications for their deci-sions, documenting why an item is accepted, rejected, or requires revision. For items that remain ambiguous, addi-tional annotators re-examine the case and engage in dis-cussion to resolve disagreements. If consensus cannot be reached, a voting procedure is used to determine whether the item should be retained. To maintain consistent quality over time, we also conduct periodic acceptance checks and random audits of annotator decisions, ensuring that annota-tion standards are uniformly upheld throughout the process. 
+
+B.5. Statistics 
+
+Through this carefully designed construction pipeline, we obtain SCP-Bench with 2,500 QA pairs across 1,181 video clips. The benchmark spans four major attributes: question type, causal direction, perspective setting, and scene cate-gory, as shown in Table 4. 
+
+B.6. Human Performance 
+
+Spatial causal reasoning is an intuitive capability that hu-mans routinely exercise in daily life. To clearly quantify the gap between current models and human cognition, we con-duct a human evaluation on SCP-Bench. Participants are presented with the same task setting as the models: only the visible portion of each clip and the corresponding ques-tion are provided, and they must select the most appropriate answer from the multiple-choice options. The aggregated accuracies provide an estimate of human performance on SCP-Bench. To ensure the validity and reliability of the human results, we recruit seven participants and enforce a strict “first-exposure” rule, i.e., each participant only an-swers questions they had never seen before, preventing any prior knowledge from influencing the outcomes.                                                   
+
+> Category Video Clip QA Instance
+> •Scene Category
+> Sports Related 467 964 Life Records 279 691 Driving-view Related 112 308 Animal Related 85 143 Artistic Performances 64 95 Factory/Machine Related 48 149 Others 106 150
+> •Perspective
+> Ego 205 548 Exo 943 1546 Exo-Exo 14 80 Ego-Exo 14 44 Exo-Ego 12 66
+> •Causal Direction
+> Forward 1053 2037 Backward 368 463
+> •Question Type
+> Planning 417 491 Relation 641 874 Relative Distance 322 376 Spatial State 270 278 Appearance Order 162 167 Relative Speed 153 155 Counting 117 117 Relative Size 42 42 Table 4. Distribution of benchmarks over the scene category, per-spective, Causal direction, and question type. These attributes are combined to form the final dataset, which consists of 1,181 video clips and 2,500 QA pairs.
+
+## C. Task Definition 
+
+We define 8 task categories to cover the key variations in spatial causal structure: • Relative Speed : concerns how objects move at differ-ent speeds and how those speeds change over time. • Counting : tracks cardinality changes driven by under-lying spatial dynamics. • Planning : probes short-horizon action tendencies and anticipated movement choices. • Relative Distance : focuses on how the spatial distance between objects changes over time. • Spatial State : evaluates how an agent’s posture or in-teraction state is expected to change. • Appearance Order : infers which object or action be-comes relevant earlier in the unfolding sequence. • Relative Size : examines the comparative object scale as perceived through the evolving viewpoint. • Relation : concerns the temporal variation of spatial configurations between objects. D. Experimental Details 
+
+D.1. Model Setup 
+
+Our full evaluation process covers 29 models spanning proprietary, open-source, and spatial-reasoning-specialized systems, enabling a broad and comprehensive assessment of current MLLMs. For proprietary models, we include the latest frontier releases, GPT-5 [35], Gemini-2.5-Pro [14], Gemini-2.5-Flash [14], and Claude-4.5-Sonnet [3], which represent the most advanced commercially available mul-timodal reasoning models. For open-source models, we evaluate a diverse set of leading vision-language systems with different model sizes, including Qwen3-VL [52], Qwen3-Omni [51], InternVL3.5 [46], MiniCPM-V-4.5 [60], DeepSeek-VL2 [50], LLaVA-OneVision [2, 30], and LLaVA-NeXT-Video [64]. We additionally include Spatial-MLLM [49] and SpaceR [37], which are explicitly designed to enhance spatial and relational reasoning. All models are evaluated using their default inference configu-rations to ensure consistent and fair comparison. For mod-els that cannot directly process video inputs, we adopt a standardized preprocessing strategy: sampling one frame per second and feeding the frames sequentially according to their temporal order. In the following sections, we pro-vide a detailed description of the in-depth analysis settings and present the corresponding experimental results. 
+
+D.2. How Well Do Current Models Perform? 
+
+D.2.1. Baseline Experiment. 
+
+To test the current performance of MLLM on SCP-Bench, we strictly follow the setting in our SCP task design: • Baseline : For single-view questions, the model is given the visible part of a video clip, a question, and options. For multi-view questions, an image indicat-ing the perspective to answer is additionally provided. The exact prompt templates used in our experiments are shown below for clarity: Baseline Prompt (Single-View) Based on the provided video clip, please answer the following question. Choose the most appropriate option from the given choices. (Only answer the choice text without any explanation) Question: {question }
+
+Options: {options }
+
+Baseline Prompt (Multi-View) You are given a video and an image from the ques-tion perspective. Based on the events in the video clips, answer the question as if you are the camera in the REFERENCE IMAGE (not the video cam-era). Choose the most appropriate option from the given choices. (Only answer the choice text without any explanation) Question: {question }
+
+Options: {options }
+
+D.3. What Affects Spatial Causal Prediction? 
+
+D.3.1. Perception vs. Reasoning Decomposition. 
+
+This experiment examines the relative importance of visual perception and spatial causal reasoning, aiming to iden-tify the key bottleneck in SCP performance. We evaluate Qwen3-VL-8B, InternVL3.5-8B, and MiniCPM-V-4.5 un-der the following evaluation settings: • Gold Video (Pure Perception) : The model directly observes the unseen part of the video clip (the gold video), removing the need for causal reasoning. • Dense Caption Only (Pure Reasoning) : Replace video input with its dense caption generated by Tar-sier [45], removing the need for video perception. • Dense Caption Auxiliary : The model receives both the video and its dense caption, intending to reduce the perceptual burden. As illustrated in Table 5, the results show that causal rea-soning plays a more critical role in SCP performance than raw video perception. In addition, supplying dense captions alongside videos leads to further accuracy improvements, suggesting that current models still face limitations in dy-namic spatial perception in videos. Dense Caption Auxiliary Prompt (Single-View) Based on the provided video clip, please answer the following question. Choose the most appropriate option from the given choices. A dense caption is provided to help understand the video. (Only an-swer the choice text without any explanation) Question: {question }
+
+Options: {options }
+
+Dense Caption: {dense caption }
+
+Dense Caption Auxiliary Prompt (Multi-View) You are given a video and an image from the ques-tion perspective. Based on the events in the VIDEO CLIP, answer the question as if you are the camera in the REFERENCE IMAGE (not the video cam-era). Choose the most appropriate option from the given choices. A dense caption is provided to aid in understanding the video. (Only answer the choice Table 5. Evaluation results for the “Perception vs. Reasoning Decomposition” experiment. “Avg.” indicates the overall average accuracy. Red and green indicate performance gains and drops relative to the Baseline setting, respectively. 
+
+Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State 
+
+• Gold Video 
+
+Qwen3-VL-8B 54.96 ↑7.44 62.28 58.12 59.47 48.17 54.26 83.33 57.42 57.91 InternVL3.5-8B 58.64 ↑8.12 68.86 57.26 64.97 51.37 60.37 80.95 60.00 58.27 MiniCPM-V-4.5 43.72 ↓0.08 48.50 47.01 44.40 35.47 50.80 78.57 54.19 43.53 
+
+• Dense Caption Only 
+
+Qwen3-VL-8B 46.76 ↓0.76 51.50 37.61 53.97 40.16 48.94 80.95 60.00 40.29 InternVL3.5-8B 41.24 ↓9.28 47.31 34.19 46.23 35.01 42.02 78.57 51.61 38.85 MiniCPM-V-4.5 45.76 ↑1.96 58.08 41.88 50.51 36.04 50.00 83.33 58.06 43.88 
+
+• Dense Caption Auxiliary 
+
+Qwen3-VL-8B 47.72 ↑0.20 54.49 48.72 52.75 41.76 46.01 88.10 53.55 46.04 InternVL3.5-8B 50.56 ↑0.04 60.48 53.85 54.18 43.02 56.12 64.29 60.65 45.32 MiniCPM-V-4.5 44.28 ↑0.48 56.29 45.30 51.73 33.64 46.28 85.71 54.84 42.09 
+
+Table 6. Evaluation results for the “Single-Frame vs. Multi-Frame Reasoning” experiment. 
+
+Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State 
+
+• Cutpoint Image 
+
+Qwen3-VL-8B 49.52 ↑2.00 49.70 52.14 50.92 44.62 50.27 83.33 55.48 51.80 InternVL3.5-8B 51.92 ↑1.40 67.07 52.99 52.14 44.16 57.18 76.19 61.29 50.36 MiniCPM-V-4.5 43.80 0.00 52.69 55.56 44.60 35.35 50.80 76.19 50.97 40.29 Spatial-MLLM 42.04 ↑2.28 53.46 32.73 38.90 37.30 53.55 71.43 55.69 33.33 
+
+Table 7. Evaluation results for the “Vision Causal Perception” experiment.                                               
+
+> Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State
+> •Reverse Video
+> Qwen3-VL-8B 46.76 ↓0.76 52.69 52.14 46.84 43.94 46.54 90.48 48.39 42.45 InternVL3.5-8B 48.56 ↓1.96 56.89 56.41 49.49 42.33 53.19 64.29 59.35 43.53 MiniCPM-V-4.5 42.24 ↓1.56 49.10 45.30 41.96 35.13 48.67 73.81 50.97 41.37 LLaVA-OneVision-1.5-8B 45.32 ↓0.20 52.69 47.01 45.42 39.47 50.00 80.95 49.03 44.60
+
+text without any explanation) Question: {question }
+
+Options: {options }
+
+Dense Caption: {dense caption }
+
+D.3.2. Single-Frame vs. Multi-Frame Reasoning. 
+
+Video contains richer spatial–temporal cues than an im-age. To test whether models truly exploit temporal conti-nuity rather than treating frames independently, we com-pare a single-frame setting with the baseline setting, which uses multiple frames, on Qwen3-VL-8B, InternVL3.5-8B, MiniCPM-V-4.5, and Spatial-MLLM: • Baseline (Multi-Frame) : As described in Sec. D.2.1. • Cutpoint Image (Single-Frame) : Replace video in-put with the frame at the cutpoint. As shown in Table 6, the single-frame input yields slightly better performance across all four models. This suggests that multi-frame inputs introduce noise rather than useful temporal cues, indicating that models do not effectively use temporal information. The single-frame gains further reveal a bias toward image-based perception and limited exploita-tion of dynamic spatial–temporal signals. Single Frame Prompt (Single-View) Based on the provided image, please answer the following question. Choose the most appropriate option from the given choices. (Only answer the choice text without any explanation) Question: {question }
+
+Options: {options }
+
+Single Frame Prompt (Multi-View) You are given a reference image (the first) and an image from the question perspective (the second im-age). Based on the events in the first image, answer the question as if you were the camera in the second image. Choose the most appropriate option from the given choices. (Only answer the choice text without any explanation) Question: {question }
+
+Options: {options }
+
+D.3.3. Vision Causal Perception. 
+
+To examine whether models truly leverage temporal–spatial cues for spatial causal inference, we conduct an experiment in which the input videos are played in reverse. Specifically, for Qwen3-VL-8B, InternVL3.5-8B, MiniCPM-V-4.5, and LLaVA-OV-1.5-8B, we introduce the following variant: • Reverse Video : Reverse the input video while keeping all other settings identical to the baseline experiment. As shown in Table 7, model performance exhibits only mi-nor degradation under reversal, suggesting that these sys-tems make limited use of the underlying spatial–causal structure present in video dynamics. 
+
+D.3.4. Visible Range Comparison. 
+
+Unlike standard VideoQA settings, SCP limits models to the visible portion of a clip, making it essential to examine how different visible ranges influence model performance. We therefore evaluate three input conditions on Qwen3-VL-8B, InternVL3.5-8B, MiniCPM-V-4.5, and Spatial-MLLM: • Baseline (Seen Part) : As described in Sec. D.2.1. • Gold Video (Unseen Part) : As described in Sec. D.3.1, the model directly sees the unseen part. • Full Video : The model is given the entire video clip. As shown in Table 8, all models except MiniCPM-V-4.5 achieve their highest accuracy under the gold video setting, followed by full video, with the baseline performing the worst. MiniCPM-V-4.5, however, performs best with full video. These results indicate that when the answer is di-rectly observable, the task places minimal demands on spa-tial causal reasoning, leading to higher accuracy. For most models, the full video introduces additional, potentially dis-tracting content beyond what is strictly necessary, resulting in reduced performance compared with the gold video. 
+
+D.3.5. Is Visual Information Necessary? 
+
+Modern MLLMs exhibit strong text-based abilities, mo-tivating an examination of whether visual information is needed for SCP. To investigate this, we consider two con-ditions: answering SCP questions using their internal pri-ors and only a textual description of the video. We evalu-ate Qwen3-VL-8B, InternVL3.5-8B, MiniCPM-V-4.5, and LLaVA-OV-1.5-8B under the following settings: • Pure Text (Internal Priors) : Answering only the tex-tual question without any visual information. • Dense Caption Only (Textual Information) : As de-scribed in Sec. D.3.1. • Baseline (Visual Information) : The baseline setting as described in Sec. D.2.1. The results in Table 9 indicate that when models rely solely on their intrinsic prior knowledge (i.e., pure text input), their performance drops substantially. Although supplying dense captions leads to noticeable improvements, the gains fall short of the baseline that uses video inputs. These findings suggest that textual priors alone are insufficient for SCP, and even dense captions cannot fully capture the richness, conti-nuity, and fine-grained cues encoded in visual observations. PureText Prompt Please answer the following question. Choose the most appropriate option from the given choices. (Only answer the choice text without any explana-tion) Question: {question }
+
+Options: {options }
+
+Dense Caption Only Prompt (Single-View) Based on the provided dense caption description, please answer the following question. Choose the most appropriate option from the given choices. (Only answer the choice text without any explana-tion) Question: {question }
+
+Options: {options }
+
+Dense Caption: {dense caption }
+
+Dense Caption Only Prompt (Multi-View) You are given a video dense caption and a reference image dense caption describing another viewpoint. Based on the dense captions, answer the question as if you were the camera in the reference image. Choose the most appropriate option from the given choices. (Only answer the choice text without any explanation) Question: {question }
+
+Options: {options }
+
+Video Dense Caption: {video dense caption }
+
+Image Dense Caption: {image dense caption }
+
+D.4. How to Improve Spatial Causal Prediction? 
+
+D.4.1. Model Scale-up Effect Analysis. 
+
+Increasing model size is a direct way to improve perfor-mance. To examine how parameter scale affects SCP, we evaluate two model families with rich size variations, Qwen3-VL and InternVL-3.5, covering 14 models as listed in Table 10. Overall, scaling up is an effective strat-egy for SCP. The largest Qwen3-VL-235B-A22B model achieves an improvement of 18% over the smallest Qwen3-VL-2B model. Similarly, the largest InternVL3.5-241B-A28B model outperforms the smallest InternVL-1B model by 21.81%. However, scaling is not strictly monotonic among the smaller models. For example, Qwen3-VL-8B performs 2.72% worse than Qwen3-VL-4B. This suggests that the benefits of scaling become stable only when the in-crease in parameters reaches a more substantial range. Table 8. Evaluation results for the “Visible Range Comparison” experiment. 
+
+Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State 
+
+• Baseline 
+
+Qwen3-VL-8B 47.52 54.49 51.28 49.29 42.33 49.47 90.48 46.45 46.40 InternVL3.5-8B 50.52 59.88 54.70 54.79 43.82 54.52 61.90 58.71 44.96 MiniCPM-V-4.5 43.80 53.29 49.57 43.99 36.04 49.20 76.19 52.26 42.81 Spatial-MLLM 39.76 45.51 28.21 33.81 38.44 50.00 66.67 50.97 32.37 
+
+• Gold Video 
+
+Qwen3-VL-8B 54.96 ↑7.44 62.28 58.12 59.47 48.17 54.26 83.33 57.42 57.91 InternVL3.5-8B 58.64 ↑8.12 68.86 57.26 64.97 51.37 60.37 80.95 60.00 58.27 MiniCPM-V-4.5 43.72 ↓0.08 48.50 47.01 44.40 35.47 50.80 78.57 54.19 43.53 Spatial-MLLM 41.12 ↑1.36 37.73 24.79 34.21 32.38 47.07 66.67 49.03 28.78 
+
+• Full Video 
+
+Qwen3-VL-8B 54.56 ↑7.04 61.08 59.83 61.10 48.40 53.19 85.71 54.84 53.24 InternVL3.5-8B 57.00 ↑6.48 67.66 60.68 66.80 47.83 57.18 76.19 61.29 55.04 MiniCPM-V-4.5 52.68 ↑8.88 63.47 72.65 53.97 45.31 53.72 73.81 60.65 49.64 Spatial-MLLM 41.12 ↑1.36 47.10 32.73 39.92 37.76 49.20 71.43 52.69 32.73 
+
+Table 9. Evaluation results for the “Is Visual Information Necessary?” experiment. 
+
+Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State 
+
+• Pure Text 
+
+Qwen3-VL-8B 42.00 ↓5.52 49.10 35.04 47.25 34.67 46.28 69.05 40.65 45.32 InternVL3.5-8B 44.72 ↓5.80 50.90 42.74 48.88 36.61 52.66 73.81 51.61 41.01 MiniCPM-V-4.5 43.32 ↓0.48 53.29 44.44 46.03 35.01 51.60 69.05 52.90 37.77 LLaVA-OneVision-1.5-8B 40.20 ↓5.32 43.11 41.03 42.16 33.41 47.87 73.81 38.71 41.37 
+
+• Dense Caption Only 
+
+Qwen3-VL-8B 46.76 ↓0.76 51.50 37.61 53.97 40.16 48.94 80.95 60.00 40.29 InternVL3.5-8B 41.24 ↓9.28 47.31 34.19 46.23 35.01 42.02 78.57 51.61 38.85 MiniCPM-V-4.5 45.76 ↑1.96 58.08 41.88 50.51 36.04 50.00 83.33 58.06 43.88 LLaVA-OneVision-1.5-8B 43.12 ↓2.40 49.70 29.91 50.31 36.04 44.41 69.05 53.55 42.81 
+
+Table 10. Evaluation results for the “Model Scale-up Effect Analysis” experiment. 
+
+Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State 
+
+• Qwen3-VL Series 
+
+Qwen3-VL-2B 43.04 41.92 42.74 45.01 40.85 44.41 59.52 47.10 40.65 Qwen3-VL-4B 50.24 58.68 47.86 52.55 44.51 55.05 90.48 60.00 42.09 Qwen3-VL-8B 47.52 54.49 51.28 49.29 42.33 49.47 90.48 46.45 46.40 Qwen3-VL-30B-A3B 54.16 65.27 52.14 54.79 46.22 56.65 85.71 66.45 57.19 Qwen3-VL-32B 56.84 59.88 51.28 58.66 52.63 57.98 90.48 67.10 55.04 Qwen3-VL-235B-A22B 61.04 67.07 54.70 60.90 55.03 63.03 97.62 74.84 63.31 
+
+• InternVL3.5 Series 
+
+InternVL3.5-1B 35.16 29.94 43.59 37.07 30.66 39.36 38.10 49.03 31.65 InternVL3.5-2B 40.84 44.91 44.44 45.01 37.07 40.16 61.90 46.45 35.97 InternVL3.5-4B 46.12 57.49 47.86 44.60 42.79 47.61 76.19 49.68 43.17 InternVL3.5-8B 50.52 59.88 54.70 54.79 43.82 54.52 61.90 58.71 44.96 InternVL3.5-14B 50.28 59.88 57.26 54.79 42.56 54.26 69.05 63.23 42.45 InternVL3.5-30B-A3B 52.48 65.87 52.99 56.01 43.25 56.12 80.95 67.10 49.64 InternVL3.5-38B 53.56 62.28 53.85 56.01 46.34 57.98 90.48 65.81 48.20 InternVL3.5-214B-A28B 56.96 67.07 60.68 61.10 46.11 60.37 90.48 68.39 60.07 
+
+Table 11. Evaluation results for the “CoT Reasoning” experiment. 
+
+Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State 
+
+• Vanilla CoT 
+
+Qwen3-VL-8B 51.52 ↑4.00 63.47 50.43 51.53 44.39 54.52 90.48 61.29 51.80 InternVL3.5-8B 50.36 ↓0.16 59.28 51.28 49.29 43.02 56.65 61.90 65.16 51.08 MiniCPM-V-4.5 44.88 ↑1.08 55.09 40.17 48.68 35.47 53.19 73.81 59.35 39.93 LLaVA-OneVision-1.5-8B 42.88 ↓2.64 48.50 39.32 46.44 33.30 53.99 69.05 54.19 39.57 
+
+D.4.2. CoT Reasoning. 
+
+To investigate whether chain of thought (CoT) prompting can improve performance on SCP, we apply a vanilla CoT setting to Qwen3-VL-8B, InternVL3.5-8B, MiniCPM-V-4.5, and LLaVA-OV-1.5-8B: • Vanilla CoT : Augment the prompt with “Think step by step” to encourage the model to generate its chain of thought reasoning. As shown in Table 11, Qwen3-VL-8B gains about 4% in accuracy, while the other three models show no clear im-provement. This indicates that vanilla CoT prompting does not consistently enhance SCP performance. Vanilla CoT Prompt (Single-View) Based on the provided video clip, please think step by step to answer the following question. Show your reasoning process explicitly, and at the end, provide your final choice marked as ‘Final An-swer:’. Your final answer should contain only the option text, not its letter. Question: {question }
+
+Options: {options }
+
+Vanilla CoT Prompt (Multi-View) You are given a video and a reference image show-ing another viewpoint. Based on the events in the VIDEO CLIP, reason step by step as if you were the camera in the REFERENCE IMAGE, not the video camera. Show your reasoning process explicitly, and at the end, provide your final choice marked as ‘Final Answer:’. Your final answer should contain only the option text, not its letter. Question: {question }
+
+Options: {options }
+
+InternVL3.5 Thinking Mode System Prompt You are an AI assistant that rigorously follows this response protocol: 1. First, conduct a detailed analysis of the question. Consider different angles, potential solutions, and reason through the problem step-by-step. Enclose this entire thinking process within <think> and 
+
+</think> tags. 2. After the thinking section, provide a clear, con-cise, and direct answer to the user’s question. Sep-arate the answer from the think section with a new-line. Ensure that the thinking process is thorough but remains focused on the query. The final answer should be standalone and not reference the thinking section. 
+
+D.4.3. Self-Think Reasoning. 
+
+Besides chain-of-thought prompting, some models are trained on data with explicit reasoning traces, which en-courages latent internal reasoning during inference time. To evaluate whether self-thinking improves SCP performance, we configure the thinking modes of different models as fol-lows: • Self-Thinking : each model is run with its official thinking mode. Qwen3-VL-8B uses the Qwen3-VL-8B-Thinking variant; InternVL3.5-8B enables think-ing via its system prompt; MiniCPM-V-4.5 activates thinking with enable thinking=true .The results in Table 12 show that enabling self-think leads to a slight performance drop compared with the base-line. This suggests that the current self-think mechanisms do not provide useful spatial causal reasoning signals and may even introduce additional noise that harms perfor-mance. 
+
+D.4.4. Perception Enhancement Strategy. 
+
+Although perception is not the main bottleneck for SCP, previous experiments indicate that models still struggle with some dynamic spatial–temporal cues. We therefore explore 2 strategies that modestly enhance perceptual input: • Dense Caption Auxiliary : As described in Sec. D.3.1. • Spatial Interaction Graph : The model is guided to identify key objects and the key background elements, from which a spatial relation graph and an interaction graph are constructed. The model answers the question based on this structured spatial representation. The results in Table 13 show that both enhancements yield only marginal improvements. This indicates that perception-level augmentation alone is insufficient to mean-ingfully improve SCP performance. Spatial-Interaction Graph Guiding Prompt Based on the provided video clip, you should 
+
+{temporal direction } to answer the ques-tion. {view text } Please answer the question based on the following framework and think step by step to analyze through each part. Your final answer should contain only the option text, not its letter. 
+
+Framework: Part 1. Carefully analyze the video to iden-tify the key spatial changing objects and their affected environmental elements that need to be addressed in answering the ques-tions. You can construct triples of the form: 
+
+{ "changing objects": ["..."], "affected environmental elements": ["..."] } Only list the objects and environmen-tal elements that need to be addressed in answering the question. 
+
+Part 2. Construct the spatial graph that de-scribes the spatial relations among the entities, which is helpful for reasoning about the ques-tion. You can construct triples of the form: 
+
+{"subject": "...", "relation": "...", "object": "..." } to describe the Table 12. Evaluation results for the “Self-Think Reasoning” experiment. 
+
+Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State 
+
+• Self-Thinking 
+
+Qwen3-VL-8B 47.44 ↓0.08 55.69 45.30 50.10 38.79 51.86 83.33 58.71 48.20 InternVL3.5-8B 47.84 ↓2.68 59.28 51.28 51.12 39.36 53.46 66.67 54.19 46.40 MiniCPM-V-4.5 42.72 ↓1.08 49.10 48.72 40.94 35.35 50.53 69.05 50.32 43.88 
+
+Table 13. Evaluation results for the “Perception Enhancement Strategy” experiment. 
+
+Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State 
+
+• Dense Captition Auxiliary 
+
+Qwen3-VL-8B 47.72 ↑0.20 54.49 48.72 52.75 41.76 46.01 88.10 53.55 46.04 InternVL3.5-8B 50.56 ↑0.04 60.48 53.85 54.18 43.02 56.12 64.29 60.65 45.32 MiniCPM-V-4.5 44.28 ↑0.48 56.29 45.30 51.73 33.64 46.28 85.71 54.84 42.09 LLaVA-OneVision-1.5-8B 45.80 ↑0.28 53.89 46.15 49.08 39.13 47.61 83.33 54.84 42.81 
+
+• Spatial Interaction Graph 
+
+Qwen3-VL-8B 51.76 ↑4.24 69.46 46.15 52.95 45.08 55.05 78.57 70.32 43.53 InternVL3.5-8B 48.80 ↓1.72 59.88 45.30 49.49 38.67 55.85 78.57 67.10 50.00 MiniCPM-V-4.5 43.88 ↑0.08 59.88 42.74 47.66 32.49 48.14 76.19 59.35 44.60 LLaVA-OneVision-1.5-8B 42.16 ↓3.36 52.69 44.44 43.18 33.87 47.07 76.19 49.68 43.17 
+
+Table 14. Evaluation results for the “Causal Prediction Enhancement Strategy” experiment. 
+
+Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State 
+
+• Text Scaffold 
+
+Qwen3-VL-8B 61.23 ↑13 .71 64.29 56.67 67.44 54.48 64.08 91.89 64.06 56.25 InternVL3.5-8B 61.72 ↑11 .20 64.29 57.78 67.44 53.25 65.49 91.89 67.97 59.13 MiniCPM-V-4.5 60.15 ↑16 .35 58.16 52.22 66.28 51.32 64.08 97.30 67.19 59.62 LLaVA-OneVision-1.5-8B 59.77 ↑14 .52 55.10 53.33 66.05 50.09 62.68 89.19 71.09 62.02 
+
+• Image Scaffold 
+
+Qwen3-VL-8B 49.21 ↑1.69 46.94 36.67 57.27 43.76 48.24 91.89 50.78 46.63 InternVL3.5-8B 51.60 ↑1.08 52.04 43.33 58.20 47.10 52.46 72.97 56.25 45.67 MiniCPM-V-4.5 43.64 ↓0.16 48.98 53.33 44.57 36.91 46.48 81.08 50.78 38.46 LLaVA-OneVision-1.5-8B 46.13 ↑0.61 56.12 35.56 52.42 38.84 48.24 83.78 45.31 43.75 
+
+• Video Scaffold 
+
+Qwen3-VL-8B 52.63 ↑5.11 51.02 45.56 57.51 48.86 51.76 94.59 52.34 50.48 InternVL3.5-8B 53.38 ↑2.86 56.12 47.78 59.35 47.98 53.17 86.49 57.03 49.04 MiniCPM-V-4.5 44.29 ↑0.49 47.96 43.33 45.03 37.79 50.35 83.78 51.56 39.42 LLaVA-OneVision-1.5-8B 47.86 ↑2.34 51.02 45.56 51.96 41.65 52.11 81.08 46.88 44.71 
+
+spatial relations and trends of changes during the video clip. 
+
+Part 3. Construct the interaction graph that de-scribes the interaction relations among the en-tities, which is helpful for reasoning about the question. You can construct triples of the form: {"subject": "...", "action": "...", "object": "..." } to describe the interaction during the video clip. 
+
+Part 4. {temporal text }
+
+Part 5. Based on previous thinking and con-structed, think through and choose the most spatio-temporally consistent option. 
+
+Rules: 
+
+• Show your reasoning process explicitly, and at the end provide your final choice marked as ’Final Answer:’. • Your final answer should contain only the op-tion text, not its letter. 
+
+• Don’t get caught up in repetitive reasoning. Question: {question }
+
+Options: {options }
+
+D.4.5. Causal Prediction Enhancement Strategy. 
+
+To investigate whether spatial causal prediction scaffolds can mitigate the reasoning bottleneck in SCP, and which modality provides the greatest benefit, We evaluate models on a simplified subset of the benchmark that is single-view and requires predicting future states. The experiments are performed on Qwen3-VL-8B, InternVL3.5-8B, MiniCPM-V-4.5 and LLaVA-OV-1.5-8B in 3 modalities: • Text Scaffold : Using GPT-5 [35], which performs best on SCP, we generate a detailed description of the future that is required to answer the question. • Image Scaffold : Using Flux.1-dev-12B [29], we gen-erate a predictive future frame directly based on the textual future description. • Video Scaffold : Using Wan2.2-TI2V-5B [44], we at-Table 15. Comparison with existing benchmarks. Modality denotes the input type. Dynamic/Static indicates whether the scene content itself undergoes temporal changes, rather than mere camera movement. View Type specifies whether the questions involve single or multiple viewpoints. Perspective denotes whether the benchmark includes explicitly designed ego (first-person) and exo (third-person) perspective settings. Causal Reasoning indicates whether the benchmark requires inferring outcomes or states driven by causal dependencies. Seen/Unseen reflects whether the queried information is directly observable within the given visual content.                                                                                                                           
+
+> Benchmark QA pairs Modality Dynamic/Static View Type Perspective Causal Reasoning Seen/Unseen Single Multi Ego Exo
+> 3DSRBench [33] 3,772 Image Static ✓✗✗✓✗Seen InternSpatial-Bench [15] 6,008 Image Static ✓✗✗✓✗Seen OmniSpatial [26] ∼8,400 Image Static ✓✗✓✓✗Seen Spatial457 [47] 23,752 Image Static ✓✗Undeclared ✗Seen All-Angles Bench [55] ∼2,100 Image Static ✗✓Undeclared ✗Seen EmbSpatial-Bench [16] 3,640 Image Static ✓✗✓✗✗Seen MMSI-Bench [54] 1,000 Image Static ✗✓Undeclared ✗Seen MindCube [57] 21,154 Image Static ✗✓Undeclared ✗Unseen VSI-Bench [53] 5,130 Video Static ✓✗✓✗✗Seen VLM4D [67] ∼1,800 Video Dynamic ✓✗✓✓✗Seen STI-Bench [31] 2,064 Video Dynamic ✓✗✓✓✗Seen DSI-Bench [65] ∼1,700 Video Dynamic ✓✗Undeclared ✗Seen SCP-Bench (Ours) 2,500 Video Dynamic ✓✓✓✓✓Unseen
+
+tempt to generate a video approximation of the unseen portion by starting from the cutpoint frame and guid-ing the synthesis with the textual future description. Fig. 13 shows an example using scaffolds. Each scaffold is provided as auxiliary information to support the model in answering the question. In Table 14, all four models show performance gains, with textual scaffolds yielding the largest improvement, followed by video scaffolds. Image scaffolds offer the weakest benefit. Textual scaffolds of-fer the most complete and explicit description of the future. In contrast, image and video scaffolds can only approxi-mate the real scene to a limited extent because they do not capture the full textual detail. Video scaffolds, however, perform better than image scaffolds because they provide richer temporal and spatial cues. Text Scaffold Prompt Based on the provided video clips and the future description, please answer the following question. Choose the most appropriate option from the given choices. (Only answer the choice text without any explanation) Question: {question }
+
+Options: {options }
+
+Future Description: {future description }
+
+Image Scaffold Prompt Based on the provided video clips and a future im-age after the video, please answer the following question. Choose the most appropriate option from the given choices. (Only answer the choice text without any explanation) Question: {question }
+
+Options: {options }
+
+Video Scaffold Prompt Based on the provided video clips and the gener-ated future video clips, please answer the follow-ing question. Choose the most appropriate option from the given choices. (Only answer the choice text without any explanation) Question: {question }
+
+Options: {options }
+
+## E. Benchmark Comparison 
+
+As shown in Table 15, we provide a more detailed compar-ison between SCP-Bench and representative spatial reason-ing benchmarks. Benchmarks such as OmniSpatial [26], Spatial457 [47], and EmbSpatial-Bench [16] are built around image-only settings and assess spatial reasoning in static scenes. Although they offer meaningful insights into how models interpret spatial structure, they fail to capture the evolving spatial relationships that arise in dynamic set-tings. All-Angles-Bench [55] and MMSI-Bench [54] ex-tend single-view evaluation to multi-view settings, but they remain confined to image-based static scenes. Although presented in video form, VSI-Bench [53] effectively evalu-ates static indoor scenes rather than genuinely dynamic set-Table 16. Results of the “Extended Causal Consistency” experiment, where models are evaluated by how often they misclassify the correct answer as the least plausible option. Lower values indicate stronger causal consistency. “Avg.” denotes the overall average error rate.                                               
+
+> Model Avg. ↓Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State
+> •Misclassifying the Correct Answer as Least Plausible
+> Qwen3-VL-8B 29.76 34.73 4.27 26.27 27.35 42.29 21.43 29.68 35.61 InternVL3.5-8B 30.96 32.34 8.55 26.27 32.49 38.83 33.33 28.39 33.45 MiniCPM-V-4.5 34.36 37.72 15.38 28.11 32.84 45.48 35.71 39.35 38.13 LLaVA-OneVision-1.5-8B 31.64 36.53 2.56 32.38 26.89 46.28 33.33 31.61 34.53
+
+Table 17. Evaluation results for the “Physical Commonsense Probing” experiment. “Avg.” indicates the overall average accuracy.                                                                                    
+
+> Model Avg. Appearance Order Counting Planning Relation Relative Distance Relative Size Relative Speed Spatial State
+> •Vanilla CoT
+> Qwen3-VL-8B 51.52 63.47 50.43 51.53 44.39 54.52 90.48 61.29 51.80 InternVL3.5-8B 50.36 59.28 51.28 49.29 43.02 56.65 61.90 65.16 51.08 MiniCPM-V-4.5 44.88 55.09 40.17 48.68 35.47 53.19 73.81 59.35 39.93 LLaVA-OneVision-1.5-8B 42.88 48.50 39.32 46.44 33.30 53.99 69.05 54.19 39.57
+> •Physics-aware CoT
+> Qwen3-VL-8B 50.80 61.08 52.14 50.51 45.88 57.71 73.81 58.06 43.17 InternVL3.5-8B 48.24 57.49 45.30 49.29 40.39 57.98 83.33 61.29 41.01 MiniCPM-V-4.5 42.52 56.29 43.59 46.64 34.67 46.81 66.67 52.90 35.97 LLaVA-OneVision-1.5-8B 44.04 47.90 44.44 44.60 36.84 50.53 80.95 56.13 42.09
+
+tings. VLM4D [67], STI-Bench [31], and DSI-Bench [65] use videos to introduce dynamic spatial reasoning, but their evaluation remains confined to interpreting the information explicitly present in the visible video frames. They disre-gard both the assessment of causal reasoning and the pre-dictive analysis of unobserved portions of a spatial pro-cess, whereas spatial causal prediction addresses these as-pects and better reflects the demands of everyday situations. MindCube [57] examines a model’s ability to hypothesize unseen spatial states using images and text, but it remains restricted to static scenes and lacks visual spatial dynamics. In contrast, SCP-Bench focuses on spatial causal predic-tion in dynamic video settings, requiring models to infer spatial states beyond the visible part. In addition, SCP-Bench explicitly incorporates diverse perspective settings, covering both ego-centric and exo-centric viewpoints as well as single-view and multi-view configurations. 
+
+## F. Supplementary Results 
+
+F.1. Extended Causal Consistency Experiment 
+
+To further examine models’ causal consistency in the SCP task, we design an experiment in which the model is re-quired to select the least plausible option instead of the cor-rect one. This setting evaluates whether the model can re-liably rule out options that contradict the causal structure of the video, providing a complementary perspective on its causal reasoning stability. As shown in Table 16, we evaluate Qwen3-VL-8B, InternVL3.5-8B, MiniCPM-V-4.5, and LLaVA-OV-1.5-8B by measuring how often they mistakenly classify the correct answer as the least plausible option, where a lower rate in-dicates stronger causal consistency. Although InternVL3.5-8B achieves better performance in the baseline setting, Qwen3-VL-8B produces fewer such errors in this consis-tency test. As illustrated in Fig. 14, Qwen3-VL-8B evalu-ates each option’s plausibility more independently, whereas InternVL3.5-8B often commits to a presumed correct an-swer and then selects the option most opposed to it. When its initial guess is incorrect, this strategy makes it more likely to mislabel the true answer as the least plausible. 
+
+F.2. Physical Commonsense Probing Experiment 
+
+To examine the role of physical commonsense in SCP per-formance, we introduce a physics-aware CoT prompting strategy. The prompt instructs the model to first enumerate the relevant physical principles and then apply them to an-swer the question. However, as shown in Table 17, physics-aware CoT does not clearly improve performance compared to vanilla CoT. Analyzing the model’s reasoning traces in Fig. 15 reveals a consistent pattern: although the model can correctly identify the appropriate physical laws, it often fails to apply them to the scene. This indicates that current mod-els lack the ability to operationalize physical principles in context and to integrate them into reliable causal reasoning. 
+
+F.3. Error Case Analysis 
+
+To further understand why models struggle on the SCP task, we analyze representative error cases and identify several underlying causes of failure: • Dynamic Integration Failure. A common failure cause is the model’s inability to integrate motion cues over time, leading it to rely on isolated frames or short local motion fragments instead of coherent temporal dynamics. As illustrated in Fig. 16, the first case con-siders only the riders’ initial positions while ignor-ing the subsequent motion changes. The second case focuses solely on the individuals’ current distances, Real follow-up Text prediction Image prediction Video prediction 
+
+Original input   
+
+> In the very next moment, the
+> pa d d l e b o a rd e r h a s a rc e d
+> further across the wave so the
+> board is no longer down in
+> the lower-left; it’s now up and
+> across the face, finishing the
+> carve near the mid‑right of
+> the shot. He’s crouched low
+> with the paddle still buried on
+> the inside of the turn beside
+> his front knee, throwing a
+> sheet of spray that streaks
+> back toward the lower-left
+> corner. The outside rail is lifted
+> and the inside rail is knifing
+> th e water. The board’s nose is
+> clearly aimed across the frame
+> into the open shoulder ahead
+> of him, with the foamy lip and
+> whitewater boiling just behind
+> his tail.
+> Q: From the camera's perspective, right after the surfer plants the paddle on the inside of the turn and the rail begins to bite near the
+> lower-left of the frame, toward which screen side does the board’s nose end up pointing as the carve completes near the center-right?
+> True Answer: Right
+
+Figure 13. Example of causal prediction enhancement. Here we present a comparative analysis of a case study, showing the actual subsequent video and the causal prediction results for text, image, and video modalities. 
+
+overlooking how their relative positions evolve as they move. In the first case in Fig. 17, the model captures only the boat’s local turning motion but fails to recog-nize its global dynamic trajectory. • Prior-Driven Hallucination. The model fails to at-tend to detailed visual cues and instead leans too heav-ily on its prior assumptions. As shown in the second case of Fig. 17, although it correctly identifies the main evolving motion, it subsequently jumps to a conclusion driven by prior assumptions, ignoring the actual scene details and producing an incorrect answer. • Causal Reasoning Failure. The model fails to pro-duce grounded causal reasoning and instead jumps to premature, unsupported conclusions. In the first case of Fig. 18, for example, it asserts that the blue car is moving faster without any justification, overlooking the causal reasoning needed to compare how the dis-tance between cars evolves over time, which is a pro-cess humans naturally perform. • Cross-Modal Attribution Bias. The model fails to integrate visual and textual modalities into a coherent line of reasoning, often overcommitting to one source and producing biased conclusions. As shown in the second case of Fig. 18, it becomes fixated on interpret-ing the textual mention of the player placing the ball and derives its answer from that alone, while entirely ignoring the visual evidence of the ball’s actual trajec-tory that should have informed the reasoning. Q: After the worker finishes several cuts within the dense cluster and begins turning away with the shears lowered, in which dir ect ion will they head 
+
+next from the camera’s viewpoint: toward the open left foreground, deeper into the back rows beyond the pipe, or further righ t? 
+
+True Answer: Toward the open left foreground. 
+
+InternVL3.5 -8B: 
+
+… Toward the open left foreground: The worker has been moving to the 
+
+right, and there is no indication of a turn toward the left. …
+
+Most Inappropriate Option: Toward the open left foreground 
+
+Qwen3 -VL -8B : 
+
+… The back rows beyond the pipe are further away and not the 
+
+immediate direction of movement after finishing a section. …
+
+Most Inappropriate Option: Go toward the back rows beyond the pipe 
+
+> Cutpoint
+
+Mistake! Figure 14. Analysis sample for extended causal consistency experiment. The models are required to identify the least plausible option, while InternVL3.5-8B does not independently assess the plausibility of each choice but instead derives the least plausible option by reasoning backward from its own incorrect answer, revealing a lack of internal causal consistency. Q: From the camera positioned behind the goal, as the blue kicker’s right leg swings through and the ball first leaves his foot, in to which part of the 
+
+goal mouth will the ball ultimately enter: left, center, or right? 
+
+True Answer: Left. 
+
+LLaVA -OneVision -1.5 :
+
+Physics Principles Identification: Line -of -sight, Perspective projection, 
+
+Relative motion ... The perspective projection confirms that the ball is on a 
+
+trajectory that will pass through the right section of the goal mouth .
+
+Final Answer: Right 
+
+Minicpm -8B :
+
+Physics Principles Identification: Line -of -sight, Perspective pro -
+
+jection … Without ex -plicit curve indication but considering direct 
+
+projection, the answer is right .
+
+Final Answer: Right 
+
+> Cutpoint
+
+Wrong! 
+
+Wrong! 
+
+Figure 15. Visualization of the physical commonsense probing experiment. To answer each question, models must first infer the underlying physical principles depicted in the video. Although current models can often recognize the appropriate physical laws, they still struggle to apply them effectively when generating correct predictions. Q: Relative to each other, when movement resumes, who reaches the near curb island first: the dark -shirt rider on the camera -right or the 
+
+gray -hoodie rider on the camera -left ?
+
+True Answer: The dark -shirt rider on the camera -right 
+
+Dynamic Integration Failure 
+
+Qwen3 -VL -8B ：
+
+…The two riders both start pedaling. The gray -hoodie rider is slightly ahe -
+
+ad of the dark -shirt rider as they both continue to move forward . ... 
+
+Gray -hoodie still leads, will hit the curb island first. 
+
+Final Answer: The gray -hoodie rider on the left. 
+
+LLaVA -One -Vision -70B: 
+
+The dark -shirt rider on the camera -right... The gray -hoodie rider is closer 
+
+to the curb island . Since the gray -hoodie rider has the initial positional lea -
+
+d, this slight advantage will be maintained over the short distance. 
+
+Final Answer: The gray -hoodie rider on the left. 
+
+> Cutpoint
+
+Human explanation: 
+
+As seen in the previous footage, when the car stopped at the intersection, the dark -shirt rider on the camera -right was positioned further forward 
+
+than the gray -hoodie rider on the camera -left , suggesting that the dark -shirt rider on the camera -right reaches the near curb island first. 
+
+Q: From the camera’s perspective, starting when the three foreground men first step off the near baseline and head toward the net, who increases 
+
+their distance from the baseline the fastest? 
+
+True Answer: The man in green shorts 
+
+Dynamic Integration Failure 
+
+GPT -5: 
+
+The man in black shirt is the first to step off the baseline and strides for -
+
+ward quickly, creating the largest and fastest growing gap from the b -
+
+aseline compared to the man in green shorts and the man in black shorts, 
+
+who move more slowly. 
+
+Final Answer: The man in black shirt 
+
+Gemini -2.5 -Pro: 
+
+…If you observe their movement closely, the man in the black shirt on t -
+
+he left is moving at a noticeably quicker pace, almost a light jog, com -
+
+pared to the other two men who are walking more slowly. Because he is 
+
+moving faster, he increases his distance from the baseline the fastest. 
+
+Final Answer: The man in black shirt Cutpoint 
+
+Human explanation: 
+
+In the initial frames, the man in the black shirt is observed to be positioned farthest forward but shows minimal forward progression. Conversely, 
+
+the man in the black shorts demonstrates rapid lateral movement. However, the man in green shorts subsequently maintains sustained 
+
+acceleration and forward strides, ultimately achieving the fastest increase in distance from the baseline. Figure 16. Cases of dynamic integration failure. The models fail to perceive dynamic changes and remain confined to static observations. Q: From the camera’s perspective, as the blond shirtless player on the right begins his jump approach and opens his shoulders toward the far court, 
+
+where will his spike travel relative to the net: straight down the right sideline, diagonally cross -court toward the camera -left corner, or softly to the 
+
+middle? 
+
+True Answer: Straight toward the center of the court on the camera -left side 
+
+Prior -Driven Hallucination 
+
+GPT -5: 
+
+His approach from the right sideline with shoulders opened to the far court 
+
+sets his swing across his body, a classic cue for a cross -court hit ra -
+
+ther than a line shot or soft middle tip. 
+
+Final Answer: Diagonally cross -court toward the camera -left corner. 
+
+Gemini -2.5 -Pro : 
+
+…As he jumps, he angles his body and "opens up" his shoulders to -
+
+ward the far, diagonal corner of the opponent's court (the camera -left 
+
+side). This body positioning is the classic setup for generating maximum 
+
+power on a cross -court hit. … 
+
+Final Answer: Diagonally cross -court toward the camera -left corner. 
+
+> Cutpoint
+
+Human explanation: 
+
+When the blond shirtless player jumps high to spike the volleyball, you can see that his body and hand are angled towards the left of the camera at 
+
+the moment of impact with great force and the two players on the left half of the court are also moving toward the center area . Therefore, it's 
+
+inferred that the ball will ultimately strike straight toward the center of the court on the camera's left. 
+
+Q: From the stern camera, when the crew first lifts their paddles in anticipation of the low bridge, What will happen next, hit the pier or go around 
+
+the pier and move forward? 
+
+True Answer: Hit the pier 
+
+Dynamic Integration Failure 
+
+GPT -5: 
+
+As they raise their paddles and duck for the low bridge, the raft angles to 
+
+the right of the central pier and slips past it, continuing downstream 
+
+without collision. 
+
+Final Answer: Go around the pier and move forward 
+
+LLaVA -OneVision -70B : 
+
+The crew is anticipating the low bridge and lifting their paddles in prepara -
+
+tion to maneuver around the pier and continue moving forward. The video 
+
+shows the raft successfully navigating around the pier without hitting 
+
+it. 
+
+Final Answer: Go around the pier and move forward 
+
+> Cutpoint
+
+Human explanation: 
+
+We can see that the crew were initially going downstream, but as they approached the bridge, the rafts became sideways (bows facing the pier) due 
+
+to the strong current, leading us to speculate that they were very likely to hit the pier. Figure 17. Cases of dynamic integration failure and prior-driven hallucination. The models struggle to perceive and infer the correct global spatial dynamics and often overlook critical scene details during reasoning due to prior-driven biases. Q: From the camera's perspective, while the blue car is still fully centered in the camera car's lane, before it starts straddling the divider, which 
+
+vehicle is moving faster relative to the road? 
+
+True Answer: The camera car 
+
+Causal Reasoning Failure 
+
+LLaVA -NeXT -Video -7B: 
+
+We need to analyze the relative positions and movements of the vehicles in 
+
+the video clip … The blue car is seen moving faster relative to the road 
+
+before it starts straddling the divider. 
+
+Final Answer: The blue car. 
+
+InternVL3.5 -30B -A3B -Instruct: 
+
+... The camera car is in the right lane . The blue car is in the left lane. …. 
+
+Since the blue car is still it indicates that the blue car is moving faster 
+
+than the camera car. Therefore, the blue car is moving faster relative to 
+
+the road. 
+
+Final Answer: The blue car 
+
+> Cutpoint
+
+Human explanation: 
+
+From the frames before the cut point, we can see that the distance between the camera car and the blue car is getting closer and closer , so we can 
+
+infer that the camera car is moving faster relative to the road than the blue car . So the true answer is the camera car. 
+
+Q: From the camera's perspective, when the blue player later bends to place the ball near the central cone, what had already happened to that ball 
+
+earlier in the attempt? 
+
+True Answer: It had gone into the goal on the right 
+
+Cross -Modal Attribution Bias 
+
+Qwen3 -VL -8B: 
+
+… The most logical scenario is that the ball had gone out of play over the 
+
+sideline . This would explain why the player is now bending to place it 
+
+back …
+
+Final Answer: It had gone out of play over the sideline. 
+
+Qwen3 -Omni -30B -A3B: 
+
+The blue player is seen to place the ball near the central cone , indicating 
+
+that the ball is not currently in play . … The most logical reason for the 
+
+ball being out of play is that it had gone out of play over the sideline .
+
+Final Answer: It had gone out of play over the sideline .
+
+Human explanation: 
+
+As seen in the subsequent footage, when the blue player bent over, the ball was initially on the right side of the goal , then returned to the blue 
+
+player 's side. It can be inferred that before bending over, the blue player shot the ball into the right side of the goal. 
+
+> Cutpoint
+
+Figure 18. Cases of causal reasoning failure and cross-modal attribution bias. The models struggle to perform causal reasoning and instead produce unsupported conclusions, leading to erroneous predictions. Moreover, they may overlook information from other modalities and fall into single-modality reasoning. Figure 19. Manual filtering tool demonstration. Annotators use it to filter appropriate QA candidates and determine their cutpoints. Figure 20. Validation tool demonstration. Annotators use it to validate each item in strict accordance with the SCP task specification. Figure 21. Repairing tool demonstration. Annotators use it to repair and optimize any attribute of the item as needed.

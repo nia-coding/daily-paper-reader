@@ -1,0 +1,572 @@
+Title: Causal Learning Should Embrace the Wisdom of the Crowd
+
+URL Source: https://arxiv.org/pdf/2603.02678v1
+
+Published Time: Wed, 04 Mar 2026 02:19:27 GMT
+
+Number of Pages: 27
+
+Markdown Content:
+# Causal Learning Should Embrace the Wisdom of the Crowd 
+
+Ryan Feng Lin a*, Yuantao Wei a*, Huiling Liao b, Xiaoning Qian c, Shuai Huang a†  
+
+> aDepartment of Industrial and Systems Engineering, University of Washington, Seattle, WA 98195, USA
+> bDepartment of Applied Mathematics, Illinois Institute of Technology
+> cDepartment of Electrical & Computer Engineering, Texas A&M University {ryanflin, yuantw2, shuaih}@uw.edu, hliao13@illinoistech.edu, xqian@ece.tamu.edu
+
+Learning causal structures typically represented by directed acyclic graphs (DAGs) from observational data is notoriously challenging due to the combinatorial explosion of possible graphs and inherent ambiguities in observations. This paper argues that causal learning is now ready for the emergence of a new paradigm supported by rapidly advancing technologies, fulfilling the long-standing vision of leveraging human causal knowledge. This paradigm integrates scalable crowdsourcing platforms for data collection, interactive knowledge elicitation for expert opinion modeling, robust aggregation techniques for expert reconciliation, and large language model (LLM)-based simulation for augmenting AI-driven information acquisition. In this paper, we focus on DAG learning for causal discovery and frame the problem as a distributed decision-making task, recognizing that each participant (human expert or LLM agent) possesses fragmented and imperfect knowledge about different subsets of the variables of interest in the causal graph. By proposing a systematic framework to synthesize these insights, we aim to enable the recovery of a global causal structure unachievable by any individual agent alone. We advocate for a new research frontier and outline a comprehensive framework for new research thrusts that range from eliciting, modeling, aggregating, and optimizing human causal knowledge contributions. 
+
+Key words : causal learning, wisdom of the crowd, human knowledge, scalability, directed acyclic graphs 
+
+## 1. Introduction 
+
+The pursuit of understanding causal relationships (Stein 2023, Pearl 2009) represents the cornerstone of scientific progress, bridging the gap between statistical observation and actionable, mechanistic knowledge. In the modern era, this philosophical endeavor has transformed into a rigorous computational challenge (Sloman 2005), thanks to the emergence of probabilistic and statistical languages for causality, the advancement of computational powers, and the rise of AI and machine learning (AI/ML). Now, causal discovery, the task of inferring the underlying causal structure for a set of variables under explicit model assumptions, has become a fundamental problem in science and engineering (Pearl & Mackenzie 2018, Huber 2024). Various formulations of this problem have been proposed, among which learning a DAG that represents the data-generating process is now a canonical approach.  
+
+> ∗
+
+Equal contribution.  
+
+> †
+
+Corresponding author.                   
+
+> 1
+> arXiv:2603.02678v1 [cs.LG] 3 Mar 2026 2Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd
+> Table 1 Evolution of expert involvement and scalability in causal learning.
+> Phase Methodology Role of Expert Scalability
+> Early Manual Construction Direct Elicitation Sole source of structure Very Low Pure Data-Driven Learning Independence Tests / Scoring Validation only Low (NP-Hard) Hybrid Learning Priors / Hard Constraints Guiding the search space Medium Distributed Wisdom of the Crowd Decentralized Solicitation Distributed “Puzzle Solving” High
+
+However, DAG learning has long faced a critical bottleneck of computational intractability. As the number of variables increases, the search space for possible causal structures grows super-exponentially with the number of variables, making optimal structure learning NP-hard (Bóna 2015). For a large causal graph with more than a handful of variables, heuristic algorithms must be used to avoid search intractability (Binkyt ˙eet al. 2023), which roughly fall into three main categories, namely score-based (e.g. A* search or GES optimizing BIC/BDe scores) (Yuan et al. 2011, Ng et al. 2024), constraint-based (e.g. PC or FCI) (Spirtes et al. 2000, Li et al. 2019), or differentiable structure learning-based algorithms (Huang et al. 2012, Zheng et al. 2018, Ban et al. 2024). Nevertheless, they may still get stuck in suboptimal solutions, and also fail to overcome the inherent statistical identifiability issues of DAG learning. These causal discovery algorithms, with observational data alone, fundamentally recover only a Markov equivalence class (MEC) of graphs that encode identical conditional independencies but differ in causal orientations, rather than the unique underlying DAG (Glymour et al. 2019). Moreover, with limited or noisy data, multiple graphs may fit the data equally well, which exacerbates the identification challenge (Carey et al. 2025). In practice, these limitations often cause significant deviations from the true causal structures (Kitson & Constantinou 2025), especially in large-scale systems with many interacting variables remain unobserved or inadequately represented. Without additional assumptions or auxiliary information, such as interventions, structural constraints, or prior knowledge, it is impossible to achieve full identification. Researchers have long recognized that incorporating prior knowledge can help guide causal learning (Cano et al. 2011, Gururaghavendran & Murray 2025, Heckerman et al. 1995). Domain experts might have knowledge of causal relationships (e.g. “smoking causes lung cancer”) or discern implausible connections, thus reducing the search space (Constantinou et al. 2023). Traditional approaches to include knowledge involve specifying priors on DAG structures or adding constraints (e.g., forbidding or enforcing certain edges) (Borboudakis & Tsamardinos 2012, Hasan & Gani 2022, Gonzales et al. 2022). However, prior works primarily supplement the algorithms that learn the DAGs from observational data, which fail to scale well to large, complex domains where data is sparse and no individual expert possesses complete knowledge. 
+
+This gap motivates us to consider a radically new paradigm: What if we could systematically harness the knowledge of hundreds or thousands of experts, each contributing a piece of the puzzle, to jointly construct a large causal graph? 
+
+A new paradigm casts causal structure learning as a distributed decision-making problem across a crowd of experts (humans or AI agents), each holding partial and noisy beliefs about relationships among variables Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 3
+
+of interest. Through principled elicitation and aggregation of these distributed knowledge fragments, we can assemble a coherent global causal graph beyond the capabilities of any single expert, analogous to crowdsourcing the discovery process (Vaughan 2018, Thompson & Bentzien 2020), and how Wikipedia aggregates knowledge from thousands of contributors. This concept leverages the “wisdom of the crowd” principle (Surowiecki 2005), where collective judgments of a diverse, independent group can surpass individual experts as idiosyncratic errors cancel out through aggregation (Saha Roy et al. 2021). In the context of causal learning, this suggests that while any single informant may be unreliable on some links, an ensemble of many informants with proper aggregation could yield a highly accurate global network. The key difference lies in aggregating causal knowledge (relationships, mechanisms, and directional influences) rather than factual articles or voting results or individual opinions. This problem poses distinct intellectual challenges compared to existing work in collective intelligence (Park et al. 2025, Riedl et al. 2021), social choice theory (Suksompong 2024, Kelly 2013), truth discovery (Shabat et al. 2022, Li et al. 2016), crowdsourced labeling (Yin et al. 2021, Sheng & Zhang 2019), knowledge fusion (Zhao et al. 2020), and human-in-the-loop machine learning (Mosqueira-Rey et al. 2023, Wu et al. 2022b), as causal knowledge involves latent structures, directionality, and inter-dependencies that go beyond aggregation of surface-level judgments. Therefore, we argue for a new paradigm toward “causal learning by wisdom of the crowd” that is decentralized, scalable, sample-efficient, and easy to integrate with existing paradigms . We envision a 
+
+decentralized intelligence solicitation platform that treats a knowledgeable population as a distributed network of “puzzle-solvers,” each possessing partial and potentially noisy insights into local causal relationships. By framing causal learning as an analytic core for large-scale distributed decision-making, we can leverage the collective intelligence of domain/non-domain experts, and even simulated agents from models such as Large Language Models (LLMs), to construct complex causal graphs that surpass the reach of centralized algorithms. Realizing this vision requires new formulations for expert modeling, denoising, and aggregation, opening a research frontier uniting collective intelligence with structural causal modeling. 
+
+## 2. Background 
+
+History of Causal Knowledge Elicitation. As summarized in Table 1, the incorporation of human expertise into causal models is not a new endeavor, but has historically been marked by heuristic, unscalable practices (O’Hagan 2019). In early research on Bayesian Networks (BNs), a major causal modeling framework, the construction of the DAG structure was largely a manual process (Heckerman et al. 1992, Jackson 1990). Experts would work with knowledge engineers to define variables of interest, identify their states, and draw directed edges based on professional experience. A well-known example is the medical belief network ALARM 
+
+(Beinlich et al. 1989). With advances in statistics and ML, the focus shifted toward data-driven structure learning. Algorithms were developed to find the structure that maximized the marginal likelihood of data or satisfied conditional independence constraints (Ramírez 2001, Neapolitan et al. 2004). However, purely 4 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+data-driven methods cannot distinguish between structures in the same MEC using observational data without additional information or constraints. To resolve such ambiguities, researchers turned to intervention-based strategies that often require strict experimental conditions and employ costly operations (Eberhardt 2008, Li et al. 2023, Choo et al. 2024). They can also integrate expert knowledge as “side information” for disentanglement (Amirkhani et al. 2016, Gonzales et al. 2022). Yet, hybrid approaches treat expert knowledge in a largely centralized manner through consulting single experts or small specialist groups whose models inherit individual biases and lack collective intelligence. Moreover, these methods often overlook the fact that experts might only have local knowledge of specific sub-domains. The absence of systematic framework for decentralized intelligence solicitation and consolidation has hindered scaling causal discovery to meet modern big data demands. 
+
+Technological Enablers. While the idea of using human causal knowledge is longstanding, only recently have technological advances matured to the point where a decentralized, data-driven implementation of this vision is feasible at scale. We highlight four technological enablers that make crowd-powered causal learning timely and practical: (1) Crowdsourcing platforms like Amazon Mechanical Turk (Paolacci et al. 2010) and Zooniverse (Simpson et al. 2014) now provide scalable access to millions of diverse contributors through structured knowledge elicitation workflows to achieve expert-level accuracy through aggregation. (2) Aggregation models and tools have greatly advanced in the past decades, such as Dawid-Skene (Tamura et al. 2024), GLAD (Whitehill et al. 2009), and HLM (Wu et al. 2022a). They contribute many ways to assess individual knowledge quality and bias, and yield consensus-level judgments critical for building reliable causal graphs from distributed sources. (3) LLMs like the GPT family (Leon 2025, Achiam et al. 2023) offer scalable knowledge amplification by simulating experts, assisting elicitation, and generating structured causal hypotheses to complement human input. Early studies show that LLM-assisted interviews and causal prompting can efficiently bootstrap knowledge acquisition with human oversight (Alaa et al. 2024). (4) Human-AI collaboration tools (e.g., in the human-computer interaction community) enables non-technical users to contribute causal insights via interactive interfaces (Zhong et al. 2024, Kale et al. 2021). Advances in knowledge engineering and hybrid intelligence systems allow humans to input, refine, and validate structured knowledge (e.g., causal pathways, diagrams, or piece-wise insights, etc.), lowering the barrier to entry for domain experts and laypersons alike (Kiciman et al. 2022). 
+
+## 3. Experimental Insights into Human Causal Knowledge: Heterogeneity and Reliability 
+
+3.1. A Thought Experiment 
+
+We start with BN Asia as a thought experiment (see Figure 1). Imagine two experts: Expert A is a pulmonologist who knows smoking-related diseases (blue) and symptom relationships (green) very well, but Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 5
+
+has no knowledge about travel history impact (purple) and will leave the link Visit to Asia →Tuberculosis 
+
+unspecified. Expert B is a practitioner with broad but uncertain knowledge across variables. They may incorrectly believe Tuberculosis or Cancer can cause Bronchitis , or be unsure of the causality between 
+
+Smoking and Lung Cancer . In a decision-making framework, the input of Expert A can be trusted where available, even with some edges uncovered, while the less accurate input of Expert B should be taken with a grain of salt everywhere despite broader coverage, which necessitates a unified framework characterizing diverse expert types. Visit to 
+
+# Asia 
+
+# X-Ray 
+
+# Result 
+
+# Lung 
+
+# Cancer 
+
+# Smoking 
+
+# Bronchitis 
+
+# Dyspnea 
+
+travel history 
+
+impact 
+
+symptom 
+
+relationships 
+
+smoking -related 
+
+diseases 
+
+# Tuberculosis 
+
+# Tuberculosis 
+
+# or Cancer    
+
+> Figure 1 Bayesian network Asia with eight nodes and eight causal links representing a simplified respiratory diagnosis scenario.
+
+3.2. A Real-World Case Study 
+
+Guided by the above thought experiment, we conducted a proof-of-concept study with the same Asia network as the main testbed to understand better the plausibility, potentials and pitfalls of our envisioned paradigm of causal learning by wisdom of the crowd. In this study, 20 participants were recruited as expert informants to share their causal knowledge about the Asia network through a structured survey. Participants were not given access to the ground-truth network. Instead, they were provided with detailed textual descriptions of variables in each network, and were asked to assess pairwise causal relationships among the variables. Further details on the survey design and experimental procedures can be found in Appendix B. Figure 2 visualizes the absolute value distributions of causal scores given by the participants, offering an immediate impression that expert causal knowledge is far from uniform at both the participant and query levels. In the left panel, markedly different violin shapes across participants reveal strong heterogeneity: some concentrate near extreme values indicating consistently high confidence, while others show more variable judgments across queries through their broad, flat distributions. On the right panel, queries likewise induce diverse 6 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+distributions across the participants. Some queries exhibit more ambiguity and disagreement, whereas others reach broad consensus. Together, these patterns highlight the complex, high-dimensional nature of expert causal knowledge.  
+
+> Figure 2 Expert-level (left) and query-level (right) causal knowledge complexity (sorted by median of absolute scores).
+
+3.3. Insights of the Real-World Study 3.3.1. Characterizations of Knowledge Quality. Experimental evidence reveals that the reliability of expert knowledge can vary widely. An expert might possess highly accurate knowledge about certain causal links (edges), while remaining uncertain or completely ignorant about others. This heterogeneity demands a conceptual framework to categorize experts by the scope and accuracy of their knowledge. To this end, we recommend a taxonomy grounded in four key dimensions: 
+
+• Completeness reflects the breadth of an expert’s knowledge, which determines whether it is feasible to obtain fully informative knowledge from the expert. When knowledge is incomplete, they may only cover a subset of causal relationships, potentially leading to partial, myopic, or even inconsistent inputs. 
+
+• Belief validity captures how well an expert’s beliefs align with the underlying ground truth, which can be measured by the performance evaluation metrics such as specificity, accuracy, etc. Within an expert’s areas of specialization, they tend to offer more accurate and interpretable causal assessments, whereas their reliability decline significantly with their beliefs becoming biased or erroneous outside these areas. 
+
+• Confidence level is not necessarily associated with the validity of the beliefs of experts, but shapes how cautious or assertive their behaviors are. Beyond correctness, experts differ in their confidence about what they know. For example, some may express appropriate uncertainty when unsure, while others may be overconfident. 
+
+• Trustworthiness captures the presence of bad or adversarial behaviors, as not all experts make good-faith efforts to contribute knowledge to ensure reliability. Some experts behave strategically, maliciously, or inattentively, thereby introducing significant noise or deliberate misinformation. Thus, recognizing such uncooperative individuals is essential to ensure the reliability of expert knowledge. Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 7
+
+(a) Omniscient (b) Perfect-but-Incomplete (c) Imperfect (d) Uncertain (e) Bad Actor  
+
+> Figure 3 A toy example illustrating the different expert types. Solid edges represent the causal links asserted by the expert, including correct (black), reverse (yellow) and spurious (red) edges, while dashed edges indicate low-confidence causal links regardless of validity.
+
+3.3.2. Taxonomy of Expert Types. Based on the dimensions discussed in the previous section, we introduce several conceptual categories that characterize expert behavior: (a) Omniscient expert refers to an expert who knows the true causal structure in its entirety with full accuracy. Their knowledge is both complete and perfectly correct as the ground truth. They typically exist only in idealized settings and serve as conceptual reference, theoretical upper bounds or benchmarks in simulation and evaluation. (b) Perfect-but-Incomplete expert is a weaker type of expert who always provides valid beliefs without asserting a wrong causal link but may not cover all the true links due to gaps in knowledge. Namely, their knowledge is reliable but not comprehensive. A well-trained domain expert who avoids speculation and limits their responses to familiar areas is a typical example of this category. (c) Imperfect experts possess substantial knowledge of the domain but are prone to occasional mistakes (e.g., reversing causal directions or introducing spurious links). Their knowledge is partially correct, typically reflecting a mix of true and false causal beliefs, which is likely the most common in practice. (d) Uncertain experts are distinguished by their lack of confidence in making judgments on causal relationships. It stands in stark contrast to overconfident experts, who consistently assert strong causal judgments and potentially amplify erroneous links due to unwarranted certainty. Unlike Perfect-but-Incomplete experts, they do not refrain from sharing information when uncertain and continue to contribute regardless of reliability. (e) Bad Actors may intentionally inject misleading, adversarial, or strategically manipulated information to distort reasoning or exploit the system, which ultimately undermines the integrity of causal learning. The corresponding behaviors of these expert types are described through a toy causal graph in Figure 3. To further demonstrate the differences in expert knowledge and behavior across these expert types with a consistent language, Figure 4 visualizes different expert types along the four dimensions we discussed in Section 3.3.1. Obviously, with the most idealized settings, an omniscient expert achieves near-perfect scores along all four dimensions. A perfect-but-incomplete expert exhibits high belief validity, confidence level, and trustworthiness, but low completeness, which means this type of experts is highly reliable within his domain knowledge but lacks broad knowledge reserves. In contrast, an imperfect expert represents individuals with 8 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+knowledge that might have relatively broad coverage but only moderate belief validity. An uncertain expert 
+
+exhibits high validity and trustworthiness but low expressed confidence, reflecting conservative behavior under uncertainty. While all these expert types can have relatively high trustworthiness as they are typically cooperative, bad actor corresponds to adversarial or uncooperative behavior, characterized by low belief validity and low trustworthiness despite potentially high completeness or confidence.  
+
+> Figure 4 Illustration of expert types in four dimensions.
+
+This taxonomy helps clarify assumptions about the quality of expert input before integrating causal knowledge into models. In particular, a real-world expert often represents a mix of these types. To characterize and elicit the knowledge of various experts, in Section 4, we review several analytic frameworks and evaluate their sufficiency and limitations. 
+
+## 4. We Need Human Causal Knowledge Models 
+
+As Section 3 illustrates the complexity of human knowledge, this section evaluates existing state-of-the-art models and understands its motivations, applications, and limitations. 
+
+4.1. Expert Causal Knowledge Models 
+
+Formally, let a DAG, 𝐺 = (𝑉, 𝐸 ), represent the ground-truth causal structure. Here, 𝑉 = {𝑋 1, · · · , 𝑋 𝑁 } denotes the set of nodes corresponding to 𝑁 variables. 𝐸 is the set of directed edges in 𝐺 where each 𝑢 → 𝑣 represents a causal link from 𝑋 𝑢 to 𝑋 𝑣 for distinct 𝑋 𝑢 , 𝑋 𝑣 ∈ 𝑉 . Motivated by cognitive and epistemological studies (Swanson & Smalheiser 1996, Drayson 2022, Ehrenmüller et al. 2025), we assume that the expert has a belief distribution of 𝐺 , denoted as 𝑝 (𝐺 ), to describe their understanding of 𝐺 . We use ˜𝐺 = (𝑉, ˜𝐸 ) to represent the corresponding graph inferred for the expert, i.e., the mean, mode or maximizer of the (posterior) belief distribution 𝑝 (𝐺 |D) . For a special case of omniscient experts, we have ˜𝐺 = 𝐺 , and eliciting the expert’s knowledge is equivalent to revealing the ground truth. However, for more realistic scenarios, ˜𝐺 deviates Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 9
+
+from true 𝐺 and recovering 𝐺 solely from a single expert’s input is generally infeasible without additional information. Formally, we query an expert for 𝑛 instances, i.e., pairs of variables, to obtain a structured knowledge set D = {( 𝒒 𝑖 , 𝑦 𝑖 )} 𝑛 𝑖 =1 where 𝒒 𝑖 = (𝑢 𝑖 , 𝑣 𝑖 ) denotes a query over the variables of interest 𝑋 𝑢 𝑖 , 𝑋 𝑣 𝑖 ∈ 𝑉 , and 𝑦 𝑖 
+
+denotes the expert’s response on their causal relationship. Our goal is to find the graph structure that best characterizes D, the quality of which depends critically on effective knowledge extraction and modeling through elicitation. To illustrate the analytical formulation, we present two foundational pairwise querying frameworks, differing in the type of causal information extracted and mathematical representation of the queries. One is based on edge-wise causal knowledge (Amirkhani et al. 2016, Björkman et al. 2025), while the other uses ordering-wise causal knowledge (Xiao et al. 2018, Shojaie & Chen 2024, Vashishtha et al. 2025). 
+
+4.1.1. Edge-wise causal knowledge. This elicitation framework zooms into edges directly and decom-poses the expert knowledge graph ˜𝐺 into a set of local edge-level beliefs. For each query q𝑖 , the expert provides the indicator 𝑦 𝑖 ∈ { 1, 0, −1} as their belief in the directed causal effect between the corresponding variables 𝑋 𝑢 𝑖 and 𝑋 𝑣 𝑖 , corresponding to three cases: 𝑢 𝑖 → 𝑣 𝑖 , no link, 𝑣 𝑖 → 𝑢 𝑖 . It follows a categorical distribution over three outcomes with parameters 𝜽 𝑢 𝑖 ,𝑣 𝑖 conditioned on 𝒒 𝑖 . Given such a knowledge set, eliciting a causal graph from expert can be formulated as: 
+
+𝑝 (𝐺, 𝚯 |D) ∝ 
+
+> 𝑛
+
+Ö
+
+> 𝑖 =1
+
+𝑝 (𝑦 𝑖 |q𝑖 , 𝚯 ) 𝑝 (𝚯 |𝐺 ) 𝑝 (𝐺 )
+
+where 𝚯 = {𝜽 𝑢,𝑣 }1≤𝑢<𝑣 ≤ 𝑁 is a set of learnable parameters characterizing the expert’s edge beliefs in all variable pairs. It should encode the expert’s characteristics, such as those discussed in Section 3.3. Examples of information it may encode includes (a) edge-specific domain relevance , which captures how well a particular edge falls within the expert’s domain expertise and can be modeled as a Bernoulli parameter to indicate the likelihood of a correct belief in the edge, (b) general behavioral uncertainty , which can be reflected by a variance parameter shared by all the edges, and (c) confidence in edge belief , which can be represented by edge-specific factors that modulate the general uncertainty. Rather than committing to a fixed formulation, we keep the flexibility to accommodate various expert types depending on the contexts. 
+
+4.1.2. Ordering-wise causal knowledge. The knowledge graph 𝐺 essentially induces a topological ordering over the corresponding variables. It inspires us to learn the expert’s beliefs and infer the global structure of 𝐺 from ordering information rather than direct edge information, thereby enabling broader and more flexible structural constraints with less computational complexity and more data efficiency. For the expert knowledge graph 𝐺 , its causal order function 𝜋 satisfies that, for any variable pair 𝑋 𝑢 , 𝑋 𝑣 ∈ 𝑉 with a directed path from 𝑋 𝑢 to 𝑋 𝑣 , 𝜋 (𝑋 𝑢 ) < 𝜋 (𝑋 𝑣 ), i.e., smaller values indicate higher ranking or being more upstream in the causal flow. To elicit experts with ordering information in this framework, 𝑦 𝑖 provides a scaled score to convey the expert’s belief in their ordering relationship instead. Inspired by Burges et al. (2005), 10 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd  
+
+> Table 2 Comparison of edge-wise and ordering-wise causal knowledge. ( ↑) / ( ↓) denote performance improvement / degradation.
+
+Characteristic Edge-wise Ordering-wise Useful Metrics 
+
+Completeness Incompleteness leads to missing (More edge information per query 
+
+↑)Allow sparse local coverage (Higher pruning per query ↑)Edge Coverage, Edge Recall, Path Coverage, Path Recall Belief validity Local error, harder to detect (Cumu-late more errors vs. more edge info, 
+
+↓↑ )Error propagate structurally, eas-ier to detect (More info for pattern detection ↑)Edge Precision, FDR, Rank Correlation, Pairwise Order Accuracy Confidence level Not enough info, need repeated queries (if no repeated, query famil-iar ↑, o.w., ↓)Soft constraints, reveal belief geom-etry (Query familiar ↑, o.w., ↓)Abstention Rate, Requery Variance for One Edge, Score Dispersion, Posterior over Orders Trustworthiness Direct contaminate structure (More reliable info ↑)Global contradiction, enable screen-ing (More reliable responses or more info ↑)Cycle Injection Rate, Edge Flip Frequency, Rank-Cycle Frequency, Inconsistency Count 
+
+Cao et al. (2007), we assume a latent score function 𝜙 (·) as a learnable surrogate of the order, assigning each variable a utility score to determine their order position in a path, satisfying 𝜋 (𝑋 𝑢 ) < 𝜋 (𝑋 𝑣 ) implies 
+
+𝜙 (𝑋 𝑢 ) > 𝜙 (𝑋 𝑣 ). The posterior can be obtained: 
+
+𝑝 (𝐺, Φ, 𝚯 |D) ∝ 
+
+> 𝑛
+
+Ö
+
+> 𝑖 =1
+
+𝑝 (𝑦 𝑖 |𝒒 𝑖 , Φ, 𝚯 ) 𝑝 (Φ|𝐺, 𝚯 ) 𝑝 (𝚯 |𝐺 ) 𝑝 (𝐺 )
+
+where 𝒚 = [𝑦 1, · · · , 𝑦 𝑛 ], Φ = [𝜙 (𝑋 1), · · · , 𝜙 (𝑋 𝑁 )] , and 𝚯 = {𝜽 𝑢,𝑣 }1≤𝑢<𝑣 ≤ 𝑁 denotes latent parameters charac-terizing the expert’s beliefs in the pairwise relationships (upstream, downstream or no path) between variables. We use 𝚯 to encode the expert’s characteristics including domain relevance, global uncertainty, pairwise confidence, etc. 
+
+4.2. Comparative Analysis: Edge vs. Ordering 
+
+Edge-wise causal knowledge captures the most fine-grained local structure, while ordering-wise causal knowledge emphasizes more on the global structure of 𝐺 . For an omniscient or perfect-but-incomplete 
+
+expert, edge-wise elicitation directly reveals a portion of the ground truth and theoretically guarantees the full recovery through exhaustive queries for omniscient experts. However, the explicitness limits the inferential flexibility as edges provide only specified information, whereas ordering-wise knowledge enables broader structural inference. Thus, such granularity renders the elicitation of edge-wise knowledge inherently demanding, whereas ordering-wise knowledge is often more query-efficient for the inference of 𝐺 . With imperfect experts, edge-wise framework struggles with incomplete or biased knowledge or even introducing acyclicity violation due to their incompleteness, uncertainty, and thus becomes a risky choice. However, more robustness can be gained from ordering-wise knowledge in this case as it accommodates graded confidence through its scoring mechanism, enabling systematic detection of belief patterns and providing more diagnostic information about inconsistency or uncertainty. These frameworks present a fundamental trade-off between knowledge efficiency and structural specificity. Table 2 systematically assesses two frameworks along four Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 11 
+
+expert characteristics for understanding their relationships when everything stays the same except that the specific characteristic of interest is varying. More specifically, regarding knowledge completeness, under an edge-wise causal knowledge model, increasing the number of queries naturally yields more pairwise edge information, thereby reducing missingness due to the incomplete coverage. In contrast, ordering-wise approaches elicit path or precedence information rather than direct edge, allowing sparser local coverage while still contributing meaningful structure constraints. Consequently, additional queries primarily enhance global consistency rather than local edge recovery. As belief validity describes the level of alignment of the beliefs and ground truth structure, it also manifests differently across these two paradigms. The more pairs queried, the more edge information can be achieved for edge-wise methods; however, this does not necessarily lead to better graph structure inference, depending on the alignment level and potentially leading to repeated local errors without sufficient global pattern for detection. On the other hand, ordering-wise approaches enable aggregation of relational patterns across queries, which may facilitate identification of systematic misalignment through behavioral or consistency analysis. When it comes to the confidence level, the edge-wise elicitation with discrete scores (e.g., 0 or ±1) naturally do not encode confidence, requiring either a modified scoring system or repeated queries which brings up new challenges such as the familiarity effects and diverse behavior-related score distributions. Ordering-wise elicitation typically has built-in score system to incorporate graded responses, providing an intrinsic notion of confidence that can be utilized as soft structural constraints and may reveal the geometry of participants’ beliefs. Finally, with respect to trustworthiness, incorrect edge-wise responses will directly contaminate the learned structure, although increasing query volume can support post hoc behavior analysis. The ordering-wise formulations, by emphasizing the relational consistency, may offer a stronger tool for detecting global contradictions and filtering unreliable responses, therefore, improving robustness as query coverage expands and provide some insights in aggregating multiple respondents’ answers. 
+
+4.3. Extension of Elicitation Frameworks 
+
+Beyond pairwise elicitation, these frameworks can be generalized to richer forms of causal knowledge. Graph-wise causal knowledge elevates the query unit from a single edge to an entire graph or subgraphs, allowing experts to provide candidate structure or impose coherent structural constraints. An alternative is list-wise causal knowledge, which captures the expert’s beliefs in causal flow by a ranked list of variables reflecting the relative causal positions, exemplified by triplets or quadruplets (Vashishtha et al. 2025). These higher-order elicitation schemes compose fundamental ordering-based or edge-based building blocks, yet they grant experts different degrees of freedom in articulating causal beliefs. Thus, they encode different amounts of information and entail varying levels of elicitation difficulty. Striking the right balance between informativeness and ease of elicitation still remains an open challenge. 12 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+## 5. Leveraging the Wisdom of the Crowd 
+
+Now we extend from a single expert to a crowd and highlight the importance of leveraging collective intelligence as a powerful driver for causal learning with potential approaches to enable this at scale. 
+
+5.1. Harnessing the Crowd Knowledge 
+
+Quantitative expert-driven paradigms are promising to handle the complexities in causal discovery and inference. However, reliance on a single expert is inherently fragile, as individual judgments are inevitably partial, biased, and susceptible to mistakes. The true potential of expert knowledge emerges in its collective form where diversity across a crowd of experts yields both mutual reinforcement through agreement and complementary perspectives through disagreement. This combination enables the crowd knowledge to be more robust to errors and encompass a spectrum of insights. Therefore, a shift from expert-in-the-loop to crowd-in-the-loop causal learning is warranted, moving beyond the authority of one toward the collective wisdom of many. Suppose we have a crowd of 𝑀 experts with knowledge datasets D1, · · · , D𝑀 . Generally speaking, there are at least two strategies with different modeling philosophies for leveraging collective knowledge: (a) 
+
+expert-level aggregation , which emphasizes the refinement of individual models 𝚯 1, · · · , 𝚯 𝑀 to characterize their own beliefs 𝑝 𝑚 (𝐺 ), for ∀𝑚 = 1, · · · , 𝑀 , and builds the crowd-based causal beliefs through the posterior 
+
+𝑝 (𝐺 |{ 𝚯 𝑚 }𝑀 𝑚 =1); and (b) query-level aggregation , which first learns a collection of query-level models 𝚯 
+
+from all relevant data using 𝑝 (𝐺, 𝚯 | Ð𝑀 𝑚 =1 D𝑚 ).
+
+5.1.1. Expert-Level Aggregation. This approach is conceptually straightforward, the final goal of which centers on two questions how to build high-quality individual models and how to aggregate the models to generate crowd-based beliefs . ∪𝑀 𝑚 =1𝚯 𝑚 can be combined through methods ranging from simple average to sophisticated probabilistic approaches that account for the distribution of expert characteristics. With the human causal knowledge models described in Section 4, one example can be formulated as follows: 
+
+𝑝 (𝐺, 𝚯 | ∪ 𝑀 𝑚 =1 𝚯 𝑚 ) ∝ 
+
+> 𝑀
+
+Ö
+
+> 𝑚 =1
+
+𝑝 (𝚯 𝑚 |𝐺, 𝚯 ) 𝑝 (𝐺, 𝚯 ).
+
+While intuitive, this approach requires committing to individual graph structures before aggregation, the performance of which critically depends on the individual causal graph inference and aggregation approach, potentially discarding valuable information about expert uncertainty. 
+
+5.1.2. Query-Level Aggregation. This approach provides a principled path from individual expert responses to collective inference about causal structure, explicitly modeling both the cognitive limitations of experts and varying difficulty of queries while remaining agnostic to the specific elicitation format employed. Recognizing that expert responses emerge from a complex mixture of cognitive processes rather than direct observations of truth, for any pair of variables (𝑢 𝑖 , 𝑣 𝑖 ), we model the 𝑚 th expert’s score 𝑦 𝑚,𝑖 as arising from Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 13 
+
+one of three latent mechanisms corresponding to the upstream evidence (positive score), downstream evidence (negative score), or no evidence (weak score). A latent indicator 𝑧 (𝑚 )  
+
+> 𝑢 𝑖 ,𝑣 𝑖
+
+∈ {+ , −, 0} indicates which mechanism generates the observed score, with mixing probability 𝑝 
+
+
+
+𝑧 (𝑚 )  
+
+> 𝑢 𝑖 ,𝑣 𝑖
+
+= 𝑘 
+
+
+
+= 𝜋 𝑘 satisfying Í𝑘 ∈ {+ ,−,0} 𝜋 𝑘 = 1.Conditional on this mechanism, score can be characterized as 
+
+𝑦 𝑚,𝑖 |𝐺, 𝑧 (𝑚 )  
+
+> 𝑢 𝑖 ,𝑣 𝑖
+
+= 𝑘 ∼ 𝑝 𝑘 
+
+
+
+𝑦 ; 𝜽 (𝑚,𝑘 )  
+
+> 𝑢 𝑖 ,𝑣 𝑖 |𝐺
+
+
+
+where 𝜽 (𝑚,𝑘 )   
+
+> 𝑢 𝑖 ,𝑣 𝑖 |𝐺
+
+is the hyperparameter for (𝑢, 𝑣 ) in class 𝑘 of the 𝑚 th expert. The concrete form of this mixture distribution depends on whether edge-wise or ordering-wise knowledge elicitation will be employed. The key insight lies in this mechanism-specific decomposition 𝜽 (𝑚,𝑘 )   
+
+> 𝑢 𝑖 ,𝑣 𝑖 |𝐺
+
+= 𝑓 (𝑚 ) 
+
+> 𝐺
+
+(𝑢, 𝑣 ) × 𝑔 (𝑢, 𝑣 |𝐺 ), which separates two fundamental variation sources. The query-specific component 𝑔 (𝑢, 𝑣 |𝐺 ) captures the intrinsic difficulty of identifying the relationship between 𝑋 𝑢 and 𝑋 𝑣 given the graph 𝐺 , independent of expert identity while the expert-specific component 𝑓 (𝑚 ) 
+
+> 𝐺
+
+(𝑢, 𝑣 ) will further modulates the distribution depending on the characteristics of the expert. The posterior under this framework can be formally stated with 𝚯 = {𝜽 (𝑚,𝑘 )  
+
+> 𝑢,𝑣 |𝐺
+
+}1≤𝑢<𝑣 ≤ 𝑁 denoting all the parameters: 
+
+𝑝 (𝐺, 𝚯 | ∪ 𝑀 𝑚 =1 D𝑚 ) ∝ 𝑝 (𝚯 , 𝐺 )
+
+> 𝑀
+
+Ö
+
+> 𝑚 =1
+> 𝑁
+
+Ö
+
+> 𝑖 =1
+
+𝑝 (𝑦 𝑚,𝑖 |𝐺, 𝑧 (𝑚 )  
+
+> 𝑢 𝑖 ,𝑣 𝑖
+
+)×𝑝 (𝑧 (𝑚 )  
+
+> 𝑢 𝑖 ,𝑣 𝑖
+
+|𝐺, p𝑢 𝑖 ,𝑣 𝑖 ) 𝑝 (p𝑢 𝑖 ,𝑣 𝑖 |𝐺, 𝚯 ).
+
+5.1.3. Discussion. These two strategies entail distinct trade-offs in computational efficiency, modeling flexibility, and information utilization. Expert-level aggregation is a two-stage process which gains computa-tional advantage through modularity, yet inherits all challenges of individual-level causal graph inference. Additionally, collapsing diverse structures into a single graph may obscure valuable information. While expert characteristics can be incorporated through weighted average or distributional assumptions, specifying appropriate forms for optimally combining graphs of varying quality remains challenging. Query-level aggregation bypasses individual-level inference by directly modeling responses toward the global 𝐺 , pre-serving richer information and naturally accommodates cognitive mechanisms by explicitly decomposing query difficulty with higher computational cost due to a larger parameter space. Both frameworks benefit from higher proportions of knowledgeable and reliable experts, but may handle heterogeneity distinctly: expert-level aggregation struggles with contradictory individual graphs, while the query-level better leverages fragmented knowledge through fine-grained response modeling. 
+
+5.2. Optimal Design of Elicitation 
+
+In practice, expert interactions face strict constraints on time, budget, labor, and cognitive load, making exhaustive query of all variable pairs infeasible. Effective elicitation requires not only a well-structured knowledge framework, but also a principled strategy to optimize the expert elicitation process. Following experimental design and active learning framework, such optimization can be casted as a pool-based optimal sequential design problem that strategically selects informative queries to make the most 14 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+of limited expert interactions. Given the inferred graph ˜𝐺 , denote the set of all possible pairs of variables as 
+
+C = {( 𝑢, 𝑣 )} 1≤𝑢<𝑣 ≤ 𝑁 . The selection of queries from this set can proceed through a multi-stage sequential process to achieve an optimal design. In each stage 𝑡 , with budget 𝐾 𝑡 , we aim to find an optimal design 
+
+𝜉 𝑡 =
+
+𝑸 𝑡 
+
+𝜶 𝑡 
+
+
+
+that assigns budget to queries 𝑸 𝑡 in C following binary 𝜶 𝑡 under criterion function 𝑈 , i.e., 
+
+𝜉 𝑡 = arg max 
+
+> 𝜉
+
+𝑈 (𝜉 ) 𝑠.𝑡. 1⊤𝜶 𝑡 = 𝐾 𝑡 , 𝑸 𝑡 ⊂ C 
+
+where 1 is an all-ones vector. For perfect experts with noiseless knowledge, re-querying is unnecessary and queried variable pairs can therefore be removed from the candidate pool C as the elicitation progresses over stages. However, for imperfect or uncertain experts whose responses may be noisy, some pairs might need querying multiple times, so C should be fixed. Regardless of the expert type, a variety of design criteria that define the function 𝑈 have been proposed in the literature, e.g., 
+
+• E-optimality (Xiao et al. 2018): 
+
+𝑈 (𝜉 𝑡 ) = 𝜆 1 (𝐼 (𝜉 )) ,
+
+where 𝐼 (𝜉 ) is the information matrix and 𝜆 1 is its smallest nonzero eigenvalue. 
+
+• Expected Information Gain (EIG) (Björkman et al. 2025): 
+
+𝑈 (𝜉 𝑡 ) = 𝐻 (Φ|𝜉 1, · · · , 𝜉 𝑡 −1) − E𝒚 (𝑡 ) | 𝜉 𝑡 [𝐻 (Φ|𝜉 1, · · · , 𝜉 𝑡 )] ,
+
+where 𝐻 (·) denotes the entropy and 𝒚 (𝑡 ) represents the corresponding responses given by the expert for the nodes selected in stage 𝑡 .As a result, we obtain an aggregated design 𝜉 = Í𝑇 𝑡 =1 
+
+> 𝐾 𝑡
+> 𝐾
+
+𝜉 𝑡 where 𝐾 = Í𝑇 𝑡 =1 𝐾 𝑡 , with which we can optimize the elicitation process to efficiently reduce uncertainty about the causal graph under restricted resources. This is essential for the practical feasibility and scalability of expert elicitation in real-world applications. 
+
+5.3. Agent-based Expert Simulation. 
+
+To effectively leverage the wisdom of the crowd, we must confront practical issues in scaling to a large cohort, such as labor cost, individual fatigue, and the risk of bad actors that necessitate additional screening and quality control. These constraints motivate the introduction of surrogate agents that can emulate human expertise and play an expert-like interactive role while remaining controllable, and cost-effective. Recent advances in LLMs offer a timely opportunity for such agent-based models (ABM), as they encode rich commonsense knowledge and demonstrate increasingly strong conversational and reasoning capabilities. LLM-based agents may act as simulators to understand the causal world in an expert’s mind and emulate their reasoning patterns, thereby enabling the generation of plausible causal structures with minimal querying (Shaposhnyk et al. 2025, Long et al. 2023, Kiciman et al. 2023). And it is possible to extend beyond language to characterize the causal world with foundational models (Jin et al. 2024, Audenaert et al. 2025), world Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 15 
+
+models (Richens & Everitt 2024, Ding et al. 2025), and multi-agent systems (Li et al. 2024, Zhang et al. 2025), and scale up the simulations to build a digital population (Lin et al. 2025, Berenberg & Bagrow 2018). Putting these efforts together, it is appealing to envision a hybrid expert crowd composed of both human and simulated agents that contribute reliable knowledge for causal learning. 
+
+## 6. Causal Inference with Human Knowledge 
+
+Causal inference, a major branch of causal learning different from causal discovery, dominates applications such as recommendation systems (Wang et al. 2022, Luo et al. 2024), clinical trials (Piantadosi 2024), and policy making (Imbens 2024). Identifying interventional effect from observational data typically requires stronger assumptions (Ding & Li 2018). Recently, incorporating human knowledge into causal inference has emerged as a promising way to facilitate synergy with statistical learning. To show the advantage of using human knowledge, we consider a simplified tripartite causal structure with 
+
+(𝑁 − 2) instrumental variables (IVs) X𝐼𝑉 = (𝑋 1, . . . , 𝑋 𝑁 −2) influencing a single exposure X𝐸 = 𝑋 𝑁 −1, and further affecting an outcome X𝑂 = 𝑋 𝑁 , i.e., 𝑃𝑎 𝐺 (𝑋 𝑂 ) ⊂ X𝐸 and 𝑃𝑎 𝐺 (𝑋 𝐸 ) ⊂ X𝐼𝑉 , where 𝑃𝑎 𝐺 (·) denotes the set of parent variables in 𝐺 . IV methods offer a principled strategy to remove bias from unobserved confounding by isolating exogenous variation in treatment (Angrist et al. 1996). With linearity assumptions, it can be cast as a two-stage model: 
+
+𝑋 𝐸 = X𝐼𝑉 𝜶 + 𝑈𝜉 + 𝜖 𝐸 ,𝑋 𝑂 = 𝑋 𝐸 𝛽 + X𝐼𝑉 𝜸 + 𝑈𝜁 + 𝜖 𝑜 .
+
+Causal inference relies on the accurate estimation of 𝛽 and its corresponding hypothesis testing. Valid IVs must satisfy three important assumptions: (1) Relevance ; (2) Exclusion restriction ; and (3) Exchangeability ,which are critical for proper causal inference. Ensuring IVs meet these assumptions has been an active research area, as weak or invalid IVs will lead to biased and then incorrect testing results (Wu et al. 2025, Guo 2023, Lin et al. 2024, Kang et al. 2025). More specifically, the ideal case where we know the correct set of strong IVs X𝐼𝑉 ,𝑠 ,
+
+ˆ𝛽 =
+
+ ˆX𝑇 𝐸 ˆX𝐸 
+
+ −1 ˆX𝑇 𝐸 X𝑂 , where ˆX𝐸 = X𝐼𝑉 ,𝑠 
+
+
+
+X𝑇 𝐼𝑉 ,𝑠 X𝐼𝑉 ,𝑠 
+
+ −1
+
+X𝑇 𝐼𝑉 ,𝑠 X𝐸 .
+
+The inclusion of the other IVs results in an additional term as 𝛽 + 𝑒 𝐼 , where 𝑒 𝐼 depends on both the correlation among IVs and their respective effect sizes on exposure and outcome, potentially overwhelming the true causal effect (Burgess et al. 2017, Burgess & Thompson 2021). Incorporation of human knowledge will be greatly beneficial if it can tell some IVs should be excluded from the model directly and even more helpful when the validation of structure and assumptions gets more challenging in nonlinear or weak signal scenarios. 16 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+## 7. Alternative Views 
+
+One alternative view is that expert knowledge should serve only as a supplement to observational or interventional data rather than a core driver of causal discovery . We do not claim expert knowledge can replace such data, nor that it is inherently superior. Rather, we argue that expert knowledge is an increasingly important information source that complements existing data. Observational and interventional data alone often face limitations, such as identifiability, due to cost, computational, or ethical constraints (Eberhardt 2017). In contrast, well-elicited expert knowledge can inject domain-specific inductive biases that are unobservable from data alone (Hasan & Gani 2026, Zhou et al. 2013), shrink the hypothesis space, and provide interpretable guidance for causal learning. Structured knowledge can be directly used for causal discovery in the absence of observational data. Moreover, aggregating diverse perspectives, when coupled with scalable elicitation and quality-aware AI integration, can further enhance robustness under data scarcity. A related concern is that causal learning should rely exclusively on carefully vetted experts rather than broader crowds . While knowledge quality is critical, restricting elicitation to a small set of high-bar experts may limit diversity and scalability (Yoo et al. 2024, Hasan et al. 2024). Instead, we advocate for inclusive elicitation with quality control, denoising, and model-based integration. By shifting reliability from expert selection to post-hoc processing, causal learning can effectively leverage diverse expertise at scale. We acknowledge practical challenges in deployment, such as expert recruitment, incentives, and adversarial behavior. However, these challenges are well studied in areas such as crowdsourcing and human–computer interaction, and can be addressed through interdisciplinary solutions. 
+
+## 8. Call to Action 
+
+We call on the community to advance this vision by developing new methodologies, benchmarks, tools, and theoretical foundations. Table 5 in Appendix D highlights several concrete avenues for future exploration. These include modeling the nuanced knowledge profiles and uncertainty patterns of human contributors; optimizing elicitation strategies to make crowd input more reliable, cost-effective, and scalable; and designing hybrid workflows where human and AI systems, especially LLMs, collaborate seamlessly. Beyond technical methods, this agenda raises foundational theoretical questions about the limits and guarantees of distributed causal inference, along with pressing system-level challenges in evaluation, ethics, and inclusivity. Fully realizing the impact of the proposed paradigm will require deep interdisciplinary collaboration that draws on insights from causal inference, human-computer interaction, crowdsourcing, AI ethics, and cognitive science to build robust, adaptive, and human-centered causal learning systems. 
+
+## References    
+
+> Achiam, J., Adler, S., Agarwal, S., Ahmad, L., Akkaya, I., Aleman, F. L., Almeida, D., Altenschmidt, J., Altman, S., Anadkat, S., et al. Gpt-4 technical report. arXiv preprint arXiv:2303.08774 , 2023. Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd
+
+17 Alaa, A., Phillips, R. V., Kıcıman, E., Balzer, L. B., van der Laan, M., and Petersen, M. Large language models as co-pilots for causal inference in medical studies. arXiv preprint arXiv:2407.19118 , 2024. Amirkhani, H., Rahmati, M., Lucas, P. J., and Hommersom, A. Exploiting experts’ knowledge for structure learning of bayesian networks. IEEE transactions on pattern analysis and machine intelligence , 39(11):2154–2170, 2016. Angrist, J. D., Imbens, G. W., and Rubin, D. B. Identification of causal effects using instrumental variables. Journal of the American statistical Association , 91(434):444–455, 1996. Audenaert, J., Muthukrishna, D., Gregory, P. F., Hogg, D. W., and Villar, V. A. Causal foundation models: disentangling physics from instrument properties. In Proceedings of the ICML Workshop on Foundation Models for Structured Data , 2025. Ban, T., Chen, L., Wang, X., Wang, X., Lyu, D., and Chen, H. Differentiable structure learning with partial orders. 
+
+Advances in Neural Information Processing Systems , 37:117426–117455, 2024. Beinlich, I. A., Suermondt, H. J., Chavez, R. M., and Cooper, G. F. The alarm monitoring system: A case study with two probabilistic inference techniques for belief networks. In AIME 89: Second European Conference on Artificial Intelligence in Medicine, London, August 29th–31st 1989. Proceedings , pp. 247–256. Springer, 1989. Berenberg, D. and Bagrow, J. P. Efficient crowd exploration of large networks: The case of causal attribution. Proceedings of the ACM on Human-Computer Interaction , 2(CSCW):1–25, 2018. Binkyt ˙e, R., Makhlouf, K., Pinzón, C., Zhioua, S., and Palamidessi, C. Causal discovery for fairness. In Workshop on Algorithmic Fairness through the Lens of Causality and Privacy , pp. 7–22. PMLR, 2023. Björkman, Z., Loría, J., Wharrie, S., and Kaski, S. Incorporating expert knowledge into bayesian causal discovery of mixtures of directed acyclic graphs. arXiv preprint arXiv:2510.06735 , 2025. Bóna, M. Handbook of enumerative combinatorics . CRC Press, 2015. Borboudakis, G. and Tsamardinos, I. Incorporating causal prior knowledge as path-constraints in bayesian networks and maximal ancestral graphs. In Proceedings of the 29th International Coference on International Conference on Machine Learning , pp. 427–434, 2012. Burges, C., Shaked, T., Renshaw, E., Lazier, A., Deeds, M., Hamilton, N., and Hullender, G. Learning to rank using gradient descent. In Proceedings of the 22nd international conference on Machine learning , pp. 89–96, 2005. Burgess, S. and Thompson, S. G. Mendelian randomization: methods for causal inference using genetic variants . CRC Press, 2021. Burgess, S., Small, D. S., and Thompson, S. G. A review of instrumental variable estimators for mendelian randomization. 
+
+Statistical methods in medical research , 26(5):2333–2355, 2017. Cano, A., Masegosa, A. R., and Moral, S. A method for integrating expert knowledge when learning bayesian networks from data. IEEE Transactions on Systems, Man, and Cybernetics, Part B (Cybernetics) , 41(5):1382–1394, 2011. Cao, Z., Qin, T., Liu, T.-Y., Tsai, M.-F., and Li, H. Learning to rank: from pairwise approach to listwise approach. In 
+
+Proceedings of the 24th international conference on Machine learning , pp. 129–136, 2007. 18 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+Carey, R., Ansanelli, M. M., Wolfe, E., and Evans, R. J. Distinguishability of causal structures under latent confounding and selection. arXiv preprint arXiv:2509.20433 , 2025. Choo, D., Shiragur, K., and Uhler, C. Causal discovery under off-target interventions. In International Conference on Artificial Intelligence and Statistics , pp. 1621–1629. PMLR, 2024. Constantinou, A. C., Guo, Z., and Kitson, N. K. The impact of prior knowledge on causal structure learning. Knowledge and Information Systems , 65(8):3385–3434, 2023. Ding, J., Zhang, Y., Shang, Y., Zhang, Y., Zong, Z., Feng, J., Yuan, Y., Su, H., Li, N., Sukiennik, N., et al. Understanding world or predicting future? a comprehensive survey of world models. ACM Computing Surveys , 58(3):1–38, 2025. Ding, P. and Li, F. Causal inference: A missing data perspective. Statistical Science , 33(2):214–237, 2018. Drayson, Z. The fragmented mind. The Routledge Handbook of Philosophy and Implicit Cognition , 2022. Eberhardt, F. Almost optimal intervention sets for causal discovery. In Proceedings of the Twenty-Fourth Conference on Uncertainty in Artificial Intelligence , pp. 161–168, 2008. Eberhardt, F. Introduction to the foundations of causal discovery. International Journal of Data Science and Analytics ,3(2):81–91, 2017. Ehrenmüller, K., Kook, L., Ekaputra, F., and Sabou, M. Data-driven augmentation of expert causal knowledge in cyber-physical systems. In 1st Workshop on Leveraging SEmaNtics for Transparency in Industrial Systems (SENTIS) , volume 4064. CEUR Workshop Proceedings, 2025. Glymour, C., Zhang, K., and Spirtes, P. Review of causal discovery methods based on graphical models. Frontiers in genetics , 10:524, 2019. Gonzales, C., Journe, A., and Mabrouk, A. A hybrid algorithm for learning causal networks using uncertain experts’ knowledge. In International Conference on Probabilistic Graphical Models , pp. 241–252. PMLR, 2022. Guo, Z. Causal inference with invalid instruments: post-selection problems and a solution using searching and sampling. 
+
+Journal of the Royal Statistical Society Series B: Statistical Methodology , 85(3):959–985, 2023. Gururaghavendran, R. and Murray, E. J. Can algorithms replace expert knowledge for causal inference? a case study on novice use of causal discovery. American journal of epidemiology , 194(5):1399–1409, 2025. Hasan, E., Duhaime, E., and Trueblood, J. S. Boosting wisdom of the crowd for medical image annotation using training performance and task features. Cognitive Research: Principles and Implications , 9(1):31, 2024. Hasan, U. and Gani, M. O. Kcrl: A prior knowledge based causal discovery framework with reinforcement learning. In 
+
+Machine Learning for Healthcare Conference , pp. 691–714. PMLR, 2022. Hasan, U. and Gani, M. O. Dkc: Data-driven and knowledge-guided causal discovery with application to healthcare data. Knowledge-Based Systems , pp. 115384, 2026. Heckerman, D., Geiger, D., and Chickering, D. M. Learning bayesian networks: The combination of knowledge and statistical data. Machine learning , 20(3):197–243, 1995. Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 19 Heckerman, D. E., Horvitz, E. J., and Nathwani, B. N. Toward normative expert systems: Part i the pathfinder project. 
+
+Methods of information in medicine , 31(02):90–105, 1992. Huang, S., Li, J., Ye, J., Fleisher, A., Chen, K., Wu, T., Reiman, E., Alzheimer’s Disease Neuroimaging Initiative, t., et al. A sparse structure learning algorithm for gaussian bayesian network identification from high-dimensional data. IEEE transactions on pattern analysis and machine intelligence , 35(6):1328–1342, 2012. Huber, M. An introduction to causal discovery. Swiss Journal of Economics and Statistics , 160(1):14, 2024. Imbens, G. W. Causal inference in the social sciences. Annual Review of Statistics and Its Application , 11, 2024. Jackson, P. Introduction to expert systems. 1990. Jin, Q., Yang, Y., Chen, Q., and Lu, Z. Genegpt: Augmenting large language models with domain tools for improved access to biomedical information. Bioinformatics , 40(2):btae075, 2024. Kale, A., Wu, Y., and Hullman, J. Causal support: Modeling causal inferences with visualizations. IEEE transactions on visualization and computer graphics , 28(1):1150–1160, 2021. Kang, H., Guo, Z., Liu, Z., and Small, D. Identification and inference with invalid instruments. Annual review of statistics and its application , 12(1):385–405, 2025. Kelly, J. S. Social choice theory: An introduction . Springer Science & Business Media, 2013. Kiciman, E., Dillon, E. W., Edge, D., Foster, A., Hilmkil, A., Jennings, J., Ma, C., Ness, R., Pawlowski, N., Sharma, A., et al. A causal ai suite for decision-making. In NeurIPS 2022 Workshop on Causality for Real-world Impact , 2022. Kiciman, E., Ness, R., Sharma, A., and Tan, C. Causal reasoning and large language models: Opening a new frontier for causality. Transactions on Machine Learning Research , 2023. Kitson, N. K. and Constantinou, A. C. Causal discovery using dynamically requested knowledge. Knowledge-Based Systems , 314:113185, 2025. Leon, M. Gpt-5 and open-weight large language models: Advances in reasoning, transparency, and control. Information Systems , pp. 102620, 2025. Li, A., Jaber, A., and Bareinboim, E. Causal discovery from observational and interventional data across multiple environments. Advances in Neural Information Processing Systems , 36:16942–16956, 2023. Li, H., Cabeli, V., Sella, N., and Isambert, H. Constraint-based causal structure learning with consistent separating sets. 
+
+Advances in neural information processing systems , 32, 2019. Li, Y., Gao, J., Meng, C., Li, Q., Su, L., Zhao, B., Fan, W., and Han, J. A survey on truth discovery. ACM Sigkdd Explorations Newsletter , 17(2):1–16, 2016. Li, Z., Chang, Y., and Le, X. Simulating expert discussions with multi-agent for enhanced scientific problem solving. In 
+
+Proceedings of the Fourth Workshop on Scholarly Document Processing (SDP 2024) , pp. 243–256, 2024. Lin, R. F., Tian, K., Zheng, H., Zhang, C., Zeng, L., and Huang, S. Crowdllm: Building llm-based digital populations augmented with generative models. arXiv preprint arXiv:2512.07890 , 2025. 20 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+Lin, Y., Windmeijer, F., Song, X., and Fan, Q. On the instrumental variable estimation with many weak and invalid instruments. Journal of the Royal Statistical Society Series B: Statistical Methodology , 86(4):1068–1088, 2024. Long, S., Piché, A., Zantedeschi, V., Schuster, T., and Drouin, A. Causal discovery with language models as imperfect experts. In Proceedings of the ICML Workshop on Structured Probabilistic Inference and Generative Modeling ,2023. Luo, H., Zhuang, F., Xie, R., Zhu, H., Wang, D., An, Z., and Xu, Y. A survey on causal inference for recommendation. 
+
+The Innovation , 5(2), 2024. Mosqueira-Rey, E., Hernández-Pereira, E., Alonso-Ríos, D., Bobes-Bascarán, J., and Fernández-Leal, Á. Human-in-the-loop machine learning: a state of the art. Artificial Intelligence Review , 56(4):3005–3054, 2023. Neapolitan, R. E. et al. Learning bayesian networks , volume 38. Pearson Prentice Hall Upper Saddle River, NJ, 2004. Ng, I., Dong, X., Dai, H., Huang, B., Spirtes, P., and Zhang, K. Score-based causal discovery of latent variable causal models. In Forty-first International Conference on Machine Learning , 2024. O’Hagan, A. Expert knowledge elicitation: subjective but scientific. The American Statistician , 73(sup1):69–81, 2019. Paolacci, G., Chandler, J., and Ipeirotis, P. G. Running experiments on amazon mechanical turk. Judgment and Decision making , 5(5):411–419, 2010. Park, S., Gonzalez, C., and Puranam, P. Decision centralization and learning from experience in groups: separating context from aggregation effects. Management Science , 71(8):6859–6879, 2025. Pearl, J. Causality . Cambridge university press, 2009. Pearl, J. and Mackenzie, D. The book of why: the new science of cause and effect . Basic books, 2018. Piantadosi, S. Clinical trials: a methodologic perspective . John Wiley & Sons, 2024. Ramírez, N. C. Building Bayesian networks from data: a constraint based approach . PhD thesis, PhD Thesis, University of Sheffield, 2001. Richens, J. and Everitt, T. Robust agents learn causal world models. arXiv preprint arXiv:2402.10877 , 2024. Riedl, C., Kim, Y. J., Gupta, P., Malone, T. W., and Woolley, A. W. Quantifying collective intelligence in human groups. 
+
+Proceedings of the National Academy of Sciences , 118(21):e2005737118, 2021. Saha Roy, T., Mazumder, S., and Das, K. Wisdom of crowds benefits perceptual decision making across difficulty levels. 
+
+Scientific reports , 11(1):538, 2021. Shabat, T. B., Meir, R., and Azriel, D. Empirical bayes approach to truth discovery problems. In Uncertainty in Artificial Intelligence , pp. 150–158. PMLR, 2022. Shaposhnyk, O., Zahorska, D., and Yanushkevich, S. Can llms assist expert elicitation for probabilistic causal modeling? 
+
+arXiv preprint arXiv:2504.10397 , 2025. Sheng, V. S. and Zhang, J. Machine learning with crowdsourcing: A brief summary of the past research and future directions. In Proceedings of the AAAI conference on artificial intelligence , volume 33, pp. 9837–9843, 2019. Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 21 Shojaie, A. and Chen, W. Learning directed acyclic graphs from partial orderings. arXiv preprint arXiv:2403.16031 ,2024. Simpson, R., Page, K. R., and De Roure, D. Zooniverse: observing the world’s largest citizen science platform. In 
+
+Proceedings of the 23rd international conference on world wide web , pp. 1049–1054, 2014. Sloman, S. Causal Models: How People Think about the World and Its Alternatives . Oxford University Press, 08 2005. Spirtes, P., Glymour, C. N., and Scheines, R. Causation, Prediction, and Search . MIT Press, 2nd edition, 2000. Stein, N. Causality and causal explanation in Aristotle . Oxford University Press, 2023. Suksompong, W. Expanding the reach of social choice theory. In Proceedings of the Thirty-Third International Joint Conference on Artificial Intelligence , pp. 8571–8576, 2024. Surowiecki, J. The wisdom of crowds . Vintage, 2005. Swanson, D. R. and Smalheiser, N. R. Undiscovered public knowledge: A ten-year update. In KDD , pp. 295–298, 1996. Tamura, T., Ito, H., Oyama, S., and Morishima, A. Influence of ai’s uncertainty in the dawid-skene aggregation for human-ai crowdsourcing. In International Conference on Information , pp. 232–247. Springer, 2024. Thompson, D. C. and Bentzien, J. Crowdsourcing and open innovation in drug discovery: recent contributions and future directions. Drug discovery today , 25(12):2284–2293, 2020. Vashishtha, A., Reddy, A. G., Kumar, A., Bachu, S., Balasubramanian, V. N., and Sharma, A. Causal order: The key to leveraging imperfect experts in causal inference. In The Thirteenth International Conference on Learning Representations , 2025. Vaughan, J. W. Making better use of the crowd: How crowdsourcing can advance machine learning research. Journal of Machine Learning Research , 18(193):1–46, 2018. Wang, X., Li, Q., Yu, D., Cui, P., Wang, Z., and Xu, G. Causal disentanglement for semantic-aware intent learning in recommendation. IEEE Transactions on Knowledge and Data Engineering , 35(10):9836–9849, 2022. Whitehill, J., Wu, T.-f., Bergsma, J., Movellan, J., and Ruvolo, P. Whose vote should count more: Optimal integration of labels from labelers of unknown expertise. Advances in neural information processing systems , 22, 2009. Wu, A., Kuang, K., Xiong, R., and Wu, F. Instrumental variables in causal inference and machine learning: A survey. 
+
+ACM Computing Surveys , 57(11):1–36, 2025. Wu, R., Chen, S.-E., Zhang, J., and Chu, X. Learning hyper label model for programmatic weak supervision. In The Eleventh International Conference on Learning Representations , 2022a. Wu, X., Xiao, L., Sun, Y., Zhang, J., Ma, T., and He, L. A survey of human-in-the-loop for machine learning. Future Generation Computer Systems , 135:364–381, 2022b. Xiao, C., Jin, Y., Liu, J., Zeng, B., and Huang, S. Optimal expert knowledge elicitation for bayesian network structure identification. IEEE Transactions on Automation Science and Engineering , 15(3):1163–1177, 2018. Yin, J., Luo, J., and Brown, S. A. Learning from crowdsourced multi-labeling: A variational bayesian approach. 
+
+Information Systems Research , 32(3):752–773, 2021. 22 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+Yoo, Y., Escobedo, A. R., Kemmer, R., and Chiou, E. Elicitation and aggregation of multimodal estimates improve wisdom of crowd effects on ordering tasks. Scientific reports , 14(1):2640, 2024. Yuan, C., Malone, B., and Wu, X. Learning optimal bayesian networks using a* search. In IJCAI proceedings-international joint conference on artificial intelligence , volume 22, pp. 2186, 2011. Zhang, J., Huang, Z., Fan, Y., Liu, N., Li, M., Yang, Z., Yao, J., Wang, J., and Wang, K. Kabb: Knowledge-aware bayesian bandits for dynamic expert coordination in multi-agent systems. In Proceedings of the 42nd International Conference on Machine Learning , 2025. Zhao, X., Jia, Y., Li, A., Jiang, R., and Song, Y. Multi-source knowledge fusion: a survey. World Wide Web , 23(4): 2567–2592, 2020. Zheng, X., Aragam, B., Ravikumar, P. K., and Xing, E. P. Dags with no tears: Continuous optimization for structure learning. Advances in neural information processing systems , 31, 2018. Zhong, R., Shin, D., Meza, R., Klasnja, P., Colusso, L., and Hsieh, G. Ai-assisted causal pathway diagram for human-centered design. In Proceedings of the 2024 CHI Conference on Human Factors in Computing Systems ,pp. 1–19, 2024. Zhou, Y., Fenton, N. E., Neil, M., and Zhu, C. Incorporating expert judgement into bayesian network machine learning. In IJCAI , pp. 3249–3250, 2013. Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 23 
+
+# Appendix 
+
+## A. Glossary 
+
+Definition 1 (Path). A path in a directed graph 𝐺 = (𝑉, 𝐸 ) is a sequence of nodes 𝑣 1, 𝑣 2, . . . , 𝑣 𝑘 with the property that each consecutive pair 𝑣 𝑖 , 𝑣 𝑖 +1 is joined by a directed edge (𝑣 𝑖 , 𝑣 𝑖 +1) ∈ 𝐸 .
+
+Definition 2 (Directed Acyclic Graph (DAG)). A directed acyclic graph (DAG) 𝐺 is a directed graph with no directed cycles. In other words, there is no path that starts and ends at the same node. 
+
+Definition 3 (Parent variable). A parent variable 𝑋 𝑢 of an variable 𝑋 𝑣 in a directed graph 𝐺 is its direct cause that has an directed edge linking from 𝑋 𝑢 to 𝑋 𝑣 .
+
+Definition 4 (Bayesian Network). A Bayesian network is the representation of a probability distribution on a DAG 𝐺 = (𝑉, 𝐸 ) . It specifies a joint distribution over 𝑉 = (𝑋 1, · · · ,𝑁 ) as a product of local conditional distributions, i.e., 𝑃 (𝑋 1, · · · , 𝑋 𝑁 ) = Î𝑁 𝑖 =1 𝑝 (𝑥 𝑖 |Pa 𝐺 (𝑥 𝑖 )) .
+
+Definition 5 (Topological order). A topological order of a directed graph 𝐺 = (𝑉, 𝐸 ) is an ordering of its nodes as 𝑣 1, 𝑣 2, . . . , 𝑣 𝑘 so that for every edge (𝑣 𝑖 , 𝑣 𝑗 ) we have 𝑖 < 𝑗 .
+
+Assumption 1 (Valid instrumental variables (IVs)) . Valid IVs must satisfy three important assumptions: 
+
+1. Relevance: IVs are strongly correlated with exposure; 
+
+2. Exclusion restriction: IVs cannot have a direct effect on the outcome, nor can they affect the outcome through any path other than the treatment; 
+
+3. Exchangeability: IVs must not be associated with any confounders (measured or unmeasured) that affect the outcome. 
+
+## B. Survey Design details 
+
+In this section, we go through the details of real world questionnaire for causal elicitation. We consider two survey protocols: edge-based elicitation and ordering-based elicitation. In edge-based elicitation , participants were presented with the variable pair ( 𝐴, 𝐵 ) and asked to indicate whether there is a direct influence between them. Responses were recorded as a ternary integer score 
+
+𝑟 𝐴𝐵 ∈ {− 1, 0, 1}, where 1 denotes 𝐴 → 𝐵 , −1 denotes 𝐴 ← 𝐵 , and 0 indicates no perceived direct causal influence. In contrast, the ordering-based elicitation asks participants to assess the total causal influence of 𝐴 on 𝐵 ,including both direct and indirect effects. Participants rated their belief on an integer scale from [− 10 , 10 ],where positive ratings indicate participants’ belief in 𝐴 → 𝐵 , negative indicate the opposite situation, and zero indicates no perceived causal relationship. To support consistent interpretation, the survey included several samples showing how participants could simulate hypothetical data to transfer causal beliefs into numerical ratings. For example, one question asked: 
+
+How strongly do you believe that Smoking is an upstream causal variable of Lung Cancer ?24 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+Each participant provided a single integer value response. Across the population, the collected responses form a set of signed scores {𝑟 (𝑚 )
+
+> Smoking ,Cancer
+
+}𝑀 𝑚 =1. A summary of comparison between the two elicitation protocols is summarized in Table 3.  
+
+> Table 3 Comparison between edge-based and ordering-based causal elicitation protocols at the survey level.
+
+Aspect Edge-based elicitation Ordering-based elicitation 
+
+Question format When the question is presented as 
+
+𝐴 –𝐵 , please use 1 to denote a direct causal influence from 𝐴 → 𝐵 , use 
+
+−1 to denote 𝐴 ← 𝐵 , and use 0 to denote no direct causal influence between 𝐴 and 𝐵 .How strongly do you believe that 𝐴 is an upstream causal variable of 𝐵 ?Response space Integer score in {− 1, 0, 1} Integer score in [− 10 , 10 ]
+
+## C. Examples of prompts for LLM experts 
+
+We introduce an example prompt template used to elicit causal judgments from LLM-based simulated experts. The details are summarized in Table 4.  
+
+> Table 4 Example prompt components for eliciting causal judgments from LLM experts.
+
+Component Description Elicit causal judgments from LLM experts Single-Step You are an expert in [Background Clarification] . Based on your expertise, answer the following survey. For each pair, please answer the question: ‘How strongly do you believe that Factor A is an upstream causal variable of Factor B (A → B)?’ Output [Rating answers] .
+
+Verification Please confirm the correctness of the causal relationships step by step and check the prior knowledge provided by the survey. Output [Rating answers] .Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 25 
+
+## D. Topics for Future Research 
+
+Here, we only outline a limited set of research questions, meant to be illustrative rather than exhaustive. We leave ample room for more open questions to be explored in the future. 
+
+Category Research Key Questions Challenge 
+
+Expert Knowledge Modeling Characterizing the knowledge profile of an expert • Can we build a unified statistical model, i.e., by probabilistic graphical models, that can universally characterize human causal knowledge adequately? 
+
+• Can topic or embedding methods capture an expert’s domain familiarity? 
+
+• How can we detect and represent structured expertise, such as an expert’s strength in local subnetworks but not globally? 
+
+• Can we build interpretable reliability maps across the graph for each expert? Modeling structured uncertainty or abstention • How can we model expert uncertainty in a structured way (e.g., confidence scores, conditional statements)? 
+
+• Can abstentions be modeled as informative signals rather than nulls? 
+
+• What are formal representations of “partial knowledge” beyond edge judgments (e.g., subgraph templates, logical rules)? Fusing heterogeneous experts • How to integrate mixed forms of input: edges, orderings, counterfactuals? 
+
+• Can we define a unifying representation that respects all input formats? 
+
+• How to resolve conflicting inputs across representation types and reliability levels? 
+
+• Can we detect and screen out bad actors to avoid malicious behaviors? Adapting expert modeling over time • Can we update beliefs about expert accuracy online as data come in? 
+
+• What signals should we track to detect changes in knowledge quality? 
+
+• Can interactive systems personalize which graph regions to route to each expert? 26 Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 
+
+Category Research Key Questions Challenge 
+
+Elicitation Optimization Optimal elicitation strategies under a fixed budget • What strategies maximize expected information gain per question? 
+
+• Can we prioritize resolving parts of the graph with the highest causal ambiguity? 
+
+• Can budget-aware strategies be adapted dynamically as expert responses arrive? Selecting between query types • When should we ask about edges vs. causal orderings vs. counterfactuals? 
+
+• Can we learn which query types are more accurate for different experts? 
+
+• How to model and exploit the costs and uncertainties of different query types? Identifying the right respondent • Can we predict expert suitability using metadata (e.g., pro-fession, past accuracy, self-reported expertise)? 
+
+• How can we personalize query routing to match each con-tributor’s strengths? 
+
+• Can learning-to-route models optimize matching of questions to experts adaptively? Interpretable and engaging elici-tation • What interfaces help non-experts express causal knowledge accurately? 
+
+• Can we visualize uncertainty or partial graphs to guide intuitive judgments? 
+
+• Can confidence calibration tools help users assess when to abstain? Human–AI Col-laboration Optimizing division of labor • When should a query be routed to an LLM vs. a human? 
+
+• How to dynamically reassign tasks based on model confidence or experts’ quality? 
+
+• How to combine LLM reasoning and crowd input into unified learning pipelines? LLMs as elicitation intermedi-aries • Can LLMs help translate between formal causal concepts and human-friendly prompts, or refine user input into structured formats? 
+
+• If so, how to model this process, and do quality control and optimization? Lin et al.: Causal Learning Should Embrace the Wisdom of the Crowd 27 
+
+Category Research Key Questions Challenge 
+
+Broader Theoretical and Systems Questions Fundamental limits of crowd-based causal learning • Identifiability limits when human knowledge is partial, incon-sistent, or noisy? 
+
+• Can we derive information-theoretic lower bounds on the number or type of queries required to recover causal structure? 
+
+• Do graph properties (e.g., sparsity, treewidth) affect learn-ability from crowd input? 
+
+• What theoretical guarantees can we provide when combining observational data with distributed human knowledge? Benchmark development • What benchmark tasks and datasets are needed to evaluate systems that use human input for causal discovery? 
+
+• How can we simulate crowd-like behaviors (e.g., imperfect expertise, varying reliability) to support controlled compar-isons? 
+
+• What metrics capture the quality of learned causal structures when ground truth is incomplete or unavailable? 
+
+• How should we evaluate human effort efficiency and knowl-edge acquisition cost in interactive systems? Ethical and equitable participation 
+
+• How to ensure inclusivity and reduce bias in knowledge collection? 
+
+• What incentives encourage high-quality participation from diverse contributors? 
+
+• How to ensure transparency, attribution, and accountability in aggregating crowd knowledge? 
+
+• What risks arise when aggregating causal beliefs across cultural, disciplinary, or epistemic divides?

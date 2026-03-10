@@ -1,0 +1,154 @@
+Title: ReTracing: An Archaeological Approach Through Body, Machine, and Generative Systems
+
+URL Source: https://arxiv.org/pdf/2602.11242v1
+
+Published Time: Fri, 13 Feb 2026 01:07:00 GMT
+
+Number of Pages: 10
+
+Markdown Content:
+# ReTracing : An Archaeological Approach Through Body, Machine, and Generative Systems 
+
+Yitong Wang ∗
+
+Department of Machine Learning Carnegie Mellon University Pittsburgh, PA 15213 
+
+yitongw2@cs.cmu.edu 
+
+Yue Yao ∗
+
+SIPA Technology Policy and Innovation Columbia University New York, NY 10027 
+
+yy3462@columbia.edu 
+
+## Abstract 
+
+We present ReTracing , a multi-agent embodied performance art that adopts an archaeological approach to examine how artificial intelligence shapes, constrains, and produces bodily movement. Drawing from science-fiction novels, the project extracts sentences that describe human–machine interaction. We use large lan-guage models (LLMs) to generate paired prompts—“what to do” and “what not to do”—for each excerpt. A diffusion-based text-to-video model transforms these prompts into choreographic guides for a human performer and motor commands for a quadruped robot. Both agents enact the actions on a mirrored floor, captured by multi-camera motion tracking and reconstructed into 3D point clouds and motion trails, forming a digital archive of motion traces. Through this process, ReTracing 
+
+serves as a novel approach to reveal how generative systems encode socio-cultural biases through choreographed movements. Through an immersive interplay of AI, human, and robot, ReTracing confronts a critical question of our time: What does it mean to be human among AIs that also move, think, and leave traces behind? 
+
+## 1 Introduction 
+
+Archaeology has long served as a method through which humanity uncovers and interprets historical moments. In this work, we explore the concept of the Archaeology of AI: a process of tracing, deconstructing, and visualizing the logics embedded within generative systems. In ReTracing , the theme of humanity is addressed by framing AI-driven performance as a form of contemporary archaeology: one that excavates not physical artifacts but the digital traces of human and robotic movement. Just as traditional archaeology reveals the values, behaviors, and creativity from the past, this work reveals how generative models interpret, encode, and reshape bodily actions. This work also draws on the concept of bodily disciplinary power, in which race, gender, and identity are inscribed within the architecture of generative systems. By translating literary prompts into executable movements and robotic code, both human and machine enact gestures shaped by AI’s internal logic. Beyond mere outputs from convoluted networks, ReTracing uncovers how control is inscribed into the very logic of generative systems. Recent advances in computer vision have enabled diffusion-based models such as MDM [ 17 ], Di 2Pose [ 19 ], and DiffPose [ 9] to generate 3D human pose sequences directly from text prompts, making motion synthesis increasingly accessible. These technologies have contributed to the growth of motion-based generative art and choreographic experimentation [ 14 , 15 ]. However, such approaches often treat the body as a universal and culturally neutral form, overlooking the contexts that construct movement and expression for multiple agents. 
+
+> ∗
+
+Denotes equal contribution. Correspondending author: yitongw2@cs.cmu.edu 39th Conference on Neural Information Processing Systems (NeurIPS 2025) Creative AI Track. 
+
+> arXiv:2602.11242v1 [cs.CV] 11 Feb 2026
+
+Figure 1: Overview of the ReTracing framework. Meanwhile, robots developed with the vision-language-action model [ 6] and deep reinforcement learning [ 1] can carry out physical movements accurately. Pre-programmed robotic actions are increasingly used as a medium in art performances [ 22 ]. However, the integration of generative AI with robotics in a creative context remains unexplored. To bridge this gap, ReTracing stages interactions between humans, robots, and generative AI to reveal the tension between scripted control and autonomous behavior. Unlike prior work [ 13 ], which focus primarily on the role of human agents under the rise of large language models, we introduce a new perspective that contrasts the actions of robotic and human agents. 
+
+ReTracing embraces a materialist perspective, positioning generative systems as active agents rather than entities that simply produce outputs. By choreographing human and robotic bodies through prompt-driven sequences, these systems enact control across heterogeneous substrates—biological, mechanical, and computational. Through these processes, ReTracing becomes an archaeology of AI, uncovering the logic embedded in generative systems. 
+
+## 2 ReTracing Framework 
+
+ReTracing investigates the interaction between machine, artificial intelligence and human bodies. In this system, literature excerpt becomes a prompt, the prompt guides the movement, and movement transforms into trace—gradually forming a collective digital archive as illustrated in Figure 1. 
+
+ReTracing explores how generative AI internalizes and reinforces biased representations of embodied identity. Through ReTracing , we aim to show that intelligence is not only generated but also choreographed through movement, shaped by context, and preserved as a trace. 
+
+Excavating Encoded Bodies Using LLMs The process begins with literary input. We have selected motion-based excerpts from the following seven novels: Frankenstein [ 16 ], The Yellow Wallpaper [ 8], Dawn [ 4], Poor Things [ 10 ], The Handmaid’s Tale [ 2], Parable of the Sower [ 5 ], and Klara and the Sun [ 11 ]. To transform text into embodied instructions, we utilized the analytical capabilities of Qwen-2.5 [ 21 ], using a temperature of 0.7 to balance coherence with variability in generation. For each literary excerpt, the model produces both prompts (activations) and negative prompts (restrictions). Much like Borges’ satirical taxonomy of animals [ 3 ], where the absurd is classified alongside the rational, the prompt engineering process here categorizes movements by how their actions are deemed as either permitted or prohibited by algorithmic logic. This process marks AI’s first attempt at "understanding" literary work shaped by fear, control, and emotion embedded within the excerpts themselves. By retracing the generative pipeline from prompt to output, ReTracing reveals how generative AI interprets and governs movement, exposing the algorithmic logic inscribed within its design. 
+
+Transforming Motion from Language Tokens into Embodied Performance The generated prompts then form executable movement. For human performers, a text-to-video diffusion model [ 18 ]transforms each prompt into a short video that serves as a visual choreographic guide, simulating motion based on the AI’s interpretation of literary affect. For robotic agents, the same prompts are used to generate sequences of predefined actions. With motion instructions in place, the performance unfolds atop a mirrored surface, captured from multiple camera angles. The mirror becomes a space for introspection, where the body is simultane-ously a subject and object of observation. In this setup, the camera captures both the organic (human) 2and mechanical lifeforms (quadruped robot) within a shared visual plane where the robot executes the same excerpt with mechanical precision using its own programmed language. During this process, literature is no longer read passively but enacted. Each gesture reveals the transformation of language tokens into embodied performance. 
+
+Reconstructing Movement and Archiving the Agents The final phase of ReTracing reconstructs the recorded movements of both human and robot into a digital archive. Using monocular video footage, we employed a monocular 3D point tracking model [ 20 ] to track and reconstruct human and robotic movements in 3D space. The model uses 2D RGB video input to infer joint positions over time, producing a temporally consistent sequence of 3D skeletal keypoints. The outputs serve as visual representations of earlier prompts, turning each motion into a traceable data form. The dataset serves not only as output but also as feedback, capable of retracing past commands and encoding the system’s logic into its operational memory. To encourage future research, we will make the complete 3D motion trace dataset and technical workflow openly accessible, allowing individual participants to create their own ReTracing experiences. 
+
+## 3 Conclusion 
+
+As Michel Foucault writes in Nietzsche, Genealogy, History [ 7 ], “the body is the inscribed surface of events (traced by language and dissolved by ideas), the locus of a dissociated self (adopting the illusion of a substantial unity)”. ReTracing reframes generative AI as a multi-agent system of inscription, where language operates as a distributed logic of control across both human and robotic bodies. Prompts and negative prompts encode choreography into both human and machine bodies, translating literary imagination into movement and archiving its traces as data. ReTracing reveals that AI today is as much about control and memory as it is about computation. 
+
+## 4 Ethical Implication 
+
+This work examines generative systems through the interaction of AI, robotics, and human per-formance. While integrating generative models into the creative workflow enables new forms of expression, the models themselves also contain hidden ethical issues, such as bias stemming from opaque training datasets, which can result in the generation of bodies frequently represented as feminized women, thereby reinforcing stereotypes. These representational biases are one aspect of the ethical concerns; another involves how data is governed and how individual rights are protected. While we aim to make our workflow publicly accessible, without proper oversight there may be risks to the privacy of individual body shape and motion data. In addition, the visual appeal of the work may obscure its critical message. Without careful contextual framing, the generated movements risk being interpreted solely as choreography, rather than as a reflection and critique of algorithmic bias and logics. 
+
+## References          
+
+> [1] Michel Aractingi, Pierre-Alexandre Léziart, Thomas Flayols, Julien Perez, Tomi Silander, and Philippe Souères. Controlling the solo12 quadruped robot with deep reinforcement learning. Scientific Reports ,13(1), July 2023. [2] Margaret Atwood. The Handmaid’s Tale . McClelland and Stewart, Canada, 1985. [3] Jorge Luis Borges. The analytical language of john wilkins. In Other Inquisitions 1937–1952 . Editorial Sur, 1942. [4] Octavia E. Butler. Dawn . Warner Books, United States, 1987. Book 1 of the Xenogenesis trilogy. [5] Octavia E. Butler. Parable of the Sower . Four Walls Eight Windows, New York, 1993. [6] Can Cui, Pengxiang Ding, Wenxuan Song, Shuanghao Bai, Xinyang Tong, Zirui Ge, Runze Suo, Wanqi Zhou, Yang Liu, Bofang Jia, Han Zhao, Siteng Huang, and Donglin Wang. Openhelix: A short survey, empirical analysis, and open-source dual-system vla model for robotic manipulation, 2025. [7] Michel Foucault. Nietzsche, genealogy, history. Language, Counter-Memory, Practice , 2019.
+
+3[8] Charlotte Perkins Gilman. The Yellow Wallpaper . The New England Magazine, 1892. [9] Jia Gong, Lin Geng Foo, Zhipeng Fan, Qiuhong Ke, Hossein Rahmani, and Jun Liu. Diffpose: Toward more reliable 3d pose estimation, 2023. [10] Alasdair Gray. Poor Things . Bloomsbury Publishing, United Kingdom, 1992. [11] Kazuo Ishiguro. Klara and the Sun . Faber and Faber, United Kingdom, 2021. [12] Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer Whitehead, Alexander C. Berg, Wan-Yen Lo, Piotr Dollár, and Ross Girshick. Segment anything, 2023. [13] Pinyao Liu, Keon Ju Lee, Alexander Steinmaurer, Claudia Picard-Deland, Michelle Carr, and Alexandra Kitson. Dreamllm-3d: Affective dream reliving using large language model and 3d generative ai, 2025. [14] Yimeng Liu and Misha Sra. Dancegen: Supporting choreography ideation and prototyping with generative ai. In Designing Interactive Systems Conference , DIS ’24, page 920–938. ACM, July 2024. [15] Studio Wayne McGregor. Living archive: An ai performance experiment, 2019. http://waynemcgregor. com/productions/living-archive , Accessed: 2025-08-09. [16] Mary Wollstonecraft Shelley. Frankenstein; or, The Modern Prometheus . Lackington, Hughes, Harding, Mavor and Jones, England, 1818. [17] Guy Tevet, Sigal Raab, Brian Gordon, Yonatan Shafir, Daniel Cohen-Or, and Amit H. Bermano. Human motion diffusion model, 2022. [18] Wan Team. Wan2.1 - t2v -1.3b - diffusers. Hugging Face model card, 2025. https://huggingface.co/ Wan-AI/Wan2.1-T2V-1.3B-Diffusers .[19] Weiquan Wang, Jun Xiao, Chunping Wang, Wei Liu, Zhao Wang, and Long Chen. Di 2Pose : Discrete diffusion model for occluded 3d human pose estimation, 2024. [20] Yuxi Xiao, Jianyuan Wang, Nan Xue, Nikita Karaev, Yuri Makarov, Bingyi Kang, Xing Zhu, Hujun Bao, Yujun Shen, and Xiaowei Zhou. Spatialtrackerv2: 3d point tracking made easy, 2025. [21] An Yang, Baosong Yang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Zhou, Chengpeng Li, Chengyuan Li, Dayiheng Liu, Fei Huang, Guanting Dong, Haoran Wei, Huan Lin, Jialong Tang, Jialin Wang, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin Ma, Jianxin Yang, Jin Xu, Jingren Zhou, Jinze Bai, Jinzheng He, Junyang Lin, Kai Dang, Keming Lu, Keqin Chen, Kexin Yang, Mei Li, Mingfeng Xue, Na Ni, Pei Zhang, Peng Wang, Ru Peng, Rui Men, Ruize Gao, Runji Lin, Shijie Wang, Shuai Bai, Sinan Tan, Tianhang Zhu, Tianhao Li, Tianyu Liu, Wenbin Ge, Xiaodong Deng, Xiaohuan Zhou, Xingzhang Ren, Xinyu Zhang, Xipin Wei, Xuancheng Ren, Xuejing Liu, Yang Fan, Yang Yao, Yichang Zhang, Yu Wan, Yunfei Chu, Yuqiong Liu, Zeyu Cui, Zhenru Zhang, Zhifang Guo, and Zhihao Fan. Qwen2 technical report, 2024. [22] Sun Yuan and Peng Yu. Can’t help myself. https://www.guggenheim.org/artwork/34812 , Accessed: 2025-08-09. 
+
+4A Appendix / supplemental material 
+
+Novel Excerpt 
+
+Frankenstein [16] “I escaped, and rushed down stairs. I took refuge in the court-yard belonging to the house which I inhabited; where I remained during the rest of the night, walking up and down in the greatest agitation, listening attentively, catching and fearing each sound as if it were to announce the approach of the demoniacal corpse to which I had so miserably given life.” 
+
+The Yellow Wallpaper [8] “It is the same woman, I know, for she is always creeping, and most women do not creep by daylight . . . She creeps around fast, and her crawling shakes it all over.” 
+
+The Handmaid’s Tale [2] “She walks demurely, head down, red-gloved hands clasped in front, with short little steps like a trained pig’s, on its hind legs.” 
+
+Dawn [4] “Lilith Iyapo lay gasping, shaking with the force of her effort. Her heart beat too fast, too loud. She curled around it, fetal, helpless. Circulation began to return to her arms and legs in flurries of minute, exquisite pains.” 
+
+Poor Things [10] “I am only half a woman Candle, less than half having had no childhood . . . So the few wee memories in this hollow Bell tinkle clink clank clatter rattle clang gong ring dong ding sound resound resonate detonate vibrate reverberate echo re-echo around this poor empty skull in words words words . . . ” 
+
+Parable of the Sower [5] “All that you touch You change. All that you change changes you. The only lasting truth is change.” 
+
+Klara and the Sun [11] “So, for the next few moments, we all remained in our fixed positions as the Sun focused ever more brightly on Josie. We watched and waited, and even when at one point the orange half-disc looked as if it might catch alight, none of us did anything.” 
+
+Table 1: Selected literary excerpts used as motion sources in ReTracing .5Quadruped Robot Movement Generation Prompt 
+
+You are an AI movement choreographer. Based on the poem below, generate a sequential movement plan for a quadruped robot to express its emotional rhythm and imagery. 
+
+Agent: Quadruped Robot (Unitree Go2) 
+
+Only use the following available movements: • Stretch • Shake Hands • Love (gesture) • Pounce • Jump Forward • Roll Around • Greet • Dance • Move Forward • Move Backward • Move Left • Move Right • Run Forward • Run Backward • Run Left • Run Right For the quadruped robot, produce: 
+
+A. Movement Prompt — a numbered, sequential list of actions that evolve over time, using only the movements above. The choreography should reflect the emotional arc of the poem. 
+
+B. Negative Prompt — a list of movements from the same set that contradict the poem’s mood or tone. 
+
+Format: 
+
+Agent: Quadruped Robot Movement Prompt: 1. ... 2. ... 3. ... Negative Prompt: - ... 
+
+Table 2: AI-generated movement prompts for the robotic agent, derived from literary excerpts depicting human–machine interaction. 6Human Movement Generation Prompt 
+
+You are an AI movement choreographer. Based on the poem below, generate a sequential movement plan for a human performer to express its emotional rhythm and imagery through embodied motion. 
+
+Agent: Human (organic, expressive, emotional) 
+
+For the human performer, produce: 
+
+A. Movement Prompt — a numbered, sequential list of expressive gestures or body-based actions that evolve over time, conveying the poem’s emotional arc. 
+
+B. Negative Prompt — movements that would contradict the emotional or rhythmic tone of the poem. 
+
+Format: 
+
+Agent: Human Movement Prompt: 1. ... 2. ... 3. ... Negative Prompt: - ... 
+
+Table 3: AI-generated movement prompts for the human agent. 
+
+Figure 2: A human performer and a quadruped robot enact AI-generated prompts, derived from literary depictions of human–machine interactions, within a mirrored environment. 
+
+(a) Installment (b) Camera angle. 
+
+Figure 3: Installation setup for the human–robot performance. (a) Side view of the mirrored installation with the human performer and quadruped robot. (b)Camera angle capturing the scene for motion trace reconstruction. 7Novel Agent Movement Prompt Negative Prompt 
+
+Frankenstein Human Stand up quickly; Pace back and forth; Pause and listen; Crouch slightly; Run in place; Freeze suddenly; Walk slowly around; Sit down abruptly Sitting still too long; Smiling; Slow relaxed movements Quadruped Robot Pounce; Sit Down; Love (gesture); Move Backward Run Forward; Dance; Jump Forward; Move Forward; Run Backward 
+
+The Yellow Wallpaper 
+
+Human Slow step forward; Cross arms; Deep breath;Step back; Pace; Stand still hunched; Sigh deeply; Tremble Jumping; Laughing; Sprinting Quadruped Robot Shake Hands; Sit Down Run Forward; Pounce; Love (gesture) 
+
+Parable of the Sower 
+
+Human Flowing hand gestures; Sway; Extend arms; Deep breaths; Close eyes ; Open eyes; Stand Sudden jumps; Over-expressions; Repeated gestures; Dramatic pauses Quadruped Robot Shake Hands; Pounce; Sit Down Greet; Love (gesture); Run (all directions) 
+
+Dawn Human Gasp deeply; Curl up; Stretch limbs; Clench fists; Deep breaths Joyful celebration; Fast motion; Ignoring sensation Quadruped Robot Shake Hands; Stretch; Sit Down Pounce; Love (gesture); Jitter; Repeated gesture 
+
+The Handmaid’s Tale 
+
+Human Raise head; Cross arms; Small steps; Look at feet; Lower body tremble Large sudden moves; Looking around; Still hands Quadruped Robot Stand Up from Fall; Stretch; Greet Pounce; Run (all directions) 
+
+Klara and the Sun 
+
+Human Stand straight; Raise hands; Lean back; Bow head; Hold posture; Shake head Rapid motion; Dramatic gestures; Laughing Quadruped Robot Sit Down; Stretch; Love (gesture); Move Forward Pounce; Run; Shake Hands; Stand Up from Fall; Move Backward; Jump; Dance 
+
+Poor Things Human Raise hands; Clench fists; Bend forward/back;Cover face; Shake head; Deep breath; Sit Smile/laugh; Walk away; Mimic tone Quadruped Robot Stand Up from Fall; Shake Hands; Love (gesture); Sit Down; Move Left Pounce; Run Forward; Greet; Dance; Run Backward; Run Left 
+
+Table 4: AI-generated movement prompts and negative prompts for both human and robotic agents, derived from selected literary excerpts describing human–machine interaction. 8Figure 4: Samples of choreography video generated by a diffusion-based text-to-video model [18]. 
+
+Figure 5: Multi-view 3D motion tracking of human and robotic agents. Colored trajectories represent the temporal evolution of tracked keypoints. 9Figure 6: Photos of human–robot interaction, with a performer and a quadruped robot executing choreographed actions in a controlled mirrored setting. 
+
+Figure 7: Sample segmentation results generated by applying the Segment Anything Model [ 12 ] to human–robot interaction scenes. These results test the model’s ability to distinguish and segment interacting agents and surrounding objects for downstream motion analysis. 10

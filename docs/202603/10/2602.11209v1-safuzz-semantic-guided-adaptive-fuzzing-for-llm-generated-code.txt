@@ -1,0 +1,348 @@
+Title: SAFuzz: Semantic-Guided Adaptive Fuzzing for LLM-Generated Code
+
+URL Source: https://arxiv.org/pdf/2602.11209v1
+
+Published Time: Fri, 13 Feb 2026 01:02:11 GMT
+
+Number of Pages: 11
+
+Markdown Content:
+# SAFuzz: Semantic-Guided Adaptive Fuzzing for LLM-Generated Code 
+
+Ziyi Yang * 1 Kalit Inani * 1 Keshav Kabra * 1 Vima Gupta 1 Anand Padmanabha Iyer 1
+
+## Abstract 
+
+While AI-coding assistants accelerate software development, current testing frameworks struggle to keep pace with the resulting volume of AI-generated code. Traditional fuzzing techniques often allocate resources uniformly and lack se-mantic awareness of algorithmic vulnerability pat-terns, leading to inefficient resource usage and missed vulnerabilities. To address these limita-tions, we present a hybrid testing framework that leverages LLM-guided adaptive fuzzing to detect algorithmic vulnerabilities efficiently. Our sys-tem SAF UZZ integrates prompt-based behavioral diversification, harness generation with problem-specific oracles, and an LLM-based predictor to enable adaptive resource allocation and dynamic early stopping. Evaluating SAF UZZ on CSES algorithmic problems, we improve vulnerability discrimination precision from 77.9% to 85.7%, achieve a 1.71 × reduction in time cost compared to SOTA GreenFuzz while maintaining compa-rable recall. We further observe that combining our approach with existing unit test generation methods yields complementary gains, increasing the bug detection recall from 67.3% to 79.5%. 
+
+## 1. Introduction 
+
+Large Language Models (LLMs) have become ubiquitous across diverse domains, from question answering (Yue, 2025; Guo et al., 2025b) and retrieval systems (Jiang et al., 2025) to performing scientific discoveries (Zheng et al., 2025; Abramson et al., 2024). One of the most popu-lar applications has been in software development, where LLM-powered coding agents such as Claude Code (An-thropic, 2025), Cursor (Anysphere, 2023) and GitHub Copi-lot (GitHub, 2025) are changing how developers write code. These tools allow developers to express intent in natural language and thus enable rapid experiments with product             
+
+> *Equal contribution 1Georgia Institute of Technol-ogy, Atlanta, GA, USA. Correspondence to: Anand Iyer
+> <anand.iyer@gatech.edu >.
+> Preprint. February 13, 2026.
+
+features (Weber et al., 2024). As they become popular, the amount of AI-generated code is increasing in production systems used by millions of users (Quantumrun Foresight, 2026) as well as across several safety/resource critical do-mains like trading platforms (Bai et al., 2025; Xu et al., 2025) and flight software (Burke, 2025). However, current testing approaches have not evolved to match the pace and scale of the code output by LLM-based assistants (Jimenez et al., 2024). Traditional testing ap-proaches such as unit testing, formal verification, and fuzz testing were primarily designed to verify human-written code (Leino, 2010; Man `es et al., 2021). In addition, AI-generated code can exhibit unexpected behaviors, includ-ing algorithmic complexity mismatches, resource exhaus-tion vulnerabilities, and prompt-induced behavioral varia-tions (Cotroneo et al., 2025; Liu et al., 2024b). As a re-sult, shipping untested AI-generated code raises risks where seemingly correct programs may fail under adversarial in-put (Pearce et al., 2022). Existing testing approaches suffer from several limitations. LLM-based unit test generation (Chen et al., 2024) can achieve high code coverage and effectively checks func-tional correctness, but it is inherently limited in detecting runtime failures such as timeouts and overflow behaviors. While formal verification (Leino, 2010) provides strong cor-rectness guarantees, it typically relies on human experts, and it remains difficult for LLMs to reliably generate effective invariants for complex programs. To detect such runtime anomalies without manual overhead, Fuzz Testing (Manes et al., 2021; B ¨ohme et al., 2017) is a widely adopted. Although effective at identifying crashes and security vulnerabilities, traditional fuzzing is compu-tationally expensive . Recent fuzzing frameworks such as (Lipp et al., 2023) reduce the search space by filtering out potential non-vulnerable targets. However, these approaches exhibit limited vulnerability discrimination precision and often misclassify semantically complex yet safe programs. In addition, most fuzzing frameworks allocate uniform time budgets across programs regardless of their risk profiles, 
+
+wasting resources on safe code while ignoring potentially vulnerable targets. Further, automated harness generation typically relies on generic drivers that lack problem-specific constraints (Amusuo et al., 2025) and thus fails to trigger 
+
+1
+
+> arXiv:2602.11209v1 [cs.SE] 11 Feb 2026
+
+Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code 0.0 0.2 0.4 0.6 0.8 1.0     
+
+> Test Validity Rate
+> 0
+> 10
+> 20
+> 30
+> Number of Problems  Mean: 0.79
+> Timeout Overflow Recursion Index Error Inefficient
+> Algorithm
+> Bug Type
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Detection Rate (%)
+
+Figure 1. Limitations of ChatUniTest. Left: Validity rate of the generated unit tests across the problems. Right: Bug detection rate across the different bug categories. 
+
+deeper algorithmic bugs .To address these limitations, we propose SAF UZZ , a semantic-aware adaptive fuzzing framework designed for testing AI-generated algorithmic code. SAF UZZ targets two key challenges in fuzzing AI-generated programs: ef-fective fuzz harness generation and efficient fuzz time allocation . The framework consists of three key stages. First, SAF UZZ generates diverse prompt variants for each problem to capture prompt-induced behavioral variations in LLM-generated code, exposing more varieties of algorith-mic and resource-related vulnerabilities. Second, SAF UZZ 
+
+employs an LLM-guided fuzz harness generation agent that extracts problem-specific constraints from the specification and constructs semantic oracles. This enables the detec-tion of failures such as timeouts, overflows, and logical inconsistencies beyond generic crash-based fuzzing. Third, SAF UZZ integrates LLM-derived semantic features with static code metrics to predict vulnerability risk and adap-tively allocate fuzzing resources. Unlike GreenFuzz (Lipp et al., 2023), which relies solely static features, SAF UZZ discriminates vulnerabilities with higher precision. Programs with vulnerability scores below a threshold are filtered early, while high-risk targets are prioritized with proportional time budgets, and an early stopping mechanism further reduces unnecessary fuzzing. We perform a comprehensive evaluation with a benchmark of 96 CSES algorithmic tasks (Laaksonen, 2025) as detailed in §5.1, which consists of 1152 program variants with vary-ing difficulty and fuzzing time budgets. SAF UZZ improves the vulnerability discrimination precision from 77.9% to 85.7% compared to GreenFuzz (Lipp et al., 2023), and im-proves resource allocation by reducing the total fuzzing time by 1.71 × while maintaining strong recall. By further combining SAF UZZ with unit testing, we enhance the bug detection recall from 67.3% to 79.5%. In addition, our fuzz-harness generation agent outputs effective harnesses and maintains linear scalability by employing a bounded retry mechanism that prevents exponential resource costs on com-plex problems. These results indicate that semantic-aware prioritization can substantially reduce redundant fuzzing effort without sacrificing vulnerability coverage and enables a scalable path toward efficient vulnerability detection. 
+
+## 2. Background and Motivation 
+
+This section examines the current landscape of testing ap-proaches for AI-generated code and identifies key limita-tions that motivate our work. We analyze three main cate-gories: LLM-based unit test generation, formal verification approaches, and existing fuzzing techniques. 
+
+2.1. LLM-Based Unit Test Generation 
+
+Unit tests are widely used to evaluate the functional correct-ness of code in software engineering. Recently, LLM-based unit test generation tools, such as ChatUniTest (Chen et al., 2024), have gained popularity. These tools can often gen-erate both test prefixes and test oracles and ensure high coverage of the code under test. Specifically, ChatUniTest introduces a generation-validation-repair pipeline, which in-cludes a feedback loop that iteratively optimizes generated test cases, making sure they are compilable and error-free during runtime. ChatUniTest also implements adaptive fo-cal context generation, which extracts only the most relevant code context to minimize the number of LLM tokens. Over-all, ChatUniTest achieves excellent line coverage, but it also often produces invalid tests and fails for complex programs. In Figure 1, we observe an average of 21% invalid tests gen-erated per problem (left figure). By invalid, we mean that the expected output of a function (asserted in its unit test) does not match the actual output for the given input. Moreover, these tests fail to capture timeouts, memory overflows, or algorithmic complexity mismatches (right figure), making it difficult to detect resource-bounded vulnerabilities. 
+
+2.2. Formal Verification and SMT-based Analysis 
+
+Formal verification mathematically proves the program’s correctness by checking if it adheres to the provided formal specification. Tools like Dafny (Leino, 2010) leverage SMT solvers to automatically verify programs annotated with preconditions, postconditions, and loop invariants. Overall, it provides the strongest correctness guarantees in principle. However, formally verifying AI-generated code at scale is challenging. It requires precise specifications from domain experts. Recent work explored using LLMs to generate loop invariants (Akhond et al., 2025; Wei et al., 2025), but LLMs struggle with good invariant generation and repairing incorrect invariants. Verification also requires manual effort, iterative refinement, and is computationally expensive, re-quiring minutes per program. This makes it infeasible to scale for frequently verifying AI-generated code. 
+
+2.3. LLM-Guided Fuzzing 
+
+Fuzzing (Manes et al., 2021) is a popular testing technique that checks programs with randomly generated inputs to discover security vulnerabilities. Traditional fuzzing ap-2Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code 
+
+proaches target programs from their public entry points, but struggle with low coverage on deeply nested code paths. Coverage-guided greybox fuzzers like AFL (Fioraldi et al., 2020) address this by using code coverage feedback to guide input mutation, but still face challenges reaching functions deep in the call graph. Fuzzing relies on good harnesses for targeted testing. There have been recent improvements using LLMs to automate fuzz harness generation. OSS-Fuzz-Gen (Liu et al., 2024a) uses LLMs in a multi-agent system to automatically gener-ate fuzz harnesses for target functions. Their system com-prises harness generation, refinement, coverage analysis, and feedback loops to iteratively improve harnesses. While this approach reduces manual effort, the generated harnesses can report false positive crashes (Amusuo et al., 2025) and fail to account for the problem-specific constraints. This leads to an exploding input fuzzing search space and detec-tion of general crashes. Another problem with traditional fuzzing is resource al-location and determining the stopping criterion. Green-Fuzz (Lipp et al., 2023) tries to address this by using ma-chine learning to predict vulnerable functions and stop fuzzing when the coverage of the predicted vulnerable code saturates. They extract features from static analysis tools and software metrics and use the trained classifier to predict vulnerability probability and filter programs. In their evalu-ation, they terminate campaigns 6-12 hours earlier and miss fewer than 0.5 bugs on average. Their vulnerability predic-tor achieved ROC-AUC scores of 0.8 (0.827 in evaluation on our dataset). However, GreenFuzz’s approach has sev-eral limitations. It relies solely on static features and cannot capture algorithmic properties. As shown in Figure 4, we can see that there is still a gap in the quality of vulnerability discrimination of Green Fuzz. It is not able to filter out most of the non-vulnerable targets at lower thresholds. As a result, resources are still spent on testing safe code. More-over, it uses a fixed saturation window and does not adapt fuzzing time based on vulnerability probability, allocating equal time to all targets that pass the vulnerability threshold. 
+
+## 3. System Design 
+
+To address the limitations identified in the previous work and efficiently detect vulnerabilities in AI-generated code, SAF UZZ combines LLM-guided semantic analysis with traditional fuzzing to achieve intelligent resource allocation. The system takes the natural language descriptions of a set of programming problems as input and assesses the coding agent-generated solutions for vulnerabilities. The pipeline consists of three main stages: (1) Prompt Variant Generation creates diverse formulations of each problem to simulate real-world usage patterns, (2) LLM-Based Fuzz Harness Generation produces problem-specific test harnesses with                       
+
+> Table 1. Prompt variants generated for each problem. Each problem generates 12 variants: 1 original, 5 semantic varia-tions, and 6 buggy variations with intentionally injected vul-nerability instructions. Variant Name Description % Buggy
+> Original & Semantic Variations
+> Original Original problem format 29.17 Overflow Emphasis Highlights edge cases with large numbers 27.08 Reordered Presentation Reorders constraints and examples first 29.17 Examples Only Minimal format relying on examples 35.42 Iterative Approach Explicitly requests itera-tive loops 29.17 Edge Case Focus Emphasizes boundary value testing 28.12
+> Buggy Variations (Intentional Vulnerabilities)
+> Integer Overflow Forces int instead of long data types 62.50 Timeout/Inefficient Suggests inefficient al-gorithms 93.75 Heavy Recursion Encourages deep recur-sion patterns 94.79 Array Indexing Induces off-by-one er-rors 91.67 Greedy Implementation Suggests wrong algorith-mic approach 92.71 Incorrect Logic Introduces subtle logical errors 86.46
+
+semantic oracles, (3) Vulnerability Prediction and Adaptive Allocation uses a hybrid ML model to predict vulnerability risk and intelligently distribute fuzzing resources. 
+
+3.1. Prompt Variant Generation 
+
+Previous research has shown that semantically equivalent prompts can trigger different code generation behaviors in LLMs (Sarker et al., 2024; Paleyes et al., 2025; Chen et al., 2025), which leads to solutions with different types of vulnerabilities. To explore this finding and simulate diverse real-world user interactions, we generated multiple prompt variants for each problem. Our variant generation strategy is detailed in Table 1. For each variant, we preserve the core problem semantics while prompting with various styles, which instruct coding agents to produce different solutions. Each solution is evaluated against the official CSES test suite to mark whether it is buggy. The buggy rate in the table indicates that prompting the same problem in different ways results in variation in vulnerabilities. 
+
+3.2. LLM-Based Fuzz Harness Generation Harness Generator Agent Design. Our fuzz harness gen-erator employs structured prompt engineering to guide an 3Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code CSES Problems    
+
+> Prompt Variation Generator
+> Problem Variations
+> Coding Agent
+> Problem Solutions
+> LLM-based Fuzz Test Generator
+> Problem requirements + constraints
+> Fuzz-Validator Fuzz Harness
+> Fuzz Harness Generation Agent
+> Vulnerability Predictor
+> Target Problems
+> Error Feedback
+> Static Analysis
+> LLM Code Analysis Extracted metrics
+> {P1: T1, .., Pn: Tn}
+> Time allocation according to vulnerability probability
+> Simulates real-world user interaction
+> Stage 1
+> Stage 2
+> Stage 3
+> Fuzz Time Scheduler
+> Fuzzer
+> >Θ
+> (threshold)
+> Final Results
+
+Figure 2. Overview of SAF UZZ . This pipeline has three stages. Stage 1 generates diverse prompt variations to simulate real-world user interactions. Stage 2 involves generation of problem-specific fuzz harnesses with semantic oracles. In Stage 3, a hybrid vulnerability predictor analyzes static and LLM-guided code features to estimate risk, filters out non-vulnerable code and intelligently allocates fuzzing time budgets. Finally, the remaining programs are fuzzed against their harnesses according to their allocated budget. Overall, SAF UZZ prioritizes fuzzing high-risk targets to efficiently detect vulnerabilities. 
+
+LLM agent in generating Jazzer (Code Intelligence, 2021) fuzz tests. The generator receives three inputs: the problem description, the solution code, and the extracted solve() 
+
+target function signature. The LLM performs semantic analysis to understand algorithmic properties and potential failure scenarios, focusing on two primary tasks. First, Con-straint Extraction involves parsing problem descriptions to extract numerical bounds (e.g., 1 ≤ n ≤ 10 6), type re-quirements, and structural constraints. These constraints ensure the generator respects problem-specific limits, such as node and edge counts in graph problems, to avoid explod-ing the search space. Second, Weighted Input Generation 
+
+replaces uniform random sampling with weighted distribu-tions to bias toward stress-inducing inputs. For example, it targets maximum recursion depth for recursion-heavy problems (DFS, backtracking), or maximum input sizes for memory-intensive tasks (involving dynamic programming). 
+
+Oracle Generation. Generic fuzz harnesses often gener-ate inputs without considering problem constraints, wasting resources on invalid inputs. We address this by generating problem-specific oracles. We implement four oracle types: (1) a timeout oracle that runs solutions in a separate moni-toring thread to detect infinite loops, (2) a crash oracle for memory violations like null pointer dereferences and array index violations, (3) a determinism oracle to ensure consis-tent outputs for identical inputs, (4) an overflow oracle that checks for incorrect type choices (for example, operations on large positive numbers that yield a negative value can indicate overflow issues.) 
+
+Validation Loop. LLM-generated code can contain syntax errors, type mismatches, or incorrect API usage. Drawing inspiration from OSS-Fuzz-Gen (Liu et al., 2024a), we im-plement a two-stage validation loop with compilation-driven feedback to improve harness quality. When fuzzing on the generated harness, the agent attempts to compile with the dependencies of the fuzzing framework. The compilation checker captures error messages and parses them to identify common issues like missing dependencies, incompatibility between harness and target function, inap-propriate usage of fuzzer API, etc. In case of failures, it uses a retry mechanism that includes the original problem, the previously generated harness code, and the compilation er-ror output. This feedback guides the LLM perform targeted fixes rather than regenerating from scratch. 
+
+3.3. Vulnerability Prediction and Adaptive Allocation 
+
+Traditional fuzzing allocates uniform time budgets to all tar-gets, wasting resources on safe code while missing complex vulnerabilities in high-risk programs. SAF UZZ addresses this through ML-based risk prediction and proportional re-source allocation, utilizing a three-part pipeline: feature extraction, vulnerability prediction, and adaptive time allo-cation with early stopping. 
+
+Feature Extraction. To capture both structural complexity and algorithmic behavior, we extract 14 features catego-rized into two distinct groups. First, we compute Static Analysis Features by building upon GreenFuzz (Lipp et al., 2023) to calculate six complexity metrics using SciTools Understand (SciTools, 2025) and custom analyzers. These include total lines of code (LOC), cyclomatic complexity, cognitive complexity, and three Halstead metrics (volume, difficulty, effort). These metrics provide a baseline of code size and structural complexity. For example, high cyclo-matic complexity often indicates deeply nested control flow that may contain edge case bugs. Second, we introduce 
+
+LLM Semantic Features because static metrics cannot dis-tinguish between algorithmically safe and unsafe code. A program with low cyclomatic complexity may still imple-4Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code                    
+
+> Table 2. LLM semantic vulnerability features (scored 0-10) Category Detection Focus
+> Array bounds risk Unchecked array accesses, missing bounds validation Integer overflow int where long needed (e.g., sum-ming n= 10 6values) Null pointer risk Dereferencing without null checks, uninitialized variables Edge case handling Empty input, max constraint values Off-by-one error For a 0-indexed array of size n, access-ing the n+1 th element Input validation Validation against problem constraints Logic error risk Algorithm correctness (e.g., greedy where DP is needed) Timeout risk Algorithmic complexity vs constraints (e.g., O( n2) with n= 10 6)
+
+ment O( n2) logic where constraints require O( n log n), or use int datatype where long is needed to avoid overflow. To address this, we prompt an LLM to analyze each pro-gram against its problem specification as a human would do, and assign risk scores (0-10) across eight vulnerabil-ity categories shown in Table Table 2. Our LLM prompt includes the problem statement and agent-generated code, along with a detailed scoring rubric for each category. For example, the integer overflow rubric specifies: 0 points for correct use of long , 3 points for potential overflow in edge cases, 7 points for int used in intermediate calculations that can overflow given constraints, and 10 points for defi-nite overflow like int*int multiplication without casting. This prompting approach with a guided rubric reduces LLM hallucination and ensures consistent scoring across prob-lems. These semantic features complement static metrics by reasoning about problem-specific risks; for instance, two programs with identical cyclomatic complexity may receive vastly different timeout risk scores if one uses exponential recursion while the other uses iteration. 
+
+Vulnerability Predictor Model. We train a Random For-est (Breiman, 2001) classifier to predict the probability of vulnerabilities from the 14 extracted features. Among dif-ferent classification approaches such as logistic regression, SVM, and neural network, our experiments show that Ran-dom Forest serves the best performance and simplicity. We used 100 decision trees with a maximum depth of 10 and balanced class weights to handle the imbalanced dis-tribution of buggy versus clean code in our dataset. The model is trained on a 50-50 stratified split of our CSES dataset with 10-fold stratified cross-validation to ensure ro-bust performance estimates. For each program i, the model outputs vulnerability probability pi ∈ [0 , 1] representing the estimated likelihood of containing vulnerable bugs. 
+
+Adaptive Time Allocation. Given the vulnerability proba-bilities for all programs, we allocate fuzzing time to maxi-mize the discovery of bugs under resource constraints by uti-lizing two primary mechanisms. First, we apply Threshold-Based Filtering , where programs with a vulnerability prob-ability below a threshold θ are excluded from fuzzing. Let 
+
+S = {i : pi ≥ θ} denote the set of included programs. This filtering strategy aggressively reduces the fuzzing search space by focusing resources on high-risk targets; for in-stance, by using θ = 0 .3, we achieve 85.7% precision while retaining 90.2% of true bugs. Second, we implement Pro-portional Time Allocation for the included programs, allo-cating time proportional to their vulnerability probability: 
+
+ti =
+
+( piP  
+
+> j∈Spj
+
+· Tbudget if i ∈ S
+
+0 otherwise (1) where Tbudget is the total budget provided by the user. This ensures that the total fuzzing time scales linearly with the number of included programs while allocating proportion-ally more time to higher-risk targets within that set. 
+
+Example Calculation: Consider three programs (P1, P2 and P3) with probabilities p1 = 0 .8, p2 = 0 .4, p3 = 0 .2 and 
+
+θ = 0 .3, Tbudget = 120 s. P3 is filtered ( p3 < θ ), leaving 
+
+S = {1, 2}. As per our allocation scheme, P1 receives 
+
+t1 = 80 s, and P2 receives t2 = 40 s for fuzzing. 
+
+Early-Stopping Scheduler. Studies on fuzzing have shown that coverage grows rapidly initially, and then plateaus as the fuzzer exhausts reachable states (B ¨ohme & Falk, 2020). Continuing to fuzz after saturation wastes time, which should have been better spent on testing other tar-gets. To address this, our scheduler implements dynamic early stopping based on coverage stagnation detection. During fuzzing, we parse Jazzer’s real-time output to ex-tract combined coverage metrics (edge coverage + feature coverage) at regular intervals. We maintain a timestamp of the last coverage increase for each target. When current coverage remains unchanged for a saturation window w, the scheduler preempts the running fuzz instance and schedules the next one. 
+
+## 4. Implementation 
+
+We implement SAF UZZ in Python using scikit-learn (Pe-dregosa et al., 2011) for ML model training, Jazzer (Code Intelligence, 2021) for coverage-guided fuzzing, and Deep-Infra (DeepInfra, 2025) for LLM inference. Our code is or-ganized into modules, including LLM clients, fuzz harness generator, static analysis extractors, vulnerability predictor, and adaptive fuzzing orchestrator. 
+
+LLM Infrastructure. We use DeepInfra API endpoints for LLM inference. For all experiments, we choose Qwen/Qwen3-Coder-480B-A35B-Instruct-Turbo (Qwen Team, 2025) for its strong code understanding capabilities. 5Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code 
+
+Fuzzing Framework. We use Jazzer (Code Intelligence, 2021), a coverage-guided fuzzer built on libFuzzer (Sere-bryany, 2016) with JVM integration. Our adaptive scheduler parses Jazzer’s output dynamically using regex to extract coverage metrics and detect saturation. Crashes are saved with SHA-1 hashed filenames for automatic de-duplication. 
+
+Feature Extraction Pipeline. Static metrics are extracted using SciTools Understand (SciTools, 2025) for LOC, cy-clomatic complexity, and Halstead metrics, and a custom javalang-based analyzer for cognitive complexity. LLM semantic features are extracted via inference through Deep-Infra with structured prompts. 
+
+Hardware and Deployment. We run our experiments on a Linux machine with an Intel Core i7-10750H (6-core) and 16GB RAM. We run each Jazzer instance sequentially. 
+
+## 5. Evaluation 
+
+We evaluate SAF UZZ on CSES algorithmic problems to answer five key questions: (1) How does our hybrid model compare to static-only approaches in vulnerability discrim-ination? (2) What is the end-to-end bug detection perfor-mance and resource savings versus baselines? (3) How does the time budget allocation affect the number of bugs de-tected? (4) How much can we improve bug detection recall by combining SAF UZZ with unit test generation? (5) How does the fuzz harness generation scale? 
+
+5.1. Experimental Setup Dataset. Our dataset consists of 96 algorithmic problems from the CSES benchmark (Laaksonen, 2025). The prob-lems cover a wide range of topics, including sorting, greedy algorithms, dynamic programming, graphs, trees, range queries, and mathematics. We manually write an optimal solution (to serve as ground truth) for each problem and verify it against the official test suite. We generate 12 variants of each problem using our prompt variant generator. An LLM coding agent then generates so-lutions for all variants, resulting in a total of 1,152 solutions. We run these solutions against official test suites and label each solution as either buggy or clean. For the vulnerabil-ity predictor, we use a 50-50 stratified train-test split. The test set contains 336 buggy and 240 clean solutions. Bug categories include timeouts due to algorithmic complex-ity violations, integer overflows, off-by-one errors, stack overflows, memory out-of-bounds accesses, logic errors etc. 
+
+Baselines. We compare against four approaches: (1) ChatU-niTest (Chen et al., 2024), a state-of-the-art LLM-based unit test generator, (2) Fixed-time baseline fuzzing that allocates equal fuzzing time to all fuzz targets, (3) GreenFuzz (Lipp 0.0 0.2 0.4 0.6 0.8 1.0   
+
+> Filtering Threshold
+> 40
+> 50
+> 60
+> 70
+> 80
+> 90
+> 100
+> Filtering Precision (%)
+> (% of filtered that is clean)
+> =0.3
+> GreenFuzz
+> Ours
+> Figure 3. Precision comparison across filtering thresholds. SA-FUZZ maintains higher precision across the threshold range
+
+et al., 2023), an ML-based approach using only static fea-tures for vulnerability prediction, and (4) SAF UZZ . All baselines run on identical hardware to ensure fair compari-son. Moreover, all fuzzing based approaches use the same harnesses generated by our generation agent (Stage 2). 
+
+Evaluation Metrics. We measure the number of bugs caught, recall (% of actual bugs detected), accuracy (% of solutions correctly identified as buggy or clean), and time cost (total minutes for complete fuzzing campaign). 
+
+5.2. Model Discrimination Quality (RQ1) 
+
+SAF UZZ significantly improves vulnerability discrimina-tion over GreenFuzz’s model using only static features. We achieve a mean cross-validation ROC-AUC of 0.943 and outperform the baseline (0.827 ROC-AUC). Figure 3 shows filtering precision across different vulnerability thresholds. At θ = 0 .3, GreenFuzz filters 113 programs (88 clean, 25 buggy), achieving 77.9% precision, while SAF UZZ filters 231 programs (198 clean, 33 buggy) with 85.7% precision. Figure 4 further visualizes this discrimination capability. Points far below the diagonal ”Equal Filter Rate” line indi-cate better performance, that is, filtering more clean code and retaining buggy code for fuzzing. At θ = 0 .3, SAF UZZ 
+
+filters 82.5% of clean code while filtering only 9.8% of buggy code, compared to GreenFuzz, which filters 36.7% clean and 7.4% buggy. By filtering more than twice as many programs (231 vs 113) while missing only 8 additional bugs, our model allows for aggressive resource savings for fuzzing without significantly affecting bug detection. The improvement can be attributed to the fact that LLM se-mantic features capture algorithmic complexity mismatches that static metrics miss. For example, static analysis can-not detect O( n2) solutions to O( n) constrained problems, but our timeout risk feature identifies such mismatches by comparing implementation complexity against problem re-quirements. Similarly, our overflow risk feature can identify when a program performs long summations, and a long 
+
+data type should have been used instead of int . Static analysis cannot predict whether an integer overflow will 6Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code 0 20 40 60 80 100  
+
+> Non-vulnerable code filtered (%)
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> Vulnerable code filtered (%)
+> GreenFuzz
+> =0.3 Ours
+> =0.3
+> GreenFuzz
+> Ours
+> Equal Filter Rate
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Vulnerability Threshold
+
+Figure 4. Comparison of discrimination capability across thresholds. achieves a superior trade-off by filtering signif-icantly more non-vulnerable code (x-axis) while minimizing evicting vulnerable targets(y-axis) compared to GreenFuzz. 
+
+occur. However, LLMs can parse the code like a human, understand the constraints of the problem, and infer whether the input values can cause an overflow. The hybrid model correctly filters out programs that appear complex by static metrics but are algorithmically correct. Further, to assess the generalizability of our model beyond CSES, we evaluated it on a sample of problems from the LeetCode dataset. Without any additional training, our model achieved 0.897 ROC-AUC, indicating strong transfer learning capability. However, the model’s prediction ability is currently limited to algorithmic problems. Extending to general codebases or predicting common CVEs would re-quire retraining with domain-specific vulnerability datasets. 
+
+5.3. End-to-End Bug Detection Performance (RQ2) 
+
+Table 3 shows end-to-end fuzzing performance in all ap-proaches. Fixed fuzzing achieves the highest recall (81.9%) but requires a fuzzing campaign of 336.5 minutes, which is very large considering the algorithmic problems and simply does not scale in large codebases. GreenFuzz improves over fixed fuzzing in terms of time for the fuzzing campaign by filtering out potentially non-vulnerable code. But it allocates equal resources to the chosen prob-lems irrespective of their vulnerability score. For exam-ple, the problems elevator rides buggy timeout 
+
+(buggy) and elevator rides original (clean) get an equal amount of fuzzing time (60s). Our hybrid ap-proach detects 226 bugs in 141.3 minutes, achieving 1.7× speedup over GreenFuzz with comparable effectiveness. For the same set of problems, SAF UZZ allocates 71s to 
+
+elevator rides buggy timeout (buggy) and 27s to 
+
+elevator rides original (clean) for fuzzing. The speedup gain can be justified by the usage of an improved discrimination model and efficient resource allocation. The results demonstrate that semantic features enable intel-
+
+Table 3. End-to-end bug detection performance. SAF UZZ 
+
+achieves strong recall with significant time savings. Approach Detected Filtered Fuzz Time Recall Acc. Bugs Clean (min) (%) (%) 
+
+Fixed Fuzz 245 0 336.5 72.9 76.7 GreenFuzz 232 88 242.9 69.1 76.9 SAF UZZ 226 198 141.3 67.3 78.9 
+
+ligent prioritization, focusing fuzzing resources on high-risk targets while safely filtering likely-clean code. Overall, SA-FUZZ achieves the best time-recall tradeoff. 
+
+5.4. Time Budget-Recall Tradeoff (RQ3) 
+
+A general observation in fuzzing is that we tend to find more bugs when fuzzing for a longer time on a given harness. The question we want to answer is: how much recall do we sacrifice when choosing a specific time budget? We experimented with a range of time budgets: 2s, 5s, 15s, 30s, 45s, 60s, 75s, and 90s (time per problem), collected all true positive bugs, and showed the relationship in Figure 5. The overall trend is increasing, and the rate of increase is larger with a smaller total fuzz time, while plateauing after we go beyond 100 minutes. This experiment demonstrates that after investing a certain amount of fuzz time, the marginal gain in recall becomes minimal, providing us with valuable empirical guidelines for setting the fuzz time budget. 170     
+
+> 180
+> 190
+> 200
+> 210
+> 220
+> 230
+> Adaptive Budget
+> 050 100 150 200
+> Total Fuzz Time (minutes)
+> 0
+> 20
+> Bugs Found
+
+Figure 5. Tradeoff between time budget and bugs caught 
+
+5.5. Combining Fuzzing with Unit Testing (RQ4) 
+
+As Figure 5 shows, the number of detected bugs plateaus after a certain point as fuzzing time increases. A plausible explanation is that fuzzing predominantly exposes runtime failures such as crashes, timeouts, and memory-safety viola-tions, while largely ignoring whether the program is func-tionally correct with respect to the problem specification. Motivated by this observation, we additionally evaluate a simple, non-integrated composition of SAF UZZ with ChatU-niTest, which focuses on functional correctness and may complement the failure-oriented nature of fuzzing. Specifi-7Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code 
+
+Table 4. Performance comparison among ChatUniTest, SA-FUZZ , and the combined system. Approach Detected Filtered Runtime Recall Acc. Bugs Clean (min) (%) (%)                       
+
+> ChatUniTest 163 068.6 48.6 63.0 SAF UZZ 226 198 141.3 67.3 78.9 SAF UZZ + ChatUniTest 267 198 148.1 79.5 86.1 050 100 150 200 250 300
+> Number of Problems Processed
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> 120
+> Individual Problem Time (seconds)
+> Initial Generation
+> Retry Generation
+> 0
+> 500
+> 1000
+> 1500
+> 2000
+> 2500
+> Cumulative Time (seconds)
+> Cumulative Time
+
+Figure 6. Assessing scalability of harness generation. The sys-tem maintains linear cost profile (purple) even when complex problems trigger retries (red spikes) ensuring the generation time grows predictably with workload size. 
+
+cally, we first run ChatUniTest on the problem set, remove programs identified as buggy, and then apply SAF UZZ to the remaining programs. As shown in Table 4, combining the two approaches achieves an 18.1% increase in bug detection recall compared to SAF UZZ and a 63.8% improvement over ChatUniTest. Moreover, since ChatUniTest filters out a substantial portion of programs upfront, the subsequent fuzzing stage requires less time, resulting in only a 4.8% increase in runtime com-pared to SAF UZZ . These results suggest that fuzzing and unit test generation tend to identify different classes of vul-nerabilities, and that their combination can substantially improve vulnerability coverage. 
+
+5.6. Scalability of Harness Generation Agent (RQ5) 
+
+To investigate how well our fuzz harness generation agent scales, we ran experiments on 288 randomly problems se-lected from our test set. As Figure 6 shows, the cumulative time curve (purple) increases at a constant slope, showing that the agent scales linearly as the workload increases. We also show a breakdown of time taken per problem, where most problems spend less than 20s and either succeed at initial generation or go through the retry and fix loop. We see some time spikes corresponding to problems with higher complexity. Overall, the curve shows a good linear relation, with a few outliers but no cascading slowdowns. 
+
+## 6. Related Works 
+
+LLM-Guided Fuzzing. Recent work has explored us-ing LLMs to improve fuzzing efficiency and coverage. Fuzz4All (Xia et al., 2024) introduced the first universal fuzzer that uses LLMs as input generators. They employ autoprompting to encode problem descriptions into effective prompts and improve the test coverage. Although powerful, Fuzz4All is limited to testing compilers and interpreters. OSS-Fuzz-Gen (Liu et al., 2024a) automates fuzz harness generation using multi-agent LLM systems with feedback loops. However, the generated harnesses are generic and often produce false positive crashes due to incorrect input constraints. FalseCrashReducer (Amusuo et al., 2025) ad-dresses this with constraint-based drivers that reduce the number of spurious crashes. Our work differs by generating problem-specific oracles that embed semantic constraints directly from problem descriptions. As a result, we re-duce false positives and catch vulnerabilities that generic harnesses miss. GreenFuzz (Lipp et al., 2023) proposes ML-based stopping criteria using prediction on static features, terminating fuzzing campaigns 6-12 hours earlier. We ex-tend this approach with LLM semantic features that capture algorithmic properties, improving the filtering precision and better allocation of fuzzing resources. 
+
+Agentic Code Auditing. Recent research in AI safety has triggered a shift from static benchmarks to dynamic agent-based auditing (Guo et al., 2025a; Fronsdal et al., 2025; Guo et al., 2025c). RepoAudit (Guo et al., 2025c) employs LLM agents for static analysis in repository-level code auditing to detect bugs such as null pointer dereferences and memory leaks. Tools like Anthropic’s Petri (Fronsdal et al., 2025) and Microsoft’s RedCodeAgent (Guo et al., 2025a) utilize adversarial agent interactions to test models for unintended behaviors and security jailbreaks. They focus on invoking harmful outputs or unsafe code execution through multi-turn conversations. Our framework complements these efforts by specifically targeting algorithmic vulnerabilities through semantic-aware fuzzing and stress-testing. It fills the gap where traditional static auditing and safety red-teaming fail to detect timeout, overflow, and complexity-violation bugs. 
+
+## 7. Conclusion 
+
+In this work, we introduce SAF UZZ , a hybrid LLM-guided fuzzing framework that detects algorithmic vulnerabilities in AI-generated code at scale. SAF UZZ uses prompt variations to mimic user interactions, an LLM-guided fuzz harness gen-erator that captures problem-specific constraints, generates effective oracles and stress-test inputs, and a vulnerability predictor to enable intelligent, adaptive time allocation. SA-FUZZ improves vulnerability discrimination by filtering 2 ×
+
+more non-vulnerable targets, achieves a 1.7 × speedup com-pared to baselines, and enhances the bug detection recall from 67.3% to 79.5% when combined with LLM-based unit testing. 8Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code 
+
+## References 
+
+Abramson, J., Adler, J., Dunger, J., Evans, R., Green, T., Pritzel, A., Ronneberger, O., Willmore, L., Ballard, A. J., Bambrick, J., Bodenstein, S. W., Evans, D. A., Hung, C.-C., O’Neill, M., Reiman, D., Tunyasuvunakool, K., Wu, Z., ˇZemgulyt ˙e, A., Arvaniti, E., Beattie, C., Bertolli, O., Bridgland, A., Cherepanov, A., Congreve, M., Cowen-Rivers, A. I., Cowie, A., Figurnov, M., Fuchs, F. B., Gladman, H., Jain, R., Khan, Y. A., Low, C. M. R., Perlin, K., Potapenko, A., Savy, P., Singh, S., Stecula, A., Thillaisundaram, A., Tong, C., Yakneen, S., Zhong, E. D., Zielinski, M., ˇZ´ıdek, A., Bapst, V., Kohli, P., Jader-berg, M., Hassabis, D., and Jumper, J. M. Accurate structure prediction of biomolecular interactions with al-phafold 3. Nature , 630(8016):493—-500, 2024. doi: 10.1038/s41586-024-07487-w. Akhond, M. R., Chakraborty, S., and Uddin, G. LLM for loop invariant generation and fixing: How far are we?, 2025. URL https://arxiv.org/abs/2511. 06552 .Amusuo, P. C., Liu, D., Calvo M ´endez, R. A., Metzman, J., Chang, O., and Davis, J. C. FalseCrashReducer: Mitigat-ing false positive crashes in OSS-Fuzz-Gen using agentic AI, 2025. URL https://arxiv.org/abs/2510. 02185 .Anthropic. Claude Code: AI-powered coding as-sistant. https://www.claude.com/product/ claude-code , 2025. Anysphere. Cursor: The AI-first code editor, 2023. URL 
+
+https://www.cursor.com . Accessed: 2026-01-28. Bai, J., Xu, R., Wu, S., Yang, D., Zhao, J., and Chen, G. Polo: an llm-powered project-level code perfor-mance optimization framework. In Proceedings of the Thirty-Fourth International Joint Conference on Artifi-cial Intelligence , IJCAI ’25, 2025. ISBN 978-1-956792-06-5. doi: 10.24963/ijcai.2025/814. URL https: //doi.org/10.24963/ijcai.2025/814 .B ¨ohme, M. and Falk, B. Fuzzing: On the exponential cost of vulnerability discovery. In Proceedings of the 28th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Soft-ware Engineering (ESEC/FSE) , pp. 713–724, 2020. doi: 10.1145/3368089.3409729. B ¨ohme, M., Pham, V.-T., and Roychoudhury, A. Coverage-based greybox fuzzing as Markov Chain. In Proceedings of the 2017 ACM SIGSAC Conference on Computer and Communications Security (CCS) , pp. 1032–1043, 2017. Breiman, L. Random Forests. Mach. Learn. , 45(1): 5–32, October 2001. ISSN 0885-6125. doi: 10.1023/ A:1010933404324. URL https://doi.org/10. 1023/A:1010933404324 .Burke, P. Robot builds a robot’s brain: Ai generated drone command and control station hosted in the sky, 2025. URL https://arxiv.org/abs/2508.02962 .Chen, J., Zhenhao, L., Xing, H., and Xin, X. NLPerturba-tor: Studying the robustness of code LLMs to natural lan-guage variations. ACM Trans. Softw. Eng. Methodol. , July 2025. ISSN 1049-331X. doi: 10.1145/3745764. URL 
+
+https://doi.org/10.1145/3745764 . Just Ac-cepted. Chen, Y., Hu, Z., Zhi, C., Han, J., Deng, S., and Yin, J. ChatUniTest: A framework for LLM-based test genera-tion. In Companion Proceedings of the 32nd ACM In-ternational Conference on the Foundations of Software Engineering , pp. 572–576, 2024. Code Intelligence. Jazzer: Coverage-guided fuzzing for the JVM. https://github.com/ CodeIntelligenceTesting/jazzer , 2021. Cotroneo, D., Improta, C., and Liguori, P. Human-written vs. ai-generated code: A large-scale study of defects, vulnerabilities, and complexity, 2025. URL https:// arxiv.org/abs/2508.21634 .DeepInfra. DeepInfra: LLM models and infrastructure. 
+
+https://deepinfra.com/ , 2025. Fioraldi, A., Maier, D., Eißfeldt, H., and Heuse, M. AFL++: combining incremental steps of fuzzing research. In Pro-ceedings of the 14th USENIX Conference on Offensive Technologies , WOOT’20, USA, 2020. USENIX Associa-tion. Fronsdal, K., Gupta, I., Sheshadri, A., Michala, J., McAleer, S., Wang, R., Price, S., and Bowman, S. Petri: Parallel exploration of risky interactions, 2025. URL https: //github.com/safety-research/petri .GitHub. GitHub Copilot: Your AI pair pro-grammer. https://github.com/features/ copilot , 2025. Guo, C., Xie, C., Yang, Y., Chen, Z., Lin, Z., Davies, X., Gal, Y., Song, D., and Li, B. RedCodeAgent: Automatic red-teaming agent against diverse code agents, 2025a. URL https://arxiv.org/abs/2510.02609 .Guo, D., Yang, D., Zhang, H., Song, J., Wang, P., Zhu, Q., Xu, R., Zhang, R., Ma, S., Bi, X., Zhang, X., Yu, X., Wu, Y., Wu, Z. F., Gou, Z., Shao, Z., Li, Z., Gao, Z., Liu, A., Xue, B., Wang, B., Wu, B., Feng, B., Lu, C., Zhao, C., Deng, C., Ruan, C., Dai, D., Chen, D., Ji, D., Li, E., Lin, 9Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code 
+
+F., Dai, F., Luo, F., Hao, G., Chen, G., Li, G., Zhang, H., Xu, H., Ding, H., Gao, H., Qu, H., Li, H., Guo, J., Li, J., Chen, J., Yuan, J., Tu, J., Qiu, J., Li, J., Cai, J. L., Ni, J., Liang, J., Chen, J., Dong, K., Hu, K., You, K., Gao, K., Guan, K., Huang, K., Yu, K., Wang, L., Zhang, L., Zhao, L., Wang, L., Zhang, L., Xu, L., Xia, L., Zhang, M., Zhang, M., Tang, M., Zhou, M., Li, M., Wang, M., Li, M., Tian, N., Huang, P., Zhang, P., Wang, Q., Chen, Q., Du, Q., Ge, R., Zhang, R., Pan, R., Wang, R., Chen, R. J., Jin, R. L., Chen, R., Lu, S., Zhou, S., Chen, S., Ye, S., Wang, S., Yu, S., Zhou, S., Pan, S., Li, S. S., Zhou, S., Wu, S., Yun, T., Pei, T., Sun, T., Wang, T., Zeng, W., Liu, W., Liang, W., Gao, W., Yu, W., Zhang, W., Xiao, W. L., An, W., Liu, X., Wang, X., Chen, X., Nie, X., Cheng, X., Liu, X., Xie, X., Liu, X., Yang, X., Li, X., Su, X., Lin, X., Li, X. Q., Jin, X., Shen, X., Chen, X., Sun, X., Wang, X., Song, X., Zhou, X., Wang, X., Shan, X., Li, Y. K., Wang, Y. Q., Wei, Y. X., Zhang, Y., Xu, Y., Li, Y., Zhao, Y., Sun, Y., Wang, Y., Yu, Y., Zhang, Y., Shi, Y., Xiong, Y., He, Y., Piao, Y., Wang, Y., Tan, Y., Ma, Y., Liu, Y., Guo, Y., Ou, Y., Wang, Y., Gong, Y., Zou, Y., He, Y., Xiong, Y., Luo, Y., You, Y., Liu, Y., Zhou, Y., Zhu, Y. X., Huang, Y., Li, Y., Zheng, Y., Zhu, Y., Ma, Y., Tang, Y., Zha, Y., Yan, Y., Ren, Z. Z., Ren, Z., Sha, Z., Fu, Z., Xu, Z., Xie, Z., Zhang, Z., Hao, Z., Ma, Z., Yan, Z., Wu, Z., Gu, Z., Zhu, Z., Liu, Z., Li, Z., Xie, Z., Song, Z., Pan, Z., Huang, Z., Xu, Z., Zhang, Z., and Zhang, Z. DeepSeek-R1 incentivizes reasoning in LLMs through reinforcement learning. Nature , 645 (8081):633–638, September 2025b. ISSN 1476-4687. doi: 10.1038/s41586-025-09422-z. URL http://dx. doi.org/10.1038/s41586-025-09422-z .Guo, J., Wang, C., Xu, X., Su, Z., and Zhang, X. Re-poAudit: An autonomous LLM-agent for repository-level code auditing. In Proceedings of the 42nd International Conference on Machine Learning , 2025c. *Equal contri-bution. Jiang, W., Subramanian, S., Graves, C., Alonso, G., Yaz-danbakhsh, A., and Dadu, V. RAGO: Systematic perfor-mance optimization for retrieval-augmented generation serving, 2025. URL https://arxiv.org/abs/ 2503.14649 .Jimenez, C. E., Yang, J., Wettig, A., Yao, S., Pei, K., Press, O., and Narasimhan, K. Swe-bench: Can language mod-els resolve real-world GitHub issues? In International Conference on Learning Representations (ICLR) , 2024. Laaksonen, A. CSES problem set. https://cses.fi/ problemset/ , 2025. Leino, K. R. M. Dafny: An automatic program verifier for functional correctness. In Clarke, E. M. and Voronkov, A. (eds.), Logic for Programming, Artificial Intelligence, and Reasoning , pp. 348–370, Berlin, Heidelberg, 2010. Springer Berlin Heidelberg. ISBN 978-3-642-17511-4. Lipp, S., Elsner, D., Kacianka, S., Pretschner, A., B ¨ohme, M., and Banescu, S. Green Fuzzing: A saturation-based stopping criterion using vulnerability prediction. In Proceedings of the 32nd ACM SIGSOFT International Symposium on Software Testing and Analysis , ISSTA 2023, pp. 127–139, New York, NY, USA, 2023. Associa-tion for Computing Machinery. ISBN 9798400702211. doi: 10.1145/3597926.3598043. URL https://doi. org/10.1145/3597926.3598043 .Liu, D., Chang, O., Metzman, J., Sablotny, M., and Maruseac, M. OSS-Fuzz-Gen: Automated fuzz tar-get generation. https://github.com/google/ oss-fuzz-gen , 2024a. Liu, Y., Jia, Y., Geng, R., Jia, J., and Gong, N. Z. For-malizing and benchmarking prompt injection attacks and defenses. In 33rd USENIX Security Symposium (USENIX Security) , pp. 1831–1847, 2024b. Manes, V., Han, H., Han, C., Cha, S., Egele, M., Schwartz, E., and Woo, M. The art, science, and engineering of fuzzing: A survey. IEEE Transactions on Software En-gineering , 47(11):2312–2331, November 2021. ISSN 0098-5589. doi: 10.1109/TSE.2019.2946563. Publisher Copyright: © 1976-2012 IEEE. Man `es, V. J. M., Han, H., Han, C., Cha, S. K., Egele, M., Schwartz, E. J., and Woo, M. The art, science, and engineering of fuzzing: A survey. IEEE Transactions on Software Engineering , 47(11):2312–2331, 2021. doi: 10.1109/TSE.2019.2946563. Paleyes, A., Sendyka, R., Robinson, D., Cabrera, C., and Lawrence, N. D. Prompt variability effects on LLM code generation, 2025. URL https://arxiv.org/abs/ 2506.10204 .Pearce, H., Ahmad, B., Tan, B., Dolan-Gavitt, B., and Karri, R. Asleep at the keyboard? assessing the security of GitHub Copilot’s code contributions. In 2022 IEEE Sym-posium on Security and Privacy (SP) , pp. 754–768, 2022. Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cour-napeau, D., Brucher, M., Perrot, M., and Duchesnay, E. Scikit-learn: Machine learning in Python. Journal of Machine Learning Research , 12:2825–2830, 2011. Quantumrun Foresight. Github copilot statistics 2026: User growth and adoption trends. Quan-tumrun Consulting Reports , 2026. URL https: //www.quantumrun.com/consulting/ github-copilot-statistics/ .10 Learning Where to Fuzz: Semantic-Aware Adaptive Testing for AI-Generated Code 
+
+Qwen Team. Qwen3 technical report, 2025. URL https: //arxiv.org/abs/2505.09388 .Sarker, L., Downing, M., Desai, A., and Bultan, T. Syntactic robustness for LLM-based code generation, 2024. URL 
+
+https://arxiv.org/abs/2404.01535 .SciTools. SciTools Understand: Static code analysis tool. 
+
+https://scitools.com/ , 2025. Serebryany, K. libFuzzer – a library for coverage-guided fuzz testing. In LLVM Developers’ Meeting , 2016. Weber, T., Brandmaier, M., Schmidt, A., and Mayer, S. Sig-nificant productivity gains through programming with large language models. Proc. ACM Hum.-Comput. Inter-act. , 8(EICS), June 2024. doi: 10.1145/3661145. URL 
+
+https://doi.org/10.1145/3661145 .Wei, A., Yan, Z., Dai, H., Wei, Y., He, J., Wei, M., and Si, X. InvBench: Can LLMs accelerate program veri-fication with invariant synthesis?, 2025. URL https: //arxiv.org/abs/2509.21629 .Xia, C. S., Paltenghi, M., Tian, J. L., Pradel, M., and Zhang, L. Fuzz4All: Universal fuzzing with large language models. In Proceedings of the IEEE/ACM International Conference on Software Engineering (ICSE) , 2024. Xu, K., Zhang, G. L., Yin, X., Zhuo, C., Schlichtmann, U., and Li, B. Hlsrewriter: Efficient refactoring and optimization of c/c++ code with llms for high-level syn-thesis. ACM Trans. Des. Autom. Electron. Syst. , July 2025. ISSN 1084-4309. doi: 10.1145/3749986. URL 
+
+https://doi.org/10.1145/3749986 . Just Ac-cepted. Yue, M. A survey of large language model agents for ques-tion answering, 2025. URL https://arxiv.org/ abs/2503.19213 .Zheng, T., Deng, Z., Tsang, H. T., Wang, W., Bai, J., Wang, Z., and Song, Y. From automation to autonomy: A survey on large language models in scientific discovery, 2025. URL https://arxiv.org/abs/2505.13259 .11

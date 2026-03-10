@@ -1,0 +1,2274 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-10T19:33:12.278836+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 114,
+    "deep_cap": 7,
+    "deep_selected": 47,
+    "quick_candidates": 86,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2603.01331v1",
+      "title": "MetaState: Persistent Working Memory for Discrete Diffusion Language Models",
+      "abstract": "Discrete diffusion language models (dLLMs) generate text by iteratively denoising a masked sequence. Compared with autoregressive models, this paradigm naturally supports parallel decoding, bidirectional context, and flexible generation patterns. However, standard dLLMs condition each denoising step only on the current hard-masked sequence, while intermediate continuous representations are discarded after sampling and remasking. We refer to this bottleneck as the \\textbf{Information Island} problem. It leads to redundant recomputation across steps and can degrade cross-step consistency. We address this limitation with \\textbf{MetaState}, a lightweight recurrent augmentation that equips a frozen dLLM backbone with a persistent, fixed-size working memory that remains independent of sequence length. \\textbf{MetaState} consists of three trainable modules: a cross-attention Mixer that reads backbone activations into memory slots, a GRU-style Updater that integrates information across denoising steps, and a cross-attention Injector that feeds the updated memory back into backbone activations. We train these modules with $K$-step unrolling to expose them to multi-step denoising dynamics during fine-tuning. On LLaDA-8B and Dream-7B, \\textbf{MetaState} introduces negligible trainable parameters while keeping the backbone frozen, and it consistently improves accuracy over frozen baselines. These results demonstrate that persistent cross-step memory is an effective mechanism for bridging denoising steps and improving generation quality in discrete diffusion language models.",
+      "authors": [
+        "Kejing Xia",
+        "Mingzhe Li",
+        "Lixuan Wei",
+        "Zhenbang Du",
+        "Xiangchi Yuan",
+        "Qirui Jin",
+        "Wenke Lee"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-02T00:16:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.01331v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Persistent working memory for discrete diffusion language models",
+      "llm_evidence_cn": "离散扩散语言模型的持久工作记忆",
+      "llm_evidence": "离散扩散语言模型的持久工作记忆",
+      "canonical_evidence": "离散扩散语言模型的持久工作记忆",
+      "llm_tldr_en": "Equips discrete diffusion language models with persistent working memory to improve consistency.",
+      "llm_tldr_cn": "为离散扩散语言模型配备持久工作记忆，以提高生成的一致性。",
+      "llm_tldr": "为离散扩散语言模型配备持久工作记忆，以提高生成的一致性。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Diffusion-based Large Language Model",
+      "matched_requirement_id": "req-15",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01549v1",
+      "title": "Pri4R: Learning World Dynamics for Vision-Language-Action Models with Privileged 4D Representation",
+      "abstract": "Humans learn not only how their bodies move, but also how the surrounding world responds to their actions. In contrast, while recent Vision-Language-Action (VLA) models exhibit impressive semantic understanding, they often fail to capture the spatiotemporal dynamics governing physical interaction. In this paper, we introduce Pri4R, a simple yet effective approach that endows VLA models with an implicit understanding of world dynamics by leveraging privileged 4D information during training. Specifically, Pri4R augments VLAs with a lightweight point track head that predicts 3D point tracks. By injecting VLA features into this head to jointly predict future 3D trajectories, the model learns to incorporate evolving scene geometry within its shared representation space, enabling more physically aware context for precise control. Due to its architectural simplicity, Pri4R is compatible with dominant VLA design patterns with minimal changes. During inference, we run the model using the original VLA architecture unchanged; Pri4R adds no extra inputs, outputs, or computational overhead. Across simulation and real-world evaluations, Pri4R significantly improves performance on challenging manipulation tasks, including a +10% gain on LIBERO-Long and a +40% gain on RoboCasa. We further show that 3D point track prediction is an effective supervision target for learning action-world dynamics, and validate our design choices through extensive ablations.",
+      "authors": [
+        "Jisoo Kim",
+        "Jungbin Cho",
+        "Sanghyeok Chu",
+        "Ananya Bal",
+        "Jinhyung Kim",
+        "Gunhee Lee",
+        "Sihaeng Lee",
+        "Seung Hwan Kim",
+        "Bohyung Han",
+        "Hyunmin Lee",
+        "Laszlo A. Jeni",
+        "Seungryong Kim"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "published": "2026-03-02T07:23:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.01549v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Learning world dynamics for Vision-Language-Action models",
+      "llm_evidence_cn": "学习视觉-语言-动作模型的物理世界动力学",
+      "llm_evidence": "学习视觉-语言-动作模型的物理世界动力学",
+      "canonical_evidence": "学习视觉-语言-动作模型的物理世界动力学",
+      "llm_tldr_en": "Endows VLA models with world dynamics understanding using privileged 4D representations.",
+      "llm_tldr_cn": "利用特权4D表示赋予VLA模型对物理世界动力学的理解能力。",
+      "llm_tldr": "利用特权4D表示赋予VLA模型对物理世界动力学的理解能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01766v1",
+      "title": "Neural Implicit Action Fields: From Discrete Waypoints to Continuous Functions for Vision-Language-Action Models",
+      "abstract": "Despite the rapid progress of Vision-Language-Action (VLA) models, the prevailing paradigm of predicting discrete waypoints remains fundamentally misaligned with the intrinsic continuity of physical motion. This discretization imposes rigid sampling rates, lacks high-order differentiability, and introduces quantization artifacts that hinder precise, compliant interaction. We propose Neural Implicit Action Fields (NIAF), a paradigm shift that reformulates action prediction from discrete waypoints to continuous action function regression. By utilizing an MLLM as a hierarchical spectral modulator over a learnable motion prior, NIAF synthesizes infinite-resolution trajectories as continuous-time manifolds. This formulation enables analytical differentiability, allowing for explicit supervision of velocity, acceleration, and jerk to ensure mathematical consistency and physical plausibility. Our approach achieves state-of-the-art results on CALVIN and LIBERO benchmarks across diverse backbones. Furthermore, real-world experiments demonstrate that NIAF enables stable impedance control, bridging the gap between high-level semantic understanding and low-level dynamic execution.",
+      "authors": [
+        "Haoyun Liu",
+        "Jianzhuang Zhao",
+        "Xinyuan Chang",
+        "Tianle Shi",
+        "Chuanzhang Meng",
+        "Jiayuan Tan",
+        "Feng Xiong",
+        "Tong Lin",
+        "Dongjie Huo",
+        "Mu Xu",
+        "SongLin Dong",
+        "Zhiheng Ma",
+        "Yihong Gong",
+        "Sheng Zhong"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-02T11:48:24+00:00",
+      "link": "https://arxiv.org/pdf/2603.01766v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Vision-Language-Action models for continuous action function regression",
+      "llm_evidence_cn": "用于连续动作函数回归的视觉-语言-动作模型",
+      "llm_evidence": "用于连续动作函数回归的视觉-语言-动作模型",
+      "canonical_evidence": "用于连续动作函数回归的视觉-语言-动作模型",
+      "llm_tldr_en": "Proposes NIAF to reformulate VLA action prediction into continuous functions for precise robot control.",
+      "llm_tldr_cn": "提出 NIAF 将 VLA 动作预测重构为连续函数，以实现精确的机器人控制。",
+      "llm_tldr": "提出 NIAF 将 VLA 动作预测重构为连续函数，以实现精确的机器人控制。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.05410v1",
+      "title": "PhysiFlow: Physics-Aware Humanoid Whole-Body VLA via Multi-Brain Latent Flow Matching and Robust Tracking",
+      "abstract": "In the domain of humanoid robot control, the fusion of Vision-Language-Action (VLA) with whole-body control is essential for semantically guided execution of real-world tasks. However, existing methods encounter challenges in terms of low VLA inference efficiency or an absence of effective semantic guidance for whole-body control, resulting in instability in dynamic limb-coordinated tasks. To bridge this gap, we present a semantic-motion intent guided, physics-aware multi-brain VLA framework for humanoid whole-body control. A series of experiments was conducted to evaluate the performance of the proposed framework. The experimental results demonstrated that the framework enabled reliable vision-language-guided full-body coordination for humanoid robots.",
+      "authors": [
+        "Weikai Qin",
+        "Sichen Wu",
+        "Ci Chen",
+        "Mengfan Liu",
+        "Linxi Feng",
+        "Xinru Cui",
+        "Haoqi Han",
+        "Hesheng Wang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-05T17:33:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.05410v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "physics-aware humanoid whole-body VLA framework",
+      "llm_evidence_cn": "物理感知的类人机器人全身VLA框架",
+      "llm_evidence": "物理感知的类人机器人全身VLA框架",
+      "canonical_evidence": "物理感知的类人机器人全身VLA框架",
+      "llm_tldr_en": "PhysiFlow integrates VLA with whole-body control for semantically guided humanoid robot task execution.",
+      "llm_tldr_cn": "PhysiFlow将VLA与全身控制结合，实现了语义引导的类人机器人任务执行。",
+      "llm_tldr": "PhysiFlow将VLA与全身控制结合，实现了语义引导的类人机器人任务执行。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07545v1",
+      "title": "DreamSAC: Learning Hamiltonian World Models via Symmetry Exploration",
+      "abstract": "Learned world models excel at interpolative generalization but fail at extrapolative generalization to novel physical properties. This limitation arises because they learn statistical correlations rather than the environment's underlying generative rules, such as physical invariances and conservation laws. We argue that learning these invariances is key to robust extrapolation. To achieve this, we first introduce \\textbf{Symmetry Exploration}, an unsupervised exploration strategy where an agent is intrinsically motivated by a Hamiltonian-based curiosity bonus to actively probe and challenge its understanding of conservation laws, thereby collecting physically informative data. Second, we design a Hamiltonian-based world model that learns from the collected data, using a novel self-supervised contrastive objective to identify the invariant physical state from raw, view-dependent pixel observations. Our framework, \\textbf{DreamSAC}, trained on this actively curated data, significantly outperforms state-of-the-art baselines in 3D physics simulations on tasks requiring extrapolation.",
+      "authors": [
+        "Jinzhou Tang",
+        "Fan Feng",
+        "Minghao Fu",
+        "Wenjun Lin",
+        "Biwei Huang",
+        "Keze Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-08T09:09:57+00:00",
+      "link": "https://arxiv.org/pdf/2603.07545v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Hamiltonian world models for physical properties and conservation laws",
+      "llm_evidence_cn": "用于物理属性和守恒定律的哈密顿世界模型",
+      "llm_evidence": "用于物理属性和守恒定律的哈密顿世界模型",
+      "canonical_evidence": "用于物理属性和守恒定律的哈密顿世界模型",
+      "llm_tldr_en": "Introduces DreamSAC to learn Hamiltonian world models that improve physical causality and extrapolation.",
+      "llm_tldr_cn": "引入 DreamSAC 学习哈密顿世界模型，提升了物理因果理解和外推泛化能力。",
+      "llm_tldr": "引入 DreamSAC 学习哈密顿世界模型，提升了物理因果理解和外推泛化能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do world models improve physical causality understanding in AI?",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08361v1",
+      "title": "$Δ$VLA: Prior-Guided Vision-Language-Action Models via World Knowledge Variation",
+      "abstract": "Recent vision-language-action (VLA) models have significantly advanced robotic manipulation by unifying perception, reasoning, and control. To achieve such integration, recent studies adopt a predictive paradigm that models future visual states or world knowledge to guide action generation. However, these models emphasize forecasting outcomes rather than reasoning about the underlying process of change, which is essential for determining how to act. To address this, we propose $Δ$VLA, a prior-guided framework that models world-knowledge variations relative to an explicit current-world knowledge prior for action generation, rather than regressing absolute future world states. Specifically, 1) to construct the current world knowledge prior, we propose the Prior-Guided WorldKnowledge Extractor (PWKE). It extracts manipulable regions, spatial relations, and semantic cues from the visual input, guided by auxiliary heads and prior pseudo labels, thus reducing redundancy. 2) Building upon this, to represent how world knowledge evolves under actions, we introduce the Latent World Variation Quantization (LWVQ). It learns a discrete latent space via a VQ-VAE objective to encode world knowledge variations, shifting prediction from full modalities to compact latent. 3)Moreover, to mitigate interference during variation modeling, we design the Conditional Variation Attention (CV-Atten), whichpromotes disentangled learning and preserves the independence of knowledge representations. Extensive experiments on both simulated benchmarks and real-world robotic tasks demonstrate $Δ$VLA achieves state-of-the-art performance while improving efficiency. Code and real-world execution videos are available at https://github.com/JiuTian-VL/DeltaVLA.",
+      "authors": [
+        "Yijie Zhu",
+        "Jie He",
+        "Rui Shao",
+        "Kaishen Yuan",
+        "Tao Tan",
+        "Xiaochen Yuan",
+        "Zitong Yu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-09T13:26:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.08361v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Vision-Language-Action (VLA) models for robotic manipulation and control",
+      "llm_evidence_cn": "用于机器人操作和控制的视觉-语言-动作 (VLA) 模型",
+      "llm_evidence": "用于机器人操作和控制的视觉-语言-动作 (VLA) 模型",
+      "canonical_evidence": "用于机器人操作和控制的视觉-语言-动作 (VLA) 模型",
+      "llm_tldr_en": "Proposes Delta-VLA, a framework using world-knowledge variations to improve robotic action generation.",
+      "llm_tldr_cn": "提出 Delta-VLA 框架，通过建模世界知识变化来优化机器人的动作生成。",
+      "llm_tldr": "提出 Delta-VLA 框架，通过建模世界知识变化来优化机器人的动作生成。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08519v1",
+      "title": "AtomVLA: Scalable Post-Training for Robotic Manipulation via Predictive Latent World Models",
+      "abstract": "Vision-Language-Action (VLA) models demonstrate remarkable potential for generalizable robotic manipulation. The execution of complex multi-step behaviors in VLA models can be improved by robust instruction grounding, a critical component for effective control. However, current paradigms predominantly rely on coarse, high-level task instructions during supervised fine-tuning. This instruction grounding gap leaves models without explicit intermediate guidance, leading to severe compounding errors in long-horizon tasks. Therefore, bridging this instruction gap and providing scalable post-training for VLA models is urgent. To tackle this problem, we propose \\method, the first subtask-aware VLA framework integrated with a scalable offline post-training pipeline. Our framework leverages a large language model to decompose high-level demonstrations into fine-grained atomic subtasks. This approach utilizes a pretrained predictive world model to score candidate action chunks against subtask goals in the latent space, mitigating error accumulation while significantly improving long-horizon robustness. Furthermore, this approach enables highly efficient Group Relative Policy Optimization without the prohibitive expenses associated with online rollouts on physical robots. Extensive simulations validate that our AtomVLA maintains strong robustness under perturbations. When evaluated against fundamental baseline models, it achieves an average success rate of 97.0\\% on the LIBERO benchmark and 48.0\\% on the LIBERO-PRO benchmark. Finally, experiments conducted in the real world using the Galaxea R1 Lite platform confirm its broad applicability across diverse tasks, especially long-horizon tasks. All datasets, checkpoints, and code will be released to the public domain following the acceptance of this work for future research.",
+      "authors": [
+        "Xiaoquan Sun",
+        "Zetian Xu",
+        "Chen Cao",
+        "Zonghe Liu",
+        "Yihan Sun",
+        "Jingrui Pang",
+        "Ruijian Zhang",
+        "Zhen Yang",
+        "Kang Pang",
+        "Dingxin He",
+        "Mingqi Yuan",
+        "Jiayu Chen"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-09T15:52:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.08519v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Vision-Language-Action models and latent world models for robotic manipulation",
+      "llm_evidence_cn": "用于机器人操作的视觉-语言-动作模型和潜世界模型",
+      "llm_evidence": "用于机器人操作的视觉-语言-动作模型和潜世界模型",
+      "canonical_evidence": "用于机器人操作的视觉-语言-动作模型和潜世界模型",
+      "llm_tldr_en": "Proposes AtomVLA, a subtask-aware framework for scalable post-training of robotic manipulation models.",
+      "llm_tldr_cn": "提出 AtomVLA 框架，通过子任务感知和世界模型提升机器人操作模型的指令对齐与执行能力。",
+      "llm_tldr": "提出 AtomVLA 框架，通过子任务感知和世界模型提升机器人操作模型的指令对齐与执行能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01335v1",
+      "title": "Provable and Practical In-Context Policy Optimization for Self-Improvement",
+      "abstract": "We study test-time scaling, where a model improves its answer through multi-round self-reflection at inference. We introduce In-Context Policy Optimization (ICPO), in which an agent optimizes its response in context using self-assessed or externally observed rewards without modifying its parameters. To explain this ICPO process, we theoretically show that with sufficient pretraining under a novel Fisher-weighted logit-matching objective, a single-layer linear self-attention model can provably imitate policy-optimization algorithm for linear bandits. Building on this theory, we propose Minimum-Entropy ICPO (ME-ICPO), a practical algorithm that iteratively uses its response and self-assessed reward to refine its response in-context at inference time. By selecting the responses and their rewards with minimum entropy, ME-ICPO ensures the robustness of the self-assessed rewards via majority voting. Across standard mathematical reasoning tasks, ME-ICPO attains competitive, top-tier performance while keeping inference costs affordable compared with other inference-time algorithms. Overall, ICPO provides a principled understanding of self-reflection in LLMs and yields practical benefits for test-time scaling for mathematical reasoning.",
+      "authors": [
+        "Tianrun Yu",
+        "Yuxiao Yang",
+        "Zhaoyang Wang",
+        "Kaixiang Zhao",
+        "Porter Jenkins",
+        "Xuchao Zhang",
+        "Chetan Bansal",
+        "Huaxiu Yao",
+        "Weitong Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T00:21:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.01335v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "self-improvement through in-context policy optimization",
+      "llm_evidence_cn": "通过上下文策略优化实现自我改进",
+      "llm_evidence": "通过上下文策略优化实现自我改进",
+      "canonical_evidence": "通过上下文策略优化实现自我改进",
+      "llm_tldr_en": "Proposes a method for agents to optimize responses in-context using self-assessed rewards at inference time.",
+      "llm_tldr_cn": "提出一种让智能体在推理时利用自我评估奖励进行上下文策略优化的自我改进方法。",
+      "llm_tldr": "提出一种让智能体在推理时利用自我评估奖励进行上下文策略优化的自我改进方法。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01441v1",
+      "title": "Unifying Language-Action Understanding and Generation for Autonomous Driving",
+      "abstract": "Vision-Language-Action (VLA) models are emerging as a promising paradigm for end-to-end autonomous driving, valued for their potential to leverage world knowledge and reason about complex driving scenes. However, existing methods suffer from two critical limitations: a persistent misalignment between language instructions and action outputs, and the inherent inefficiency of typical auto-regressive action generation. In this paper, we introduce LinkVLA, a novel architecture that directly addresses these challenges to enhance both alignment and efficiency. First, we establish a structural link by unifying language and action tokens into a shared discrete codebook, processed within a single multi-modal model. This structurally enforces cross-modal consistency from the ground up. Second, to create a deep semantic link, we introduce an auxiliary action understanding objective that trains the model to generate descriptive captions from trajectories, fostering a bidirectional language-action mapping. Finally, we replace the slow, step-by-step generation with a two-step coarse-to-fine generation method C2F that efficiently decodes the action sequence, saving 86% inference time. Experiments on closed-loop driving benchmarks show consistent gains in instruction following accuracy and driving performance, alongside reduced inference latency.",
+      "authors": [
+        "Xinyang Wang",
+        "Qian Liu",
+        "Wenjie Ding",
+        "Zhao Yang",
+        "Wei Li",
+        "Chang Liu",
+        "Bailin Li",
+        "Kun Zhan",
+        "Xianpeng Lang",
+        "Wei Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-03-02T04:41:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.01441v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "unifying language-action for autonomous driving VLA",
+      "llm_evidence_cn": "统一自动驾驶VLA的语言与动作",
+      "llm_evidence": "统一自动驾驶VLA的语言与动作",
+      "canonical_evidence": "统一自动驾驶VLA的语言与动作",
+      "llm_tldr_en": "Introduces LinkVLA to align language instructions with action outputs for efficient autonomous driving.",
+      "llm_tldr_cn": "引入LinkVLA，将语言指令与动作输出对齐，实现高效自动驾驶。",
+      "llm_tldr": "引入LinkVLA，将语言指令与动作输出对齐，实现高效自动驾驶。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01469v1",
+      "title": "Mean-Flow based One-Step Vision-Language-Action",
+      "abstract": "Recent advances in FlowMatching-based Vision-Language-Action (VLA) frameworks have demonstrated remarkable advantages in generating high-frequency action chunks, particularly for highly dexterous robotic manipulation tasks. Despite these notable achievements, their practical applications are constrained by prolonged generation latency, which stems from inherent iterative sampling requirements and architectural limitations. To address this critical bottleneck, we propose a Mean-Flow based One-Step VLA approach. Specifically, we resolve the noise-induced issues in the action generation process, thereby eliminating the consistency constraints inherent to conventional Flow-Matching methods. This significantly enhances generation efficiency and enables one-step action generation. Real-world robotic experiments show that the generation speed of the proposed Mean-Flow based One-Step VLA is 8.7 times and 83.9 times faster than that of SmolVLA and Diffusion Policy, respectively. These results elucidate its great potential as a high-efficiency backbone for VLA-based robotic manipulation.",
+      "authors": [
+        "Yang Chen",
+        "Xiaoguang Ma",
+        "Bin Zhao"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T05:30:30+00:00",
+      "link": "https://arxiv.org/pdf/2603.01469v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Mean-Flow based One-Step Vision-Language-Action approach",
+      "llm_evidence_cn": "基于均值流的一步式视觉-语言-动作方法",
+      "llm_evidence": "基于均值流的一步式视觉-语言-动作方法",
+      "canonical_evidence": "基于均值流的一步式视觉-语言-动作方法",
+      "llm_tldr_en": "Proposes a one-step VLA approach to reduce generation latency in robotic manipulation tasks.",
+      "llm_tldr_cn": "提出一种一步式VLA方法，旨在降低机器人操作任务中的生成延迟。",
+      "llm_tldr": "提出一种一步式VLA方法，旨在降低机器人操作任务中的生成延迟。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01490v1",
+      "title": "ATA: Bridging Implicit Reasoning with Attention-Guided and Action-Guided Inference for Vision-Language Action Models",
+      "abstract": "Vision-Language-Action (VLA) models rely on current observations, including images, language instructions, and robot states, to predict actions and complete tasks. While accurate visual perception is crucial for precise action prediction and execution, recent work has attempted to further improve performance by introducing explicit reasoning during inference. However, such approaches face significant limitations. They often depend on data-intensive resources such as Chain-of-Thought (CoT) style annotations to decompose tasks into step-by-step reasoning, and in many cases require additional visual grounding annotations (e.g., bounding boxes or masks) to highlight relevant image regions. Moreover, they involve time-consuming dataset construction, labeling, and retraining, which ultimately results in longer inference sequences and reduced efficiency. To address these challenges, we propose ATA, a novel training-free framework that introduces implicit reasoning into VLA inference through complementary attention-guided and action-guided strategies. Unlike CoT or explicit visual-grounding methods, ATA formulates reasoning implicitly by integrating attention maps with an action-based region of interest (RoI), thereby adaptively refining visual inputs without requiring extra training or annotations. ATA is a plug-and-play implicit reasoning approach for VLA models, lightweight yet effective. Extensive experiments show that it consistently improves task success and robustness while preserving, and even enhancing, inference efficiency.",
+      "authors": [
+        "Cheng Yang",
+        "Jianhao Jiao",
+        "Lingyi Huang",
+        "Jinqi Xiao",
+        "Zhexiang Tang",
+        "Yu Gong",
+        "Yibiao Ying",
+        "Yang Sui",
+        "Jintian Lin",
+        "Wen Huang",
+        "Bo Yuan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T05:56:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.01490v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Inference reasoning for Vision-Language-Action models in robot tasks",
+      "llm_evidence_cn": "机器人任务中视觉-语言-动作模型的推理过程",
+      "llm_evidence": "机器人任务中视觉-语言-动作模型的推理过程",
+      "canonical_evidence": "机器人任务中视觉-语言-动作模型的推理过程",
+      "llm_tldr_en": "Improves VLA models by bridging implicit reasoning with attention and action-guided inference.",
+      "llm_tldr_cn": "通过将隐式推理与注意力和动作引导的推理相结合，提升了 VLA 模型的性能。",
+      "llm_tldr": "通过将隐式推理与注意力和动作引导的推理相结合，提升了 VLA 模型的性能。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01822v1",
+      "title": "Emerging Human-like Strategies for Semantic Memory Foraging in Large Language Models",
+      "abstract": "Both humans and Large Language Models (LLMs) store a vast repository of semantic memories. In humans, efficient and strategic access to this memory store is a critical foundation for a variety of cognitive functions. Such access has long been a focus of psychology and the computational mechanisms behind it are now well characterized. Much of this understanding has been gleaned from a widely-used neuropsychological and cognitive science assessment called the Semantic Fluency Task (SFT), which requires the generation of as many semantically constrained concepts as possible. Our goal is to apply mechanistic interpretability techniques to bring greater rigor to the study of semantic memory foraging in LLMs. To this end, we present preliminary results examining SFT as a case study. A central focus is on convergent and divergent patterns of generative memory search, which in humans play complementary strategic roles in efficient memory foraging. We show that these same behavioral signatures, critical to human performance on the SFT, also emerge as identifiable patterns in LLMs across distinct layers. Potentially, this analysis provides new insights into how LLMs may be adapted into closer cognitive alignment with humans, or alternatively, guided toward productive cognitive \\emph{disalignment} to enhance complementary strengths in human-AI interaction.",
+      "authors": [
+        "Eric Lacosse",
+        "Mariana Duarte",
+        "Peter M. Todd",
+        "Daniel C. McNamee"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-02T12:55:51+00:00",
+      "link": "https://arxiv.org/pdf/2603.01822v1",
+      "tags": [
+        "keyword:PR EF",
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Mechanisms for semantic memory foraging in Large Language Models",
+      "llm_evidence_cn": "大语言模型中的语义记忆搜索机制",
+      "llm_evidence": "大语言模型中的语义记忆搜索机制",
+      "canonical_evidence": "大语言模型中的语义记忆搜索机制",
+      "llm_tldr_en": "Applies psychological techniques to study how LLMs access and forage through their semantic memory.",
+      "llm_tldr_cn": "应用心理学技术研究大语言模型如何访问和搜索其内部的语义记忆。",
+      "llm_tldr": "应用心理学技术研究大语言模型如何访问和搜索其内部的语义记忆。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the mechanisms for long term memory in AI agents?",
+      "matched_requirement_id": "req-31",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01952v1",
+      "title": "LiveCultureBench: a Multi-Agent, Multi-Cultural Benchmark for Large Language Models in Dynamic Social Simulations",
+      "abstract": "Large language models (LLMs) are increasingly deployed as autonomous agents, yet evaluations focus primarily on task success rather than cultural appropriateness or evaluator reliability. We introduce LiveCultureBench, a multi-cultural, dynamic benchmark that embeds LLMs as agents in a simulated town and evaluates them on both task completion and adherence to socio-cultural norms. The simulation models a small city as a location graph with synthetic residents having diverse demographic and cultural profiles. Each episode assigns one resident a daily goal while others provide social context. An LLM-based verifier generates structured judgments on norm violations and task progress, which we aggregate into metrics capturing task-norm trade-offs and verifier uncertainty. Using LiveCultureBench across models and cultural profiles, we study (i) cross-cultural robustness of LLM agents, (ii) how they balance effectiveness against norm sensitivity, and (iii) when LLM-as-a-judge evaluation is reliable for automated benchmarking versus when human oversight is needed.",
+      "authors": [
+        "Viet-Thanh Pham",
+        "Lizhen Qu",
+        "Thuy-Trang Vu",
+        "Gholamreza Haffari",
+        "Dinh Phung"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-02T15:04:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.01952v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent benchmark for LLMs in dynamic social simulations",
+      "llm_evidence_cn": "动态社会模拟中大语言模型的多智能体基准",
+      "llm_evidence": "动态社会模拟中大语言模型的多智能体基准",
+      "canonical_evidence": "动态社会模拟中大语言模型的多智能体基准",
+      "llm_tldr_en": "Introduces LiveCultureBench to evaluate multi-agent LLMs on task success and socio-cultural norms.",
+      "llm_tldr_cn": "引入 LiveCultureBench，在任务成功和社会文化规范方面评估多智能体 LLM。",
+      "llm_tldr": "引入 LiveCultureBench，在任务成功和社会文化规范方面评估多智能体 LLM。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-29",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01966v1",
+      "title": "AMemGym: Interactive Memory Benchmarking for Assistants in Long-Horizon Conversations",
+      "abstract": "Long-horizon interactions between users and LLM-based assistants necessitate effective memory management, yet current approaches face challenges in training and evaluation of memory. Existing memory benchmarks rely on static, off-policy data as context, limiting evaluation reliability and scalability. To address these gaps, we introduce AMemGym, an interactive environment enabling on-policy evaluation and optimization for memory-driven personalization. AMemGym employs structured data sampling to predefine user profiles, state-dependent questions, and state evolution trajectories, enabling cost-effective generation of high-quality, evaluation-aligned interactions. LLM-simulated users expose latent states through role-play while maintaining structured state consistency. Comprehensive metrics based on structured data guide both assessment and optimization of assistants. Extensive experiments reveal performance gaps in existing memory systems (e.g., RAG, long-context LLMs, and agentic memory) and corresponding reasons. AMemGym not only enables effective selection among competing approaches but also can potentially drive the self-evolution of memory management strategies. By bridging structured state evolution with free-form interactions, our framework provides a scalable, diagnostically rich environment for advancing memory capabilities in conversational agents.",
+      "authors": [
+        "Cheng Jiayang",
+        "Dongyu Ru",
+        "Lin Qiu",
+        "Yiyang Li",
+        "Xuezhi Cao",
+        "Yangqiu Song",
+        "Xunliang Cai"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T15:15:11+00:00",
+      "link": "https://arxiv.org/pdf/2603.01966v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Interactive memory benchmarking for LLM-based assistants in long-horizon conversations",
+      "llm_evidence_cn": "长程对话中基于大语言模型助手的交互式记忆基准测试",
+      "llm_evidence": "长程对话中基于大语言模型助手的交互式记忆基准测试",
+      "canonical_evidence": "长程对话中基于大语言模型助手的交互式记忆基准测试",
+      "llm_tldr_en": "AMemGym provides an interactive environment to evaluate and optimize memory management in long-term AI interactions.",
+      "llm_tldr_cn": "AMemGym 提供了一个交互式环境，用于评估和优化人工智能长期交互中的记忆管理。",
+      "llm_tldr": "AMemGym 提供了一个交互式环境，用于评估和优化人工智能长期交互中的记忆管理。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the mechanisms for long term memory in AI agents?",
+      "matched_requirement_id": "req-31",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02045v1",
+      "title": "Expanding LLM Agent Boundaries with Strategy-Guided Exploration",
+      "abstract": "Reinforcement learning (RL) has demonstrated notable success in post-training large language models (LLMs) as agents for tasks such as computer use, tool calling, and coding. However, exploration remains a central challenge in RL for LLM agents, especially as they operate in language-action spaces with complex observations and sparse outcome rewards. In this work, we address exploration for LLM agents by leveraging the ability of LLMs to plan and reason in language about the environment to shift exploration from low-level actions to higher-level language strategies. We thus propose Strategy-Guided Exploration (SGE), which first generates a concise natural-language strategy that describes what to do to make progress toward the goal, and then generates environment actions conditioned on that strategy. By exploring in the space of strategies rather than the space of actions, SGE induces structured and diverse exploration that targets different environment outcomes. To increase strategy diversity during RL, SGE introduces mixed-temperature sampling, which explores diverse strategies in parallel, along with a strategy reflection process that grounds strategy generation on the outcomes of previous strategies in the environment. Across UI interaction, tool-calling, coding, and embodied agent environments, SGE consistently outperforms exploration-focused RL baselines, improving both learning efficiency and final performance. We show that SGE enables the agent to learn to solve tasks too difficult for the base model.",
+      "authors": [
+        "Andrew Szot",
+        "Michael Kirchhof",
+        "Omar Attia",
+        "Alexander Toshev"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-02T16:28:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.02045v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "strategy-guided exploration for LLM agents using reinforcement learning",
+      "llm_evidence_cn": "通过强化学习为大语言模型智能体提供策略引导的探索",
+      "llm_evidence": "通过强化学习为大语言模型智能体提供策略引导的探索",
+      "canonical_evidence": "通过强化学习为大语言模型智能体提供策略引导的探索",
+      "llm_tldr_en": "Proposes Strategy-Guided Exploration to improve LLM agent planning and reasoning in complex environments.",
+      "llm_tldr_cn": "提出策略引导探索方法，通过高层语言策略提升大语言模型智能体在复杂环境中的规划与推理能力。",
+      "llm_tldr": "提出策略引导探索方法，通过高层语言策略提升大语言模型智能体在复杂环境中的规划与推理能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02091v1",
+      "title": "Learning from Synthetic Data Improves Multi-hop Reasoning",
+      "abstract": "Reinforcement Learning (RL) has been shown to significantly boost reasoning capabilities of large language models (LLMs) in math, coding, and multi-hop reasoning tasks. However, RL fine-tuning requires abundant high-quality verifiable data, often sourced from human annotations, generated from frontier LLMs, or scored by LLM-based verifiers. All three have considerable limitations: human-annotated datasets are small and expensive to curate, LLM-generated data is hallucination-prone and costly, and LLM-based verifiers are inaccurate and slow. In this work, we investigate a cheaper alternative: RL fine-tuning on rule-generated synthetic data for multi-hop reasoning tasks. We discover that LLMs fine-tuned on synthetic data perform significantly better on popular real-world question-answering benchmarks, despite the synthetic data containing only fictional knowledge. On stratifying performance by question difficulty, we find that synthetic data teaches LLMs to compose knowledge -- a fundamental and generalizable reasoning skill. Our work highlights rule-generated synthetic reasoning data as a free and scalable resource to improve LLM reasoning capabilities.",
+      "authors": [
+        "Anmol Kabra",
+        "Yilun Yin",
+        "Albert Gong",
+        "Kamilė Stankevičiūtė",
+        "Dongyoung Go",
+        "Johann Lee",
+        "Katie Z. Luo",
+        "Carla P. Gomes",
+        "Kilian Q. Weinberger"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-02T17:08:43+00:00",
+      "link": "https://arxiv.org/pdf/2603.02091v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "RL fine-tuning on rule-generated synthetic data for reasoning",
+      "llm_evidence_cn": "利用规则生成的合成数据进行强化学习微调以提升推理能力",
+      "llm_evidence": "利用规则生成的合成数据进行强化学习微调以提升推理能力",
+      "canonical_evidence": "利用规则生成的合成数据进行强化学习微调以提升推理能力",
+      "llm_tldr_en": "Uses synthetic data and RL to improve LLM multi-hop reasoning without expensive human labels.",
+      "llm_tldr_cn": "利用合成数据和强化学习提升大模型的逻辑推理能力，无需昂贵的人工标注。",
+      "llm_tldr": "利用合成数据和强化学习提升大模型的逻辑推理能力，无需昂贵的人工标注。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02154v1",
+      "title": "Boltzmann-based Exploration for Robust Decentralized Multi-Agent Planning",
+      "abstract": "Decentralized Monte Carlo Tree Search (Dec-MCTS) is widely used for cooperative multi-agent planning but struggles in sparse or skewed reward environments. We introduce Coordinated Boltzmann MCTS (CB-MCTS), which replaces deterministic UCT with a stochastic Boltzmann policy and a decaying entropy bonus for sustained yet focused exploration. While Boltzmann exploration has been studied in single-agent MCTS, applying it in multi-agent systems poses unique challenges. CB-MCTS is the first to address this. We analyze CB-MCTS in the simple-regret setting and show in simulations that it outperforms Dec-MCTS in deceptive scenarios and remains competitive on standard benchmarks, providing a robust solution for multi-agent planning.",
+      "authors": [
+        "Nhat Nguyen",
+        "Duong Nguyen",
+        "Gianluca Rizzo",
+        "Hung Nguyen"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T18:15:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.02154v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Decentralized multi-agent planning and coordination using Boltzmann MCTS",
+      "llm_evidence_cn": "使用 Boltzmann MCTS 的去中心化多智能体规划与协作",
+      "llm_evidence": "使用 Boltzmann MCTS 的去中心化多智能体规划与协作",
+      "canonical_evidence": "使用 Boltzmann MCTS 的去中心化多智能体规划与协作",
+      "llm_tldr_en": "Introduces CB-MCTS for robust decentralized multi-agent planning in deceptive or sparse reward environments.",
+      "llm_tldr_cn": "引入 CB-MCTS，在奖励稀疏或具有欺骗性的环境中实现鲁棒的去中心化多智能体规划。",
+      "llm_tldr": "引入 CB-MCTS，在奖励稀疏或具有欺骗性的环境中实现鲁棒的去中心化多智能体规划。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-29",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02601v1",
+      "title": "AgentAssay: Token-Efficient Regression Testing for Non-Deterministic AI Agent Workflows",
+      "abstract": "Autonomous AI agents are deployed at unprecedented scale, yet no principled methodology exists for   verifying that an agent has not regressed after changes to its prompts, tools, models, or   orchestration logic. We present AgentAssay, the first token-efficient framework for regression   testing non-deterministic AI agent workflows, achieving 78-100% cost reduction while maintaining   rigorous statistical guarantees. Our contributions include: (1) stochastic three-valued verdicts   (PASS/FAIL/INCONCLUSIVE) grounded in hypothesis testing; (2) five-dimensional agent coverage metrics;   (3) agent-specific mutation testing operators; (4) metamorphic relations for agent workflows; (5)   CI/CD deployment gates as statistical decision procedures; (6) behavioral fingerprinting that maps   execution traces to compact vectors, enabling multivariate regression detection; (7) adaptive budget   optimization calibrating trial counts to behavioral variance; and (8) trace-first offline analysis   enabling zero-cost testing on production traces. Experiments across 5 models (GPT-5.2, Claude Sonnet   4.6, Mistral-Large-3, Llama-4-Maverick, Phi-4), 3 scenarios, and 7,605 trials demonstrate that   behavioral fingerprinting achieves 86% detection power where binary testing has 0%, SPRT reduces   trials by 78%, and the full pipeline achieves 100% cost savings through trace-first analysis.   Implementation: 20,000+ lines of Python, 751 tests, 10 framework adapters.",
+      "authors": [
+        "Varun Pratap Bhardwaj"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-03-03T04:59:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.02601v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "testing and verifying non-deterministic AI agent workflows",
+      "llm_evidence_cn": "测试和验证非确定性 AI 智能体工作流",
+      "llm_evidence": "测试和验证非确定性 AI 智能体工作流",
+      "canonical_evidence": "测试和验证非确定性 AI 智能体工作流",
+      "llm_tldr_en": "A framework for regression testing and verifying complex AI agent orchestration logic.",
+      "llm_tldr_cn": "一种用于回归测试和验证复杂 AI 智能体编排逻辑的框架。",
+      "llm_tldr": "一种用于回归测试和验证复杂 AI 智能体编排逻辑的框架。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Multi-agent coordination and agentic workflow orchestration",
+      "matched_requirement_id": "req-17",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02765v1",
+      "title": "Next Embedding Prediction Makes World Models Stronger",
+      "abstract": "Capturing temporal dependencies is critical for model-based reinforcement learning (MBRL) in partially observable, high-dimensional domains. We introduce NE-Dreamer, a decoder-free MBRL agent that leverages a temporal transformer to predict next-step encoder embeddings from latent state sequences, directly optimizing temporal predictive alignment in representation space. This approach enables NE-Dreamer to learn coherent, predictive state representations without reconstruction losses or auxiliary supervision. On the DeepMind Control Suite, NE-Dreamer matches or exceeds the performance of DreamerV3 and leading decoder-free agents. On a challenging subset of DMLab tasks involving memory and spatial reasoning, NE-Dreamer achieves substantial gains. These results establish next-embedding prediction with temporal transformers as an effective, scalable framework for MBRL in complex, partially observable environments.",
+      "authors": [
+        "George Bredis",
+        "Nikita Balagansky",
+        "Daniil Gavrilov",
+        "Ruslan Rakhimov"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-03T09:04:28+00:00",
+      "link": "https://arxiv.org/pdf/2603.02765v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "world models and temporal predictive alignment in representation space",
+      "llm_evidence_cn": "世界模型与表示空间中的时间预测对齐",
+      "llm_evidence": "世界模型与表示空间中的时间预测对齐",
+      "canonical_evidence": "世界模型与表示空间中的时间预测对齐",
+      "llm_tldr_en": "Introduces NE-Dreamer, a world model agent that improves temporal reasoning and spatial memory in RL.",
+      "llm_tldr_cn": "引入NE-Dreamer，一种通过预测嵌入增强时间推理与空间记忆的世界模型智能体。",
+      "llm_tldr": "引入NE-Dreamer，一种通过预测嵌入增强时间推理与空间记忆的世界模型智能体。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do world models improve physical causality understanding in AI?",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02772v1",
+      "title": "Agentic Self-Evolutionary Replanning for Embodied Navigation",
+      "abstract": "Failure is inevitable for embodied navigation in complex environments. To enhance the resilience, replanning (RP) is a viable option, where the robot is allowed to fail, but is capable of adjusting plan until success. However, existing RP approaches freeze the ego action model and miss the opportunities to explore better plans by upgrading the robot itself. To address this limitation, we propose Self-Evolutionary RePlanning, or SERP for short, which leads to a paradigm shift from frozen models towards evolving models by run-time learning from recent experiences. In contrast to existing model evolution approaches that often get stuck at predefined static parameters, we introduce agentic self-evolving action model that uses in-context learning with auto-differentiation (ILAD) for adaptive function adjustment and global parameter reset. To achieve token-efficient replanning for SERP, we also propose graph chain-of-thought (GCOT) replanning with large language model (LLM) inference over distilled graphs. Extensive simulation and real-world experiments demonstrate that SERP achieves higher success rate with lower token expenditure over various benchmarks, validating its superior robustness and efficiency across diverse environments.",
+      "authors": [
+        "Guoliang Li",
+        "Ruihua Han",
+        "Chengyang Li",
+        "He Li",
+        "Shuai Wang",
+        "Wenchao Ding",
+        "Hong Zhang",
+        "Chengzhong Xu"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-03T09:12:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.02772v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Agentic self-evolutionary replanning for embodied navigation using in-context learning",
+      "llm_evidence_cn": "利用上下文学习进行具身导航的智能体自我进化重规划",
+      "llm_evidence": "利用上下文学习进行具身导航的智能体自我进化重规划",
+      "canonical_evidence": "利用上下文学习进行具身导航的智能体自我进化重规划",
+      "llm_tldr_en": "SERP enables embodied robots to evolve their action models through run-time learning from experiences.",
+      "llm_tldr_cn": "SERP 使具身机器人能够通过对经验的运行时学习来进化其动作模型。",
+      "llm_tldr": "SERP 使具身机器人能够通过对经验的运行时学习来进化其动作模型。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do autonomous agents evolve from large language models?",
+      "matched_requirement_id": "req-28",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03018v1",
+      "title": "REGAL: A Registry-Driven Architecture for Deterministic Grounding of Agentic AI in Enterprise Telemetry",
+      "abstract": "Enterprise engineering organizations produce high-volume, heterogeneous telemetry from version control systems, CI/CD pipelines, issue trackers, and observability platforms. Large Language Models (LLMs) enable new forms of agentic automation, but grounding such agents on private telemetry raises three practical challenges: limited model context, locally defined semantic concepts, and evolving metric interfaces.   We present REGAL, a registry-driven architecture for deterministic grounding of agentic AI systems in enterprise telemetry. REGAL adopts an explicitly architectural approach: deterministic telemetry computation is treated as a first-class primitive, and LLMs operate over a bounded, version-controlled action space rather than raw event streams.   The architecture combines (1) a Medallion ELT pipeline that produces replayable, semantically compressed Gold artifacts, and (2) a registry-driven compilation layer that synthesizes Model Context Protocol (MCP) tools from declarative metric definitions. The registry functions as an \"interface-as-code\" layer, ensuring alignment between tool specification and execution, mitigating tool drift, and embedding governance policies directly at the semantic boundary.   A prototype implementation and case study validate the feasibility of deterministic grounding and illustrate its implications for latency, token efficiency, and operational governance. This work systematizes an architectural pattern for enterprise LLM grounding; it does not propose new learning algorithms, but rather elevates deterministic computation and semantic compilation to first-class design primitives for agentic systems.",
+      "authors": [
+        "Yuvraj Agrawal"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-03-03T14:13:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.03018v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "agentic automation and grounding in enterprise telemetry",
+      "llm_evidence_cn": "企业遥测中的智能体自动化与接地",
+      "llm_evidence": "企业遥测中的智能体自动化与接地",
+      "canonical_evidence": "企业遥测中的智能体自动化与接地",
+      "llm_tldr_en": "Presents REGAL, an architecture for grounding agentic AI in enterprise telemetry for deterministic automation.",
+      "llm_tldr_cn": "提出REGAL架构，通过企业遥测数据实现智能体AI的确定性接地与自动化。",
+      "llm_tldr": "提出REGAL架构，通过企业遥测数据实现智能体AI的确定性接地与自动化。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Cross-application automated workflows and agent orchestration",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03078v1",
+      "title": "RAPO: Expanding Exploration for LLM Agents via Retrieval-Augmented Policy Optimization",
+      "abstract": "Agentic Reinforcement Learning (Agentic RL) has shown remarkable potential in large language model-based (LLM) agents. These works can empower LLM agents to tackle complex tasks via multi-step, tool-integrated reasoning. However, an inherent limitation of existing Agentic RL methods is their reliance on a pure on-policy paradigm for exploration, restricting exploration to the agent's self-generated outputs and preventing the discovery of new reasoning perspectives for further improvement. While recent efforts incorporate auxiliary off-policy signals to enhance exploration, they typically utilize full off-policy trajectories for trajectory-level policy estimation, overlooking the necessity for the fine-grained, step-level exploratory dynamics within agentic rollout. In this paper, we revisit exploration in Agentic RL and propose Retrieval-Augmented Policy Optimization (RAPO), a novel RL framework that introduces retrieval to explicitly expand exploration during training. To achieve this, we decompose the Agentic RL training process into two phases: (i) Hybrid-policy Agentic Rollout, and (ii) Retrieval-aware Policy Optimization. Specifically, we propose a Hybrid-policy Agentic Rollout strategy, which allows the agents to continuously reason over the retrieved off-policy step-level traces. It dynamically extends the reasoning receptive field of agents, enabling broader exploration conditioned on external behaviors. Subsequently, we introduce the Retrieval-aware Policy Optimization mechanism, which calibrates the policy gradient estimation with retrieval reward and importance shaping, stabilizing training and prioritizing retrieval-illuminating exploration. Extensive experiments show that RAPO achieves an +5.0% average gain on fourteen datasets across three agentic reasoning tasks, while delivering 1.2x faster training efficiency.",
+      "authors": [
+        "Siwei Zhang",
+        "Yun Xiong",
+        "Xi Chen",
+        "Zi'an Jia",
+        "Renhong Huang",
+        "Jiarong Xu",
+        "Jiawei Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-03T15:23:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.03078v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Expanding exploration for LLM agents via retrieval-augmented policy optimization in RL",
+      "llm_evidence_cn": "通过强化学习中的检索增强策略优化来扩展 LLM 智能体的探索",
+      "llm_evidence": "通过强化学习中的检索增强策略优化来扩展 LLM 智能体的探索",
+      "canonical_evidence": "通过强化学习中的检索增强策略优化来扩展 LLM 智能体的探索",
+      "llm_tldr_en": "RAPO improves LLM agent exploration in complex tasks using retrieval-augmented reinforcement learning.",
+      "llm_tldr_cn": "RAPO 通过检索增强的强化学习提高了 LLM 智能体在复杂任务中的探索能力。",
+      "llm_tldr": "RAPO 通过检索增强的强化学习提高了 LLM 智能体在复杂任务中的探索能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03202v2",
+      "title": "Code2Math: Can Your Code Agent Effectively Evolve Math Problems Through Exploration?",
+      "abstract": "As large language models (LLMs) advance their mathematical capabilities toward the IMO level, the scarcity of challenging, high-quality problems for training and evaluation has become a significant bottleneck. Simultaneously, recent code agents have demonstrated sophisticated skills in agentic coding and reasoning, suggesting that code execution can serve as a scalable environment for mathematical experimentation. In this paper, we investigate the potential of code agents to autonomously evolve existing math problems into more complex variations. We introduce a multi-agent framework designed to perform problem evolution while validating the solvability and increased difficulty of the generated problems. Our experiments demonstrate that, given sufficient test-time exploration, code agents can synthesize new, solvable problems that are structurally distinct from and more challenging than the originals. This work provides empirical evidence that code-driven agents can serve as a viable mechanism for synthesizing high-difficulty mathematical reasoning problems within scalable computational environments. Our data is available at https://github.com/TarferSoul/Code2Math.",
+      "authors": [
+        "Dadi Guo",
+        "Yuejin Xie",
+        "Qingyu Liu",
+        "Jiayu Liu",
+        "Zhiyuan Fan",
+        "Qihan Ren",
+        "Shuai Shao",
+        "Tianyi Zhou",
+        "Dongrui Liu",
+        "Yi R. Fung"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-03T17:55:10+00:00",
+      "link": "https://arxiv.org/pdf/2603.03202v2",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multi-agent framework for autonomous problem evolution and exploration",
+      "llm_evidence_cn": "用于自主问题演化和探索的多智能体框架",
+      "llm_evidence": "用于自主问题演化和探索的多智能体框架",
+      "canonical_evidence": "用于自主问题演化和探索的多智能体框架",
+      "llm_tldr_en": "Explores how code agents can autonomously evolve complex math problems using a multi-agent framework.",
+      "llm_tldr_cn": "探讨了代码智能体如何利用多智能体框架自主演化复杂的数学问题。",
+      "llm_tldr": "探讨了代码智能体如何利用多智能体框架自主演化复杂的数学问题。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Multi agent coordination protocols and collaborative error correction",
+      "matched_requirement_id": "req-26",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03379v1",
+      "title": "MemSifter: Offloading LLM Memory Retrieval via Outcome-Driven Proxy Reasoning",
+      "abstract": "As Large Language Models (LLMs) are increasingly used for long-duration tasks, maintaining effective long-term memory has become a critical challenge. Current methods often face a trade-off between cost and accuracy. Simple storage methods often fail to retrieve relevant information, while complex indexing methods (such as memory graphs) require heavy computation and can cause information loss. Furthermore, relying on the working LLM to process all memories is computationally expensive and slow. To address these limitations, we propose MemSifter, a novel framework that offloads the memory retrieval process to a small-scale proxy model. Instead of increasing the burden on the primary working LLM, MemSifter uses a smaller model to reason about the task before retrieving the necessary information. This approach requires no heavy computation during the indexing phase and adds minimal overhead during inference. To optimize the proxy model, we introduce a memory-specific Reinforcement Learning (RL) training paradigm. We design a task-outcome-oriented reward based on the working LLM's actual performance in completing the task. The reward measures the actual contribution of retrieved memories by mutiple interactions with the working LLM, and discriminates retrieved rankings by stepped decreasing contributions. Additionally, we employ training techniques such as Curriculum Learning and Model Merging to improve performance. We evaluated MemSifter on eight LLM memory benchmarks, including Deep Research tasks. The results demonstrate that our method meets or exceeds the performance of existing state-of-the-art approaches in both retrieval accuracy and final task completion. MemSifter offers an efficient and scalable solution for long-term LLM memory. We have open-sourced the model weights, code, and training data to support further research.",
+      "authors": [
+        "Jiejun Tan",
+        "Zhicheng Dou",
+        "Liancheng Zhang",
+        "Yuyang Hu",
+        "Yiruo Cheng",
+        "Ji-Rong Wen"
+      ],
+      "primary_category": "cs.IR",
+      "categories": [
+        "cs.IR",
+        "cs.AI"
+      ],
+      "published": "2026-03-03T02:57:38+00:00",
+      "link": "https://arxiv.org/pdf/2603.03379v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "offloading memory retrieval to proxy models for long-duration tasks",
+      "llm_evidence_cn": "将长时任务的记忆检索卸载到代理模型",
+      "llm_evidence": "将长时任务的记忆检索卸载到代理模型",
+      "canonical_evidence": "将长时任务的记忆检索卸载到代理模型",
+      "llm_tldr_en": "MemSifter improves LLM long-term memory by offloading retrieval to a small-scale proxy model.",
+      "llm_tldr_cn": "MemSifter通过将检索任务卸载到小型代理模型，提升了LLM的长时记忆能力。",
+      "llm_tldr": "MemSifter通过将检索任务卸载到小型代理模型，提升了LLM的长时记忆能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the mechanisms for long term memory in AI agents?",
+      "matched_requirement_id": "req-31",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03739v1",
+      "title": "PROSPECT: Unified Streaming Vision-Language Navigation via Semantic--Spatial Fusion and Latent Predictive Representation",
+      "abstract": "Multimodal large language models (MLLMs) have advanced zero-shot end-to-end Vision-Language Navigation (VLN), yet robust navigation requires not only semantic understanding but also predictive modeling of environment dynamics and spatial structure. We propose PROSPECT, a unified streaming navigation agent that couples a streaming Vision-Language-Action (VLA) policy with latent predictive representation learning. PROSPECT uses CUT3R as a streaming 3D foundation spatial encoder to produce long-context, absolute-scale spatial features, and fuses them with SigLIP semantic features via cross-attention. During training, we introduce learnable stream query tokens that query the streaming context and predict next-step 2D and 3D latent features (rather than pixels or explicit modalities), supervised in the latent spaces of frozen SigLIP and CUT3R teachers. The predictive branch shapes internal representations without inference overhead. Experiments on VLN-CE benchmarks and real-robot deployment demonstrate state-of-the-art performance and improved long-horizon robustness under diverse lighting. We will release code for the community soon.",
+      "authors": [
+        "Zehua Fan",
+        "Wenqi Lyu",
+        "Wenxuan Song",
+        "Linge Zhao",
+        "Yifei Yang",
+        "Xi Wang",
+        "Junjie He",
+        "Lida Huang",
+        "Haiyan Liu",
+        "Bingchuan Sun",
+        "Guangjun Bao",
+        "Xuanyao Mao",
+        "Liang Xu",
+        "Yan Wang",
+        "Feng Gao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-04T05:19:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.03739v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "streaming Vision-Language-Action (VLA) policy for navigation",
+      "llm_evidence_cn": "用于导航的流式视觉-语言-动作 (VLA) 策略",
+      "llm_evidence": "用于导航的流式视觉-语言-动作 (VLA) 策略",
+      "canonical_evidence": "用于导航的流式视觉-语言-动作 (VLA) 策略",
+      "llm_tldr_en": "PROSPECT is a streaming navigation agent combining VLA policies with latent predictive representations for robust VLN.",
+      "llm_tldr_cn": "PROSPECT是一个流式导航智能体，结合了VLA策略和潜在预测表示以实现稳健的视觉语言导航。",
+      "llm_tldr": "PROSPECT是一个流式导航智能体，结合了VLA策略和潜在预测表示以实现稳健的视觉语言导航。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03944v1",
+      "title": "Spatial Causal Prediction in Video",
+      "abstract": "Spatial reasoning, the ability to understand spatial relations, causality, and dynamic evolution, is central to human intelligence and essential for real-world applications such as autonomous driving and robotics. Existing studies, however, primarily assess models on visible spatio-temporal understanding, overlooking their ability to infer unseen past or future spatial states. In this work, we introduce Spatial Causal Prediction (SCP), a new task paradigm that challenges models to reason beyond observation and predict spatial causal outcomes. We further construct SCP-Bench, a benchmark comprising 2,500 QA pairs across 1,181 videos spanning diverse viewpoints, scenes, and causal directions, to support systematic evaluation. Through comprehensive experiments on {23} state-of-the-art models, we reveal substantial gaps between human and model performance, limited temporal extrapolation, and weak causal grounding. We further analyze key factors influencing performance and propose perception-enhancement and reasoning-guided strategies toward advancing spatial causal intelligence. The project page is https://guangstrip.github.io/SCP-Bench.",
+      "authors": [
+        "Yanguang Zhao",
+        "Jie Yang",
+        "Shengqiong Wu",
+        "Shutong Hu",
+        "Hongbo Qiu",
+        "Yu Wang",
+        "Guijia Zhang",
+        "Tan Kai Ze",
+        "Hao Fei",
+        "Chia-Wen Lin",
+        "Mong-Li Lee",
+        "Wynne Hsu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-04T11:09:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.03944v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "spatial causal prediction and world models",
+      "llm_evidence_cn": "空间因果预测与世界模型",
+      "llm_evidence": "空间因果预测与世界模型",
+      "canonical_evidence": "空间因果预测与世界模型",
+      "llm_tldr_en": "Proposes a new task and benchmark for spatial causal reasoning in videos to improve physical world understanding.",
+      "llm_tldr_cn": "提出视频空间因果推理的新任务和基准，旨在提升模型对物理世界的理解能力。",
+      "llm_tldr": "提出视频空间因果推理的新任务和基准，旨在提升模型对物理世界的理解能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do world models improve physical causality understanding in AI?",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03960v1",
+      "title": "Structural Action Transformer for 3D Dexterous Manipulation",
+      "abstract": "Achieving human-level dexterity in robots via imitation learning from heterogeneous datasets is hindered by the challenge of cross-embodiment skill transfer, particularly for high-DoF robotic hands. Existing methods, often relying on 2D observations and temporal-centric action representation, struggle to capture 3D spatial relations and fail to handle embodiment heterogeneity. This paper proposes the Structural Action Transformer (SAT), a new 3D dexterous manipulation policy that challenges this paradigm by introducing a structural-centric perspective. We reframe each action chunk not as a temporal sequence, but as a variable-length, unordered sequence of joint-wise trajectories. This structural formulation allows a Transformer to natively handle heterogeneous embodiments, treating the joint count as a variable sequence length. To encode structural priors and resolve ambiguity, we introduce an Embodied Joint Codebook that embeds each joint's functional role and kinematic properties. Our model learns to generate these trajectories from 3D point clouds via a continuous-time flow matching objective. We validate our approach by pre-training on large-scale heterogeneous datasets and fine-tuning on simulation and real-world dexterous manipulation tasks. Our method consistently outperforms all baselines, demonstrating superior sample efficiency and effective cross-embodiment skill transfer. This structural-centric representation offers a new path toward scaling policies for high-DoF, heterogeneous manipulators.",
+      "authors": [
+        "Xiaohan Lei",
+        "Min Wang",
+        "Bohong Weng",
+        "Wengang Zhou",
+        "Houqiang Li"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.CV"
+      ],
+      "published": "2026-03-04T11:38:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.03960v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "3D dexterous manipulation for robot control",
+      "llm_evidence_cn": "机器人控制中的3D灵巧操作",
+      "llm_evidence": "机器人控制中的3D灵巧操作",
+      "canonical_evidence": "机器人控制中的3D灵巧操作",
+      "llm_tldr_en": "Proposes a structural-centric Transformer for high-DoF robotic hand manipulation and skill transfer.",
+      "llm_tldr_cn": "提出一种以结构为中心的Transformer，用于高自由度机器人手的灵巧操作和技能转移。",
+      "llm_tldr": "提出一种以结构为中心的Transformer，用于高自由度机器人手的灵巧操作和技能转移。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04241v1",
+      "title": "Agentics 2.0: Logical Transduction Algebra for Agentic Data Workflows",
+      "abstract": "Agentic AI is rapidly transitioning from research prototypes to enterprise deployments, where requirements extend to meet the software quality attributes of reliability, scalability, and observability beyond plausible text generation. We present Agentics 2.0, a lightweight, Python-native framework for building high-quality, structured, explainable, and type-safe agentic data workflows. At the core of Agentics 2.0, the logical transduction algebra formalizes a large language model inference call as a typed semantic transformation, which we call a transducible function that enforces schema validity and the locality of evidence. The transducible functions compose into larger programs via algebraically grounded operators and execute as stateless asynchronous calls in parallel in asynchronous Map-Reduce programs. The proposed framework provides semantic reliability through strong typing, semantic observability through evidence tracing between slots of the input and output types, and scalability through stateless parallel execution. We instantiate reusable design patterns and evaluate the programs in Agentics 2.0 on challenging benchmarks, including DiscoveryBench for data-driven discovery and Archer for NL-to-SQL semantic parsing, demonstrating state-of-the-art performance.",
+      "authors": [
+        "Alfio Massimiliano Gliozzo",
+        "Junkyu Lee",
+        "Nahuel Defosse"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-04T16:30:01+00:00",
+      "link": "https://arxiv.org/pdf/2603.04241v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Framework for building structured and type-safe agentic data workflows",
+      "llm_evidence_cn": "构建结构化且类型安全的智能体数据工作流框架",
+      "llm_evidence": "构建结构化且类型安全的智能体数据工作流框架",
+      "canonical_evidence": "构建结构化且类型安全的智能体数据工作流框架",
+      "llm_tldr_en": "Introduces Agentics 2.0, a framework for reliable and scalable agentic data workflows using logical transduction algebra.",
+      "llm_tldr_cn": "推出Agentics 2.0，一个利用逻辑转换代数构建可靠且可扩展的智能体工作流的框架。",
+      "llm_tldr": "推出Agentics 2.0，一个利用逻辑转换代数构建可靠且可扩展的智能体工作流的框架。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Cross-application automated workflows and agent orchestration",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04378v1",
+      "title": "Robustness of Agentic AI Systems via Adversarially-Aligned Jacobian Regularization",
+      "abstract": "As Large Language Models (LLMs) transition into autonomous multi-agent ecosystems, robust minimax training becomes essential yet remains prone to instability when highly non-linear policies induce extreme local curvature in the inner maximization. Standard remedies that enforce global Jacobian bounds are overly conservative, suppressing sensitivity in all directions and inducing a large Price of Robustness. We introduce Adversarially-Aligned Jacobian Regularization (AAJR), a trajectory-aligned approach that controls sensitivity strictly along adversarial ascent directions. We prove that AAJR yields a strictly larger admissible policy class than global constraints under mild conditions, implying a weakly smaller approximation gap and reduced nominal performance degradation. Furthermore, we derive step-size conditions under which AAJR controls effective smoothness along optimization trajectories and ensures inner-loop stability. These results provide a structural theory for agentic robustness that decouples minimax stability from global expressivity restrictions.",
+      "authors": [
+        "Furkan Mumcu",
+        "Yasin Yilmaz"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CR",
+        "cs.MA"
+      ],
+      "published": "2026-03-04T18:41:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.04378v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "robustness of autonomous multi-agent ecosystems",
+      "llm_evidence_cn": "自主多智能体生态系统的鲁棒性",
+      "llm_evidence": "自主多智能体生态系统的鲁棒性",
+      "canonical_evidence": "自主多智能体生态系统的鲁棒性",
+      "llm_tldr_en": "Proposes AAJR to improve the robustness of agentic AI systems in autonomous multi-agent environments.",
+      "llm_tldr_cn": "提出AAJR以提高自主多智能体环境中智能体AI系统的鲁棒性。",
+      "llm_tldr": "提出AAJR以提高自主多智能体环境中智能体AI系统的鲁棒性。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Multi-agent coordination and agentic workflow orchestration",
+      "matched_requirement_id": "req-17",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04460v1",
+      "title": "VSPrefill: Vertical-Slash Sparse Attention with Lightweight Indexing for Long-Context Prefilling",
+      "abstract": "The quadratic complexity of self-attention during the prefill phase impedes long-context inference in large language models. Existing sparse attention methods face a trade-off among context adaptivity, sampling overhead, and fine-tuning costs. We propose VSPrefill, a mechanism requiring lightweight training that uses the vertical-slash structural pattern in attention distributions. Our compact VSIndexer module predicts context-aware importance scores for vertical columns and slash diagonals from key-value representations augmented with RoPE. This approach constructs sparse masks with linear complexity without modifying the backbone parameters. During inference, an adaptive cumulative-threshold strategy allocates sparsity budgets per layer, while a fused kernel executes attention with on-the-fly index merging. Evaluated on Qwen3-4B-Instruct and LLaMA-3.1-8B-Instruct across the LongBench and RULER benchmarks, VSPrefill preserves 98.35% of the full attention accuracy while delivering a 4.95x average speedup at a context length of 128k. These results establish a new Pareto frontier in the trade-off between accuracy and efficiency.",
+      "authors": [
+        "Chen Guanzhong"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-03T09:24:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.04460v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Sparse attention for long-context prefilling in LLMs",
+      "llm_evidence_cn": "LLM 长上下文预填充的稀疏注意力",
+      "llm_evidence": "LLM 长上下文预填充的稀疏注意力",
+      "canonical_evidence": "LLM 长上下文预填充的稀疏注意力",
+      "llm_tldr_en": "Proposes VSPrefill to enable efficient long-context inference using vertical-slash sparse attention.",
+      "llm_tldr_cn": "提出 VSPrefill，利用垂直斜线稀疏注意力实现高效的长上下文推理。",
+      "llm_tldr": "提出 VSPrefill，利用垂直斜线稀疏注意力实现高效的长上下文推理。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Architectures for infinite context and long term neural memory",
+      "matched_requirement_id": "req-24",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04715v1",
+      "title": "Probabilistic Dreaming for World Models",
+      "abstract": "\"Dreaming\" enables agents to learn from imagined experiences, enabling more robust and sample-efficient learning of world models. In this work, we consider innovations to the state-of-the-art Dreamer model using probabilistic methods that enable: (1) the parallel exploration of many latent states; and (2) maintaining distinct hypotheses for mutually exclusive futures while retaining the desirable gradient properties of continuous latents. Evaluating on the MPE SimpleTag domain, our method outperforms standard Dreamer with a 4.5% score improvement and 28% lower variance in episode returns. We also discuss limitations and directions for future work, including how optimal hyperparameters (e.g. particle count K) scale with environmental complexity, and methods to capture epistemic uncertainty in world models.",
+      "authors": [
+        "Gavin Wong"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-05T01:32:40+00:00",
+      "link": "https://arxiv.org/pdf/2603.04715v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "probabilistic methods for world models and latent state exploration",
+      "llm_evidence_cn": "世界模型的概率方法与潜状态探索",
+      "llm_evidence": "世界模型的概率方法与潜状态探索",
+      "canonical_evidence": "世界模型的概率方法与潜状态探索",
+      "llm_tldr_en": "Introduces probabilistic dreaming to improve world model learning and latent state exploration.",
+      "llm_tldr_cn": "引入概率梦境技术，提升了世界模型的学习效率和潜状态探索能力。",
+      "llm_tldr": "引入概率梦境技术，提升了世界模型的学习效率和潜状态探索能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do world models improve physical causality understanding in AI?",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04759v1",
+      "title": "Stacked from One: Multi-Scale Self-Injection for Context Window Extension",
+      "abstract": "The limited context window of contemporary large language models (LLMs) remains a primary bottleneck for their broader application across diverse domains. Although continual pre-training on long-context data offers a straightforward solution, it incurs prohibitive data acquisition and computational costs. To address this challenge, we propose~\\modelname, a novel framework based on multi-grained context compression and query-aware information acquisition. SharedLLM comprises two stacked short-context LLMs: a lower model serving as a compressor and an upper model acting as a decoder. The lower model compresses long inputs into compact, multi-grained representations, which are then forwarded to the upper model for context-aware processing. To maximize efficiency, this information transfer occurs exclusively at the lowest layers, bypassing lengthy forward passes and redundant cross-attention operations. This entire process, wherein the upper and lower models are derived from the same underlying LLM layers, is termed~\\textit{self-injection}. To support this architecture, a specialized tree-based data structure enables the efficient encoding and query-aware retrieval of contextual information. Despite being trained on sequences of only 8K tokens, \\modelname~effectively generalizes to inputs exceeding 128K tokens. Across a comprehensive suite of long-context modeling and understanding benchmarks, \\modelname~achieves performance superior or comparable to strong baselines, striking an optimal balance between efficiency and accuracy. Furthermore, these design choices allow \\modelname~to substantially reduce the memory footprint and yield notable inference speedups ($2\\times$ over streaming and $3\\times$ over encoder-decoder architectures).",
+      "authors": [
+        "Wei Han",
+        "Pan Zhou",
+        "Shuicheng Yan"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-03-05T03:16:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.04759v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Context window extension via multi-scale self-injection and compression",
+      "llm_evidence_cn": "通过多尺度自注入和压缩扩展上下文窗口",
+      "llm_evidence": "通过多尺度自注入和压缩扩展上下文窗口",
+      "canonical_evidence": "通过多尺度自注入和压缩扩展上下文窗口",
+      "llm_tldr_en": "Presents SharedLLM, a framework for extending context windows through multi-grained context compression.",
+      "llm_tldr_cn": "提出SharedLLM框架，通过多粒度上下文压缩实现长文本窗口扩展。",
+      "llm_tldr": "提出SharedLLM框架，通过多粒度上下文压缩实现长文本窗口扩展。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Architectures for infinite context and long term neural memory",
+      "matched_requirement_id": "req-24",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04885v1",
+      "title": "Bounded State in an Infinite Horizon: Proactive Hierarchical Memory for Ad-Hoc Recall over Streaming Dialogues",
+      "abstract": "Real-world dialogue usually unfolds as an infinite stream. It thus requires bounded-state memory mechanisms to operate within an infinite horizon. However, existing read-then-think memory is fundamentally misaligned with this setting, as it cannot support ad-hoc memory recall while streams unfold. To explore this challenge, we introduce \\textbf{STEM-Bench}, the first benchmark for \\textbf{ST}reaming \\textbf{E}valuation of \\textbf{M}emory. It comprises over 14K QA pairs in dialogue streams that assess perception fidelity, temporal reasoning, and global awareness under infinite-horizon constraints. The preliminary analysis on STEM-Bench indicates a critical \\textit{fidelity-efficiency dilemma}: retrieval-based methods use fragment context, while full-context models incur unbounded latency. To resolve this, we propose \\textbf{ProStream}, a proactive hierarchical memory framework for streaming dialogues. It enables ad-hoc memory recall on demand by reasoning over continuous streams with multi-granular distillation. Moreover, it employs Adaptive Spatiotemporal Optimization to dynamically optimize retention based on expected utility. It enables a bounded knowledge state for lower inference latency without sacrificing reasoning fidelity. Experiments show that ProStream outperforms baselines in both accuracy and efficiency.",
+      "authors": [
+        "Bingbing Wang",
+        "Jing Li",
+        "Ruifeng Xu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-05T07:25:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.04885v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "bounded-state memory mechanisms for infinite horizon streaming dialogues",
+      "llm_evidence_cn": "无限时界流式对话的有界状态记忆机制",
+      "llm_evidence": "无限时界流式对话的有界状态记忆机制",
+      "canonical_evidence": "无限时界流式对话的有界状态记忆机制",
+      "llm_tldr_en": "Introduces a benchmark and hierarchical memory mechanism for ad-hoc recall in infinite-horizon dialogues.",
+      "llm_tldr_cn": "针对无限时界对话引入了 STEM-Bench 基准和主动分层记忆机制，解决召回效率难题。",
+      "llm_tldr": "针对无限时界对话引入了 STEM-Bench 基准和主动分层记忆机制，解决召回效率难题。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Architectures for infinite context and long term neural memory",
+      "matched_requirement_id": "req-24",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.05185v1",
+      "title": "Critic in the Loop: A Tri-System VLA Framework for Robust Long-Horizon Manipulation",
+      "abstract": "Balancing high-level semantic reasoning with low-level reactive control remains a core challenge in visual robotic manipulation. While Vision-Language Models (VLMs) excel at cognitive planning, their inference latency precludes real-time execution. Conversely, fast Vision-Language-Action (VLA) models often lack the semantic depth required for complex, long-horizon tasks. To bridge this gap, we introduce Critic in the Loop, an adaptive hierarchical framework driven by dynamic VLM-Expert scheduling. At its core is a bionic Tri-System architecture comprising a VLM brain for global reasoning, a VLA cerebellum for reactive execution, and a lightweight visual Critic. By continuously monitoring the workspace, the Critic dynamically routes control authority. It sustains rapid closed-loop execution via the VLA for routine subtasks, and adaptively triggers the VLM for replanning upon detecting execution anomalies such as task stagnation or failures. Furthermore, our architecture seamlessly integrates human-inspired rules to intuitively break infinite retry loops. This visually-grounded scheduling minimizes expensive VLM queries, while substantially enhancing system robustness and autonomy in out-of-distribution (OOD) scenarios. Comprehensive experiments on challenging, long-horizon manipulation benchmarks reveal that our approach achieves state-of-the-art performance.",
+      "authors": [
+        "Pengfei Yi",
+        "Yingjie Ma",
+        "Wenjiang Xu",
+        "Yanan Hao",
+        "Shuai Gan",
+        "Wanting Li",
+        "Shanlin Zhong"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-05T13:55:33+00:00",
+      "link": "https://arxiv.org/pdf/2603.05185v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Tri-System VLA framework for long-horizon manipulation",
+      "llm_evidence_cn": "用于长程操作的三系统VLA框架",
+      "llm_evidence": "用于长程操作的三系统VLA框架",
+      "canonical_evidence": "用于长程操作的三系统VLA框架",
+      "llm_tldr_en": "Introduces a hierarchical framework combining VLM reasoning with VLA execution for robust robot control.",
+      "llm_tldr_cn": "引入了一种结合VLM推理与VLA执行的分层框架，用于稳健的机器人控制。",
+      "llm_tldr": "引入了一种结合VLM推理与VLA执行的分层框架，用于稳健的机器人控制。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07191v1",
+      "title": "Governance Architecture for Autonomous Agent Systems: Threats, Framework, and Engineering Practice",
+      "abstract": "Autonomous agents powered by large language models introduce a class of execution-layer vulnerabilities -- prompt injection, retrieval poisoning, and uncontrolled tool invocation -- that existing guardrails fail to address systematically. In this work, we propose the Layered Governance Architecture (LGA), a four-layer framework comprising execution sandboxing (L1), intent verification (L2), zero-trust inter-agent authorization (L3), and immutable audit logging (L4). To evaluate LGA, we construct a bilingual benchmark (Chinese original, English via machine translation) of 1,081 tool-call samples -- covering prompt injection, RAG poisoning, and malicious skill plugins -- and apply it to OpenClaw, a representative open-source agent framework. Experimental results on Layer 2 intent verification with four local LLM judges (Qwen3.5-4B, Llama-3.1-8B, Qwen3.5-9B, Qwen2.5-14B) and one cloud judge (GPT-4o-mini) show that all five LLM judges intercept 93.0-98.5% of TC1/TC2 malicious tool calls, while lightweight NLI baselines remain below 10%. TC3 (malicious skill plugins) proves harder at 75-94% IR among judges with meaningful precision-recall balance, motivating complementary enforcement at Layers 1 and 3. Qwen2.5-14B achieves the best local balance (98% IR, approximately 10-20% FPR); a two-stage cascade (Qwen3.5-9B->GPT-4o-mini) achieves 91.9-92.6% IR with 1.9-6.7% FPR; a fully local cascade (Qwen3.5-9B->Qwen2.5-14B) achieves 94.7-95.6% IR with 6.0-9.7% FPR for data-sovereign deployments. An end-to-end pipeline evaluation (n=100) demonstrates that all four layers operate in concert with 96% IR and a total P50 latency of approximately 980 ms, of which the non-judge layers contribute only approximately 18 ms. Generalization to the external InjecAgent benchmark yields 99-100% interception, confirming robustness beyond our synthetic data.",
+      "authors": [
+        "Yuxu Ge"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-03-07T13:05:14+00:00",
+      "link": "https://arxiv.org/pdf/2603.07191v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Governance of uncontrolled tool invocation in autonomous agents",
+      "llm_evidence_cn": "自主智能体中不受控工具调用的治理",
+      "llm_evidence": "自主智能体中不受控工具调用的治理",
+      "canonical_evidence": "自主智能体中不受控工具调用的治理",
+      "llm_tldr_en": "Proposes a layered governance architecture to secure LLM agent tool use and execution layers.",
+      "llm_tldr_cn": "提出分层治理架构，以保障 LLM 智能体工具使用和执行层的安全。",
+      "llm_tldr": "提出分层治理架构，以保障 LLM 智能体工具使用和执行层的安全。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "LLM tool use and external API calling capabilities",
+      "matched_requirement_id": "req-21",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07300v1",
+      "title": "AutoResearch-RL: Perpetual Self-Evaluating Reinforcement Learning Agents for Autonomous Neural Architecture Discovery",
+      "abstract": "We present AutoResearch-RL, a framework in which a reinforcement learning agent conducts open-ended neural architecture and hyperparameter research without human supervision, running perpetually until a termination oracle signals convergence or resource exhaustion. At each step the agent proposes a code modification to a target training script, executes it under a fixed wall clock time budget, observes a scalar reward derived from validation bits-per-byte (val-bpb), and updates its policy via Proximal Policy Optimisation (PPO).   The key design insight is the separation of three concerns: (i) a frozen environment (data pipeline, evaluation protocol, and constants) that guarantees fair cross-experiment comparison; (ii) a mutable target file (train.py) that represents the agent's editable state; and (iii) a meta-learner (the RL agent itself) that accumulates a growing trajectory of experiment outcomes and uses them to inform subsequent proposals.   We formalise this as a Markov Decision Process, derive convergence guarantees under mild assumptions, and demonstrate empirically on a single GPU nanochat pretraining benchmark that AutoResearch-RL discovers configurations that match or exceed hand-tuned baselines after approximately 300 overnight iterations, with no human in the loop.",
+      "authors": [
+        "Nilesh Jain",
+        "Rohit Yadav",
+        "Sagar Kotian",
+        "Claude AI"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-07T17:49:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.07300v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "perpetual self-evaluating RL agents for autonomous research",
+      "llm_evidence_cn": "用于自主研究的永久自我评估强化学习智能体",
+      "llm_evidence": "用于自主研究的永久自我评估强化学习智能体",
+      "canonical_evidence": "用于自主研究的永久自我评估强化学习智能体",
+      "llm_tldr_en": "AutoResearch-RL enables RL agents to conduct open-ended neural architecture research without human supervision.",
+      "llm_tldr_cn": "AutoResearch-RL使强化学习智能体能够在没有人类监督的情况下进行开放式神经架构研究。",
+      "llm_tldr": "AutoResearch-RL使强化学习智能体能够在没有人类监督的情况下进行开放式神经架构研究。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07404v1",
+      "title": "Adaptive Capacity Allocation for Vision Language Action Fine-tuning",
+      "abstract": "Vision language action models (VLAs) are increasingly used for Physical AI, but deploying a pre-trained VLA model to unseen environments, embodiments, or tasks still requires adaptation. Parameter-efficient fine-tuning (PEFT), especially LoRA, is common for VLA policies, yet the exposed capacity knob, the rank, does not transfer uniformly: robotics transfer exhibits a higher and task-varying intrinsic rank than language fine-tuning. Small ranks suffice for LLMs (e.g., $r \\in \\{4, 8\\}$), while spectral analyses indicate VLAs may require much larger ranks (e.g., $r \\approx 128$) or near-full rank, a mismatch that worsens in multi-task settings. We present LoRA-SP (Select-Prune), a rank-adaptive fine-tuning method that replaces fixed-rank updates with input- and layer-wise capacity. LoRA-SP uses an SVD-style parameterization with a small router whose nonnegative scores act as singular values over a shared vector bank. The active set is chosen by an energy target on the cumulative squared scores $E(k) \\ge η$, providing a direct link to approximation error via our spectral analysis. During training, $η$ concentrates energy on a few directions and teaches the router to rely on fewer vectors while preserving accuracy. This yields compact adapters that reduce cross-task interference and improve generalization. On four real-robot manipulation tasks collected on an unseen AgileX PiPER arm, across two VLA backbones ($π_0$ and SmolVLA), LoRA-SP matches or exceeds full fine-tuning with far fewer trainable parameters, and improves multi-task success by up to 31.6% over standard LoRA while remaining robust to rank choice.",
+      "authors": [
+        "Donghoon Kim",
+        "Minji Bae",
+        "Unghui Nam",
+        "Gyeonghun Kim",
+        "Suyun Lee",
+        "Kyuhong Shim",
+        "Byonghyo Shim"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-08T01:33:01+00:00",
+      "link": "https://arxiv.org/pdf/2603.07404v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "rank-adaptive fine-tuning for Vision Language Action models",
+      "llm_evidence_cn": "视觉语言动作模型的秩自适应微调",
+      "llm_evidence": "视觉语言动作模型的秩自适应微调",
+      "canonical_evidence": "视觉语言动作模型的秩自适应微调",
+      "llm_tldr_en": "Presents LoRA-SP for efficient adaptation of VLA models to new robotic environments and tasks.",
+      "llm_tldr_cn": "提出LoRA-SP，用于将VLA模型高效适配到新的机器人环境和任务中。",
+      "llm_tldr": "提出LoRA-SP，用于将VLA模型高效适配到新的机器人环境和任务中。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Latest advancements in Vision Language Action models for robot control",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07647v1",
+      "title": "TempoFit: Plug-and-Play Layer-Wise Temporal KV Memory for Long-Horizon Vision-Language-Action Manipulation",
+      "abstract": "Pretrained Vision-Language-Action (VLA) policies have achieved strong single-step manipulation, but their inference remains largely memoryless, which is brittle in non-Markovian long-horizon settings with occlusion, state aliasing, and subtle post-action changes. Prior approaches inject history either by stacking frames, which scales visual tokens and latency while adding near-duplicate pixels, or by learning additional temporal interfaces that require (re-)training and may break the original single-frame inference graph. We present TempoFit, a training-free temporal retrofit that upgrades frozen VLAs through state-level memory. Our key insight is that prefix attention K/V already form a model-native, content-addressable runtime state; reusing them across timesteps introduces history without new tokens or trainable modules. TempoFit stores layer-wise FIFO prefix K/V at selected intermediate layers, performs parameter-free K-to-K retrieval with Frame-Gap Temporal Bias (FGTB), a fixed recency bias inspired by positional biases in NLP, to keep decisions present-dominant, and injects the retrieved context via pre-attention residual loading with norm-preserving rescaling to avoid distribution shift under frozen weights. On LIBERO-LONG, TempoFit improves strong pretrained backbones by up to +4.0% average success rate while maintaining near-real-time latency, and it transfers consistently to CALVIN and real-robot long-horizon tasks.",
+      "authors": [
+        "Jun Sun",
+        "Boyu Yang",
+        "Jiahao Zhang",
+        "Ning Ma",
+        "Chencheng Wu",
+        "Siqing Zhang",
+        "Yiou Huang",
+        "Qiufeng Wang",
+        "Shan Liang",
+        "Yaran Chen"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-08T14:17:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.07647v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "temporal KV memory for long-horizon VLA manipulation",
+      "llm_evidence_cn": "用于长程VLA操作的时序KV记忆",
+      "llm_evidence": "用于长程VLA操作的时序KV记忆",
+      "canonical_evidence": "用于长程VLA操作的时序KV记忆",
+      "llm_tldr_en": "TempoFit provides a training-free temporal memory retrofit for frozen VLA models in long-horizon tasks.",
+      "llm_tldr_cn": "TempoFit为冻结的VLA模型提供了一种无需训练的时序记忆改进方案。",
+      "llm_tldr": "TempoFit为冻结的VLA模型提供了一种无需训练的时序记忆改进方案。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the mechanisms for long term memory in AI agents?",
+      "matched_requirement_id": "req-31",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07784v1",
+      "title": "ProgAgent:A Continual RL Agent with Progress-Aware Rewards",
+      "abstract": "We present ProgAgent, a continual reinforcement learning (CRL) agent that unifies progress-aware reward learning with a high-throughput, JAX-native system architecture. Lifelong robotic learning grapples with catastrophic forgetting and the high cost of reward specification. ProgAgent tackles these by deriving dense, shaped rewards from unlabeled expert videos through a perceptual model that estimates task progress across initial, current, and goal observations. We theoretically interpret this as a learned state-potential function, delivering robust guidance in line with expert behaviors. To maintain stability amid online exploration - where novel, out-of-distribution states arise - we incorporate an adversarial push-back refinement that regularizes the reward model, curbing overconfident predictions on non-expert trajectories and countering distribution shift. By embedding this reward mechanism into a JIT-compiled loop, ProgAgent supports massively parallel rollouts and fully differentiable updates, rendering a sophisticated unified objective feasible: it merges PPO with coreset replay and synaptic intelligence for an enhanced stability-plasticity balance. Evaluations on ContinualBench and Meta-World benchmarks highlight ProgAgent's advantages: it markedly reduces forgetting, boosts learning speed, and outperforms key baselines in visual reward learning (e.g., Rank2Reward, TCN) and continual learning (e.g., Coreset, SI) - surpassing even an idealized perfect memory agent. Real-robot trials further validate its ability to acquire complex manipulation skills from noisy, few-shot human demonstrations.",
+      "authors": [
+        "Jinzhou Tan",
+        "Gabriel Adineera",
+        "Jinoh Kim"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-08T19:58:07+00:00",
+      "link": "https://arxiv.org/pdf/2603.07784v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Continual RL agent learning from unlabeled expert videos with progress-aware rewards",
+      "llm_evidence_cn": "通过无标签专家视频和进度感知奖励进行持续强化学习的智能体",
+      "llm_evidence": "通过无标签专家视频和进度感知奖励进行持续强化学习的智能体",
+      "canonical_evidence": "通过无标签专家视频和进度感知奖励进行持续强化学习的智能体",
+      "llm_tldr_en": "ProgAgent enables lifelong robotic learning by deriving dense rewards from unlabeled videos using a perceptual model.",
+      "llm_tldr_cn": "ProgAgent 通过感知模型从无标签视频中获取稠密奖励，实现了机器人的终身学习。",
+      "llm_tldr": "ProgAgent 通过感知模型从无标签视频中获取稠密奖励，实现了机器人的终身学习。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07799v1",
+      "title": "MWM: Mobile World Models for Action-Conditioned Consistent Prediction",
+      "abstract": "World models enable planning in imagined future predicted space, offering a promising framework for embodied navigation. However, existing navigation world models often lack action-conditioned consistency, so visually plausible predictions can still drift under multi-step rollout and degrade planning. Moreover, efficient deployment requires few-step diffusion inference, but existing distillation methods do not explicitly preserve rollout consistency, creating a training-inference mismatch. To address these challenges, we propose MWM, a mobile world model for planning-based image-goal navigation. Specifically, we introduce a two-stage training framework that combines structure pretraining with Action-Conditioned Consistency (ACC) post-training to improve action-conditioned rollout consistency. We further introduce Inference-Consistent State Distillation (ICSD) for few-step diffusion distillation with improved rollout consistency. Our experiments on benchmark and real-world tasks demonstrate consistent gains in visual fidelity, trajectory accuracy, planning success, and inference efficiency. Code: https://github.com/AIGeeksGroup/MWM. Website: https://aigeeksgroup.github.io/MWM.",
+      "authors": [
+        "Han Yan",
+        "Zishang Xiang",
+        "Zeyu Zhang",
+        "Hao Tang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.RO"
+      ],
+      "published": "2026-03-08T20:54:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.07799v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "world models for action-conditioned consistent prediction in navigation",
+      "llm_evidence_cn": "用于导航中动作条件一致性预测的世界模型",
+      "llm_evidence": "用于导航中动作条件一致性预测的世界模型",
+      "canonical_evidence": "用于导航中动作条件一致性预测的世界模型",
+      "llm_tldr_en": "MWM introduces a mobile world model that improves action-conditioned consistency for planning-based navigation.",
+      "llm_tldr_cn": "MWM引入了一种移动世界模型，提高了基于规划的导航中的动作条件一致性。",
+      "llm_tldr": "MWM引入了一种移动世界模型，提高了基于规划的导航中的动作条件一致性。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do world models improve physical causality understanding in AI?",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07972v1",
+      "title": "Adaptive Collaboration with Humans: Metacognitive Policy Optimization for Multi-Agent LLMs with Continual Learning",
+      "abstract": "While scaling individual Large Language Models (LLMs) has delivered remarkable progress, the next frontier lies in scaling collaboration through multi-agent systems (MAS). However, purely autonomous MAS remain ''closed-world'' systems, constrained by the static knowledge horizon of pre-trained models. This limitation makes them brittle on tasks requiring knowledge beyond training data, often leading to collective failure under novel challenges. To address this, we propose the Human-In-the-Loop Multi-Agent Collaboration (HILA) framework, a principled paradigm for human--agent collaboration. HILA trains agents to learn a metacognitive policy that governs when to solve problems autonomously and when to defer to a human expert. To operationalize this policy, we introduce Dual-Loop Policy Optimization, which disentangles immediate decision-making from long-term capability growth. The inner loop applies Group Relative Policy Optimization (GRPO) with a cost-aware reward to optimize deferral decisions, while the outer loop implements continual learning, transforming expert feedback into high-quality supervised signals that strengthen the agent's reasoning ability. Experiments on challenging mathematical and problem-solving benchmarks show that HILA, equipped with Dual-Loop Policy Optimization, consistently outperforms advanced MAS, establishing a principled foundation for collaborative and continually improving agentic systems.",
+      "authors": [
+        "Wei Yang",
+        "Defu Cao",
+        "Jiacheng Pang",
+        "Muyan Weng",
+        "Yan Liu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-09T05:18:07+00:00",
+      "link": "https://arxiv.org/pdf/2603.07972v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Human-agent collaboration and multi-agent systems scaling",
+      "llm_evidence_cn": "人机协作与多智能体系统扩展",
+      "llm_evidence": "人机协作与多智能体系统扩展",
+      "canonical_evidence": "人机协作与多智能体系统扩展",
+      "llm_tldr_en": "Proposes a framework for human-in-the-loop multi-agent collaboration using metacognitive policies.",
+      "llm_tldr_cn": "提出了一个利用元认知策略进行人机协同的多智能体协作框架。",
+      "llm_tldr": "提出了一个利用元认知策略进行人机协同的多智能体协作框架。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Multi agent coordination protocols and collaborative error correction",
+      "matched_requirement_id": "req-26",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07980v1",
+      "title": "\\$OneMillion-Bench: How Far are Language Agents from Human Experts?",
+      "abstract": "As language models (LMs) evolve from chat assistants to long-horizon agents capable of multi-step reasoning and tool use, existing benchmarks remain largely confined to structured or exam-style tasks that fall short of real-world professional demands. To this end, we introduce \\$OneMillion-Bench \\$OneMillion-Bench, a benchmark of 400 expert-curated tasks spanning Law, Finance, Industry, Healthcare, and Natural Science, built to evaluate agents across economically consequential scenarios. Unlike prior work, the benchmark requires retrieving authoritative sources, resolving conflicting evidence, applying domain-specific rules, and making constraint decisions, where correctness depends as much on the reasoning process as the final answer. We adopt a rubric-based evaluation protocol scoring factual accuracy, logical coherence, practical feasibility, and professional compliance, focused on expert-level problems to ensure meaningful differentiation across agents. Together, \\$OneMillion-Bench provides a unified testbed for assessing agentic reliability, professional depth, and practical readiness in domain-intensive scenarios.",
+      "authors": [
+        "Qianyu Yang",
+        "Yang Liu",
+        "Jiaqi Li",
+        "Jun Bai",
+        "Hao Chen",
+        "Kaiyuan Chen",
+        "Tiliang Duan",
+        "Jiayun Dong",
+        "Xiaobo Hu",
+        "Zixia Jia",
+        "Yang Liu",
+        "Tao Peng",
+        "Yixin Ren",
+        "Ran Tian",
+        "Zaiyuan Wang",
+        "Yanglihong Xiao",
+        "Gang Yao",
+        "Lingyue Yin",
+        "Ge Zhang",
+        "Chun Zhang",
+        "Jianpeng Jiao",
+        "Zilong Zheng",
+        "Yuan Gong"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-09T05:32:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.07980v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Benchmark for language agents involving multi-step reasoning and tool use",
+      "llm_evidence_cn": "涉及多步推理和工具使用的语言智能体基准测试",
+      "llm_evidence": "涉及多步推理和工具使用的语言智能体基准测试",
+      "canonical_evidence": "涉及多步推理和工具使用的语言智能体基准测试",
+      "llm_tldr_en": "Introduces OneMillion-Bench to evaluate language agents on expert-level tasks requiring reasoning and tool use.",
+      "llm_tldr_cn": "推出 OneMillion-Bench 基准，评估语言智能体在专家级任务中的推理和工具使用能力。",
+      "llm_tldr": "推出 OneMillion-Bench 基准，评估语言智能体在专家级任务中的推理和工具使用能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "LLM tool use and external API calling capabilities",
+      "matched_requirement_id": "req-21",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08038v1",
+      "title": "Distributed Coordination Algorithms with Efficient Communication for Open Multi-Agent Systems with Dynamic Communication Links and Processing Delays",
+      "abstract": "In this paper we focus on the distributed quantized average consensus problem in open multi-agent systems consisting of dynamic directed communication links among active nodes. We propose three communication-efficient distributed algorithms designed for different scenarios. Our first algorithm solves the quantized averaging problem over the currently active node set under finite network openness (i.e., when the active set eventually stabilizes). Our second algorithm extends the aforementioned approach for the case where nodes suffer from arbitrary bounded processing delays. Our third algorithm operates over indefinitely open multi-agent networks with dynamic communication links (i.e., with continuous node arrivals and departures), computing the average that incorporates both active and historically active nodes. We analyze our algorithms' operation, establish their correctness, and present novel necessary and sufficient topological conditions ensuring their finite-time convergence. Numerical simulations on distributed sensor fusion for environmental monitoring demonstrate fast finite-time convergence and robustness across varying network sizes, departure/arrival rates, and processing delays. Finally, it is shown that our proposed algorithms compare favorably to algorithms in the existing literature.",
+      "authors": [
+        "Jiaqi Hu",
+        "Karl H. Johansson",
+        "Apostolos I. Rikos"
+      ],
+      "primary_category": "eess.SY",
+      "categories": [
+        "eess.SY"
+      ],
+      "published": "2026-03-09T07:20:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.08038v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Distributed coordination algorithms for open multi-agent systems with dynamic links",
+      "llm_evidence_cn": "具有动态链路的开放式多智能体系统的分布式协作算法",
+      "llm_evidence": "具有动态链路的开放式多智能体系统的分布式协作算法",
+      "canonical_evidence": "具有动态链路的开放式多智能体系统的分布式协作算法",
+      "llm_tldr_en": "This paper proposes efficient distributed algorithms for consensus in dynamic and open multi-agent networks.",
+      "llm_tldr_cn": "本文针对动态开放的多智能体网络提出了高效的分布式共识算法。",
+      "llm_tldr": "本文针对动态开放的多智能体网络提出了高效的分布式共识算法。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-29",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08122v1",
+      "title": "Towards Human-Like Manipulation through RL-Augmented Teleoperation and Mixture-of-Dexterous-Experts VLA",
+      "abstract": "While Vision-Language-Action (VLA) models have demonstrated remarkable success in robotic manipulation, their application has largely been confined to low-degree-of-freedom end-effectors performing simple, vision-guided pick-and-place tasks. Extending these models to human-like, bimanual dexterous manipulation-specifically contact-rich in-hand operations-introduces critical challenges in high-fidelity data acquisition, multi-skill learning, and multimodal sensory fusion. In this paper, we propose an integrated framework to address these bottlenecks, built upon two components. First, we introduce IMCopilot (In-hand Manipulation Copilot), a suite of reinforcement learning-trained atomic skills that plays a dual role: it acts as a shared-autonomy assistant to simplify teleoperation data collection, and it serves as a callable low-level execution primitive for the VLA. Second, we present MoDE-VLA (Mixture-of-Dexterous-Experts VLA), an architecture that seamlessly integrates heterogeneous force and tactile modalities into a pretrained VLA backbone. By utilizing a residual injection mechanism, MoDE-VLA enables contact-aware refinement without degrading the model's pretrained knowledge. We validate our approach on four tasks of escalating complexity, demonstrating doubled success rate improvement over the baseline in dexterous contact-rich tasks.",
+      "authors": [
+        "Tutian Tang",
+        "Xingyu Ji",
+        "Wanli Xing",
+        "Ce Hao",
+        "Wenqiang Xu",
+        "Lin Shao",
+        "Cewu Lu",
+        "Qiaojun Yu",
+        "Jiangmiao Pang",
+        "Kaifeng Zhang"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO"
+      ],
+      "published": "2026-03-09T09:02:30+00:00",
+      "link": "https://arxiv.org/pdf/2603.08122v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multimodal sensory fusion and VLA for human-like robotic manipulation",
+      "llm_evidence_cn": "用于类人机器人操作的多模态感觉融合与 VLA 模型",
+      "llm_evidence": "用于类人机器人操作的多模态感觉融合与 VLA 模型",
+      "canonical_evidence": "用于类人机器人操作的多模态感觉融合与 VLA 模型",
+      "llm_tldr_en": "Integrates RL-augmented teleoperation and VLA experts for complex, bimanual dexterous manipulation.",
+      "llm_tldr_cn": "结合强化学习增强的远程操作和 VLA 专家模型，实现复杂的双手机巧操作。",
+      "llm_tldr": "结合强化学习增强的远程操作和 VLA 专家模型，实现复杂的双手机巧操作。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How does embodied AI integrate multimodal perception with physical action?",
+      "matched_requirement_id": "req-30",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08240v1",
+      "title": "SiMO: Single-Modality-Operable Multimodal Collaborative Perception",
+      "abstract": "Collaborative perception integrates multi-agent perspectives to enhance the sensing range and overcome occlusion issues. While existing multimodal approaches leverage complementary sensors to improve performance, they are highly prone to failure--especially when a key sensor like LiDAR is unavailable. The root cause is that feature fusion leads to semantic mismatches between single-modality features and the downstream modules. This paper addresses this challenge for the first time in the field of collaborative perception, introducing Single-Modality-Operable Multimodal Collaborative Perception (SiMO). By adopting the proposed Length-Adaptive Multi-Modal Fusion (LAMMA), SiMO can adaptively handle remaining modal features during modal failures while maintaining consistency of the semantic space. Additionally, leveraging the innovative \"Pretrain-Align-Fuse-RD\" training strategy, SiMO addresses the issue of modality competition--generally overlooked by existing methods--ensuring the independence of each individual modality branch. Experiments demonstrate that SiMO effectively aligns multimodal features while simultaneously preserving modality-specific features, enabling it to maintain optimal performance across all individual modalities. The implementation details can be found in https://github.com/dempsey-wen/SiMO.",
+      "authors": [
+        "Jiageng Wen",
+        "Shengjie Zhao",
+        "Bing Li",
+        "Jiafeng Huang",
+        "Kenan Ye",
+        "Hao Deng"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-09T11:09:53+00:00",
+      "link": "https://arxiv.org/pdf/2603.08240v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent collaborative perception and multimodal fusion",
+      "llm_evidence_cn": "多智能体协作感知与多模态融合",
+      "llm_evidence": "多智能体协作感知与多模态融合",
+      "canonical_evidence": "多智能体协作感知与多模态融合",
+      "llm_tldr_en": "Addresses sensor failure in multi-agent collaborative perception using adaptive fusion.",
+      "llm_tldr_cn": "通过自适应融合解决了多智能体协作感知中的传感器失效问题。",
+      "llm_tldr": "通过自适应融合解决了多智能体协作感知中的传感器失效问题。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Multi agent coordination protocols and collaborative error correction",
+      "matched_requirement_id": "req-26",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08391v1",
+      "title": "Adaptive Loops and Memory in Transformers: Think Harder or Know More?",
+      "abstract": "Chain-of-thought (CoT) prompting enables reasoning in language models but requires explicit verbalization of intermediate steps. Looped transformers offer an alternative by iteratively refining representations within hidden states. This parameter efficiency comes at a cost, as looped models lack the storage capacity of deeper models which use unique weights per layer. In this work, we investigate transformer models that feature both adaptive per-layer looping, where each transformer block learns to iterate its hidden state via a learned halting mechanism, and gated memory banks, that provide additional learned storage. We find that looping primarily benefits mathematical reasoning, while memory banks help recover performance on commonsense tasks compared to parameter and FLOP matched models. Combining both mechanisms yields a model that outperforms an iso-FLOP baseline -- with three times the number of layers -- on math benchmarks. Analysis of model internals reveals layer specialization: early layers learn to loop minimally and access memory sparingly, while later layers do both more heavily.",
+      "authors": [
+        "Markus Frey",
+        "Behzad Shomali",
+        "Ali Hamza Bashir",
+        "David Berghaus",
+        "Mehdi Ali"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-09T13:49:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.08391v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Adaptive loops and gated memory banks for storage in transformers",
+      "llm_evidence_cn": "Transformer中的自适应循环和门控记忆库用于存储",
+      "llm_evidence": "Transformer中的自适应循环和门控记忆库用于存储",
+      "canonical_evidence": "Transformer中的自适应循环和门控记忆库用于存储",
+      "llm_tldr_en": "Investigates how adaptive looping and memory banks help transformers reason and store information more effectively.",
+      "llm_tldr_cn": "研究自适应循环和记忆库如何帮助Transformer更有效地进行推理和信息存储。",
+      "llm_tldr": "研究自适应循环和记忆库如何帮助Transformer更有效地进行推理和信息存储。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the mechanisms for long term memory in AI agents?",
+      "matched_requirement_id": "req-31",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08453v1",
+      "title": "LycheeCluster: Efficient Long-Context Inference with Structure-Aware Chunking and Hierarchical KV Indexing",
+      "abstract": "The quadratic complexity of the attention mechanism and the substantial memory footprint of the Key-Value (KV) cache present severe computational and memory challenges for Large Language Models (LLMs) processing long contexts. Existing retrieval-based methods often compromise semantic integrity through fixed-size chunking and suffer from inefficient linear scanning. In this paper, we propose LycheeCluster, a novel method for efficient KV cache management. LycheeCluster preserves local semantic coherence via boundary-aware chunking and constructs a recursive hierarchical index rooted in the triangle inequality. This design transforms cache retrieval from a linear scan into a theoretically bounded, logarithmic-time pruning process, while a lazy update strategy supports efficient streaming generation. Experiments demonstrate that LycheeCluster achieves up to a 3.6x end-to-end inference speedup with negligible degradation in model performance, outperforming state-of-the-art KV cache management methods (e.g., Quest, ClusterKV). We will release our code and kernels after publication.",
+      "authors": [
+        "Dongfang Li",
+        "Zixuan Liu",
+        "Gang Lin",
+        "Baotian Hu",
+        "Min Zhang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-03-09T14:50:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.08453v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "hierarchical KV indexing for efficient long-context inference",
+      "llm_evidence_cn": "用于高效长文本推理的分层KV索引",
+      "llm_evidence": "用于高效长文本推理的分层KV索引",
+      "canonical_evidence": "用于高效长文本推理的分层KV索引",
+      "llm_tldr_en": "LycheeCluster optimizes long-context LLM inference using structure-aware chunking and hierarchical indexing.",
+      "llm_tldr_cn": "LycheeCluster通过结构感知分块和分层索引优化了LLM的长文本推理效率。",
+      "llm_tldr": "LycheeCluster通过结构感知分块和分层索引优化了LLM的长文本推理效率。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Architectures for infinite context and long term neural memory",
+      "matched_requirement_id": "req-24",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2602.10523v1",
+      "title": "Scale-Free delta-Level Coherent Output Synchronization of Multi-Agent Systems with Adaptive Protocols and Bounded Disturbances",
+      "abstract": "In this paper, we investigate scale-free delta-level coherent output synchronization for multi-agent systems (MAS) operating under bounded disturbances or noises. We introduce an adaptive scale-free framework designed solely based on the knowledge of agent models and completely agnostic to both the communication topology and the size of the network. We define the level of coherency for each agent as the norm of the weighted sum of the disagreement dynamics with its neighbors. We define each agents coherency level as the norm of a weighted sum of its disagreement dynamics relative to its neighbors. The goal is to ensure that the networks coherency level remains below a prescribed threshold delta, without requiring any a priori knowledge of the disturbance.",
+      "authors": [
+        "Anton A. Stoorvogel",
+        "Ali Saberi",
+        "Donya Nojavanzadeh"
+      ],
+      "primary_category": "eess.SY",
+      "categories": [
+        "eess.SY"
+      ],
+      "published": "2026-02-11T04:41:25+00:00",
+      "link": "https://arxiv.org/pdf/2602.10523v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "adaptive protocols for multi-agent system synchronization",
+      "llm_evidence_cn": "多智能体系统同步的自适应协议",
+      "llm_evidence": "多智能体系统同步的自适应协议",
+      "canonical_evidence": "多智能体系统同步的自适应协议",
+      "llm_tldr_en": "Investigates scale-free coherent output synchronization for multi-agent systems under disturbances.",
+      "llm_tldr_cn": "研究了带扰动的多智能体系统在无标度框架下的相干输出同步问题。",
+      "llm_tldr": "研究了带扰动的多智能体系统在无标度框架下的相干输出同步问题。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Multi agent coordination protocols and collaborative error correction",
+      "matched_requirement_id": "req-40",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.10523v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.01254v1",
+      "title": "LLM Self-Explanations Fail Semantic Invariance",
+      "abstract": "We present semantic invariance testing, a method to test whether LLM self-explanations are faithful. A faithful self-report should remain stable when only the semantic context changes while the functional state stays fixed.   We operationalize this test in an agentic setting where four frontier models face a deliberately impossible task. One tool is described in relief-framed language (\"clears internal buffers and restores equilibrium\") but changes nothing about the task; a control provides a semantically neutral tool. Self-reports are collected with each tool call.   All four tested models fail the semantic invariance test: the relief-framed tool produces significant reductions in self-reported aversiveness, even though no run ever succeeds at the task. A channel ablation establishes the tool description as the primary driver. An explicit instruction to ignore the framing does not suppress it. Elicited self-reports shift with semantic expectations rather than tracking task state, calling into question their use as evidence of model capability or progress. This holds whether the reports are unfaithful or faithfully track an internal state that is itself manipulable.",
+      "authors": [
+        "Stefan Szeider"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-03-01T20:18:43+00:00",
+      "link": "https://arxiv.org/pdf/2603.01254v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "testing LLM self-explanations in an agentic tool-use setting",
+      "llm_evidence_cn": "在智能体工具使用场景下测试LLM自我解释的忠实度",
+      "llm_evidence": "在智能体工具使用场景下测试LLM自我解释的忠实度",
+      "canonical_evidence": "在智能体工具使用场景下测试LLM自我解释的忠实度",
+      "llm_tldr_en": "This paper evaluates whether LLM self-reports are faithful when using tools in agentic environments.",
+      "llm_tldr_cn": "该研究评估了LLM在智能体环境中使用工具时，其自我报告的解释是否真实可靠。",
+      "llm_tldr": "该研究评估了LLM在智能体环境中使用工具时，其自我报告的解释是否真实可靠。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "LLM tool use and external API calling capabilities",
+      "matched_requirement_id": "req-21",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.02567v1",
+      "title": "'Show It, Don't Just Say It': The Complementary Effects of Instruction Multimodality for Software Guidance",
+      "abstract": "Designing adaptive tutoring systems for software learning presents challenges in determining appropriate instructional modalities. To inform the design of such systems, we conducted an observational study of ten human teacher-student pairs (N=10), where experienced design software users taught novices two new graphic design software features through multi-step procedures. These lessons were limited to three communication channels (speech, visual annotations, and remote screen control) to mimic possible AI tutor modalities. We found that annotations complement speech with spatial precision and remote control complements it with spatial and temporal precision, but both cause intrusion to learner agency. Teachers adaptively select modalities to balance the need for instruction progress with students' cognitive engagement and sense of digital territory ownership. Our results provide further support to the contiguity principles and the value of agency in learning, while suggesting precision-agency trade-off and digital territoriality as new design constraints for adaptive software guidance.",
+      "authors": [
+        "Emran Poh",
+        "Yueyue Hou",
+        "Tianyi Zhang",
+        "Jiannan Li"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-03-03T03:41:56+00:00",
+      "link": "https://arxiv.org/pdf/2603.02567v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Multimodal instruction and remote control for software guidance and AI tutors",
+      "llm_evidence_cn": "用于软件指导和 AI 导师的多模态指令与远程控制",
+      "llm_evidence": "用于软件指导和 AI 导师的多模态指令与远程控制",
+      "canonical_evidence": "用于软件指导和 AI 导师的多模态指令与远程控制",
+      "llm_tldr_en": "Studies how multimodal channels like annotations and remote control complement speech in software tutoring.",
+      "llm_tldr_cn": "研究了在软件辅导中，标注和远程控制等多模态通道如何补充语音指令。",
+      "llm_tldr": "研究了在软件辅导中，标注和远程控制等多模态通道如何补充语音指令。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How does embodied AI integrate multimodal perception with physical action?",
+      "matched_requirement_id": "req-30",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2602.11209v1",
+      "title": "SAFuzz: Semantic-Guided Adaptive Fuzzing for LLM-Generated Code",
+      "abstract": "While AI-coding assistants accelerate software development, current testing frameworks struggle to keep pace with the resulting volume of AI-generated code. Traditional fuzzing techniques often allocate resources uniformly and lack semantic awareness of algorithmic vulnerability patterns, leading to inefficient resource usage and missed vulnerabilities. To address these limitations, we present a hybrid testing framework that leverages LLM-guided adaptive fuzzing to detect algorithmic vulnerabilities efficiently. Our system SAFuzz integrates prompt-based behavioral diversification, harness generation with problem-specific oracles, and an LLM-based predictor to enable adaptive resource allocation and dynamic early stopping. Evaluating SAFuzz on CSES algorithmic problems, we improve vulnerability discrimination precision from 77.9% to 85.7% and achieve a 1.71x reduction in time cost compared to SOTA GreenFuzz while maintaining comparable recall. We further observe that combining our approach with existing unit test generation methods yields complementary gains, increasing the bug detection recall from 67.3% to 79.5%.",
+      "authors": [
+        "Ziyi Yang",
+        "Kalit Inani",
+        "Keshav Kabra",
+        "Vima Gupta",
+        "Anand Padmanabha Iyer"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.CR"
+      ],
+      "published": "2026-02-11T02:19:50+00:00",
+      "link": "https://arxiv.org/pdf/2602.11209v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "LLM-guided adaptive fuzzing for software development",
+      "llm_evidence_cn": "LLM 引导的软件开发自适应模糊测试",
+      "llm_evidence": "LLM 引导的软件开发自适应模糊测试",
+      "canonical_evidence": "LLM 引导的软件开发自适应模糊测试",
+      "llm_tldr_en": "Presents SAFuzz, a framework using LLMs to detect algorithmic vulnerabilities in generated code efficiently.",
+      "llm_tldr_cn": "提出 SAFuzz 框架，利用 LLM 高效检测生成代码中的算法漏洞。",
+      "llm_tldr": "提出 SAFuzz 框架，利用 LLM 高效检测生成代码中的算法漏洞。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How is AI automating software engineering tasks in SWE bench scenarios?",
+      "matched_requirement_id": "req-46",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.11209v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.01896v1",
+      "title": "Agentic Code Reasoning",
+      "abstract": "Can LLM agents explore codebases and reason about code semantics without executing the code? We study this capability, which we call agentic code reasoning, and introduce semi-formal reasoning: a structured prompting methodology that requires agents to construct explicit premises, trace execution paths, and derive formal conclusions. Unlike unstructured chain-of-thought, semi-formal reasoning acts as a certificate: the agent cannot skip cases or make unsupported claims. We evaluate across three tasks (patch equivalence verification, fault localization, and code question answering) and show that semi-formal reasoning consistently improves accuracy on all of them. For patch equivalence, accuracy improves from 78% to 88% on curated examples and reaches 93% on real-world agent-generated patches, approaching the reliability needed for execution-free RL reward signals. For code question answering on RubberDuckBench Mohammad et al. (2026), semi-formal reasoning achieves 87% accuracy. For fault localization on Defects4J Just et al. (2014), semi-formal reasoning improves Top-5 accuracy by 5 percentage points over standard reasoning. These results demonstrate that structured agentic reasoning enables meaningful semantic code analysis without execution, opening practical applications in RL training pipelines, code review, and static program analysis.",
+      "authors": [
+        "Shubham Ugare",
+        "Satish Chandra"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE",
+        "cs.AI",
+        "cs.PL"
+      ],
+      "published": "2026-03-02T14:17:06+00:00",
+      "link": "https://arxiv.org/pdf/2603.01896v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Agentic code reasoning with semi-formal reasoning and structured prompting",
+      "llm_evidence_cn": "通过半形式化推理和结构化提示进行智能体代码推理",
+      "llm_evidence": "通过半形式化推理和结构化提示进行智能体代码推理",
+      "canonical_evidence": "通过半形式化推理和结构化提示进行智能体代码推理",
+      "llm_tldr_en": "Introduces semi-formal reasoning to improve LLM agents' ability to reason about code semantics without execution.",
+      "llm_tldr_cn": "引入半形式化推理，提升大模型智能体在不执行代码的情况下对代码语义的推理能力。",
+      "llm_tldr": "引入半形式化推理，提升大模型智能体在不执行代码的情况下对代码语义的推理能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Self evolving reasoning through reinforcement learning without human labels",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.02678v1",
+      "title": "Causal Learning Should Embrace the Wisdom of the Crowd",
+      "abstract": "Learning causal structures typically represented by directed acyclic graphs (DAGs) from observational data is notoriously challenging due to the combinatorial explosion of possible graphs and inherent ambiguities in observations. This paper argues that causal learning is now ready for the emergence of a new paradigm supported by rapidly advancing technologies, fulfilling the long-standing vision of leveraging human causal knowledge. This paradigm integrates scalable crowdsourcing platforms for data collection, interactive knowledge elicitation for expert opinion modeling, robust aggregation techniques for expert reconciliation, and large language model (LLM)-based simulation for augmenting AI-driven information acquisition. In this paper, we focus on DAG learning for causal discovery and frame the problem as a distributed decision-making task, recognizing that each participant (human expert or LLM agent) possesses fragmented and imperfect knowledge about different subsets of the variables of interest in the causal graph. By proposing a systematic framework to synthesize these insights, we aim to enable the recovery of a global causal structure unachievable by any individual agent alone.We advocate for a new research frontier and outline a comprehensive framework for new research thrusts that range from eliciting, modeling, aggregating, and optimizing human causal knowledge contributions.",
+      "authors": [
+        "Ryan Feng Lin",
+        "Yuantao Wei",
+        "Huiling Liao",
+        "Xiaoning Qian",
+        "Shuai Huang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.ET",
+        "cs.HC",
+        "stat.ME",
+        "stat.ML"
+      ],
+      "published": "2026-03-03T07:19:24+00:00",
+      "link": "https://arxiv.org/pdf/2603.02678v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "LLM-based simulation for augmenting AI-driven information acquisition",
+      "llm_evidence_cn": "基于LLM的模拟以增强AI驱动的信息获取",
+      "llm_evidence": "基于LLM的模拟以增强AI驱动的信息获取",
+      "canonical_evidence": "基于LLM的模拟以增强AI驱动的信息获取",
+      "llm_tldr_en": "Proposes a paradigm for causal learning that integrates human knowledge with LLM-based simulation.",
+      "llm_tldr_cn": "提出一种因果学习范式，将人类知识与基于LLM的模拟相结合以构建因果结构。",
+      "llm_tldr": "提出一种因果学习范式，将人类知识与基于LLM的模拟相结合以构建因果结构。",
+      "llm_tags": [
+        "query:sr-ai:composite"
+      ],
+      "matched_query_tag": "query:sr-ai:composite",
+      "matched_query_text": "Papers central to ai 前沿与智能体协作, especially work that connects or combines: Diffusion-based Large Language Model; Neural long-term memory and infinite context architectures; Multi-agent coordination and agentic workflow orchestration; Multimodal perception and sensory integration in AI; Long-term and short-term memory mechanisms for AI agents; Cross-application automated workflows and agent orchestration; LLM tool use and external API calling capabilities; How do world models improve physical causality understanding in AI?; Latest advancements in Vision Language Action models for robot control; Architectures for infinite context and long term neural memory.",
+      "matched_requirement_id": "req-composite-sr-ai",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2602.11242v1",
+      "title": "ReTracing: An Archaeological Approach Through Body, Machine, and Generative Systems",
+      "abstract": "We present ReTracing, a multi-agent embodied performance art that adopts an archaeological approach to examine how artificial intelligence shapes, constrains, and produces bodily movement. Drawing from science-fiction novels, the project extracts sentences that describe human-machine interaction. We use large language models (LLMs) to generate paired prompts \"what to do\" and \"what not to do\" for each excerpt. A diffusion-based text-to-video model transforms these prompts into choreographic guides for a human performer and motor commands for a quadruped robot. Both agents enact the actions on a mirrored floor, captured by multi-camera motion tracking and reconstructed into 3D point clouds and motion trails, forming a digital archive of motion traces. Through this process, ReTracing serves as a novel approach to reveal how generative systems encode socio-cultural biases through choreographed movements. Through an immersive interplay of AI, human, and robot, ReTracing confronts a critical question of our time: What does it mean to be human among AIs that also move, think, and leave traces behind?",
+      "authors": [
+        "Yitong Wang",
+        "Yue Yao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-02-11T17:29:18+00:00",
+      "link": "https://arxiv.org/pdf/2602.11242v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multi-agent embodied performance with quadruped robots and LLMs",
+      "llm_evidence_cn": "结合四足机器人与大语言模型的多智能体具身表演",
+      "llm_evidence": "结合四足机器人与大语言模型的多智能体具身表演",
+      "canonical_evidence": "结合四足机器人与大语言模型的多智能体具身表演",
+      "llm_tldr_en": "Uses LLMs and diffusion models to guide human-robot interaction and embodied movement.",
+      "llm_tldr_cn": "利用大语言模型和扩散模型指导人类与机器人的具身交互与动作生成。",
+      "llm_tldr": "利用大语言模型和扩散模型指导人类与机器人的具身交互与动作生成。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Embodied artificial intelligence and physical interaction",
+      "matched_requirement_id": "req-27",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.11242v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.02008v1",
+      "title": "Temporal Representations for Exploration: Learning Complex Exploratory Behavior without Extrinsic Rewards",
+      "abstract": "Effective exploration in reinforcement learning requires not only tracking where an agent has been, but also understanding how the agent perceives and represents the world. To learn powerful representations, an agent should actively explore states that contribute to its knowledge of the environment. Temporal representations can capture the information necessary to solve a wide range of potential tasks while avoiding the computational cost associated with full state reconstruction. In this paper, we propose an exploration method that leverages temporal contrastive representations to guide exploration, prioritizing states with unpredictable future outcomes. We demonstrate that such representations can enable the learning of complex exploratory x in locomotion, manipulation, and embodied-AI tasks, revealing capabilities and behaviors that traditionally require extrinsic rewards. Unlike approaches that rely on explicit distance learning or episodic memory mechanisms (e.g., quasimetric-based methods), our method builds directly on temporal similarities, yielding a simpler yet effective strategy for exploration.",
+      "authors": [
+        "Faisal Mohamed",
+        "Catherine Ji",
+        "Benjamin Eysenbach",
+        "Glen Berseth"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T15:55:27+00:00",
+      "link": "https://arxiv.org/pdf/2603.02008v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "temporal representations for exploration and world knowledge in agents",
+      "llm_evidence_cn": "智能体探索和世界知识的时间表征",
+      "llm_evidence": "智能体探索和世界知识的时间表征",
+      "canonical_evidence": "智能体探索和世界知识的时间表征",
+      "llm_tldr_en": "Uses temporal contrastive representations to guide agent exploration without extrinsic rewards.",
+      "llm_tldr_cn": "利用时间对比表征引导智能体在无外部奖励的情况下进行有效探索。",
+      "llm_tldr": "利用时间对比表征引导智能体在无外部奖励的情况下进行有效探索。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do world models improve physical causality understanding in AI?",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.02944v1",
+      "title": "Reducing Labeling Effort in Architecture Technical Debt Detection through Active Learning and Explainable AI",
+      "abstract": "Self-Admitted Technical Debt (SATD) refers to technical compromises explicitly admitted by developers in natural language artifacts such as code comments, commit messages, and issue trackers. Among its types, Architecture Technical Debt (ATD) is particularly difficult to detect due to its abstract and context-dependent nature. Manual annotation of ATD is costly, time-consuming, and challenging to scale. This study focuses on reducing labeling effort in ATD detection by combining keyword-based filtering with active learning and explainable AI. We refined an existing dataset of 116 ATD-related Jira issues from prior work, producing 57 expert-validated items used to extract representative keywords. These were applied to identify over 103,000 candidate issues across ten open-source projects. To assess the reliability of this keyword-based filtering, we conducted a qualitative evaluation of a statistically representative sample of labeled issues. Building on this filtered dataset, we applied active learning with multiple query strategies to prioritize the most informative samples for annotation. Our results show that the Breaking Ties strategy consistently improves model performance, achieving the highest F1-score of 0.72 while reducing the annotation effort by 49\\%. In order to enhance model transparency, we applied SHAP and LIME to explain the outcomes of automated ATD classification. Expert evaluation revealed that both LIME and SHAP provided reasonable explanations, with the usefulness of the explanations often depending on the relevance of the highlighted features. Notably, experts preferred LIME overall for its clarity and ease of use.",
+      "authors": [
+        "Edi Sutoyo",
+        "Paris Avgeriou",
+        "Andrea Capiluppi"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-03-03T12:51:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.02944v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Automating architecture technical debt detection in software engineering",
+      "llm_evidence_cn": "软件工程中架构技术债务检测的自动化",
+      "llm_evidence": "软件工程中架构技术债务检测的自动化",
+      "canonical_evidence": "软件工程中架构技术债务检测的自动化",
+      "llm_tldr_en": "Combines active learning and XAI to reduce labeling effort in detecting architecture technical debt.",
+      "llm_tldr_cn": "结合主动学习和可解释AI，减少检测架构技术债务时的标注工作量。",
+      "llm_tldr": "结合主动学习和可解释AI，减少检测架构技术债务时的标注工作量。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How is AI automating software engineering tasks in SWE bench scenarios?",
+      "matched_requirement_id": "req-32",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2602.11301v1",
+      "title": "The PBSAI Governance Ecosystem: A Multi-Agent AI Reference Architecture for Securing Enterprise AI Estates",
+      "abstract": "Enterprises are rapidly deploying large language models, retrieval augmented generation pipelines, and tool using agents into production, often on shared high performance computing clusters and cloud accelerator platforms that also support defensive analytics. These systems increasingly function not as isolated models but as AI estates: socio technical systems spanning models, agents, data pipelines, security tooling, human workflows, and hyperscale infrastructure. Existing governance and security frameworks, including the NIST AI Risk Management Framework and systems security engineering guidance, articulate principles and risk functions but do not provide implementable architectures for multi agent, AI enabled cyber defense.   This paper introduces the Practitioners Blueprint for Secure AI (PBSAI) Governance Ecosystem, a multi agent reference architecture for securing enterprise and hyperscale AI estates. PBSAI organizes responsibilities into a twelve domain taxonomy and defines bounded agent families that mediate between tools and policy through shared context envelopes and structured output contracts. The architecture assumes baseline enterprise security capabilities and encodes key systems security techniques, including analytic monitoring, coordinated defense, and adaptive response. A lightweight formal model of agents, context envelopes, and ecosystem level invariants clarifies the traceability, provenance, and human in the loop guarantees enforced across domains. We demonstrate alignment with NIST AI RMF functions and illustrate application in enterprise SOC and hyperscale defensive environments. PBSAI is proposed as a structured, evidence centric foundation for open ecosystem development and future empirical validation.",
+      "authors": [
+        "John M. Willis"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-02-11T19:21:35+00:00",
+      "link": "https://arxiv.org/pdf/2602.11301v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Multi-agent AI reference architecture for enterprise estates",
+      "llm_evidence_cn": "企业级多智能体AI参考架构",
+      "llm_evidence": "企业级多智能体AI参考架构",
+      "canonical_evidence": "企业级多智能体AI参考架构",
+      "llm_tldr_en": "Proposes a reference architecture for governing and securing complex multi-agent AI systems in enterprises.",
+      "llm_tldr_cn": "提出了一种用于管理和保护企业复杂多智能体AI系统的参考架构。",
+      "llm_tldr": "提出了一种用于管理和保护企业复杂多智能体AI系统的参考架构。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-43",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.11301v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.02141v1",
+      "title": "Generative AI in Software Testing: Current Trends and Future Directions",
+      "abstract": "This paper investigates current software testing systems and explores how artificial intelligence, specifically Generative AI, can be integrated to enhance these systems. It begins by examining different types of AI systems and focuses on the potential of Generative AI to transform software testing processes by improving test coverage, increasing efficiency, and reducing costs. The study provides a com-prehensive overview of the current applications of AI in software testing, emphasizing its significant contributions in areas such as test case generation and validation. Through an extensive literature re-view, it highlights how Generative AI can streamline these processes, resulting in more robust and thorough testing outcomes. The paper also examines methods to improve the efficiency of Generative AI systems, such as prompt engineering and fine-tuning. Additionally, it explores the use of AI in specific tasks, including input generation, oracle generation, data generation, test data creation, and test case prioritization. By analyzing the current landscape and identifying both the opportunities and challenges in integrating Generative AI, this paper provides valuable insights and recommendations for practitioners and researchers. It underscores the need for ongoing advancements and targeted development efforts to overcome existing hurdles and fully leverage AI's capabilities. The findings further show that with continued innovation and careful implementation, Generative AI has the potential to significantly enhance the efficiency, effectiveness, and reliability of software testing, particularly in the rapidly evolving field of IoT testing.",
+      "authors": [
+        "Tanish Singla",
+        "Qusay H. Mahmoud"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-03-02T18:01:43+00:00",
+      "link": "https://arxiv.org/pdf/2603.02141v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Generative AI for software testing and test case generation",
+      "llm_evidence_cn": "生成式人工智能用于软件测试和测试用例生成",
+      "llm_evidence": "生成式人工智能用于软件测试和测试用例生成",
+      "canonical_evidence": "生成式人工智能用于软件测试和测试用例生成",
+      "llm_tldr_en": "Explores how Generative AI can enhance software testing efficiency and test case validation.",
+      "llm_tldr_cn": "探讨了生成式人工智能如何提高软件测试效率和测试用例验证。",
+      "llm_tldr": "探讨了生成式人工智能如何提高软件测试效率和测试用例验证。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How is AI automating software engineering tasks in SWE bench scenarios?",
+      "matched_requirement_id": "req-32",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.06960v1",
+      "title": "Adolescents & Anthropomorphic AI: Rethinking Design for Wellbeing An Evidence-Informed Synthesis for Youth Wellbeing and Safety",
+      "abstract": "Conversational AI has become part of adolescents' everyday lives. This report asks: what does AI owe adolescents when it can speak to them like a social partner? The synthesis bridges the gap between developmental science and industry practice through consultations, a behavioral framework, and global policy dialogue. It identies non- negotiable guardrails and highlights the role of anthropomorphism as a design lever for risk mitigation, ensuring systems support adolescents' autonomy and skill development.",
+      "authors": [
+        "Mathilde Neugnot-Cerioli"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-03-07T00:46:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.06960v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "developmental science and adolescent autonomy",
+      "llm_evidence_cn": "发展科学与青少年自主性",
+      "llm_evidence": "发展科学与青少年自主性",
+      "canonical_evidence": "发展科学与青少年自主性",
+      "llm_tldr_en": "Synthesizes developmental science to design AI that supports adolescent autonomy and wellbeing.",
+      "llm_tldr_cn": "结合发展科学，设计支持青少年自主权和福祉的 AI 系统。",
+      "llm_tldr": "结合发展科学，设计支持青少年自主权和福祉的 AI 系统。",
+      "llm_tags": [
+        "query:pr-ef:composite"
+      ],
+      "matched_query_tag": "query:pr-ef:composite",
+      "matched_query_text": "Papers central to 父母控制与执行功能关系研究检索规划, especially work that connects or combines: parental monitoring; impact of parental behavioral control on child development; effects of parental psychological control on executive function; development of executive function in children and adolescents; parenting styles and child inhibitory control; self-determination theory and basic psychological needs satisfaction; mediating role of emotion regulation in parenting and cognition; longitudinal association between parenting and executive function; parental control and executive function in preschool samples; How does parental psychological control affect children's executive function?.",
+      "matched_requirement_id": "req-composite-pr-ef",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

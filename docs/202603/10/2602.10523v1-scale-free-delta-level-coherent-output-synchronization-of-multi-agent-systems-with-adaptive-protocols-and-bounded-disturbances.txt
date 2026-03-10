@@ -1,0 +1,3331 @@
+Title: Scale-Free delta-Level Coherent Output Synchronization of Multi-Agent Systems with Adaptive Protocols and Bounded Disturbances
+
+URL Source: https://arxiv.org/pdf/2602.10523v1
+
+Published Time: Thu, 12 Feb 2026 01:35:40 GMT
+
+Number of Pages: 41
+
+Markdown Content:
+> Received: Added at production Revised: Added at production Accepted: Added at production DOI: xxx/xxxx
+
+A R T I C L E T Y P E 
+
+# Scale-Free 𝜹 -Level Coherent Output Synchronization of Multi-Agent Systems with Adaptive Protocols and Bounded Disturbances 
+
+## Anton A. Stoorvogel 1 Ali Saberi 2 Donya Nojavanzadeh* 2
+
+> 1Department of Electrical Engineering, Mathematics and Computer Science, University of Twente, Enschede, The Netherlands
+> 2School of Electrical Engineering and Computer Science, Washington State University, Washington, USA
+> Correspondence
+> *Donya Nojavanzadeh. Email: donya.nojavanzadeh@wsu.edu
+> Present address
+> ATTN: Donya Nojavanzadeh, Franklin Ave, Tustin, CA, 92780, USA
+
+Abstract 
+
+In this paper, we investigate scale-free 𝛿 −level coherent output synchronization for multi-agent systems (MAS) operating under bounded disturbances/noises. We introduce an adaptive scale-free framework designed solely based on the knowledge of agent models and completely agnostic to both the communication topology and the size of the network. We define the level of coherency for each agent as the norm of the weighted sum of the disagreement dynamics with its neighbors. We define each agent’s coherency level as the norm of a weighted sum of its disagreement dynamics relative to its neighbors. The goal is to ensure that the network’s coherency level remains below a prescribed threshold 
+
+𝛿 , without requiring any a-priori knowledge of the disturbance. 
+
+> K E Y W O R D S
+
+𝛿 -level coherent output synchronization; adaptive scale-free protocols; disturbances 
+
+## 1 INTRODUCTION 
+
+Synchronization and consensus problems in multi-agent systems (MAS) have become a major research focus in recent years, driven by their broad applications in cooperative control, including robot networks, autonomous vehicles, distributed sensor networks, and power systems. The goal of synchronization in MAS is to achieve asymptotic agreement on a common state or output trajectory through local interactions between agents; see [1, 12, 22, 35, 5, 23] and the references therein. In a network with full-state coupling, each agent has access to a linear combination of its own state relative to the states of its neighbors. If this linear combination involves only a subset of the states relative to the corresponding states of the neighboring agents, it is called partial-state coupling. For state synchronization under diffusive full-state coupling, research has evolved from simple single- and double-integrator models ( e.g. , [ 16 , 20 , 21 ]) to more general agent dynamics ( e.g. , [ 26 , 32 , 34 ]). State synchronization under diffusive partial-state coupling has also been widely investigated, including static controller design [ 8, 6], dynamic controller design [ 4 , 28 , 27 , 31 , 33 ], and approaches based on localized information exchange [ 2, 26 ]. More recently, we have developed a new class of scale-free protocols for synchronization and almost synchronization of homogeneous and heterogeneous MAS under various practical challenges, including external disturbances, input saturation, communication delays, and input delays; see, for example, [11, 10, 7, 14]. Synchronization and almost synchronization in the presence of external disturbances have been widely studied in the literature. Three main classes of disturbances are typically considered: 1. Disturbances and measurement noises with known frequencies 2. Deterministic disturbances with finite power 3. Stochastic disturbances with bounded variance  
+
+> arXiv:2602.10523v1 [eess.SY] 11 Feb 2026 2A.A. Stoorvogel et al.
+
+For disturbances and measurement noise with known frequencies, it has been shown in [ 36 , 37 ] that exact synchronization can be achieved. Specifically, [ 36 ] establishes this result for heterogeneous MAS composed of minimum-phase, non-introspective agents operating over time-varying directed communication graphs. The work in [ 37 ] further extends these results to non-minimum-phase agents by employing localized information exchange. For deterministic disturbances with finite power, the notion of H∞ almost synchronization was introduced by Peymani et al. , for homogeneous MAS with non-introspective agents, using additional communication exchange [ 17 ]. The objective of H∞ almost synchronization is to attenuate the effect of disturbances on the synchronization error to an arbitrarily small level, quantified in the H∞ norm. This line of work was later extended in [ 18 , 40 , 39 ] to heterogeneous MAS with non-introspective agents, without requiring additional communication and accommodating time-varying communication graphs. H∞ almost synchronization via static protocols is studied in [ 30 ] for MAS with passive and passifiable agents. More recently, [ 29 ] established necessary and sufficient conditions for the solvability of H∞
+
+almost synchronization in homogeneous networks with non-introspective agents and without extra communication exchange. Finally, we have developed a scale-free framework for H∞ almost state synchronization in homogeneous networks, leveraging suitably designed localized information exchange [9]. For stochastic disturbances with bounded variance, the concept of stochastic almost synchronization was introduced in [ 38 ], where both stochastic disturbances and disturbances with known frequencies may be present. The goal of stochastic almost synchronization is to make the stochastic RMS norm of the synchronization error arbitrarily small, despite the presence of colored stochastic disturbances modeled as outputs of linear time-invariant systems driven by white noise with unit power spectral intensity. By augmenting the disturbance model with the agent dynamics, one may equivalently treat the stochastic disturbances as white noise with unit power spectral intensity. Under linear protocols, the stochastic RMS norm of the synchronization error then corresponds to the H2 norm of the transfer function from the disturbance to the synchronization error. Consequently, the stochastic almost synchronization problem can be reformulated as a deterministic H2 almost synchronization problem, where the objective is to make this H2 norm arbitrarily small. These two formulations are equivalent. Recent work on the H2 almost synchronization problem includes [ 29 ], which provides necessary and sufficient conditions for solvability in homogeneous networks with non-introspective agents and without additional communication exchange. H2 almost synchronization using static protocols has also been studied in [30] for MAS composed of passive and passifiable agents. The above H∞ and H2 almost synchronization approaches for MAS, however, suffer from the following disadvantages: 
+
+• Tuning requirement: The protocols developed for H∞ and H2 almost synchronization are parameterized by a tuning parameter. Although the H∞ or H2 norm of the transfer function from the external disturbances can be made arbitrarily small through appropriate tuning, this relationship depends heavily on the structure of the communication graph. 
+
+• Dependency on disturbance size: In H∞ and H2 almost synchronization, the size of the synchronization error scales linearly with the magnitude of the disturbance. Therefore, to guarantee a desired coherence level, prior knowledge of the disturbance magnitude is required to properly select the tuning parameter 𝛿 .On the other hand, in [ 15 ] we have studied scale-free 𝛿 -level coherent state synchronization for homogeneous MAS under bounded disturbances/noises. This approach ensures a guaranteed level of coherency— i.e. , a specified degree of synchronization—without requiring prior knowledge of the network topology or the magnitude of the disturbances. In this paper, we consider scale-free 
+
+𝛿 -level coherent output synchronization for homogeneous MAS under bounded disturbances/noises. The contribution of this work is threefold. 1. The protocols are designed solely based on the knowledge of the agent models, using no information about the communication network such as bounds on the spectrum of the associated Laplacian matrix or the number of agents. That is to say, universal nonlinear protocols are scale-free and work for any communication network. Note that there is no need to impose restrictions on the connectivity of the graph. 2. We achieve scale-free 𝛿 −level coherent output synchronization for MAS in the presence of bounded disturbances/noises such that, for any given 𝛿 , one can restrict the level of coherency of the network to 𝛿 . The only assumption is that the disturbances are bounded (which is a very reasonable condition). However, the protocol is independent of the bound and does not require any other knowledge about the disturbances. 3. We propose two types of adaptive protocols, i.e., collaborative and noncollaborative protocols to achieve 𝛿 -level coherent output synchronization where in the case of collaborative protocols we significantly release the assumptions on the agent models. Note that we only consider disturbances to the different agents and not measurement noises. 3
+
+## Preliminaries on graph theory 
+
+Given a matrix M ∈ Rm×n, MT denotes its conjugate transpose. A square matrix M is said to be Hurwitz stable if all its eigenvalues are in the open left half complex plane. Im M denotes the image of matrix M. Ma ⊗ Mb depicts the Kronecker product of Ma
+
+and Mb. In denotes the n-dimensional identity matrix and 0n denotes n × n zero matrix; sometimes we drop the subscript if the dimension is clear from the context. For a signal u, we denote the L2 norm by || u|| or || u|| 2, and the L∞ norm by || u|| ∞.To describe the information flow among the agents we associate a weighted graph G to the communication network. The weighted graph G is defined by a triple (V , E, A) where V = {1, . . . , N} is a node set, E is a set of pairs of nodes indicating connections among nodes, and A = [aij ] ∈ RN×N is the weighted adjacency matrix with non negative elements aij . Each pair in 
+
+E is called an edge , where aij > 0 denotes an edge (j, i) ∈ E from node j to node i with weight aij . Moreover, aij = 0 if there is no edge from node j to node i. We assume there are no self-loops, i.e. we have aii = 0. A path from node i1 to ik is a sequence of nodes {i1, . . . , ik } such that (ij, ij+1) ∈ E for j = 1, . . . , k − 1. A directed tree is a subgraph (a subset of nodes and edges) in which every node has exactly one parent node except for one node, called the root , which has no parent node. A directed spanning tree 
+
+is a subgraph which is a directed tree containing all the nodes of the original graph. If a directed spanning tree exists, the root has a directed path to every other node in the tree [3]. For a weighted graph G, the matrix L = [ℓij ] with 
+
+ℓij =
+
+ Í Nk=1 aik , i = j,
+
+−aij , i ≠ j,
+
+is called the Laplacian matrix associated with the graph G. The Laplacian matrix L has all its eigenvalues in the closed right half plane and at least one eigenvalue at zero associated with right eigenvector 1 [3 ]. Moreover, if the graph contains a directed spanning tree, the Laplacian matrix L has a single eigenvalue at the origin and all other eigenvalues are located in the open right-half complex plane [ 22 ]. In the absence of a directed spanning tree, the Laplacian matrix of the graph has an eigenvalue at the origin with a multiplicity k larger than 1. This implies that it is a k-reducible matrix and the graph has k basic bi-components. The book [ 35 , Definition 2.19] shows that, after a suitable permutation of the nodes, a Laplacian matrix with k basic bi-components can be written in the following form: 
+
+L =
+
+©«
+
+L0 L01 L02 · · · L0k
+
+0 L1 0 · · · 0... . . . . . . . . . ...... . . . Lk−1 00 · · · · · · 0 Lk
+
+ª®®®®®®®®¬
+
+(1) where L1, . . . , Lk are the Laplacian matrices associated to the k basic bi-components {B 1, . . . , Bk } in our network. These matrices have a simple eigenvalue in 0 because they are associated with a strongly connected component. On the other hand, L0 contains all non-basic bi-components and is a grounded Laplacian with all eigenvalues in the open right-half plane. After all, if L0 would be singular then the network would have an additional basic bi-component. 
+
+## 2 PROBLEM FORMULATION 
+
+Consider a MAS consisting of N identical linear agents 
+
+¤xi = Ax i + Bu i + Ew i, i = 1, . . . , Nyi = Cx i
+
+(2) where xi ∈ Rn, ui ∈ Rm, yi ∈ Rp and wi ∈ Rw are state, input, output and external disturbance/noise, respectively. The communication network is such that each agent observes a weighted combination of its own output relative to the output of other agents, i.e. , for the protocol of agent i, the signal 
+
+𝜁 i =
+
+> N
+
+∑︁ 
+
+> j=1
+
+aij (yi − yj) (3) 4 A.A. Stoorvogel et al. 
+
+is available where aij ⩾ 0 and aii = 0. As explained before, the matrix A = [aij ] is the weighted adjacency matrix of a directed graph G. This matrix describes the communication topology of the network, where the nodes of network correspond to the agents. We can also express the dynamics in terms of an associated Laplacian matrix L = [ℓij ]N×N , such that the signal 𝜁 i in (3) can be rewritten in the following form 
+
+𝜁 i =
+
+> N
+
+∑︁ 
+
+> j=1
+
+ℓij yj. (4) The size of 𝜁 i (t) can be viewed as the level of coherency at agent i.We define the set of communication graphs considered in this paper as follows. 
+
+Definition 1. GN denotes the set of directed graphs of N agents Next, in the following definition, we define the concept of 𝛿 -level-coherent output synchronization for the MAS with agents (2) and communication information (4). 
+
+Definition 2. For any given 𝛿 > 0 , the MAS (2) and (4) achieves 𝛿 -level coherent output synchronization if there exists a T > 0 
+
+such that 
+
+∥𝜁 i (t)∥ ≤ 𝛿 ,
+
+for all t > T, for all i ∈ { 1, . . . , N}, and for any bounded disturbance. 
+
+Problem 1. Consider a MAS (2) with associated network communication (4) and a given parameter 𝛿 > 0 . The scale-free 
+
+𝛿 -level-coherent output synchronization in the presence of bounded external disturbances is to find, if possible, a fully distributed nonlinear noncollaborative protocol using only knowledge of agent models, i.e. , (A, B, C), and 𝛿 of the form 
+
+ ¤xi,c = f (xi,c, 𝜁 i),
+
+ui = g(xi,c, 𝜁 i), (5) where xi,c ∈ Rnc is the state of protocol, such that the MAS with the above protocol achieves 𝛿 -level-coherent output synchronization in the presence of disturbances with any size of the network N and for any graph G ∈ GN . In other words, the MAS achieves 𝛿 -level coherent output synchronization as defined in Definition 2. Next, we have Problem 2, where for collaborative protocols we assume there is an additional communication available over the same network between the protocols of the different agents. In particular, for the protocol of agent i besides (4) , they can also use 
+
+˜𝜁 i =
+
+> N
+
+∑︁ 
+
+> j=1
+
+ℓij xi,c (6) which communicates the input signals of the different agents over the network. This extra communication significantly reduces the number of assumptions we need to make on our agent model. 
+
+Definition 3. For any given 𝛿 > 0 , the MAS (2) and (4) achieves collaborative 𝛿 -level-coherent output synchronization if there exist a T > 0 such that 
+
+∥𝜁 i (t)∥ ≤ 𝛿 , ∥C ˜𝜁 i (t)∥ ≤ 𝛿 ,
+
+for all t > T, for all i ∈ { 1, . . . , N}, and for any bounded disturbance. 
+
+Problem 2. Consider a MAS (2) with associated network communication (4) , (6) and a given parameter 𝛿 > 0 . The scale-free 
+
+𝛿 -level-coherent output synchronization in the presence of bounded external disturbances is to find, if possible, a fully distributed nonlinear collaborative protocol using only knowledge of agent models, i.e. , (A, B, C), and 𝛿 of the form 
+
+ ¤xi,c = f (xi,c, 𝜁 i, ˜𝜁 i),
+
+ui = g(xi,c, 𝜁 i, ˜𝜁 i), (7) where xi,c ∈ Rnc is the state of protocol, such that the MAS with the above protocol achieves collaborative 𝛿 -level-coherent output synchronization in the presence of disturbances with any size of the network N and for any graph G ∈ GN . In other words, the MAS achieves collaborative 𝛿 -level coherent output synchronization as defined in Definition 3. 5
+
+## 3 NONCOLLABORATIVE PROTOCOL DESIGN 
+
+In this section, we design an adaptive protocol to achieve the objectives of Problem 1. We make the following assumption. 
+
+Assumption 1. 
+
+1. (A, B) is stabilizable and (C, A) is detectable. 2. Im E ⊂ Im B.3. (A, B, C) has relative degree 1.4. (A, B, C) is left-invertible. 5. (A, B, C) is minimum-phase. 6. The disturbances wi are bounded for i ∈ { 1, 2, . . . , N}. In other words, we have that ∥w∥∞ < ∞ for i ∈ { 1, 2, . . . , N}.
+
+Remark 1. Assumptions 1.1 is an obvious necessary condition. As argued before, Assumption 1.6 is basically valid for any disturbance in the real world. The key point is that we do not need to know the bound. The assumptions 1.2-1.5 are quite strong and we will see later that, using collaborative protocols, these assumptions can be relaxed quite significantly. We design the nonlinear noncollaborative adaptive protocol as follows. We choose invertible matrices S and T such that 
+
+˜B = SB =
+
+ 0
+
+B2
+
+
+
+, ˜C = TCS −1 =
+
+C1 00 I
+
+
+
+with B2 invertible which is possible since B and CB are both left-invertible. Note that Im E ⊂ Im B implies that: 
+
+SE =
+
+ 0
+
+E2
+
+
+
+Define: x1i
+
+x2i
+
+
+
+= Sx i,
+
+y1i
+
+y2i
+
+
+
+= Ty i,
+
+𝜁 1i
+
+𝜁 2i
+
+
+
+= T 𝜁 i, (8) such that the dynamics of x1i and x2i are given by 
+
+
+
+¤x1i = A11 x1i + A12 x2i,
+
+¤x2i = A21 x1i + A22 x2i + B2ui + E2wi,
+
+Ty i =
+
+y1i
+
+y2i
+
+
+
+=
+
+C1x1i
+
+x2i
+
+
+
+.
+
+(9) Since the system is minimum-phase it can be easily verified that we must have that (C1, A11 ) is detectable. Choose H1
+
+such that A11 + H1C1 is asymptotically stable. We denote: 
+
+˜A =
+
+A11 A12 
+
+A21 A22 
+
+
+
+, ˜E1 =
+
+ 0
+
+E2
+
+
+
+.
+
+Since ( ˜A, ˜B) is stabilizable, there exists a matrix P > 0 satisfying the following algebraic Riccati equation 
+
+˜ATP + P ˜A − P ˜B ˜BTP + I = 0. (10) Define ¯𝛿 < 𝛿 1 = 𝛿 2𝜆 min (P) and choose d such that 
+
+0 < d < ∥CS −1 ∥−1 ¯𝛿 . (11) 6 A.A. Stoorvogel et al. 
+
+Finally, for any parameter d satisfying (11), we design the following adaptive protocol 
+
+¤ˆ𝜉 1i = A11 ˆ𝜉 1i + A12 𝜁 2i + H1 (C1 ˆ𝜉 1i − 𝜁 1i)
+
+ˆ𝜉 i =
+
+ ˆ𝜉 1i
+
+𝜁 2i
+
+
+
+¤𝜌 i =
+
+( ˆ𝜉 T 
+
+> i
+
+P ˜B ˜BTP ˆ𝜉 i if ˆ𝜉 T 
+
+> i
+
+P ˆ𝜉 i ⩾ d,0 if ˆ𝜉 T 
+
+> i
+
+P ˆ𝜉 i < d,
+
+ui = −𝜌 i ˜BTP ˆ𝜉 i.
+
+(12) 
+
+We have the following theorem. 
+
+Theorem 1. Consider a MAS (2) , satisfying assumption 1, with associated network communication (4) and a given parameter 
+
+𝛿 > 0 . Then, the scale-free 𝜹 -level-coherent output synchronization in the presence of bounded external disturbances as stated in Problem 1 is solvable. In particular, protocol (12) with any d satisfying (11) solves 𝛿 -level-coherent output synchronization in the presence of disturbances wi, for an arbitrary number of agents N and for any graph G ∈ GN .
+
+The proof of the above theorem relies on three lemmas which are presented below. 
+
+Lemma 1. Consider a number of agents N and a graph G ∈ GN . Consider MAS (2) with associated network communication (4) 
+
+and a given parameter 𝛿 > 0 . Assume Assumption 1 is satisfied. Choose any d satisfying (11) . If all 𝜌 i remain bounded then there exists a T > 0 such that 
+
+ˆ𝜉 T 
+
+> i
+
+(t)P ˆ𝜉 i (t) ⩽ ¯𝛿 , (13) 
+
+for all t > T and for all i = 1, . . . , N.Proof: The proof in this lemma follows in exactly the same way as the proof of [ 15 , Lemma 1]. The fact that we have an additional unmatched disturbance e does not matter because it converges to zero exponentially. 
+
+Lemma 2. Consider MAS (2) with associated network communication (4) and protocol (12) . Assume Assumption 1 is satisfied. Additionally, assume that either the 𝜌 i associated to agents belonging to the basic bi-components are bounded or the graph is strongly connected. In that case, there exists 𝜂 , 𝜇 > 0 such that 
+
+𝜌 i (t2) − 𝜌 i (t1) < 𝜂 (t2 − t1) + 𝜇 
+
+for any t1, t2 with t2 > t1 and for i = 1, . . . , N.Proof: The proof in this lemma follows in exactly the same way as the proof of [ 15 , Lemma 2]. The fact that we have an additional unmatched disturbance e does not matter because it converges to zero exponentially. 
+
+Lemma 3. Consider MAS (2) with associated network communication (4) and the protocol (12) . Assume Assumption 1 is satisfied. Additionally, assume that either the 𝜌 i associated to agents belonging to the basic bi-components are bounded or the graph is strongly connected. In that case, all 𝜌 i remain bounded. Proof: The proof in this lemma follows the same arguments as the proof of [ 15 , Lemma 3]. However, we need one additional property. Since (2) shows that the 𝜌 i can grow at most linearly over time while we already knew that e converges to zero exponentially, we find that: 
+
+𝜌 2 
+
+> i
+
+e ∈ L2,
+
+for i = 1, . . . , N. Using this property the arguments of [15, Lemma 3] establish that all the 𝜌 i remain bounded. 
+
+Proof of Theorem 1: Consider the protocol (12). Define 
+
+𝜉 i =
+
+> N
+
+∑︁ 
+
+> i=1
+
+ℓij Sx j, 𝜉 1i =
+
+> N
+
+∑︁ 
+
+> i=1
+
+ℓij x1j, 𝜉 2i =
+
+> N
+
+∑︁ 
+
+> i=1
+
+ℓij x2j.
+
+Note that we have that C𝜉 i = 𝜁 i, C1𝜉 1i = 𝜁 1i and 𝜉 2i = 𝜁 2i. We obtain: 
+
+¤e1i = (A11 + H1C1)e1i,7
+
+where e1i = ˆ𝜉 1i − 𝜉 1i. Clearly e1i converges to zero exponentially and its behavior is independent of our scheduling or our external disturbance w. We define: 
+
+ei =
+
+e1i
+
+0
+
+
+
+, ˜E2 =
+
+H1C1
+
+−A21 
+
+
+
+and 
+
+ˆ𝜉 = ©«
+
+ˆ𝜉 1
+
+...
+
+ˆ𝜉 N
+
+ª®®¬
+
+, e = ©«
+
+e1
+
+...
+
+eN
+
+ª®®¬
+
+, w = ©«
+
+w1
+
+...
+
+wN
+
+ª®®¬
+
+.
+
+We obtain: ¤ˆ𝜉 = (I ⊗ A) ˆ𝜉 − ( L𝜌 ⊗ ˜B ˜BTP) ˆ𝜉 + ( L ⊗ ˜E1)w + ( I ⊗ ˜E2)e. (14) Note that we obtain the same structure as in [ 15 , equation (12)] except for the extra term involving e. The scheduling in (12) has exactly the same structure as in [15, equation (8)]. We can not directly apply the proofs of [ 15 ] because of the extra term involving e in (14) . Clearly e can be viewed as an additional disturbance which is bounded (even converging to zero exponentially). However it is an unmatched disturbance. We have: 
+
+Im ˜ E1 ⊂ Im ˜ B,
+
+but the same property does not hold for ˜E2.The Laplacian matrix of the system in general has the form (1) . We note that if we look at the dynamics of the agents belonging to one of the basic bi-components then these dynamics are not influenced by the other agents and hence can be analyzed independent of the rest of network. The network within one of the basic bi-components is strongly connected and we can apply Lemmas 2 and 3 to guarantee that the 𝜌 i associated to a basic bi-component are all bounded. Next, we look at the full network again. We have already established that the 𝜌 i associated to all basic bi-components are all bounded. Then we can again apply Lemmas 2 and 3 to conclude that the other 𝜌 i not associated to basic bi-components are also bounded. After having established that all the 𝜌 i are all bounded, we can then apply Lemma 1 to conclude that (13) is satisfied. Since 
+
+ˆ𝜉 i − 𝜉 i = ei converges to zero exponentially, we can conclude there exists T > 0 such that: 
+
+𝜉 T 
+
+> i
+
+(t)P𝜉 i (t) ⩽ 𝛿 1,
+
+for all t > T and for all i = 1, . . . , N. Since 𝜁 i = CS −1𝜉 i, this immediately implies: 
+
+∥𝜁 i (t)∥ ≤ 𝛿 ,
+
+for all t > T. Therefore, we have established that we achieve scale-free 𝛿 -level-coherent output synchronization. 
+
+## 4 COLLABORATIVE PROTOCOL DESIGN 
+
+In this section, we design an adaptive collaborative protocol to achieve the objectives of Problem 2. We make the following assumption. 
+
+Assumption 2. 
+
+1. (A, B) is stabilizable and (C, A) is observable. 2. The system (A, B, C) is right-invertible and minimum-phase. 3. The disturbances wi are bounded for i ∈ { 1, 2, . . . , N}. In other words, we have that ∥w∥∞ < ∞ for i ∈ { 1, 2, . . . , N}.
+
+Remark 2. Compared to the design of the noncollaborative protocol, strong assumptions such as Im E ⊂ Im B and relative degree 
+
+1 have been removed , although we now assume that (A, B, C) is right-invertible. If Im E ⊂ Im B is satisfied then we can easily show that the assumption of right-invertibility is no longer needed. We design the nonlinear collaborative adaptive protocol as follows. 8 A.A. Stoorvogel et al. 
+
+According to [41], there exists 𝜂 > 0 and Q > 0 such that: 
+
+AQ + QA T − QC TCQ + 𝜂 Q = 0. (15) We will use the following observer: 
+
+¤ˆxi = Aˆxi + Bu i − 𝜌 iQC T (C ˜𝜁 i − 𝜁 i), (16) with 𝜁 i given by (4) and ˜𝜁 i given by (6) with xi,c = ˆxi. Define: 
+
+ei = ˆxi − xi, 𝜉 i =
+
+> N
+
+∑︁ 
+
+> j=1
+
+ℓij ej, ˜ei =
+
+> N
+
+∑︁ 
+
+> j=1
+
+ℓij Ce j.
+
+We have: 
+
+˜ei = C ˜𝜁 i − 𝜁 i = C𝜉 i,
+
+we choose d such that 
+
+0 < 4 d < 𝛿 2, (17) and we choose the following adaptive gain: 
+
+¤𝜌 i =
+
+(˜eT 
+
+> i
+
+˜ei if ˜eT 
+
+> i
+
+˜ei ⩾ d,0 otherwise . (18) Let P𝛼 i be defined by: 
+
+ATP𝛼 i + P𝛼 i A − 𝛼 iP𝛼 i BB TP𝛼 i + 2𝜀 P𝛼 i + CTC = 0, (19) where 𝜀 > 0 is small enough such that (A + 𝜀 I, B, C) is right-invertible and minimum-phase. Note that P𝛼 → 0 as 
+
+𝛼 → ∞ . Finally, we choose a second adaptive gain: 
+
+¤𝛼 i =
+
+
+
+1 if ˜𝜁 T 
+
+> i
+
+CTC ˜𝜁 i ⩾ 1, 
+
+˜𝜁 T 
+
+> i
+
+CTC ˜𝜁 i if 1 > ˜𝜁 T 
+
+> i
+
+CTC ˜𝜁 i ⩾ d,0 otherwise ,
+
+(20) and the associated feedback: 
+
+ui = −𝛼 iBTP𝛼 i (ˆxi + ˜𝜁 i). (21) 
+
+We have the following theorem. 
+
+Theorem 2. Consider a MAS (2) , satisfying assumption 2, with associated network communication (4) and a given parameter 
+
+𝛿 > 0 . If the agent model has uniform rank, then the scale-free 𝜹 -level-coherent output synchronization in the presence of bounded external disturbances as stated in Problem 2 is solvable. In particular, the protocol given by (16) , (18) and (20) with any d satisfying (17) solves 𝛿 -level-coherent output synchronization in the presence of disturbances wi, for an arbitrary number of agents N and for any graph G ∈ GN .
+
+Note that in the above theorem we impose an additional restriction on the agents that the agent model has uniform rank. It is our conjecture that the protocol that we presented above still solves the scale-free 𝛿 -level-coherent output synchronization in the presence of bounded external disturbances even if the system is not uniform rank. However, as of this moment, this is still an open research question. However, we can design a modified protocol that solves the scale-free 𝛿 -level-coherent output synchronization in the presence of bounded external disturbances by using the protocol above combined with a precompensator which makes the system uniform rank. We have the following theorem. 
+
+Theorem 3. Consider a MAS (2) , satisfying assumption 2, with associated network communication (4) and a given parameter 
+
+𝛿 > 0 . In that case, the scale-free 𝜹 -level-coherent output synchronization in the presence of bounded external disturbances as stated in Problem 2 is solvable. 9
+
+Proof of Theorem 3: Using the results from [25], we can design a preliminary feedback: 
+
+¤xpi = Apxpi + Bpvi
+
+ui = Cpxpi 
+
+such that the agent with input vi and output yi has uniform rank and still preserves the other conditions of Assumption 2, i.e. 
+
+stabilizability, detectability, minimum-phase and right-invertibility. Then, we can use the protocol used in Theorem 2 but designed for the new agent model: 
+
+˜A =
+
+A BC p
+
+0 Ap
+
+
+
+, ˜B =
+
+ 0
+
+Bp
+
+
+
+, ˜E =
+
+E
+
+0
+
+
+
+, ˜C =
+
+
+
+C 0
+
+
+
+,
+
+to achieve that any d satisfying (17) solves 𝛿 -level-coherent output synchronization in the presence of disturbances wi, for an arbitrary number of agents N and for any graph G ∈ GN . In other words, scale-free 𝛿 -level-coherent output synchronization in the presence of bounded external disturbances is achieved. The proof of the result of Theorem 2 is split in a number of lemmas to improve the presentation. The first three lemma establish the behavior of the observer (16) with its adaptive gain given by (18) after which we have some lemmas to analyze the behavior of the state feedback (21) and its associated adaptive gain given by (20). From the observer, we obtain: 
+
+¤𝜉 i = A𝜉 i − ( Li 𝜌 ⊗ QC TC)𝜉 − ( Li ⊗ E)w (22) where Li is the i’th row of L for i = 1, . . . , N and 
+
+𝜉 =
+
+©«
+
+𝜉 1
+
+𝜉 2
+
+...
+
+𝜉 N
+
+ª®®®®®¬
+
+, 𝜌 =
+
+©«
+
+𝜌 1 0 · · · 00 𝜌 2
+
+. . . ...... . . . . . . 00 · · · 0 𝜌 N
+
+ª®®®®®¬
+
+.
+
+together with the adaptive gain (18) . We would like to stress the crucial feature that this dynamics is completely independent of the state feedback (21) and its associated adaptive gain given by (20) . Therefore the behavior of (22) can be analyzed as a closed unit independent of the rest of the dynamics. 
+
+Lemma 4. Consider a number of agents N and a graph G ∈ GN . Consider the MAS (2) with associated network communication 
+
+(4) and a given parameter 𝛿 > 0 . Assume Assumption 2 is satisfied. Choose any d satisfying (17) . If all 𝜌 i remain bounded then there exists a T > 0 such that 
+
+∥ ˜ei (t)∥ ⩽ 𝛿  
+
+> 2
+
+, (23) 
+
+for all t > T and for all i = 1, . . . , N.Proof of Lemma 4: For the system (22), we define Vi = 𝜉 T 
+
+> i
+
+Q−1𝜉 i and we obtain: 
+
+¤Vi = 𝜉 T 
+
+> i
+
+(− 𝜂 Q−1 + CTC)𝜉 i − 2𝜉 T 
+
+> i
+
+(Li 𝜌 ⊗ CTC)𝜉 − 2𝜉 T 
+
+> i
+
+(Li ⊗ Q−1E)w
+
+and hence: 
+
+¤Vi ⩽ − 𝜂  
+
+> 2
+
+Vi + ˜eT 
+
+> i
+
+˜ei − 2˜eT 
+
+> i
+
+(Li 𝜌 ⊗ I) ˜e + 2 
+
+> 𝜂
+
+wT (LT 
+
+> i
+
+Li ⊗ ETQ−1E)w
+
+with ˜e = (I ⊗ C)𝜉 . Convergence of 𝜌 i for i = 1, . . . , N implies that for any 𝜀 > 0 there exists T > T0 such that 
+
+𝜌 i (t2) − 𝜌 i (t1) < 𝜀 , (24) for all t2 > t1 > T, and for all i = 1, . . . , N. This implies 
+
+˜ei = si + vi
+
+with 
+
+sT 
+
+> i
+
+(t)si (t) ⩽ d,
+
+∫ ∞
+
+> T
+
+vi (𝜏 )Tvi (𝜏 ) d𝜏 < 𝜀 , (25) for t > T where si (t) = ˜ei (t) and vi (t) = 0 if ˜eT 
+
+> i
+
+(t) ˜ei (t) < d and si (t) = 0 and vi (t) = ˜ei (t) otherwise. The bounds in (25) then follow from (24) and our adaptation (18). 10 A.A. Stoorvogel et al. 
+
+We find: 
+
+¤Vi ⩽ − 𝜂  
+
+> 2
+
+Vi + m1wTw +
+
+> N
+
+∑︁ 
+
+> j=1
+
+m2sT 
+
+> j
+
+sj + m3vT 
+
+> j
+
+vj
+
+for suitable constants m1, m2, m3 > 0 . This implies that Vi is bounded which yields that 𝜉 i is bounded. This implies that the derivative of 𝜉 i is also bounded which in turn yields that the derivative of ˜ei is bounded. Together with vi ∈ L2 this yields that 
+
+vi (t) → 0 as t → ∞ . We obtain (23) for t large since sT 
+
+> i
+
+(t)si (t) ⩽ d.
+
+Lemma 5. Consider a number of agents N and a graph G ∈ GN . Consider the MAS (2) with associated network communication 
+
+(4) and a given parameter 𝛿 > 0 . Assume Assumption 2 is satisfied. Additionally, assume that either the 𝜌 i associated to agents belonging to the basic bi-components are bounded or the graph is strongly connected. Choose any d satisfying (17) . In that case, there exists 𝜈 , 𝜇 > 0 such that 
+
+𝜌 i (t2) − 𝜌 i (t1) < 𝜈 (t2 − t1) + 𝜇 
+
+for any t1, t2 with t2 > t1 and for i = 1, . . . , N.Proof: Using the notation of Lemma 4 we obtain (22) for i = 1, . . . , N or equivalently: 
+
+¤e = (I ⊗ A)e − ( 𝜌 L ⊗ QC TC)e − ( I ⊗ E)w. (26) where 
+
+e = ©«
+
+e1
+
+...
+
+eN
+
+ª®®¬
+
+, w = ©«
+
+w1
+
+...
+
+wN
+
+ª®®¬
+
+.
+
+If all 𝜌 i are bounded the result of the lemma is trivial. Assume that k ⩽ N of the 𝜌 i are unbounded. Without loss of generality, we assume that the 𝜌 i are unbounded for i ⩽ k while the 𝜌 i are bounded for i > k.We first consider the case that k < N. We have 
+
+L =
+
+L11 L12 
+
+L21 L22 
+
+
+
+, ek = ©«
+
+e1
+
+...
+
+ek
+
+ª®®¬
+
+, ekc = ©«
+
+ek+1
+
+...
+
+eN
+
+ª®®¬
+
+, ˜ek = ©«
+
+˜e1
+
+...
+
+˜ek
+
+ª®®¬
+
+, ˜ekc = ©«
+
+˜ek+1
+
+...
+
+˜eN
+
+ª®®¬
+
+,
+
+with L11 ∈ Rk×k. If all the agents associated to basic bi-components have a bounded 𝜌 i this implies that agents associated to 
+
+i = 1, . . . , k are not associated to basic bi-components which implies that L11 is invertible. On the other hand, if the network is strongly connected we always have that L11 is invertible since k < N. There exist skc ∈ L∞ and vkc ∈ L2 with 
+
+∥skc ∥∞ < K1, ∥vkc ∥2 < K2, (27) for suitable chosen K1 and K2 such that 
+
+˜ekc = ©«
+
+vk+1
+
+...
+
+vN
+
+ª®®¬
+
++ ©«
+
+sk+1
+
+...
+
+sN
+
+ª®®¬
+
+= vkc + skc.
+
+This is easily achieved by setting vi (t) = 0 and si (t) = ˜ei (t) if ˜eT 
+
+> i
+
+(t) ˜ei (t) < d, while for ˜eT 
+
+> i
+
+(t) ˜ei (t) ⩾ d we set vi (t) = ˜ei (t) and 
+
+si (t) = 0. It is obvious that this construction yields that si ∈ L∞ while the fact that the 𝜌 i are bounded for i = k + 1, . . . , N implies that vi ∈ L2 for i = k + 1, . . . , N (note that ¤𝜌 i = vT 
+
+> i
+
+vi in this construction). We define 
+
+ˆek = ©«
+
+ˆe1
+
+...
+
+ˆek
+
+ª®®¬
+
+= ek + ( L−111 L12 ⊗ I)ekc, ˜ek = (L11 ⊗ C) ˆek.
+
+Using (26), we then obtain 
+
+¤ˆek = (I ⊗ A) ˆek − [ 𝜌 kL11 ⊗ QC TC] ˆek − L−111 L12 𝜌 kc ⊗ QC T  (skc + vkc) − [( I L−111 L12 ) ⊗ E]w, (28) 11 
+
+where we used that 
+
+𝜌 k =
+
+©«
+
+𝜌 1 0 · · · 00 𝜌 2
+
+. . . ...... . . . . . . 00 · · · 0 𝜌 k
+
+ª®®®®®¬
+
+, 𝜌 kc =
+
+©«
+
+𝜌 k+1 0 · · · 00 𝜌 k+2
+
+. . . ...... . . . . . . 00 · · · 0 𝜌 N
+
+ª®®®®®¬
+
+.
+
+Define 
+
+ˆsk = −( L−111 L12 𝜌 kc ⊗ QC T)skc −
+
+h 
+
+I L−111 L12 
+
+
+
+⊗ E
+
+i
+
+w,
+
+ˆvk = −( L−111 L12 𝜌 kc ⊗ QC T)vkc,
+
+then (27) in combination with the boundedness of 𝜌 kc implies that there exists K3 and K4 such that 
+
+∥ˆsk ∥∞ < K3, ∥ ˆvk ∥2 < K4. (29) We obtain 
+
+¤ˆek = (I ⊗ A) ˆek − [ 𝜌 kL11 ⊗ QC TC] ˆek + ˆsk + ˆvk, (30) and we define 
+
+Vk = (ˆek)T (𝜌 −kHk ⊗ Q−1) ˆek, (31) with 𝜌 −k = (𝜌 k)−1 while 
+
+Hk =
+
+©«
+
+h1 0 · · · 00 h2
+
+. . . ...... . . . . . . 00 · · · 0 hk
+
+ª®®®®®¬
+
+. (32) Using [ 19 , Theorem 4.25], we choose h1, . . . , hk > 0 such that HkL11 + LT
+
+> 11
+
+Hk > 0 . It is easily seen that this implies that there exists a 𝛾 such that 
+
+HkL11 + LT
+
+> 11
+
+Hk > 2 𝛾 LT
+
+> 11
+
+L11 . (33) We get from (30) that 
+
+¤Vk ⩽ (ˆek)T 𝜌 −kHk ⊗ (− 𝜂 Q−1 + CTC) ˆek − ( ˆek)T (HkL11 + LT
+
+> 11
+
+Hk) ⊗ CTC ˆek + 2(ˆek)T 𝜌 −kHk ⊗ Q−1 (ˆsk + ˆvk),
+
+where we used that Vk is decreasing in 𝜌 i for i = 1, . . . , k. The above yields for t > T that 
+
+¤Vk ⩽ −𝜂 Vk − 𝛾 (ˆek)T LT
+
+> 11
+
+L11 ⊗ CTC ˆek + 2(ˆek)T 𝜌 −kHk ⊗ Q−1 (ˆsk + ˆvk),
+
+provided T is such that 
+
+𝜌 −kHk < 𝛾 LT
+
+> 11
+
+L11 ,
+
+for t > T which is possible since we have 𝜌 i → ∞ for i = 1, . . . , k. Note that given (29) there exists some fixed 𝛽 such that 
+
+sup 
+
+> t∈ [ T,∞)
+
+∥ˇsk (t)∥ ⩽ 𝛽 ,
+
+∫ ∞
+
+> T
+
+∥ ˇvk (t)∥ 2 dt ⩽ 𝛽 , (34) with 
+
+ˇsk =
+
+h 2 
+
+> 𝜂
+
+𝜌 −kHk ⊗ Q−1i1/2
+
+ˆsk,
+
+ˇvk =
+
+h 2 
+
+> 𝜂
+
+𝜌 −kHk ⊗ Q−1i1/2
+
+ˆvk.
+
+We get 
+
+¤Vk ⩽ − 𝜂  
+
+> 2
+
+Vk − 𝛾 (ˆek)T LT
+
+> 11
+
+L11 ⊗ CTC ˆek + ( ˇsk)T ˇsk + ( ˇvk)T ˇvk, (35) 12 A.A. Stoorvogel et al. 
+
+for t > T. Moreover, 
+
+(ˆek)T LT
+
+> 11
+
+L11 ⊗ CTC ˆek ⩾
+
+> k
+
+∑︁ 
+
+> i=1
+
+¤𝜌 i, (36) since (L11 ⊗ C) ˆek = ˜ek. Hence (35) implies 
+
+¤Vk ⩽ − 𝜂  
+
+> 2
+
+Vk − 𝛾 
+
+> k
+
+∑︁ 
+
+> i=1
+
+¤𝜌 i + ( ˇsk)T ˇsk + ( ˇvk)T ˇvk. (37) Note that the bounds in (34) combined with the inequality (37) for t > T implies that there exists some 𝜈 , 𝜇 > 0 such that 
+
+˜𝜌 i (t2) − ˜𝜌 i (t1) < 𝜈 (t2 − t1) + 𝜇 , (38) for i = 1, . . . , k and all t2, t1 > T. Clearly, since 𝜌 k+1, . . . , 𝜌 N are all bounded we trivially obtain (38) for i = k + 1, . . . , N.If (38) is satisfied for t1, t2 > T, then it is easily to obtain the lemma for t1, t2 > 0 . After all, for t < T all signals are bounded it is clear that for t < T the 𝜌 i can grow at most linearly and hence we can obtain the result for all t1, t2 > 0 .Next, we consider the case that all 𝜌 i are unbounded. In this case, we assumed the graph is strongly connected and hence by Lemma 7 presented in the appendix there exists 𝛼 1, . . . , 𝛼 N > 0 such that (93) is satisfied with HN given by (32) for k = N. We define 
+
+VN = eT Q𝜌 ⊗ Q−1 e, (39) where 
+
+Q𝜌 = 𝜌 −1 
+
+HN 𝜌 − 𝜇 N hN hT
+
+> N
+
+
+
+𝜌 −1 (40) while 
+
+𝜇 N = 1
+
+ÍNi=1 hi 𝜌 −1
+
+> i
+
+, hN = ©«
+
+h1
+
+...
+
+hN
+
+ª®®¬
+
+.
+
+From Lemma 8 in the appendix, we know that Q𝜌 is decreasing in 𝜌 i for i = 1, . . . N. Note that Q𝜌 𝜌 L = HN L. We get from (26) that 
+
+¤VN ⩽ eT Q𝜌 ⊗ (− 𝜂 Q−1 + CTC) e − eT (HN L + LTHN ) ⊗ CTC e − 2eT Q𝜌 ⊗ Q−1E w. (41) It is easily verified that Q𝜌 1 = 0. Moreover Ker L = span {1} since the network is strongly connected. Therefore 
+
+ker Q𝜌 ⊂ Ker LTL.
+
+Together with the fact that 𝜌 j → ∞ for j = 1, . . . , N and therefore Q𝜌 → 0 this implies that there exists T such that 
+
+Q𝜌 < 𝛾 LTL, (42) is satisfied for t > T.The above together with (93) yields for t > T that 
+
+¤VN ⩽ −𝜂 VN − 𝛾 eT [LTL ⊗ CTC] e − 2eT Q𝜌 ⊗ Q−1E w.
+
+We obtain 
+
+2eT Q𝜌 ⊗ Q−1E w ⩽ 𝜂  
+
+> 2
+
+eT Q𝜌 ⊗ Q−1 e + ( ˇvN )T ˇvN = 𝜂  
+
+> 2
+
+VN + ( ˇvN )T ˇvN
+
+with 
+
+ˇvN =
+
+ 2 
+
+> 𝜂
+
+Q𝜌 ⊗ Q−11/2
+
+(I ⊗ E)w. (43) Note that since w is bounded, there exists some fixed 𝛼 such that 
+
+sup 
+
+> t∈ [ T,∞)
+
+∥ ˇvN (t)∥ ⩽ 𝛼 . (44) We get 
+
+¤VN ⩽ − 𝜂  
+
+> 2
+
+VN − 𝛾 eT [LTL ⊗ CTC] e + ( ˇvN )T ˇvN , (45) 13 
+
+for t > T. Moreover, 
+
+eT [LTL ⊗ CTC] e ⩾
+
+> N
+
+∑︁ 
+
+> i=1
+
+¤𝜌 i.
+
+The above implies 
+
+¤VN ⩽ − 𝜂  
+
+> 2
+
+VN − 𝛾 
+
+> N
+
+∑︁ 
+
+> i=1
+
+¤𝜌 i + ( ˇvN )T ˇvN . (46) Note that the bound in (44) combined with the inequality (46) for t > T implies that there exists some 𝜈 > 0 , and 𝜇 such that 
+
+˜𝜌 i (t2) − ˜𝜌 i (t1) < 𝜈 (t2 − t1) + 𝜇 , (47) for i = 1, . . . , N and t2, t1 > T.If (47) is satisfied for t1, t2 > T then the lemma follows for t1, t2 > 0 . After all, for t < T all signals are bounded and therefore it is clear that for t < T the 𝜌 i can grow at most linearly and hence we can obtain the result for all t1, t2 > 0 .
+
+Lemma 6. Consider a number of agents N and a graph G ∈ GN . Consider the MAS (2) with associated network communication 
+
+(4) and a given parameter 𝛿 > 0 . Assume Assumption 2 is satisfied. Choose any d satisfying (17) . In that case, all 𝜌 i remain bounded. Proof of Lemma 6: We prove this result by contradiction. Let k be such that 𝜌 i is unbounded for i ⩽ k while 𝜌 i is bounded for 
+
+i > k. Clearly, if all 𝜌 i are unbounded then we have k = N.For each 𝜈 ∈ N, we define a time-dependent permutation p of {1, . . . , N} such that 
+
+𝜌 ps (1) (𝜈 ) ⩾ 𝜌 ps (2) (𝜈 ) ⩾ 𝜌 ps (3) (𝜈 ) ⩾ · · · ⩾ 𝜌 ps (k) (𝜈 ), ps (i) = i for i > k (48) and we choose pt = ps for t ∈ [ s, s + 1). Note that Lemma 5 implies there exists T > 0 such that 𝜌 s,k (t) ⩽ 2𝜌 s,i (t) for 
+
+i = 1, . . . , k − 1 and t > T (recall that by construction 𝜌 s,i (t) → ∞ for t → ∞ ). We define 
+
+ˆes,i (t) = ˆept (i) (t), ˜es,i (t) = ˜ept (i) (t), 𝜌 s,i (t) = 𝜌 pt (i) (t), hs,i (t) = hpt (i) .
+
+For k < N, we set 
+
+Vs,k = (eks )T (𝜌 −ks Hks ⊗ Q−1)eks , (49) while for k = N we have 
+
+Vs,N = (eNs )T Qs,𝜌 ⊗ Q−1 eNs , (50) where 
+
+Qs,𝜌 = 𝜌 −Ns
+
+
+
+HNs 𝜌 Ns − 𝜇 N hs,N hT
+
+> s,N
+
+
+
+𝜌 −Ns . (51) Here Hks , hs,N and 𝜌 ks are obtained from Hk, hN and 𝜌 k using our permutation. If we assume k < N then using the arguments of Lemma 5, we obtain (30) and the bound (29) . We also obtained in Lemma 5 the bound (35). Using the permutation we introduced this immediately yields: 
+
+¤Vs,k ⩽ − 𝜂  
+
+> 2
+
+Vs,k − 𝛾 (ˆeks )T LT
+
+> s,11
+
+Ls,11 ⊗ CTC ˆeks + ( ˇsks )T ˇsks + ( ˇvks )T ˇvks , (52) where ˇsks , ˇvks and Ls,11 are obtained from ˇsk, ˇvk and L11 by applying the permutation introduced above. Note that there exists some fixed ˜𝛼 such that 
+
+∥𝜌 1/2 
+
+> s,k
+
+ˇsks ∥22 ⩽ ˜𝛼 2, ∥𝜌 1/2 
+
+> s,k
+
+ˇvks ∥2 
+
+> ∞
+
+⩽ ˜𝛼 2, (53) where we exploited that 𝜌 s,k ⩽ 2𝜌 s,i for i = 1, . . . , k implies that 
+
+𝜌 s,kHks 𝜌 −ks
+
+is bounded. On the other hand, for k = N, then using the arguments of Lemma 5, we obtain (45) . Set ˇsN = 0 and let ˇvN be defined by (43) . Using the permutation we introduced this immediately yields (52) where ˇs, ˇvs, Ls,11 are obtained from ˇs, ˇv and L11 = L by applying the permutation introduced above. 14 A.A. Stoorvogel et al. 
+
+We continue with the case k = N. Note that 𝜌 s,N ⩽ 2𝜌 s,i for i = 1, . . . , N implies that 
+
+𝜌 s,N Qs,𝜌 
+
+is bounded which yields that there exists some fixed ˜𝛼 such that (53) is satisfied. We have established (52) and (53) for both k < N and k = N. Equation (52) implies 
+
+¤Vs,k ⩽ − 𝜂  
+
+> 2
+
+Vs,k + ( ˇsks )T ˇsks + ( ˇvks )T ˇvks . (54) This clearly yields that Vs,k is bounded given our bounds (53) . Using inequality (37) together with our permutation we obtain that, for t > T1, we have 
+
+𝜌 s,kVs,k
+
+′ ⩽ ¤𝜌 s,kVs,k − 𝜂  
+
+> 2
+
+𝜌 s,kVs,k − 𝛾𝜌 s,k ¤𝜌 s,k + 𝜌 s,k [( ˇsks )T ˇsks + ( ˇvks )T ˇvks ]
+
+⩽ − 𝜂  
+
+> 2
+
+𝜌 s,k ˜Vk + 𝜌 s,k [( ˇsks )T ˇsks + ( ˇvks )T ˇvks ], (55) where we choose T1 > T such that Vs,k ⩽ 𝛾𝜌 s,k for t > T1 which is obviously possible since 𝜌 s,k increases to infinity while Vs,k, as argued before, is bounded. Then, using (53) and (55) we find 
+
+𝜌 s,k (𝜈 + 𝜎 )Vs,k (𝜈 + 𝜎 ) < e− 𝜎 𝜂 /2 𝜌 s,k (𝜈 )Vs,k (𝜈 ) + 2 ˜𝛼 2,
+
+for all 𝜎 ∈ ( 0, 1 ] and any 𝜈 ∈ N with 𝜈 > T1. This by itself does not yield that 𝜌 s,kVs,k is bounded because we have potential discontinuities for 𝜈 ∈ N because of the reordering process we introduced. Note that Vs,k is not affected by the reordering but 𝜌 s,k
+
+can have discontinuities for 𝜈 ∈ N. Hence 
+
+𝜌 s,k (𝜈 +) and 𝜌 s,k (𝜈 − )
+
+might be different and, strictly speaking, we have obtained 
+
+𝜌 s,k (𝜈 + 𝜎 )Vs,k (𝜈 + 𝜎 ) < e− 𝜎 𝜂 /2 𝜌 s,k (𝜈 +)Vs,k (𝜈 ) + 2 ˜𝛼 2, (56) for all 𝜎 ∈ ( 0, 1 ] and any 𝜈 ∈ N with 𝜈 > T1.Given the bounds on the growth of 𝜌 i obtained in Lemma 5, it is easy to see that there exists A0 > 0 such that a discontinuity can only occur when 
+
+𝜌 s,k−1 (𝜈 ) − 𝜌 s,k (𝜈 ) < A0,
+
+for 𝜈 sufficiently large. Using this bound, together with the fact that 𝜌 s,k converges to infinity, we find that for any 𝜀 there exists 
+
+T2 > T1 such that 
+
+𝜌 s,k (𝜈 +) ⩽ (1 + 𝜀 )𝜌 s,k (𝜈 − ), (57) for 𝜈 > T2. Therefore, we find that 
+
+𝜌 s,k (t)Vs,k (t) (58) is bounded by combining (57) with (56) provided that we choose (1 + 𝜀 )e− 𝜂 /2 < 1 .In addition, (52), combined with (53), implies that 
+
+𝛾 
+
+∫ 𝜈 +1
+
+> 𝜈
+
+𝜌 s,k (ˆeks )T LT
+
+> s,11
+
+Ls,11 ⊗ CTC ˆeks dt ⩽ 2𝜌 s,k (𝜈 )Vs,k (𝜈 ) + 
+
+∫ 𝜈 +1
+
+> 𝜈
+
+𝜌 s,k [( ˇsks )T ˇsks + ( ˇvks )T ˇvks ]dt ⩽ 2𝜌 s,k (𝜈 )Vs,k (𝜈 ) + 2𝛼 2
+
+> s
+
+for all 𝜈 ∈ N since ˜𝜌 k (t) ⩽ 2 ˜𝜌 k (𝜈 ) for t ∈ [ 𝜈 , 𝜈 + 1]. Boundedness of (58) then implies that 
+
+∫ s+1
+
+> s
+
+𝜌 s,k (˜eks )T ˜eks dt
+
+is bounded. We have established that ˜𝜌 kVs,k is bounded but this does not establish that the ˆeks are bounded since the 𝜌 s,i for i = 1, . . . , k − 1
+
+might be much larger than 𝜌 s,k. We need to do some extra work. We have that (30) implies 
+
+¤ˆeks = (I ⊗ A) ˆeks − [ 𝜌 ks Ls,11 ⊗ QC TC] ˆeks + ˆsks + ˆvks , (59) 15 
+
+where ˆsks and ˆvks are obtained from ˆsk and ˆvk respectively by applying the permutation introduced above. A permutation clearly does not affect the bound we obtained in (29) and we obtain 
+
+∥ˆsks ∥∞ < K3, ∥ ˆvks ∥2 < K4. (60) For any j < k, we decompose 
+
+ˆejs,I = ©«
+
+ˆes,1 
+
+...
+
+ˆes,j
+
+ª®®¬
+
+, ˆejs,II = ©«
+
+ˆes,j+1
+
+...
+
+ˆes,k
+
+ª®®¬
+
+, Ls,11 = Ljs,11 Ljs,12 
+
+Ljs,21 Ljs,22 
+
+!
+
+, (61) with ˜Lj 
+
+> 11
+
+∈ Rj×j while 
+
+ˆsks = ˆsjs
+
+ˆsjs,c
+
+!
+
+, ˆvks = ˆvjs
+
+ˆvjs,c
+
+!
+
+,
+
+with ˆsjs ∈ Rnj , ˆvjs ∈ Rnj and 
+
+ˇejs = ˆejs,I + ( Ljs,11 )−1Ljs,12 ˆejs,II , (62) for j < k while ˇeks = ˆeks . We will show that 
+
+𝜌 s,jVs,j and 
+
+∫ 𝜈 +1
+
+> 𝜈
+
+𝜌 s,j (˜ejs)T ˜ejs dt (63) are bounded for j = 1, . . . , k where 
+
+Vs,j = (ˇejs)T
+
+h
+
+Hjs 𝜌 −js ⊗ Q−1i
+
+ˇejs, (64) while 
+
+𝜌 js =
+
+©«
+
+𝜌 s,1 0 · · · 00 𝜌 s,2 
+
+. . . ...... . . . . . . 00 · · · 0 𝜌 s,j
+
+ª®®®®®¬
+
+, 𝜌 js,c =
+
+©«
+
+𝜌 s,j+1 0 · · · 00 𝜌 s,j+2
+
+. . . ...... . . . . . . 00 · · · 0 𝜌 s,k
+
+ª®®®®®¬
+
+, Hjs =
+
+©«
+
+hs,1 0 · · · 00 hs,2 
+
+. . . ...... . . . . . . 00 · · · 0 hs,j
+
+ª®®®®®¬
+
+.
+
+Note that if k = N then we have (50) instead of (64). We also define 
+
+˜ejs = ©«
+
+˜es,1 
+
+...
+
+˜es,j
+
+ª®®¬
+
+, ˜ejs,c = ©«
+
+ˆes,j+1
+
+...
+
+˜es,k
+
+ª®®¬
+
+.
+
+It is not hard to verify that if 𝜌 s,jVs,j is bounded for j = 1, . . . , k then we have that ˆej is bounded for j = 1, . . . , k.We will establish boundedness of 𝜌 s,jVs,j via recursion. Assume for i = j we have either 
+
+𝜌 s,iVs,i (65) is unbounded or ∫ 𝜈 +1
+
+> 𝜈
+
+𝜌 s,i (˜eis)T ˜eis dt (66) is unbounded while, for j < i ⩽ k, both (65) and (66) are bounded. We will show this yields a contradiction. Note that in the above we already established (65) and (66) are bounded for i = k.Using (59) and (62), we obtain 
+
+¤ˇejs = (I ⊗ A) ˇejs −
+
+h
+
+𝜌 jsLjs,11 ⊗ QC TC
+
+i
+
+ˇejs + ˇsjs + ˇvjs + 𝜌 −1/2
+
+> s,j
+
+h
+
+𝜌 js (Hjs)−1 (Ljs,11 )T ⊗ QC T)
+
+i
+
+ˇwjs (67) where 
+
+ˇsjs = ˆsjs + ( Ljs,11 )−1Ljs,12 ˆsjs,c,
+
+ˇvjs = ˆvjs + ( Ljs,11 )−1 ˜Ljs,12 ˆvjs,c
+
+ˇwjs = 𝜌 1/2
+
+> s,j
+
+h
+
+(Ljs,11 )−T Hjs (𝜌 js)−1 (Ljs,11 )−1Ljs,12 𝜌 js,c ⊗ I
+
+i
+
+˜ejs,c.16 A.A. Stoorvogel et al. 
+
+Using (60), we find that there exist constant ˜K3 such that 
+
+∥ˇsjs ∥∞ < ˜K3,
+
+∫ 𝜈 +1
+
+> 𝜈
+
+(ˇvjs)T ˇvjsdt < ˜K3. (68) Finally, (66) bounded for i = j + 1, . . . , k implies there exists a constant ˜K4 such that 
+
+∫ 𝜈 +1
+
+> 𝜈
+
+( ˇwjs)T ˇwjs dt < ˜K4 (69) is bounded. We obtain 
+
+¤Vs,j = (ˇejs)T
+
+h
+
+Hjs 𝜌 −js ⊗ (− 𝜂 Q−1 + CTC
+
+i
+
+ˇejs − ( ˇejs)T
+
+h
+
+(HjsLjs,11 + ( Ljs,11 )THjs) ⊗ CTC
+
+i
+
+ˇejs
+
++ 2(ˇejs)T
+
+h
+
+Hjs 𝜌 −js ⊗ Q−1i
+
+(ˇsjs + ˇvjs) + 2𝜌 −1/2 
+
+> s,j
+
+(ˇejs)T
+
+h
+
+(Ljs,11 )T ⊗ CT
+
+i
+
+ˇwjs
+
+using (64) and (67). Note that (33) implies 
+
+HjsLjs,11 + ( Ljs,11 )THjs > 2 𝛾 (Ljs,11 )TLjs,11 .
+
+Moreover, there exists T > 0 such that 
+
+Hjs 𝜌 −js ⩽ 𝛾 ,
+
+for t > T since 𝜌 js → ∞ . This yields that 
+
+¤Vs,j ⩽ − 𝜂  
+
+> 2
+
+Vs,j − 𝛾  
+
+> 2
+
+(ˇej)T
+
+h
+
+(Ljs,11 )TLjs,11 ⊗ CTC
+
+i
+
+ˇej + 2 
+
+> 𝜂
+
+(ˇsj)T
+
+h
+
+Hjs 𝜌 −js ⊗ Q−1i
+
+ˇsj + 2 
+
+> 𝜂
+
+(ˇvj)T
+
+h
+
+Hjs 𝜌 −js ⊗ Q−1i
+
+ˇvj + 𝜌 −1  
+
+> s,j2
+> 𝛾
+
+( ˇwjs)T ˇwjs. (70) We find Vs,j is bounded and hence we can choose T1 such that Vs,j ⩽ 𝛾𝜌 s,j for t > T1. Similar as before, (68) , (69) and (70) imply there exists some ˜M > 0 such that 
+
+𝜌 s,j (𝜈 + 𝜎 )Vs,j (𝜈 + 𝜎 ) < e− 𝜎 𝜂 /2 𝜌 s,j (𝜈 +)Vs,j (𝜈 +) + ˜M, (71) for all 𝜎 ∈ ( 0, 1 ] and any 𝜈 ∈ N with 𝜈 > T1. Again, by itself, this does not imply that 𝜌 s,j (𝜈 )Vs,j (𝜈 ) is bounded because at time 
+
+𝜈 ∈ N there might be a discontinuity due to the reordering we performed. If a new permutation has the same j agents with the largest 𝜌 i then Vs,j (𝜈 +) = Vs,j (𝜈 − ) and we obtain, as before, that there exists some 𝜀 satisfying (1 + 𝜀 )e− 𝜂 /2 < 1 and a T2 > T1 such that 
+
+𝜌 s,j (𝜈 +)Vs,j (𝜈 +) ⩽ (1 + 𝜀 )𝜌 s,j (𝜈 − )Vs,j (𝜈 − ), (72) for 𝜈 > T2 similarly as we did in the derivation of equation (57). If a new permutation changes the set of j agents with the largest 𝜌 i then it is easy to see that there exists A0 > 0 such that a discontinuity can only occur when 
+
+𝜌 s,j (𝜈 ) − 𝜌 s,j+1 (𝜈 ) < A0
+
+for 𝜈 sufficiently large using Lemma 5. This implies that there exists some A > 0 such that 
+
+𝜌 s,j (𝜈 )Vs,j (𝜈 ) < (𝜌 s,j+1 (𝜈 ) + A0)Vs,j (𝜈 ) < (𝜌 s,j+1 (𝜈 ) + A0)MV s,j+1 (𝜈 ) < 𝜌 s,j+1 (𝜈 ) + A0
+
+𝜌 s,j+1 (𝜈 ) M𝜌 s,j+1 (𝜈 )Vs,j+1 (𝜈 ) < A,
+
+for large 𝜈 using Lemma 9. The last inequality follows from the fact that we already established that 𝜌 s,j+1Vs,j+1 (𝜈 ) is bounded while 𝜌 s,j+1 is increasing to infinity. Combined with (71) this shows 
+
+𝜌 s,j (𝜈 + 𝜎 )Vs,j (𝜈 + 𝜎 )
+
+is bounded as well. If 𝜌 s,j (𝜈 )Vs,j (𝜈 ) is larger than A then we know discontinuities of Vs,j (𝜈 ) do not arise and hence (71) and (72) show that 𝜌 s,jVs,j remains bounded. It remains to show that (66) is bounded. This follows immediately from (70) in combination with (68) and the boundedness of 
+
+𝜌 s,jVs,j.17 
+
+In this way, we recursively established that (65) is bounded for i = 1, . . . , k. It is not hard to show that this implies that 
+
+ˆ𝜉 k = (L11 ⊗ I) ˆek is bounded for k < N while we obtain that 𝜉 = (L ⊗ I)e is bounded for k = N.Using (28) we obtain: ¤ˆ𝜉 k = (I ⊗ A) ˆ𝜉 k − [ L11 𝜌 k ⊗ QC TC] ˆ𝜉 k + ¯vk + ¯sk (73) where 
+
+¯vk = − L12 𝜌 kc ⊗ QC T  vkc ¯sk = − L12 𝜌 kc ⊗ QC T  skc − [( L11 L12 ) ⊗ E]w
+
+for k < N. Note that ˆ𝜉 k and ¯sk are bounded while vkc has bounded energy (recall that 𝜌 kc , by construction, is bounded). For k = N we obtain: 
+
+¤𝜉 = (I ⊗ A) ˆ𝜉 − [ L𝜌 ⊗ QC TC]𝜉 − ( L ⊗ E)w (74) with 𝜉 and w bounded. We choose: 
+
+˜Vk = 1 
+
+> 𝜌 s,k
+
+( ˆ𝜉 k)T (𝜌 kHk ⊗ CTC) ˆ𝜉 k = 1 
+
+> 𝜌 s,k
+
+(˜ek)T (𝜌 kHk ⊗ I) ˜ek
+
+For k < N we get ¤˜Vk ⩽ M − 2𝛾 𝜌 s,k ( ¯𝜉 k)T (LT
+
+> 11
+
+L11 ⊗ Q) ¯𝜉 k + 2 
+
+> 𝜌 s,k
+
+( ¯𝜉 k)T (Hk ⊗ CTC) (I ⊗ A) ˆ𝜉 k + ¯sk + ¯vk  ,
+
+where we used (33) and 
+
+¯𝜉 k = (𝜌 k ⊗ CTC) ˆ𝜉 k,
+
+while M is such that: 1 
+
+> 𝜌 s,k
+
+( ˆ𝜉 k)T ( ¤ 𝜌 kHk ⊗ CTC) ˆ𝜉 k < M, (75) which is possible since ˆ𝜉 k bounded guarantees that ¤𝜌 k is bounded as well. Since Q > 0 and LT
+
+> 11
+
+L11 > 0 , we find there exists 
+
+m1, m2 and m3 such that: ¤˜Vk ⩽ M + m1 ( ˆ𝜉 k)T ˆ𝜉 k + m2 (¯sk)T ¯sk + m3 (¯vk)T ¯vk. (76) For k = N we get: ¤˜VN ⩽ M − 2𝛾 𝜌 s,k ( ¯𝜉 N )T (I ⊗ Q) ¯𝜉 N + 2 
+
+> 𝜌 s,N
+
+( ¯𝜉 N )T (HN ⊗ CTC) (L† ⊗ A)𝜉 + w ,
+
+where we used (93) and 
+
+¯𝜉 k = (𝜌 kL ⊗ CTC)𝜉 ,
+
+while M is given by (75) . Moreover L† is a generalized inverse of L such that LL †L = L and hence 𝜉 = (L ⊗ I)e = (LL † ⊗ I)𝜉 .Since Q > 0 and we find there exists m1 and m2 such that: 
+
+¤˜VN ⩽ M + m1𝜉 T 𝜉 + m2wTw. (77) Note that if 𝜉 T
+
+> s,k
+
+𝜉 s,k (t) ⩾ d for some t1 > 0 then Vk (t1) ⩾ d. Given that the growth of Vk is limited by either (76) or (77) there exists an 𝜀 independent of t1 such that 
+
+Vk (t) > d
+
+> 2
+
+for all t ∈ [ t1 − 𝜀 , t1]. But this implies: ∫ t1  
+
+> t1−𝜀
+
+Vk (t) dt ⩾ 12 d𝜀 .
+
+However, for large t1, this contradicts with the fact that (66) is bounded while 𝜌 s,k → ∞ . On the other hand, the fact that 
+
+𝜉 T
+
+> s,k
+
+𝜉 s,k (t) ⩾ d cannot happen for large t contradicts with the underlying construction where 𝜌 s,k → ∞ . Hence, we obtain a contradiction with our underlying premise that some of the 𝜌 i are unbounded. Hence all 𝜌 i are bounded which the proof of the lemma. 
+
+Proof of Theorem 2: We first look at the observer dynamics given by (22) . Note that the dynamics are completely independent of the adaptive parameters 𝛼 i.The Laplacian matrix of the system in general has the form (1) . We note that if we look at the dynamics of the agents belonging to one of the basic bi-components, then these dynamics are not influenced by the other agents and hence can be analyzed independent of the rest of network. The network within one of the basic bi-components is strongly connected and we can apply Lemmas 5 and 6 to guarantee that the 𝜌 i associated to a basic bi-components are all bounded. 18 A.A. Stoorvogel et al. 
+
+Next, we look at the full network again. We have already established that the 𝜌 i associated to all basic bi-components are all bounded. Then we can again apply Lemmas 5 and 6 to conclude that the other 𝜌 i not associated to basic bi-components are also bounded. After having established that all the 𝜌 i are all bounded, we can then apply Lemma 4 to conclude that (23) is satisfied. Next, we consider the state feedback and note that (16) yields: 
+
+¤ˆxi = Aˆxi − 𝛼 iBB TP𝛼 i
+
+
+
+ˆxi +
+
+> N
+
+∑︁ 
+
+> j=1
+
+ℓij ˆxj
+
+
+
++ ˜E ˜wi (78) together with 
+
+¤𝛼 i =
+
+
+
+1 if ˜𝜁 T 
+
+> i
+
+˜𝜁 i ⩾ 1
+
+˜𝜁 T 
+
+> i
+
+˜𝜁 i if 1 > ˜𝜁 T 
+
+> i
+
+˜𝜁 i ⩾ d
+
+0 otherwise (79) where ˜E = −QC T,
+
+˜𝜁 i =
+
+> N
+
+∑︁ 
+
+> j=1
+
+ℓij ˆxj, and ˜w = 𝜌 i ˜ei.
+
+Since we already know that the 𝜌 i remain bounded while ˜ei satisfies (23), we know that ˜wi is bounded. We obtain: ¤˜𝜁 = (I ⊗ A) ˜𝜁 − ( ˜L𝛼 ⊗ BB T)P𝛼 ˜𝜁 + ( L ⊗ ˜E) ˜w, (80) where ˜L = I + L and 
+
+𝛼 =
+
+©«
+
+𝛼 1 0 · · · 00 𝛼 2
+
+. . . ...... . . . . . . 00 · · · 0 𝛼 N
+
+ª®®®®®¬
+
+, P𝛼 =
+
+©«
+
+P𝛼 1 0 · · · 00 P𝛼 2
+
+. . . ...... . . . . . . 00 · · · 0 P𝛼 N
+
+ª®®®®®¬
+
+, ˜𝜁 = ©«
+
+˜𝜁 1
+
+...
+
+˜𝜁 N
+
+ª®®¬
+
+, ˜w = ©«
+
+˜w1
+
+...
+
+˜wN
+
+ª®®¬
+
+.
+
+Note that (19) implies that P𝛼 i → 0 as 𝛼 i → ∞ . Based on Lemma 7 it is easy to see that we can find 
+
+˜HN =
+
+©«
+
+˜h1 0 · · · 00 ˜h2
+
+. . . ...... . . . . . . 00 · · · 0 ˜hN
+
+ª®®®®®¬
+
+,
+
+such that 
+
+˜HN ˜L + ˜LT ˜HN ⩾ 2 ˜HN .
+
+We define: 
+
+V = ˜𝜁 T ( ˜HN 𝛼 ⊗ I)P𝛼 ˜𝜁 ,
+
+and we obtain: 
+
+¤V ⩽ ˜𝜁 TP𝛼 ( ¤ 𝛼 ˜HN ⊗ I) ˜𝜁 + ˜𝜁 T P𝛼 ( ˜HN 𝛼 ⊗ A) + ( ˜HN 𝛼 ⊗ AT)P𝛼 
+
+ ˜𝜁 − ˜𝜁 TP𝛼 
+
+𝛼 ( ˜HN ˜L + ˜LT ˜HN )𝛼 ⊗ BB T  P𝛼 ˜𝜁 
+
++ 2 ˜𝜁 TP𝛼 (𝛼 ˜HN L ⊗ ˜E)w
+
+where we used that P𝛼 is decreasing in 𝛼 . Next, we use (19) to get: 
+
+¤V ⩽ ˜𝜁 TP𝛼 ( ¤ 𝛼 ˜HN ⊗ I) ˜𝜁 + ˜𝜁 TP𝛼 
+
+𝛼 2 ˜HN ⊗ BB T  P𝛼 ˜𝜁 − ˜𝜁 T 𝛼 ˜HN ⊗ CTC ˜𝜁 
+
+− 2𝜀 ˜𝜁 TP𝛼 
+
+𝛼 ˜HN ⊗ I ˜𝜁 − 2 ˜𝜁 TP𝛼 
+
+𝛼 2 ˜HN ⊗ BB T  P𝛼 ˜𝜁 + 2 ˜𝜁 TP𝛼 (𝛼 ˜HN L ⊗ ˜E)w. (81) 19 
+
+Define 
+
+Vi = 𝛼 i ˜hi ( ˜𝜁 i)TP𝛼 i ˜𝜁 i.
+
+For ease of presentation we sort the agents such that for i = 1, . . . , 𝜌 we have 𝛼 i = 0 for all t while for i = 𝜌 + 1, . . . , 𝜈 we have 
+
+𝛼 i bounded and converges to a value unequal to zero as t → ∞ . Finally, for i = 𝜇 + 1, . . . , N we have 𝛼 i → ∞ as t → ∞ . Let t0
+
+be such that for t > t0 we have that 𝛼 i (t) ≠ 0 for i > 𝜌 and 𝜀𝛼 i (t) > 2 for i > 𝜈 . In that case, 
+
+˜𝜁 TP𝛼 ( ¤ 𝛼 ˜HN ⊗ I) ˜𝜁 − 𝜀 ˜𝜁 TP𝛼 
+
+𝛼 ˜HN ⊗ I ˜𝜁 ⩽
+
+> 𝜈
+
+∑︁  
+
+> i=𝜌 +1
+> ¤𝛼 i
+> 𝛼 i
+
+Vi ⩽ ¤𝛽 V, (82) where 
+
+𝛽 (t) =
+
+> 𝜈
+
+∑︁ 
+
+> i=𝜌 +1
+
+ln 𝛼 i (t) − ln 𝛼 i (t0).
+
+Note that there exists M𝛽 > m𝛽 > 0 such that m < 𝛽 (t) < M for t ⩾ t0.Note that: 
+
+−qT P𝛼 (𝛼 ˜HN ⊗ I) q + 2qT P𝛼 (𝛼 ˜HN ⊗ I) r ⩽ rT P𝛼 (𝛼 ˜HN ⊗ I) r (83) for 
+
+q = √𝜀 ˜𝜁 ,
+
+r = 1√𝜀 
+
+L ⊗ ˜E ˜w.
+
+Using (82) and (83) in (81), we get: 
+
+¤V ⩽ ¤𝛽 V − 12 𝜀 V − ˜𝜁 T 𝛼 ˜HN ⊗ CTC ˜𝜁 − 2 ˜𝜁 TP𝛼 
+
+𝛼 2 ˜HN ⊗ BB T  P𝛼 ˜𝜁 + 1 
+
+> 𝜀
+
+˜wT (L ⊗ ˜E)T P𝛼 (𝛼 ˜HN ⊗ I) (L ⊗ ˜E) ˜w, (84) which implies: 
+
+¤V ⩽ ¤𝛽 V − 12 𝜀 V + 1 
+
+> 𝜀
+
+˜wT (L ⊗ ˜E)T 𝛼 P𝛼 ( ˜HN ⊗ I) (L ⊗ ˜E) ˜w
+
+⩽⩽ ¤𝛽 V − 12 𝜀 V + 1 
+
+> 𝜀
+
+˜wT (L ⊗ ˜E)T ( ˜HN ⊗ 𝛼 max P𝛼 max ) (L ⊗ ˜E) ˜w, (85) where we define 
+
+𝛼 max = max  
+
+> i
+
+𝛼 i,
+
+and used that 𝛼 P𝛼 is increasing in 𝛼 . Assume at least one of the 𝛼 i is unbounded. In that case 𝛼 max → ∞ . In that case there exists ¯w such that 1
+
+𝜀 ˜wT (L ⊗ ˜E)T ( ˜HN ⊗ 𝛼 max P𝛼 max ) (L ⊗ ˜E) ˜w = 𝛼 max 𝛽 2
+
+> m
+
+Mw,
+
+for some Mw > 0 since Lemma 11 implies that ∥P𝛼 max ∥ < M𝛽 2 
+
+> m
+
+for some M > 0 with 𝛽 i as defined in (96) for 𝛼 = 𝛼 max . We obtain: 
+
+¤V ⩽ ¤𝛽 V − 12 𝜀 V + 𝛼 max 𝛽 2 
+
+> m
+
+¯w.
+
+We find ddt ¯V ⩽ − 12 𝜀 ¯V + eM𝛽 Mw,
+
+for 
+
+¯V = e𝛽  
+
+> 𝛼 max 𝛽 2
+> m
+
+V.
+
+This clearly implies that ¯V is bounded and hence V
+
+𝛼 max 𝛽 2
+
+> m
+
+is bounded. Consider the dynamics for 𝜁 i which can be written as: 
+
+¤𝜁 i = A𝜁 i + Bˇui + ˇwi
+
+ˇyi = C𝜁 i20 A.A. Stoorvogel et al. 
+
+for appropriately chosen ˇui, ˇwi and ˇyi with ˇwi bounded. Using (81) , we find that for an agent for which 𝛼 i = 𝛼 max we have for any 
+
+𝛿 that: ∫ t0+1
+
+> t0
+
+𝛼 −1 ˇuT 
+
+> i
+
+ˇui dt < 𝛿 and 
+
+∫ t0+1
+
+> t0
+
+ˇyT 
+
+> i
+
+ˇyi dt < 𝛿 
+
+provided t0 is large enough. Using the structure obtained in the appendix, in particular Lemma 11 and 12, we obtain that for any 
+
+𝜀 > 0 we have that ∫ t0+1
+
+> t0
+
+V
+
+𝛼 max 𝛽 2
+
+> m
+
+dt < 𝜀 
+
+provided t0 is large enough. However, because the derivative of 
+
+V
+
+𝛼 max 𝛽 2
+
+> m
+
+(86) is upper bounded this implies that (86) converges to zero as t → ∞ . But this implies that C𝜁 i converges to zero which implies that ¤𝛼 max = 0 for t large. This contradicts our assumption that 𝛼 max converges to infinity. On the other hand if all 𝛼 i are bounded then we find that 
+
+˜𝜁 i (t)TCTC ˜𝜁 i (t) = pi (t) + qi (t)
+
+with pi (t) ⩽ d while qi (t) ∈ L2. Since ˜𝜁 i is bounded we find that ¤qi (t) is bounded which yields together with qi (t) ∈ L2 that 
+
+qi (t) → 0 as t → ∞ . But this implies that 
+
+∥C ˜𝜁 i ∥ ⩽ 𝛿 
+
+> 2
+
+given (17). Together with (23), obtained before, this completes the proof. 
+
+## 5 NUMERICAL EXAMPLES 
+
+In this section, we will show the feasibility of the proposed noncollaborative and collaborative controllers, respectively. We study the effectiveness of our proposed protocols as they are applied to systems with different sizes, different communication graphs, different noise patterns, and different 𝛿 values. In all examples of the paper, the weight of edges of the communication graphs is considered to be equal 1.
+
+## 5.1 Noncollaborative Protocols 
+
+We consider agent models 
+
+¤xi =
+
+©«
+
+0 1 1 0
+
+−1 0 1 00 0 0 10 0 0 −2
+
+ª®®®®¬
+
+xi +
+
+©«
+
+0101
+
+ª®®®®¬
+
+ui +
+
+©«
+
+0101
+
+ª®®®®¬
+
+wi,
+
+yi =
+
+1 0 0 0 0 1 0 0 
+
+
+
+xi,
+
+(87) for i = 1, . . . , N, satisfying Assumption 1. With the choice of 
+
+S =
+
+©«
+
+1 0 0 00 1 0 −10 0 1 00 1 0 0
+
+ª®®®®¬
+
+, and T = I,
+
+we get the matrices ˜A, ˜B, ˜C, and ˜E as: 
+
+˜A =
+
+©«
+
+0 0 1 1 
+
+−1 −2 1 2 0 −1 0 1 
+
+−1 0 1 0 
+
+ª®®®®¬
+
+, ˜B =
+
+©«
+
+0001
+
+ª®®®®¬
+
+, ˜C =
+
+1 0 0 0 0 0 0 1 
+
+
+
+, and ˜E =
+
+©«
+
+0001
+
+ª®®®®¬
+
+.21 
+
+Then, we choose H1 such that A11 + H1C1 is asymptotically stable: 
+
+H1 = ©«
+
+−10
+
+−1
+
+ª®®¬
+
+.
+
+Solving (10), we obtain P as 
+
+P =
+
+©«
+
+3.0498 −0.7942 2.0169 0.8943 
+
+−0.7942 0.9875 −1.7544 −0.7475 2.0169 −1.7544 4.8899 2.5890 0.8943 −0.7475 2.5890 2.2308 
+
+ª®®®®¬
+
+.
+
+With the design parameters above, we obtain the adaptive noncollaborative protocol (12) as following 
+
+¤ˆ𝜉 1i = ©«
+
+0 0 1
+
+−1 −2 1 0 −1 0 
+
+ª®®¬
+
+ˆ𝜉 1i + ©«
+
+121
+
+ª®®¬
+
+𝜁 2i + ©«
+
+−10
+
+−1
+
+ª®®¬
+
+(
+
+
+
+1 0 0 
+
+ ˆ𝜉 1i − 𝜁 1i)
+
+ˆ𝜉 i =
+
+ ˆ𝜉 1i
+
+𝜁 2i
+
+
+
+¤𝜌 i =
+
+
+
+ˆ𝜉 T
+
+> i
+
+©«
+
+0.7998 −0.6685 2.3154 1.9950 
+
+−0.6685 0.5588 −1.9353 −1.6676 2.3154 −1.9353 6.7030 5.7756 1.9950 −1.6676 5.7756 4.9766 
+
+ª®®®®®¬
+
+ˆ𝜉 i if ˆ𝜉 T 
+
+> i
+
+P ˆ𝜉 i ⩾ d,0 if ˆ𝜉 T 
+
+> i
+
+P ˆ𝜉 i < d,
+
+ui = −𝜌 i
+
+
+
+0.8943 −0.7475 2.5890 2.2308 
+
+ ˆ𝜉 i.
+
+(88) where, considering T = I and (8), 𝜁 2i is equal to the second element of 𝜁 i in (4). 
+
+## 5.1.1 Scalability – independence to the size of communication networks 
+
+We consider MAS with agent models (87) and disturbances 
+
+wi (t) = sin (0.1 it + 0.01 t2), i = 1, . . . , N. (89) To illustrate the scalability of proposed noncollaborative protocols, we study three MAS with 5, 25 , and 121 agents communicating over directed Vicsek fractal graphs shown in Figure 1. In this example, we consider d = 0.5 .The simulation results presented in Figures 4-6 show the scalability of our one-shot-designed noncollaborative protocol. In other words, we achieve scale-free 𝛿 -level-coherent output synchronization regardless of the size of the network. 
+
+## 5.1.2 Independence to the directedness of the communication network 
+
+In this example, we show the feasibility of our noncollaborative protocols when the agents are communicating over undirected Vicsek fractal graphs. We consider MAS (87) with N = 25 agents where the agents are subject to noise (89) . We consider d = 0.5 
+
+in our protocol. The simulation results presented in Figure 7 show that the one-shot designed protocol (88) , achieves scale-free 
+
+𝛿 −level coherent output synchronization regardless of the directedness of the communication graphs. 
+
+## 5.1.3 Effectiveness with different types of communication graphs 
+
+Next, we illustrate that the designed noncollaborative protocol achieves 𝛿 -level coherent output synchronization for different types of communication graphs. We consider MAS (87) with N = 25 where the agents are subject to noise (89) . In this example, the agents are communicating through directed Circulant graphs shown in Figure 2. The effectiveness of our designed noncollaborative protocol (88) for MAS with different type of communication graphs, i.e. Circulant graphs, is shown in Figure 8. 22 A.A. Stoorvogel et al. 
+
+F I G U R E 1 Vicsek fractal graphs 
+
+F I G U R E 2 Circulant graph 
+
+F I G U R E 3 Disconnected directed graph 23 
+
+## 5.1.4 Effectiveness with disconnected graphs 
+
+Now, we consider MAS (87) with N = 24 in the presence of noise (89) where the agents are communicating through disconnected graph shown in Figure 3 which consists of three bi-components. We consider d = 0.5 in our protocols. The simulation results are presented in Figure 9. The simulation results show that our designed protocol is agnostic to the communication network and achieves 𝛿 -level coherent output synchronization for the network bi-components. We also show the convergence of 𝜌 i (t) to constants. 
+
+## 5.1.5 Robustness to different noise patterns 
+
+In this example, we illustrate the robustness of our protocols to different noise patterns. We consider MAS (87) with N = 25 ,communicating through a directed Vicsek fractal graphs as in section 5.1.1. In this example, we assume that agents are subject to 
+
+wi (t) = it − round (it ), i = 1, . . . , N. (90) Figure 10 shows that our designed noncollaborative protocol is robust even in the presence of noises with different patterns. 
+
+## 5.1.6 Effectiveness for different values of 𝛿 
+
+Finally, in this section, we show the effectiveness of the proposed protocol for different values of 𝛿 (or, equivalently, different values of d). Similarly to the previous examples, we consider the MAS (87) with N = 25 , communicating through directed Vicsek fractal graphs as in section 5.1.1, in the presence of noise (89) where in this example, we choose d = 0.2 . The simulation results presented in Figure 11 show the effectiveness of our noncollaborative protocol independent of the value of d.
+
+## 5.2 Collaborative Protocols 
+
+In this section, we consider agent models as 
+
+¤xi = ©«
+
+−1 1 00 −2 10 0 −3
+
+ª®®¬
+
+xi + ©«
+
+111
+
+ª®®¬
+
+ui + ©«
+
+101
+
+ª®®¬
+
+wi,
+
+yi =
+
+
+
+1 0 1 
+
+
+
+xi
+
+(91) for i = 1, . . . , N, satisfying Assumption 2. With the choice of 𝜂 = 1, we obtain 
+
+Q = ©«
+
+0.4117 0.1136 0.0086 0.1136 0.2997 0.0553 0.0086 0.0553 0.1792 
+
+ª®®¬
+
+,
+
+as the solution of (15). We obtain the collaborative adaptive protocol as follows. 
+
+¤ˆxi = ©«
+
+−1 1 00 −2 10 0 −3
+
+ª®®¬
+
+ˆxi − 𝛼 i
+
+©«
+
+1 1 1 1 1 1 1 1 1 
+
+ª®®¬
+
+P𝛼 i (ˆxi + ˜𝜁 i) − 𝜌 i
+
+©«
+
+0.4203 0.1689 0.1879 
+
+ª®®¬
+
+(
+
+
+
+1 0 1 
+
+ ˜𝜁 i + 𝜁 i)¤𝜌 i =
+
+(˜eT 
+
+> i
+
+˜ei if ˜eT 
+
+> i
+
+˜ei ⩾ d
+
+0 otherwise 
+
+¤𝛼 i =
+
+
+
+1 if ˜𝜁 T 
+
+> i
+
+CTC ˜𝜁 i ⩾ 1
+
+˜𝜁 T 
+
+> i
+
+CTC ˜𝜁 i if 1 > ˜𝜁 T 
+
+> i
+
+CTC ˜𝜁 i ⩾ d
+
+0 otherwise 
+
+ui = −𝛼 i
+
+
+
+1 1 1 
+
+
+
+P𝛼 i (ˆxi + ˜𝜁 i).
+
+(92) 24 A.A. Stoorvogel et al. 
+
+where CTC = ©«
+
+1 0 1 0 0 0 1 0 1 
+
+ª®®¬
+
+and ˜ei =
+
+
+
+1 0 1 
+
+ ˜𝜁 i − 𝜁 i and P𝛼 i for i = 1, ..., N, are the solutions of (19) . Note that 𝜁 i and ˜𝜁 i are the information exchange between agents as defined in (4) and (6), respectively. In this example similar to example 5.1, in sections 5.2.1- 5.2.6, we will show the effectiveness of our one-shot-designed collaborative protocols independent of the number of agents, communication network, noise patterns, and value of 𝛿 .
+
+## 5.2.1 Scalability – independence to the size of communication networks 
+
+In this example, we consider MAS with agent models (91) and disturbances (89) . To illustrate the scalability of the proposed collaborative protocols, we study three MAS with 5, 25 , and 121 agents communicating through the directed Vicsek fractal graphs shown in Figure 1. In this example, we consider d = 0.5 . The simulation results presented in Figures 12-14 show the scalability of our one-shot-designed collaborative protocols (92) for networks with N = 5, N = 25 and N = 121 respectively. In other words, scalable adaptive collaborative protocols achieve 𝛿 -level coherent output synchronization regardless of the size of the network. 
+
+## 5.2.2 Independence to the directedness of the communication network 
+
+In this example, we show the feasibility of our protocols when the agents are communicating over undirected Vicsek fractal graphs. We consider MAS with agent models (91) and N = 25 agents where the agents are subject to noise (89) . We consider 
+
+d = 0.5 in our protocols. The simulation results presented in Figure 15 show that the one-shot designed protocol (92) , achieves 
+
+𝛿 −level coherent output synchronization regardless of the directedness of the communication graphs. 
+
+## 5.2.3 Effectiveness with different types of communication graphs 
+
+In this example, we illustrate that the collaborative protocol that we designed also achieves synchronization for different types of communication graphs. We consider MAS (91) with N = 25 where the agents are subject to noise (89) . In this example, the agents are communicating through directed Circulant graphs shown in Figure 2. The effectiveness of our designed collaborative protocol (92) for MAS with directed Circulant communication graphs is shown in Figure 16. 
+
+## 5.2.4 Effectiveness with disconnected graphs 
+
+In this section, we consider MAS communicating through directed disconnected graphs shown in Figure 3. We consider MAS (91) with N = 24 agents where the agents are subject to noise (89). We consider d = 0.5 in our protocols. The simulation results are presented in Figure 17. In the first three sub-figures, we showed 𝛿 -level-coherent output synchronization for the bi-components of the disconnected graph. We also showed the convergence of 𝜌 i (t) to constants. 
+
+## 5.2.5 Robustness to different noise patterns 
+
+In this example, we analyze the robustness of our collaborative protocols to different noise patterns. We consider MAS (91) with N = 25 communicating through a directed Vicsek fractal graph. In this example, we assume that agents are subject to (90) .Figure 18 shows that our designed collaborative protocol is robust even in the presence of noises with different patterns. 
+
+## 5.2.6 Effectiveness for different values of 𝛿 
+
+Finally, in this section, we show the effectiveness of the proposed collaborative protocol for different values of 𝛿 (or, equivalently, different values of d). Similarly to the previous examples, we consider the MAS (91) with N = 25 , communicating through directed Vicsek fractal graphs as in section 5.2.1, where the agents are subject to noise (89) . In this example, we choose d = 0.2 .The simulation results presented in Figure 19 show the effectiveness of our collaborative protocol independent of the value of d.25 
+
+F I G U R E 4 Scale-free 𝛿 -level-coherent output synchronization of MAS (87) with N = 5, communicating over directed Vicsek fractal communication graphs in the presence of disturbances (89), via noncollaborative protocol (88) with d = 0.5 
+
+F I G U R E 5 Scale-free 𝛿 -level-coherent output synchronization of MAS (87) with N = 25 , communicating over directed Vicsek fractal communication graphs in the presence of disturbances (89), via noncollaborative protocol (88) with d = 0.5 26 A.A. Stoorvogel et al. 
+
+F I G U R E 6 Scale-free 𝛿 -level-coherent output synchronization of MAS (87) with N = 121 , communicating over directed Vicsek fractal communication graphs in the presence of disturbances (89), via noncollaborative protocol (88) with d = 0.5 
+
+F I G U R E 7 Scale-free 𝛿 -level-coherent output synchronization of MAS (87) with N = 25 , communicating over undirected Vicsek fractal communication graphs in the presence of disturbances (89), via noncollaborative protocol (88) with d = 0.5 27 
+
+F I G U R E 8 Scale-free 𝛿 -level-coherent output synchronization of MAS (87) with N = 25 , communicating over directed Circulant communication graphs in the presence of disturbances (89), via noncollaborative protocol (88) with d = 0.5 28 A.A. Stoorvogel et al. 
+
+F I G U R E 9 Scale-free 𝛿 -level-coherent output synchronization of MAS (87) with N = 24 , communicating over disconnected directed communication graphs in Figure 3 and in the presence of disturbances (89) , via noncollaborative protocol (88) with 
+
+d = 0.5 29 
+
+F I G U R E 10 Scale-free 𝛿 -level-coherent output synchronization of MAS (87) with N = 25 , communicating over directed Vicsek fractal communication graphs in the presence of disturbances (90), via noncollaborative protocol (88) with d = 0.5 
+
+F I G U R E 11 Scale-free 𝛿 -level-coherent output synchronization of MAS (87) with N = 25 , communicating over directed Vicsek fractal communication graphs in the presence of disturbances (89), via noncollaborative protocol (88) with d = 0.2 30 A.A. Stoorvogel et al. 
+
+F I G U R E 12 Scale-free 𝛿 -level-coherent output synchronization of MAS (91) with N = 5, communicating over directed Vicsek fractal communication graphs in the presence of disturbances (89), via collaborative protocol (92) with d = 0.5 
+
+F I G U R E 13 Scale-free 𝛿 -level-coherent output synchronization of MAS (91) with N = 25 , communicating over directed Vicsek fractal communication graphs in the presence of disturbances (89), via collaborative protocol (92) with d = 0.5 31 
+
+F I G U R E 14 Scale-free 𝛿 -level-coherent output synchronization of MAS (91) with N = 121 , communicating over directed Vicsek fractal communication graphs in the presence of disturbances (89), via collaborative protocol (92) with d = 0.5 
+
+F I G U R E 15 Scale-free 𝛿 -level-coherent output synchronization of MAS (91) with N = 25 , communicating over undirected Vicsek fractal communication graphs in the presence of disturbances (89), via collaborative protocol (92) with d = 0.5 32 A.A. Stoorvogel et al. 
+
+F I G U R E 16 Scale-free 𝛿 -level-coherent output synchronization of MAS (91) with N = 25 , communicating over directed Circulant communication graphs in the presence of disturbances (89), via collaborative protocol (92) with d = 0.5 33 
+
+F I G U R E 17 Scale-free 𝛿 -level-coherent output synchronization of MAS (91) with N = 24 , communicating over directed disconnected communication graphs in the presence of disturbances (89), via collaborative protocol (92) with d = 0.5 34 A.A. Stoorvogel et al. 
+
+F I G U R E 18 Scale-free 𝛿 -level-coherent output synchronization of MAS (91) with N = 25 , communicating over directed Vicsek fractal communication graphs in the presence of disturbances (90), via collaborative protocol (92) with d = 0.5 
+
+F I G U R E 19 Scale-free 𝛿 -level-coherent output synchronization of MAS (91) with N = 25 , communicating over directed Vicsek fractal communication graphs in the presence of disturbances (89), via collaborative protocol (92) with d = 0.2 35 
+
+How to cite this article: Stoorvogel A. A., Saberi A., and Nojavanzadeh D. (2025), Scale-free 𝛿 -level output synchronization of multi-agent systems with adaptive protocols and bounded disturbances 
+
+APPENDIX 
+
+We recall the following lemmas from [15] (with minor modifications): 
+
+Lemma 7. Consider a directed graph with Laplacian matrix L which is strongly connected. Then, there exists h1, . . . , hN > 0 
+
+such that 
+
+HN L + LTHN ⩾ 2𝛾 LTL, (93) 
+
+for some 𝛾 > 0 with HN given by (32) for k = N.
+
+Lemma 8. The quadratic form 
+
+V = zTQ𝜌 z
+
+with Q𝜌 given by (40) is decreasing in 𝜌 i for i = 1, . . . , N.
+
+Lemma 9. Consider ˜Vj as defined in (64) for j < N and in (50) for j = N. There exists M such that for j = 2, . . . , k we have 
+
+˜Vj−1 ⩽ M ˜Vj (94) 
+
+provided ˜𝜌 j ⩽ 2 ˜𝜌 i for i = 1, . . . , j − 1.
+
+We need in this paper, a detailled analysis of the parameter dependency of algebraic Riccati equations. Based on the special coordinate basis introduced in [ 24 ] we can obtain the following decomposition of a system (A, B, C, 0 )
+
+which is uniform rank, minimum-phase and right-invertible. 
+
+Lemma 10. Consider a linear system (A, B, C, 0 ) which is uniform rank, minimum-phase and right-invertible. In that case there exists a basis transformation Γs, unitary input and output transformation Γi and Γo, and state feedback ˜F and output injection ˜K
+
+such that: 
+
+Γ−1 
+
+> s
+
+AΓs = ˜A − ˜K ˜C − ˜B ˜F, ˜A =
+
+A0 00 A1
+
+
+
+, ˜B = Γ −1 
+
+> s
+
+BΓi =
+
+B0 00 B1
+
+
+
+, ˜C = Γ oCΓs =
+
+
+
+0 C1
+
+
+
+where the subsystem (A1, B1, C1, 0 ) based on the SCB has the following structure: 
+
+A1 =
+
+©«
+
+0 Im 0 · · · 0... . . . . . . . . . ...... . . . Im 00 · · · · · · 0 Im
+
+0 · · · · · · 0 0
+
+ª®®®®®®®®¬
+
+.
+
+Moreover, 
+
+B1 =
+
+©«
+
+0...00
+
+Im
+
+ª®®®®®®®¬
+
+and 
+
+C1 =
+
+
+
+Im 0 · · · · · · 0 0 
+
+
+
+.
+
+Note that ˜F and ˜K have the following structure: 
+
+˜F =
+
+ 0 0
+
+˜F21 ˜F22 
+
+
+
+, ˜K =
+
+ ˜K1
+
+˜K2
+
+
+
+and the unobservable dynamics of (C, A) is equal to the unobservable dynamics of ( ˜F21 , A0). Finally, (A0, B0) is stabilizable. 36 A.A. Stoorvogel et al. 
+
+The above allows us a detailled analysis of the 𝛼 dependency of the algebraic Riccati equation: 
+
+ATP𝛼 + P𝛼 A − 𝛼 P𝛼 BB TP𝛼 + 2𝜀 P𝛼 + CTC = 0 (95) as presented in the following lemma: 
+
+Lemma 11. Consider a linear system (A, B, C, 0 ) which is uniform rank, minimum-phase and right-invertible. Consider the structure as presented in Lemma 10 with A1 ∈ Rn1m×n1m. Define 
+
+𝛽 0 = 𝛼 −1/2, 𝛽 1 = 𝛼 −1/( 4n1 ) . (96) 
+
+and 
+
+D𝛼 =
+
+D0 00 D1
+
+
+
+,
+
+where D0 = 𝛽 0I and 
+
+D1 =
+
+©«
+
+𝛽 1I 0 · · · 00 𝛽 31I . . . ...... . . . . . . 00 · · · 0 𝛽 2n1 −11 I
+
+ª®®®®®®¬
+
+.
+
+Note that 𝛽 2n1 
+
+> 1
+
+= 𝛼 −1/2. In that case, there exist matrices Pℓ ⩾ 0 and Pu ⩾ 0 independent of 𝛼 such that 
+
+Γ−Ts D𝛼 Pℓ D𝛼 Γ−1 
+
+> s
+
+⩽ P𝛼 ⩽ Γ−Ts D𝛼 PuD𝛼 Γ−1
+
+> s
+
+for 𝛼 > 1 with ker Pℓ Γ−1 
+
+> s
+
+= ker P𝛼 = ker PuΓ−1 
+
+> s
+
+.Proof: Choose mℓ , mu > 0 such that 
+
+mℓ I ⩽ ΓT
+
+> o
+
+Γo ⩽ muI, mℓ I ⩽ ΓT 
+
+> i
+
+Γi ⩽ muI.
+
+Let Pu,1 be the unique solution of the algebraic Riccati equation: 
+
+AT
+
+> 1
+
+Pu,1 + Pu,1 A1 − mℓ Pu,1 B1BT
+
+> 1
+
+Pu,1 + 2m−1 
+
+> ℓ
+
+CT
+
+> 1
+
+C1 + Pu,1 + I = 0. 
+
+while Pu,0 satisfies 
+
+AT
+
+> 0
+
+Pu,0 + Pu,0 A0 − 12 mℓ Pu,0 B0BT
+
+> 0
+
+Pu,0 + 𝜀 Pu,0 + 2m−1 
+
+> ℓ
+
+˜FT 
+
+> 21
+
+˜F21 = 0. 
+
+Note that the kernel of P𝛼 is related to the unobservable dynamics of (C, A). Note that the unobservable dynamics of (C, A) in the SCB is given by the unobservable dynamics of ( ˜F21 , A0). To be more specific, the kernel of Pu,0 equals the unobservable dynamics of ( ˜F21 , A0) while Pu,1 is invertible. Choose: 
+
+Pu =
+
+Pu,0 00 Pu,1 
+
+
+
+.
+
+Next, using some straightforward algebra, we can show that ˜Pu,𝛼 = Γ −Ts D1PuD1Γ−1 
+
+> s
+
+satisfies: 
+
+AT ˜Pu,𝛼 + ˜Pu,𝛼 A − 𝛼 ˜Pu,𝛼 BB T ˜Pu,𝛼 + 𝜀 ˜Pu,𝛼 + CTC ⩽ 0 (97) for 𝛼 sufficiently large, where we used that: 
+
+˜AD 𝛼 = ˜D2
+
+> 𝛼
+
+D𝛼 ˜A, ˜D𝛼 D𝛼 ˜B = 𝛼 −1/2 ˜B, ˜CD 𝛼 = C ˜D𝛼 
+
+with 
+
+˜D𝛼 =
+
+I 00 𝛽 1I
+
+
+
+.
+
+Given that P𝛼 satisfies (95) we then immediately find that P𝛼 ⩽ ˜Pu,𝛼 as required. 37 
+
+Next, we focus on the lower bound. Note: 
+
+xT
+
+> 0
+
+P𝛼 x0 = inf 
+
+> u
+
+∥y∥2 
+
+> 𝜀
+
++ 𝛼 −1 ∥u∥2 
+
+> 𝜀
+
+| x(0) = x0
+
+where 
+
+∥u∥2 
+
+> 𝜀
+
+=
+
+∫ ∞
+
+> 0
+
+e𝜀 t ∥u(t)∥ 2 dt.
+
+We denote by L2, 𝜀 the class of all L2 signals for which the above norm is finite. Note, if we define: 
+
+xT
+
+> 0
+
+Pℓ,1 x0 = inf 
+
+> u
+
+∥y∥2 
+
+> 𝜀
+
++ ∥ u∥2 
+
+> 𝜀
+
+| x(0) = x0
+
+then it is easy to see that P𝛼 ⩾ 𝛼 −1Pℓ,1 .Next, we convert the system into SCB according to Lemma 10 and obtain: 
+
+˜xT 
+
+> 0
+
+˜P𝛼 ˜x0 ⩾ inf 
+
+> ˜u
+
+m−1 
+
+> u
+
+∥C1 ˜x2 ∥2 
+
+> 𝜀
+
++ 𝛼 −1mℓ ∥ ˜u1 ∥2 
+
+> 𝜀
+
++ 𝛼 −1mℓ ∥ ˜u2 ∥2 
+
+> 𝜀
+
+| ˜x(0) = ˜x0
+
+where P𝛼 = Γ T 
+
+> s
+
+˜P𝛼 Γs and 
+
+˜x =
+
+˜x0
+
+˜x1
+
+
+
+= Γ sx, u = Γ i
+
+ ˜u1
+
+˜u2
+
+
+
+, ˜y = Γ 0y
+
+with the decomposition of the input into ˜u1 and ˜u2 is compatible with the decomposition of ˜B presented in Lemma 10. Choose 
+
+˜𝜀 < 𝜀 such that A + 12 ˜𝜀 has no eigenvalues on the imaginary axis. If we decompose ˜P𝛼 :
+
+˜P𝛼 =
+
+ ˜P11, 𝛼 ˜P12, 𝛼 
+
+˜P21, 𝛼 ˜P22, 𝛼 
+
+
+
+then we obtain: 
+
+˜xT 
+
+> 1,0
+
+˜P22, 𝛼 ˜x1,0 ⩾ inf 
+
+> ˜u
+
+m−1 
+
+> u
+
+∥C1 ˜x1 ∥2 
+
+> ˜𝜀
+
++ 𝛼 −1mℓ ∥ ˜u1 ∥2 
+
+> ˜𝜀
+
++ 𝛼 −1mℓ ∥ ˜u2 ∥2 
+
+> ˜𝜀
+
+| ˜x0 (0) = 0, ˜x1 (0) = ˜x1,0 (98) Note that we have: 
+
+˜x0 = A0 ˜x1 + B0 ˜u1 − ˜K1C1 ˜x1, ˜x0 (0) = 0. 
+
+Choose F0 such that A + B0F0 + 12 ˜𝜀 I is asymptotically stable then we have ˜x0 = ˜x0, y + ˜x0, v provided ˜u0 = F0 ˜x0, y + v0 where: 
+
+˜x0, y = (A0 + B0F0) ˜x0, y − ˜K1C1 ˜x1, ˜x0, y (0) = 0. 
+
+and 
+
+˜x0, v = A0 ˜x0, v + B0v0, ˜x0, v (0) = 0. (99) Note that there exists 𝛾 such that 
+
+∥ ˜F21 ˜x0, y ∥ ˜𝜀 ⩽ 𝛾 1 ∥ ˜y∥ ˜𝜀 , ∥F0 ˜x0, y ∥ ˜𝜀 ⩽ 𝛾 1 ∥ ˜y∥ ˜𝜀 
+
+Next, note that in order to obtain a finite cost in (98) we need ˜y, ˜u1 and ˜u2 in L2, ˜𝜀 . This guarantees that we need that ˜x0 needs to be in L2, ˜𝜀 as well since the system is detectable. Hence if we choose 
+
+˜u0 = F0 ˜x0, y + v0, ˜u1 = − ˜F21 (˜x0, y + ˜x0, v) + v1
+
+then v1 must be such that ˜x0, v ∈ L2, ˜𝜀 But then (99) implies there exists 𝛾 2 > 1 such that 
+
+∥ ˜F21 ˜x0, v ∥ ˜𝜀 ⩽ 𝛾 2 ∥v0 ∥ ˜𝜀 (100) (recall that A0 + 12 ˜𝜀 does not have any imaginary axis eigenvalues) and hence this is a standard bound using L∞ instead of H∞
+
+which yields: 
+
+˜xT 
+
+> 1,0
+
+˜P22, 𝛼 ˜x1,0 ⩾ inf 
+
+> v0,v1
+
+(m−1 
+
+> u
+
+− 𝛾 1𝛼 −1mℓ − 𝛾 1𝛼 −1mℓ )∥ C1 ˜x1 ∥2 
+
+> ˜𝜀
+
++ 𝛼 −1mℓ ∥v0 ∥2 
+
+> ˜𝜀
+
++ 𝛼 −1mℓ ∥ ˜F21 ˜x0, v + v2 ∥2 
+
+> ˜𝜀
+
+| ˜x0 (0) = 0, ˜x1 (0) = ˜x1,0 38 A.A. Stoorvogel et al. 
+
+This gives us: 
+
+˜xT 
+
+> 1,0
+
+˜P22, 𝛼 ˜x1,0 ⩾ inf 
+
+> v0,v1
+
+n 12 m−1 
+
+> u
+
+∥C1 ˜x1 ∥2 
+
+> ˜𝜀
+
++ 𝛼 −1mℓ ∥v0 ∥2 
+
+> ˜𝜀
+
++ 1 
+
+> 𝛾 2
+
+𝛼 −1mℓ ∥ ˜F21 ˜x0, v + v2 ∥2 
+
+> ˜𝜀
+
+| ˜x0 (0) = 0, ˜x1 (0) = ˜x1,0 
+
+o
+
+(101) for 𝛼 sufficiently large. After another bounding, we get 
+
+˜xT 
+
+> 1,0
+
+˜P22, 𝛼 ˜x1,0 ⩾ inf 
+
+> v0,v1
+
+n 12 m−1 
+
+> u
+
+∥C1 ˜x1 ∥2 
+
+> ˜𝜀
+
++ 1 
+
+> 𝛾 2
+
+𝛼 −1mℓ ∥v2 ∥2 
+
+> ˜𝜀
+
+| ˜x0 (0) = 0, ˜x1 (0) = ˜x1,0 
+
+o
+
+(102) subject to the dynamics: 
+
+¤˜x1 = (A1 − B1F22 − ˜K1) ˜x1 + B1v1, ˜y1 = C1 ˜x1 (103) Note that the optimization in (102) does not depend on v0 or ˜x0. Hence if we define: 
+
+˜xT 
+
+> 1,0
+
+˜Pℓ,𝛼 ˜x1,0 ⩾ inf 
+
+> v1
+
+n 12 m−1 
+
+> u
+
+∥C1 ˜x1 ∥2 
+
+> ˜𝜀
+
++ 1 
+
+> 𝛾 2
+
+𝛼 −1mℓ ∥v2 ∥2 
+
+> ˜𝜀
+
+| ˜x1 (0) = ˜x1,0 
+
+o
+
+subject to (103) then we obtain: 
+
+˜P22, 𝛼 ⩾ ˜Pℓ,𝛼 
+
+We have: 
+
+(A1 − ˜K2C1 − B1 ˜F22 )T ˜Pℓ,𝛼 + ˜Pℓ,𝛼 (A1 − ˜K2C1 − B1 ˜F22 ) − 𝛼 mℓ
+
+> 𝛾 2
+
+˜Pℓ,𝛼 B1BT 
+
+> 1
+
+˜Pℓ,𝛼 + 12 CT
+
+> 1
+
+C1 + ˜𝜀 ˜Pℓ,𝛼 = 0
+
+Clearly 
+
+˜Pℓ,𝛼 ˜K2C1 + CT 
+
+> 1
+
+˜KT 
+
+> 2
+
+⩽ 8mu ˜Pℓ,𝛼 ˜K2 ˜KT 
+
+> 2
+
+˜Pℓ,𝛼 + 18 m−1 
+
+> u
+
+CT
+
+> 1
+
+C1 ⩽ 14 ˜𝜀 ˜Pℓ,𝛼 + 18 m−1 
+
+> u
+
+CT
+
+> 1
+
+C1
+
+for large enough 𝛼 since ˜Pℓ,𝛼 → 0. Moreover. 
+
+˜Pℓ,𝛼 B1 ˜F22 + ˜FT
+
+> 22
+
+BT 
+
+> 1
+
+˜Pℓ,𝛼 ⩽ 𝛼 mℓ
+
+> 2𝛾 2
+
+˜Pℓ,𝛼 B1BT 
+
+> 1
+
+˜Pℓ,𝛼 + 2𝛾 2
+
+> 𝛼 mℓ
+
+˜FT 
+
+> 22
+
+˜F22 
+
+We claim 2𝛾 2
+
+> 𝛼 mℓ
+
+˜FT 
+
+> 22
+
+˜F22 ⩽ 14 ˜𝜀 ˜Pℓ,𝛼 
+
+for 𝛼 large enough. Assume not, then there exists for some 𝜇 > 0 a sequence 𝛼 n → ∞ such that 
+
+˜xT 
+
+> 1,0
+
+˜Pℓ,𝛼 n ˜x1,0 ⩾ 𝜇𝛼 −1
+
+> n
+
+But given the definition of ˜Pℓ,𝛼 n this implies there exists a sequence v1, n ∈ L2, ˜𝜀 resulting in a state ˜x1, n and output ˜y such that 
+
+∥v1, n ∥ ˜𝜀 ⩽ 𝜇 , ∥ ˜yn ∥ ˜𝜀 → 0
+
+but then the sequence {v1, n } has a weakly convergent subsequence with limit v∗ 
+
+> 1
+
+with corresponding output ˜y∗ = 0 and a nonzero initial condition. This yields a contradiction since by construction the system with state ˜x1 is invertible and has no zero-dynamics. Using the above bounds, we find that ˜Pℓ,𝛼 satisfies: 
+
+AT 
+
+> 1
+
+˜Pℓ,𝛼 + ˜Pℓ,𝛼 A1 − 𝛼 mℓ
+
+> 2𝛾 2
+
+˜Pℓ,𝛼 B1BT 
+
+> 1
+
+˜Pℓ,𝛼 + 14 m−1 
+
+> u
+
+CT
+
+> 1
+
+C1 + 12 ˜𝜀 ˜Pℓ,𝛼 ⩽ 0
+
+But then 
+
+˜P∗ 
+
+> ℓ,𝛼
+
+⩽ ˜Pℓ,𝛼 ⩽ ˜P22, 𝛼 
+
+where ˜P∗ 
+
+> ℓ,𝛼
+
+satisfies: 
+
+AT 
+
+> 1
+
+˜P∗ 
+
+> ℓ,𝛼
+
++ ˜P∗
+
+> ℓ,𝛼
+
+A1 − 𝛼 mℓ
+
+> 2𝛾 2
+
+˜P∗
+
+> ℓ,𝛼
+
+B1BT 
+
+> 1
+
+˜P∗ 
+
+> ℓ,𝛼
+
++ 14 CT
+
+> 1
+
+C1 + 12 ˜𝜀 ˜P∗ 
+
+> ℓ,𝛼
+
+= 0
+
+It is now easy to check that ˜P∗ 
+
+> ℓ,𝛼
+
+has a nice diagonal structure. Let Pℓ,1 satisfy 
+
+AT
+
+> 1
+
+Pℓ,22 + Pu,1 A1 − mℓ 
+
+> 2𝛾 2
+
+Pℓ,22 B1BT
+
+> 1
+
+Pℓ,22 + 12 m−1 
+
+> u
+
+CT
+
+> 1
+
+C1 + 12 𝜀 Pℓ,22 = 0. 
+
+Next, using some straightforward algebra, we can show that 
+
+˜P∗ 
+
+> ℓ,𝛼
+
+= D1Pℓ,22 D1.39 
+
+We have now shown that: 
+
+˜P𝛼 ⩾ 𝛼 −1 ˜Pℓ,1 ⩾ 0
+
+where Pℓ,1 = Γ T 
+
+> s
+
+Pℓ,1 Γs and 
+
+˜P22, 𝛼 ⩾ D1Pℓ,22 D1 (104) Let 
+
+˜Pℓ,1 =
+
+ ˜P11, ℓ,1 ˜P12, ℓ,1 
+
+˜P21, ℓ,1 ˜P22, ℓ,1 
+
+
+
+⩾ 0
+
+Since dim ker ˜ Pℓ,1 = dim ker ˜ P11, ℓ,1 we find that there exists 𝜈 such that 
+
+˜P𝛼 ⩾ 𝛼 −1 ˜Pℓ,1 ⩾
+
+𝜈𝛼 −1 ˜P11, ℓ,1 00 0
+
+
+
+Combining with (104) this implies 
+
+˜P𝛼 ⩾
+
+𝜈𝛼 −1 ˜P11, ℓ,1 00 D1Pℓ,22 D1
+
+
+
+.
+
+Choosing 
+
+Pℓ =
+
+𝜈 ˜P11, ℓ,1 00 Pℓ,22 
+
+
+
+then gives the required lower bound in the lemma. 
+
+Lemma 12. Consider a linear system 
+
+¤x1 = A1x1 + B1u1 + E1w1
+
+y1 = C1x1
+
+with the structure outlined Lemma 10. Assume w1 is bounded and lim  
+
+> t→∞
+
+𝛼 = ∞. Then for any 𝜀 > 0 there exists T and 𝛿 > 0 such that for t0 > T, ∫ t0+1
+
+> t0
+
+𝛼 −1uT
+
+> 1
+
+u1 dt < 𝛿 and 
+
+∫ t0+1
+
+> t0
+
+yT
+
+> 1
+
+y1 dt < 𝛿 
+
+that ∫ t0+1
+
+> t0
+
+V𝛼 (t) dt ⩽ 𝜀 (105) 
+
+where 
+
+V𝛼 = xT
+
+> 1
+
+©«
+
+I 0 · · · 00 𝛽 4I . . . ...... . . . . . . 00 · · · 0 𝛽 4n1 −4I
+
+ª®®®®®¬
+
+x1, (106) 
+
+with 𝛽 = 𝛼 −1/( 4n1 ) .Proof: This is a consequence of the Gagliardo-Nirenberg inequality. Denote by x1,0 the value of the state for given u1 and given initial conditions if we set w1 = 0. while x1, w1 denotes the value of the state for given w1 if we set u1 = 0 and the initial conditions to zero. Let y1,0 = Cx 1,0 and y1, w1 = Cx 1, w1 . We then have: 
+
+x1 = x1, w1 + x1,0 .
+
+Since w1 is bounded we find that x1, w1 is bounded. This implies that y1,0 is bounded given that y1 is small and y1, w1 is bounded. The Gagliardo-Nirenberg inequality (see [ 13 ]) implies there exits a constants C1, C2 > 0 (independent of initial conditions, wi
+
+and ui) such that 
+
+∥y(j) 
+
+> 1,0
+
+∥2 ⩽ C1 ∥y(m) 
+
+> 1,0
+
+∥j/m 
+
+> 2
+
+∥y1,0 ∥1−j/m 
+
+> 2
+
++ C2 ∥y1,0 ∥2,
+
+which yields: 
+
+𝛽 2ji ∥y(j) 
+
+> 1,0
+
+∥2 ⩽ C1𝛿 j/2m ∥y1,0 ∥1−j/m 
+
+> 2
+
++ C2 𝛽 2ji ∥y1,0 ∥2.
+
+For 𝛼 large enough (i.e. T large enough) we find that 𝛽 is arbitrarily small and hence for 𝛿 small enough, we have that (105) is satisfied. 40 A.A. Stoorvogel et al. 
+
+## References 
+
+1. H. Bai, M. Arcak, and J. Wen, Cooperative control design: a systematic, passivity-based approach , Communications and Control Engineering, Springer Verlag, 2011. 2. D. Chowdhury and H. K. Khalil, Synchronization in networks of identical linear systems with reduced information , American Control Conference ,Milwaukee, WI, 2018, 5706–5711. 3. C. Godsil and G. Royle, Algebraic graph theory , Graduate Texts in Mathematics , vol. 207, Springer-Verlag, New York, 2001. 4. H. Kim, H. Shim, J. Back, and J. Seo, Consensus of output-coupled linear multi-agent systems under fast switching network: averaging approach ,Automatica 49 (2013), no. 1, 267–272. 5. Z. Liu, D. Nojavanzedah, and A. Saberi, Cooperative control of multi-agent systems: A scale-free protocol design , Springer, Cham, 2022. 6. Z. Liu, M. Zhang, A. Saberi, and A. A. Stoorvogel, State synchronization of multi-agent systems via static or adaptive nonlinear dynamic protocols ,Automatica 95 (2018), 316–327. 7. Z. Liu, A. Saberi, A. A. Stoorvogel, and D. Nojavanzadeh, Global and semi-global regulated state synchronization for homogeneous networks of non-introspective agents in presence of input saturation , Proc. 58th CDC , Nice, France, 2019, 7307–7312. 8. Z. Liu, A. A. Stoorvogel, A. Saberi, and D. Nojavanzadeh, Squared-down passivity-based state synchronization of homogeneous continuous-time multiagent systems via static protocol in the presence of time-varying topology , Int. J. Robust & Nonlinear Control 29 (2019), no. 12, 3821–3840. 9. Z. Liu, A. Saberi, A. Stoorvogel, and D. Nojavanzadeh, H∞ almost state synchronization for homogeneous networks of non-introspective agents: a scale-free protocol design , Automatica 122 (2020), no. 109276, 1–7. 10. Z. Liu, D. Nojavanzadeh, D. Saberi, A. Saberi, and A. A. Stoorvogel, Regulated state synchronization for homogeneous networks of non-introspective agents in presence of input delays: a scale-free protocol design , Chinese Control and Decision Conference , Hefei, China, 2020, 856–861. 11. Z. Liu, D. Nojavanzadeh, D. Saberi, A. Saberi, and A. A. Stoorvogel, Scale-free protocol design for regulated state synchronization of homogeneous multi-agent systems in presence of unknown and non-uniform input delays , Syst. & Contr. Letters 152 (2021), no. 104927. 12. M. Mesbahi and M. Egerstedt, Graph theoretic methods in multiagent networks , Princeton University Press, Princeton, 2010. 13. L. Nirenberg, On elliptic partial differential equations , Annali della Scuola Normale Superiore di Pisa 3 (1959), no. 13, 115–162. 14. D. Nojavanzadeh, Z. Liu, A. Saberi, and A. Stoorvogel, Output and regulated output synchronization of heterogeneous multi-agent systems: A scale-free protocol design using no information about communication network and the number of agents , American Control Conference , Denver, CO, 2020, 865–870. 15. D. Nojavanzadeh, Z. Liu, A. Saberi, and A. Stoorvogel, Scalable 𝛿 -level coherent state synchronization of multi-agent systems with adaptive protocols and bounded disturbances , Int. J. of Adaptive Control and Signal Processing 39 (2025), no. 3, 497–516. 16. R. Olfati-Saber and R. Murray, Consensus problems in networks of agents with switching topology and time-delays , IEEE Trans. Aut. Contr. 49 
+
+(2004), no. 9, 1520–1533. 17. E. Peymani, H. Grip, and A. Saberi, Homogeneous networks of non-introspective agents under external disturbances - H∞ almost synchronization ,Automatica 52 (2015), 363–372. 18. E. Peymani, H. Grip, A. Saberi, X. Wang, and T. Fossen, H∞ almost ouput synchronization for heterogeneous networks of introspective agents under external disturbances , Automatica 50 (2014), no. 4, 1026–1036. 19. Z. Qu, Cooperative control of dynamical systems: applications to autonomous vehicles , Spinger-Verlag, London, U.K., 2009. 20. W. Ren, On consensus algorithms for double-integrator dynamics , IEEE Trans. Aut. Contr. 53 (2008), no. 6, 1503–1509. 21. W. Ren and R. Beard, Consensus seeking in multiagent systems under dynamically changing interaction topologies , IEEE Trans. Aut. Contr. 50 
+
+(2005), no. 5, 655–661. 22. W. Ren and Y. Cao, Distributed coordination of multi-agent networks , Communications and Control Engineering, Springer-Verlag, London, 2011. 23. A. Saberi, A. A. Stoorvogel, M. Zhang, and P. Sannuti, Synchronization of multi-agent systems in the presence of disturbances and delays ,Birkhäuser, New York, 2022. 24. P. Sannuti and A. Saberi, Special coordinate basis for multivariable linear systems – finite and infinite zero structure, squaring down and decoupling , Int. J. Contr. 45 (1987), no. 5, 1655–1704. 25. P. Sannuti, A. Saberi, and M. Zhang, Squaring down of general MIMO systems to invertible uniform rank systems via pre- and/or post-compensators ,Automatica 50 (2014), no. 8, 2136–2141. 26. L. Scardovi and R. Sepulchre, Synchronization in networks of identical linear systems , Automatica 45 (2009), no. 11, 2557–2562. 41 
+
+27. J. Seo, H. Shim, and J. Back, Consensus of high-order linear systems using dynamic output feedback compensator: low gain approach , Automatica 
+
+45 (2009), no. 11, 2659–2664. 28. J. Seo, J. Back, H. Kim, and H. Shim, Output feedback consensus for high-order linear systems having uniform ranks under switching topology ,IET Control Theory and Applications 6 (2012), no. 8, 1118–1124. 29. A. Stoorvogel, A. Saberi, M. Zhang, and Z. Liu, Solvability conditions and design for H∞ and H2 almost state synchronization of homogeneous multi-agent systems , European Journal of Control 46 (2019), 36–48. 30. A. A. Stoorvogel, A. Saberi, Z. Liu, and D. Nojavanzadeh, H2 and H∞ almost output synchronization of heterogeneous continuous-time multi-agent systems with passive agents and partial-state coupling via static protocol , Int. J. Robust & Nonlinear Control 29 (2019), no. 17, 6244–6255. 31. Y. Su and J. Huang, Stability of a class of linear switching systems with applications to two consensus problem , IEEE Trans. Aut. Contr. 57 (2012), no. 6, 1420–1430. 32. S. Tuna, LQR-based coupling gain for synchronization of linear systems , 2008. Available: arXiv:0801.3390v1. 33. S. Tuna, Conditions for synchronizability in arrays of coupled linear systems , IEEE Trans. Aut. Contr. 55 (2009), no. 10, 2416–2420. 34. P. Wieland, J. Kim, and F. Allgöwer, On topology and dynamics of consensus among linear high-order agents , International Journal of Systems Science 42 (2011), no. 10, 1831–1842. 35. C. Wu, Synchronization in complex networks of nonlinear dynamical systems , World Scientific Publishing Company, Singapore, 2007. 36. M. Zhang, A. Saberi, and A. A. Stoorvogel, Regulated output synchronization for heterogeneous time-varying networks with non-introspective agents in presence of disturbance and measurement noise with known frequencies , American Control Conference , Chicago, IL, 2015, 2069–2074. 37. M. Zhang, A. Saberi, and A. A. Stoorvogel, Synchronization for heterogeneous time-varying networks with non-introspective, non-minimum-phase agents in the presence of external disturbances with known frequencies , Proc. 55th CDC , Las Vegas, NV, 2016, 5201–5206. 38. M. Zhang, A. Stoorvogel, and A. Saberi, Stochastic almost regulated output synchronization for time-varying networks of nonidentical and non-introspective agents under external stochastic disturbances and disturbances with known frequencies , M. Belur, M. Camlibel, P. Rapisarda, and J. Scherpen (eds.), Mathematical control theory II , Lecture Notes in Control and Information Sciences , vol. 462, Springer Verlag, 2015. 101–127. 39. M. Zhang, A. Saberi, A. A. Stoorvogel, and P. Sannuti, Almost regulated output synchronization for heterogeneous time-varying networks of non-introspective agents and without exchange of controller states , American Control Conference , Chicago, IL, 2015, 2735–2740. 40. M. Zhang, A. Saberi, H. F. Grip, and A. A. Stoorvogel, H∞ almost output synchronization for heterogeneous networks without exchange of controller states , IEEE Trans. Control of Network Systems 2 (2015), no. 4, 348–357. 41. B. Zhou, G. Duan, and Z. Lin, A parametric Lyapunov equation approach to the design of low gain feedback , IEEE Trans. Aut. Contr. 53 (2008), no. 6, 1548–1554.

@@ -1,0 +1,6763 @@
+Title: Boltzmann-based Exploration for Robust Decentralized Multi-Agent Planning
+
+URL Source: https://arxiv.org/pdf/2603.02154v1
+
+Published Time: Tue, 03 Mar 2026 04:02:23 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+## Boltzmann-based Exploration for Robust Decentralized Multi-Agent Planning (Extended Version) 
+
+Nhat Nguyen 1, Duong Nguyen 1, Gianluca Rizzo 2, Hung Nguyen 1
+
+> 1
+
+The University of Adelaide, Australia 
+
+> 2
+
+HES-SO Valais, Switzerland, and The University of Turin, Italy nhatdaoanh.nguyen@adelaide.edu.au, duong.nguyen@adelaide.edu.au, gianluca.rizzo@hevs.ch, hung.nguyen@adelaide.edu.au 
+
+Abstract 
+
+Decentralized Monte Carlo Tree Search (Dec-MCTS) is widely used for cooperative multi-agent planning but strug-gles in sparse or skewed reward environments. We intro-duce Coordinated Boltzmann MCTS (CB-MCTS), which re-places deterministic UCT with a stochastic Boltzmann policy and a decaying entropy bonus for sustained yet focused ex-ploration. While Boltzmann exploration has been studied in single-agent MCTS, applying it in multi-agent systems poses unique challenges. CB-MCTS is the first to address this. We analyze CB-MCTS in the simple-regret setting and show in simulations that it outperforms Dec-MCTS in deceptive sce-narios and remains competitive on standard benchmarks, pro-viding a robust solution for multi-agent planning. 
+
+Introduction 
+
+Decentralized Monte Carlo Tree Search (Dec-MCTS) is an increasingly popular paradigm for cooperative multi-agent planning (Best et al. 2019; Li et al. 2019; Nguyen et al. 2024b). Its anytime performance, domain-agnostic design, and online replanning capabilities make it well-suited for applications requiring scalability, fast response, and coordi-nation across distributed agents, such as information gather-ing, precision farming, and networked robotics (Claes et al. 2017; Sukkar et al. 2019; Nguyen et al. 2024a). Current Dec-MCTS algorithms rely on the Upper Confi-dence Bound applied to Trees (UCT) and its variants (Koc-sis, Szepesv´ ari, and Willemson 2006) to guide the search process. UCT selects actions according to the principle of 
+
+optimism in the face of uncertainty , prioritizing branches with high empirical rewards. While this mechanism is ef-fective when rewards are smooth or moderately stochas-tic (Munos et al. 2014), its efficiency degrades in skewed, sparse, or deceptive reward landscapes. In such cases, early high-reward samples can mislead the search, causing the al-gorithm to overcommit to suboptimal branches while ne-glecting deeper paths that lead to higher rewards (Coquelin and Munos 2007; Ramanujan and Selman 2011; James, Konidaris, and Rosman 2017). Although extensively stud-ied in single-agent MCTS, the implications for decentral-ized multi-agent planning, where coordination amplifies the problem, remain largely unexamined. 
+
+Copyright © 2026, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. 
+
+This paper provides the first simple regret analysis of Dec-MCTS in deceptive multi-agent trees. We then in-troduce Coordinated Boltzmann Monte Carlo Tree Search 
+
+(CB-MCTS), a distributed algorithm that addresses these limitations. CB-MCTS replaces the deterministic UCT se-lection with a stochastic Boltzmann policy and incorporates a decaying entropy-based bonus to sustain exploration while progressively focusing on high-value actions. Coordination among agents is achieved through a marginal contribution function that aligns each agent’s local decisions with the global objective, mitigating the variance introduced by si-multaneous actions. This approach enables the search to ex-plore deceptive or initially suboptimal regions effectively, improving convergence to globally optimal strategies. While Boltzmann exploration has been applied in single-agent MCTS (Cesa-Bianchi et al. 2017; Painter et al. 2023), CB-MCTS is, to our knowledge, the first to adapt it to multi-agent planning. We show theoretically that CB-MCTS achieves exponentially faster decay of simple regret than D-UCT-based Dec-MCTS in deceptive trees. Extensive sim-ulations demonstrate that CB-MCTS matches state-of-the-art methods on standard benchmarks while significantly out-performing them in scenarios with skewed or sparse reward distribution. Overall, CB-MCTS offers a robust and adapt-able framework for multi-agent planning problems across smooth to sparse reward environments. 
+
+Problem Statement 
+
+We consider a cooperative multi-agent planning problem with N agents in a shared environment modeled as an undi-rected graph G = (V, E ), where vertices are states and edges are actions. Each agent n selects a valid action se-quence an ∈ A n, subject to a cost budget b(an) ≤ Bn.The global objective g(a) depends on the joint action a =(a1, . . . , a N ), and the goal is to maximize g(a) within a planning budget T . Dec-MCTS addresses this by letting each agent build its own search tree using repeated simula-tions. A trajectory from the root corresponds to a candidate action sequence, and nodes are selected using Discounted UCT (D-UCT), which weights empirical rewards by a dis-count factor γ.While cumulative regret is standard in MCTS evalua-tion, in multi-agent planning with finite planning budgets, only the executed actions contribute to real-world outcomes. 
+
+> arXiv:2603.02154v1 [cs.MA] 2 Mar 2026
+
+Hence, simple regret rT = μ∗ − μJT , the expected loss of executing the recommended action JT after T planning iter-ations, is a more relevant metric (Tolpin and Shimony 2012). While UCT is guaranteed to converge to the optimal trajec-tory in the limit (Kocsis, Szepesv´ ari, and Willemson 2006), this convergence can be extremely slow in sparse, skewed, or deceptive reward structures, such as the classical D-chain tree (Coquelin and Munos 2007; James, Konidaris, and Ros-man 2017). We show that this D-chain pathology extends to Dec-MCTS with D-UCT, where the difficulties are magni-fied, particularly for multi-agent coordination. 
+
+Definition 1. The multi-agent D-chain problem is an M -ary tree of depth D. At depth d < D , action 1 progresses to the next level; all others terminate with reward (D − d)/D . At depth D, action 1 gives a reward of 1; others give 0. Agents initially select non-progressing actions, and overlapping ac-tion sequences among agents do not yield extra reward. 
+
+Lemma 1. For a fixed γ, there exists a value D such that Dec-MCTS with D-UCT fails to identify the optimal action sequence in the D-Chain problem. 
+
+As D-UCT is designed to minimize cumulative regret, it is unsuitable for environments that require extensive ex-ploration (i.e., minimizing simple regret) since both regrets cannot be minimized simultaneously (Bubeck, Munos, and Stoltz 2011). We formally bound the simple regret of Dec-MCTS with D-UCT as follows: 
+
+Theorem 1. The simple regret of Dec-MCTS with D-UCT is bounded by E[rT ] ≤ C exp 
+
+
+
+−k√T log T
+
+
+
+for some con-stants C, k > 0.
+
+The proofs of Lemma 1 and Theorem 1 are in the Ap-pendix. 
+
+Coordinated Boltzmann MCTS 
+
+Distributed CB-MCTS with Discounted Backup 
+
+We propose Coordinated Boltzmann Monte Carlo Tree Search (CB-MCTS), a distributed algorithm for cooperative multi-agent planning. Each agent n independently runs CB-MCTS over its search tree T n, where nodes represent states and edges represent actions. A root-to-leaf branch encodes a feasible action sequence. All agents aim to maximize the global utility g through decentralized coordination. To coordinate without centralization, each agent main-tains a compressed representation of its tree consisting of (i) a subset ˆAn of high-value rollouts and (ii) a probability mass function pn over these rollouts. The subset ˆAn is obtained by selecting leaf nodes with the highest discounted empirical returns every c iterations. The probabilities pn are updated via a decentralized gradient-based consensus protocol (Best et al. 2019), enabling each agent to form beliefs about oth-ers’ future trajectories without exchanging full trees. The tree T n is grown iteratively using the standard 4-step MCTS process (Kocsis, Szepesv´ ari, and Willemson 2006). During selection , the algorithm recursively chooses a child using the stochastic Boltzmann policy, stopping when en-countering an unvisited child or reaching the planning hori-zon. The chosen unvisited child is then expanded . A rollout 
+
+Algorithm 1: Overview of CB-MCTS for agent n
+
+Require: g, T , c, B, ˆA−n, p−n
+
+Ensure: best action sequence an for agent n 
+
+> 1:
+
+T n ← Initialize the search tree  
+
+> 2:
+
+t ← 0 
+
+> 3:
+
+while t < T do  
+
+> 4:
+
+if t mod c == 0 then  
+
+> 5:
+
+ˆAn ← Tree Compression (T n) 
+
+> 6:
+
+end if  
+
+> 7:
+
+for a fixed number of iterations do  
+
+> 8:
+
+i ← Boltzmann Selection (T n) 
+
+> 9:
+
+[j, T n] ← Tree Expansion (T n, i, h ) 
+
+> 10:
+
+an ← Simulation (j, B ) 
+
+> 11:
+
+a−n ← Sample ( ˆA−n, p −n) 
+
+> 12:
+
+r(an) ← Marginal Contribution (g, a n, a −n) 
+
+> 13:
+
+T n ← Backpropagation (T n, j, r (an))  
+
+> 14:
+
+t ← t + 1  
+
+> 15:
+
+end for  
+
+> 16:
+
+[ ˆA−n, p −n] ← Update and Communicate ( ˆAn, p n) 
+
+> 17:
+
+end while  
+
+> 18:
+
+return an ← arg max  
+
+> a∈ˆAn
+
+[pn(a)] 
+
+phase follows, where random actions are sampled until the horizon is reached. To evaluate its rollout an, agent n samples joint actions 
+
+a−n for other agents from ( ˆA−n, p −n) and computes its marginal contribution: 
+
+r(an) = g(an, a −n) − g(a−n), (1) which aligns each agent’s objective with the global utility while mitigating variance in multi-agent evalua-tion (Wolpert, Bieniawski, and Rajnarayan 2013). In backpropagation , discounted updates account for evolving agent intentions. Let Ni be the discounted visit count for node i:
+
+Ni =
+
+> T
+
+X
+
+> t=1
+
+γT −t1{at=i}, γ ∈ [0 .5, 1) , (2) with the corresponding discounted value estimate 
+
+¯Xi,N i = 1
+
+NiTX
+
+> t=1
+
+γT −trt1{at=i}. (3) where rt is the rollout score at iteration t as defined in (1). After exhausting the computation budget, each agent selects the rollout in ˆAn with the highest probability under pn.
+
+Boltzmann Selection Policy 
+
+Selection in distributed MCTS is challenging due to non-stationary node statistics: deeper expansions alter reward distributions, and stochastic oversampling of low-value nodes can hinder search efficiency. To address this, CB-MCTS employs a temperature-controlled Boltzmann pol-icy with entropy regularization and decaying uniform explo-ration. For a node i with children C(i), the probability of selecting child j at iteration t is 
+
+πi,t (j) = (1 − λi,t ) ρi,t (j) + λi,t 
+
+|C (i)| , (4) where λi,t = min(1 , ϵ/ log( e + Ni)) introduces controlled uniform exploration, and 
+
+ρi,t (j) ∝ exp 
+
+ ¯Xj,N j + β(Ni)Hj
+
+α(Ni)
+
+
+
+(5) is an entropy-regularized Boltzmann distribution. Here α(·)
+
+and β(·) are decaying schedules, and Hj is the entropy bonus promoting structured early exploration. The entropy is initialized as Hi = 0 when the node i is first expanded and dynamically backed up in the backpropagation phase as: 
+
+Hi ← H (πi,t ) + X
+
+> j∈C (i)
+
+πi,t (j) Hj , (6) with H denoting Shannon entropy. 
+
+Simple Regret Analysis 
+
+CB-MCTS is designed to minimize simple regret by com-bining structured stochastic exploration with discounted co-ordination signals. The Boltzmann policy ensures that all actions remain discoverable while gradually concentrating probability mass on high-value branches. Meanwhile, the marginal contribution objective and discounted backups at-tenuate outdated information, enabling each agent to adapt to the evolving intentions of others. Together, these mecha-nisms promote consistent alignment between local rollouts and the global objective, allowing the search to converge more rapidly toward high-reward regions. 
+
+Theorem 2. The simple regret of CB-MCTS, with α(·) → 0
+
+and β(·) → 0, is bounded by E[rT ] ≤ C exp( −kT / log T )
+
+for some constants C, k > 0.
+
+Theorem 2 shows that the simple regret of CB-MCTS de-cays exponentially faster in T than Dec-MCTS with D-UCT. As illustrated by the D-chain problem (Figure 1), the simple regret of CB-MCTS vanishes with far fewer iterations, re-gardless of the value of γ, indicating that it identifies optimal actions more rapidly. This is especially valuable in applica-tions with limited planning resources. The proof of Theorem 2 and additional simple regret analysis in the D-chain prob-lem are in the Appendix. 
+
+Empirical Evaluation 
+
+We evaluate CB-MCTS on different multi-agent cooperative planning tasks. We consider the following baselines: • Dec-MCTS : leading version of decentralized MCTS with D-UCT (Best et al. 2019). • GU-MCTS : CB-MCTS using global utility instead of marginal contributions. • NE-MCTS : CB-MCTS without entropy (β(m) = 0) .• Independent : CB-MCTS runs independently per agent (equivalent to the single-agent algorithm AR-DENTS (Painter et al. 2023)). 500 1000 1500 2000 2500 3000     
+
+> Number of iterations
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> Simple regret at root
+> Dec-MCTS ( γ= 0.99)
+> Dec-MCTS ( γ= 0.7)
+> CB-MCTS ( γ= 0.99)
+> CB-MCTS ( γ= 0.7)
+
+Figure 1: Simple regret of CB-MCTS and Dec-MCTS in the multi-agent D-chain problem with D = 10 and 2 agents. • CAR-DENTS : AR-DENTS adapted for centralized multi-agent planning where a single tree encodes all agents, with agent n acting at depths (n, n + N, n + 2 N, . . . ).We tuned all methods on small validation instances. The hyperparameter selections and environment setup details are in the Appendix. 
+
+Frozen Lake Problem 
+
+We consider the Frozen Lake benchmark (Towers et al. 2024), a grid-world where each cell is either safe or a hole. The agent starts in the top-left corner and moves until reach-ing a goal, falling into a hole, or exhausting its budget. We extend the task to a multi-agent setting with two goal posi-tions. An agent reaching a goal at step t receives a score of 
+
+0.99 t; otherwise it receives 0. Multiple agents selecting the same goal do not yield additional reward. This setup general-izes the multi-goal stochastic navigation problems. Beyond the joint score, we measure the probability that at least one goal is reached ( PR1 ) and the probability that both goals are reached ( PR2 ). Each algorithm is evaluated over 80 runs on four 8×12 maps with two goals, using a planning budget of 100 steps and reporting metrics every 250 iterations. As shown in Figure 2, CB-MCTS reaches both goals up to 
+
+40% more often than Dec-MCTS and attains a 70% higher joint score. The problem’s sparse reward structure favors Boltzmann-based exploration, which increases the chance of discovering successful trajectories. The entropy-guided search further mitigates premature termination by avoiding low-entropy (hole-adjacent) actions. Without this mecha-nism, NE-MCTS exhibits a substantial performance drop. Independent and CAR-DENTS can reach at least one goal (Figure 2b) but frequently miscoordinate, sending both agents to the same target. GU-MCTS can eventually match CB-MCTS in joint score, but directly optimizing the global utility yields high-variance estimates and unstable coordi-nation. In contrast, CB-MCTS leverages marginal contribu-tions to decouple each agent’s influence, enabling faster con-vergence. As shown in Figure 2c, CB-MCTS achieves a 60% 
+
+PR2 level twice as fast and an 80% PR2 level 1.5× faster than GU-MCTS. Overall, the results demonstrate that the compo-nents of CB-MCTS collectively provide robust performance on reward-sparse, decentralized planning tasks. 0 20000 40000 60000 80000 100000                
+
+> Planning iterations
+> (a)
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> 1.25
+> 1.50
+> Joint score
+> 020000 40000 60000 80000 100000
+> Planning iterations
+> (b)
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> PR1 (%)
+> 020000 40000 60000 80000 100000
+> Planning iterations
+> (c)
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> PR2 (%)
+> CB-MCTS GU-MCTS NE-MCTS Dec-MCTS Independent CAR-DENTS
+
+Figure 2: Performance comparison on the Frozen Lake benchmark. 100 200 300 400 500             
+
+> Planning iterations
+> (a)
+> 0
+> 10
+> 20
+> 30
+> % Improvement over CAR-DENTS
+> 45678
+> Numbers of agent
+> (b)
+> 0
+> 10
+> 20
+> 30
+> 40
+> % Improvement over CAR-DENTS
+> 200 250 300 350 400
+> Travel budget (km)
+> (c)
+> 0
+> 5
+> 10
+> 15
+> 20
+> 25
+> 30
+> % Improvement over CAR-DENTS
+> CB-MCTS GU-MCTS NE-MCTS Dec-MCTS Independent
+
+Figure 3: Performance comparison in the Oil Rigs Inspection problem. 
+
+Oil Rigs Inspection Problem 
+
+We consider an oil rig inspection task in a 200 km × 100 km region containing 1000 oil rigs (ORs). A team of N
+
+autonomous vehicles, starting from a common depot, must visit 200 randomly selected ORs, each with a 2.5 km obser-vation radius. Agents move on an undirected graph G cover-ing the region, where every OR intersects at least one edge. An OR is visited when an agent traverses an edge within its observation range. All agents know G and plan paths to maximize total OR coverage under a uniform travel budget. This setup generalizes multi-robot informative path planning problems and is widely used for evaluating decentralized MCTS methods (Best et al. 2019; Nguyen et al. 2022). Each algorithm is run 40 times over 4 OR subsets. Performance is measured as the percentage of visited ORs. CAR-DENTS is evaluated in a centralized training, decentralized execu-tion (CTDE) regime, where all agents’ actions are planned offline for 3000 iterations. Distributed algorithms use online replanning: each agent plans, executes its first edge, and re-plans until exhausting its budget. Figure 3 summarizes performance under varying param-eters (default: 4 agents, 100 planning iterations per cycle, 200 km travel budget). Despite the dense and smooth re-ward landscape, which typically favors UCT-style planners, CB-MCTS consistently matches Dec-MCTS and surpasses it with additional planning iterations. Dense rewards also increase coordination complexity, since overlapping cover-age reduces global value. Accordingly, GU-MCTS (optimiz-ing global utility directly) and Independent perform notably worse due to high-variance value estimates and limited co-ordination. The online distributed methods further benefit from parallelization, allowing agents to expand deeper local search trees and outperform the CTDE baseline. Notably, NE-MCTS consistently performs best and main-tains a 5–10% improvement over Dec-MCTS. This suggests that in environments with dense, smooth reward distribu-tions, removing entropy can lead to better empirical perfor-mance, as the Boltzmann temperature schedule effectively controls exploration. It also improves computational effi-ciency by lowering search variance and runtime overhead. Taken together, these results show that CB-MCTS is scal-able and adaptable to a wide range of multi-agent planning problems, from smooth to sparse reward environments. 
+
+Conclusion 
+
+Efficient coordination in multi-agent planning remains chal-lenging, especially when optimal actions initially appear suboptimal. We introduced CB-MCTS, a distributed algo-rithm that promotes early exploration while optimizing col-lective utility. Experiments show that CB-MCTS matches state-of-the-art methods in general settings and significantly outperforms them in deceptive environments requiring ex-tensive exploration. Future work will explore how adversar-ial perturbations affect cooperative planning and evaluate the robustness of CB-MCTS under such conditions. Acknowledgments 
+
+This work received partial support from the UNITY-6G project, co-funded by the European Union’s Horizon Eu-rope Smart Networks and Services Joint Undertaking (SNS JU) research and innovation programme under Grant Agree-ment No. 101192650. Further funding was provided by the Swiss State Secretariat for Education, Research and Innova-tion (SERI) and by FAIR GANDEEP. 
+
+References 
+
+Barsky, B.; and DeRose, T. 1989. Geometric continuity of parametric curves: three equivalent characterizations. IEEE Comput. Graph. Appl. , 9(6): 60–69. Best, G.; Cliff, O. M.; Patten, T.; Mettu, R. R.; and Fitch, R. 2019. Dec-MCTS: Decentralized planning for multi-robot active perception. Int. J. Robot. Res. , 38(2-3): 316–337. Bubeck, S.; Munos, R.; and Stoltz, G. 2011. Pure explo-ration in finitely-armed and continuous-armed bandits. The-oretical Computer Science , 412(19): 1832–1852. Cesa-Bianchi, N.; Gentile, C.; Lugosi, G.; and Neu, G. 2017. Boltzmann exploration done right. NeurIPS , 30. Claes, D.; Oliehoek, F.; Baier, H.; Tuyls, K.; et al. 2017. De-centralised online planning for multi-robot warehouse com-missioning. In AAMAS , 492–500. Coquelin, P.-A.; and Munos, R. 2007. Bandit algorithms for tree search. In UAI , 67–74. Garivier, A.; and Moulines, E. 2011. On upper-confidence bound policies for switching bandit problems. In ALT , 174– 188. Springer. James, S.; Konidaris, G.; and Rosman, B. 2017. An analysis of monte carlo tree search. In AAAI , volume 31. Kavraki, L. E.; Svestka, P.; Latombe, J.-C.; and Overmars, M. H. 1996. Probabilistic roadmaps for path planning in high-dimensional configuration spaces. IEEE Trans. Robot. Automat. , 12(4): 566–580. Kocsis, L.; Szepesv´ ari, C.; and Willemson, J. 2006. Im-proved Monte-Carlo Search. Univ. Tartu, Estonia, Tech. Rep , 1. Li, M.; Yang, W.; Cai, Z.; Yang, S.; and Wang, J. 2019. In-tegrating Decision Sharing with Prediction in Decentralized Planning for Multi-Agent Coordination under Uncertainty. In IJCAI , 450–456. Munos, R.; et al. 2014. From bandits to Monte-Carlo tree search: The optimistic principle applied to optimization and planning. Foundations and Trends® in Machine Learning ,7(1): 1–129. Nguyen, N.; Nguyen, D.; Kim, J.; Rizzo, G.; and Nguyen, H. 2022. Multi-Agent Data Collection in Non-Stationary Environments. In WoWMoM , 120–129. IEEE. Nguyen, N.; Nguyen, D.; Kim, J.; Rizzo, G.; and Nguyen, H. 2024a. Decentralized Coordination for Multi-Agent Data Collection in Dynamic Environments. IEEE Trans on Mo-bile Computing .Nguyen, N.; Nguyen, D.; Rizzo, G.; and Nguyen, H. 2024b. United We Stand: Decentralized Multi-Agent Planning With Attrition. In ECAI , 3421–3428. IOS Press. Painter, M.; Baioumy, M.; Hawes, N.; and Lacerda, B. 2023. Monte Carlo tree search with Boltzmann exploration. 
+
+Advances in Neural Information Processing Systems , 36: 78181–78192. Rahman, A.; Bhattacharya, A.; Ramachandran, T.; Mukher-jee, S.; Sharma, H.; Fujimoto, T.; and Chatterjee, S. 2022. Adversar: Adversarial search and rescue via multi-agent re-inforcement learning. In HST , 1–7. IEEE. Ramanujan, R.; and Selman, B. 2011. Trade-offs in sampling-based adversarial planning. In ICAPS , volume 21, 202–209. Sukkar, F.; Best, G.; Yoo, C.; and Fitch, R. 2019. Multi-robot region-of-interest reconstruction with Dec-MCTS. In 
+
+ICRA , 9101–9107. IEEE. Tolpin, D.; and Shimony, S. 2012. MCTS based on simple regret. In AAAI , volume 26, 570–576. Towers, M.; Kwiatkowski, A.; Terry, J.; Balis, J. U.; De Cola, G.; Deleu, T.; Goul˜ ao, M.; Kallinteris, A.; Krim-mel, M.; KG, A.; et al. 2024. Gymnasium: A Standard In-terface for Reinforcement Learning Environments. arXiv preprint arXiv:2407.17032 .Wolpert, D. H.; Bieniawski, S. R.; and Rajnarayan, D. G. 2013. Probability collectives in optimization. Handbook of Statistics , 31: 61–99. 
+
+Appendix 
+
+Technical Results 
+
+This section discusses additional details of the theoretical results presented in the main paper. Specifically: • First, we define some important notation and assump-tions about distributed MCTS with discounted empirical backpropagation; • Second, we present preliminary results that will be useful for the proofs in the main paper; • Third, we provide the proof of the suboptimal perfor-mance of Dec-MCTS in the D-chain problem; • Fourth, we provide the proof of the simple regret of Dec-MCTS; • Finally, we provide the proof of the simple regret of our proposed CB-MCTS algorithm. 
+
+Notations and Assumptions For each agent executing CB-MCTS or Dec-MCTS, the distributed planning process can be modeled as a sequential decision-making problem, formulated as a stochastic multi-armed bandit (MAB). In the MCTS framework, each “arm” corresponds to a child node selected during tree traversal, enabling the application of MAB analysis to tree search. A few notations are needed for the analysis. Let It ∈{1, . . . , K } denote the arm pulled at round t, with K be-ing the number of possible arms. After selecting the arm 
+
+It = i, we receive a stochastic payoff Xi,t ∈ [0 , 1] . The sequence of payoffs generate the stochastic process {Xi,t }t,
+
+i = 1 , . . . , K for t ≥ 1. Let μi,t be the expected reward for arm i at time t.We first recall key aspects of distributed MCTS with dis-counted empirical backpropagation. At iteration T , given a discount factor γ ∈ [0 .5, 1) , the discounted number of visit times for an arbitrary node i is updated as: 
+
+Ni = XTt=1 γT −t1{at=i}, (7) where 1{at=i} is the indicator function that returns 1 if node 
+
+i was selected at round t and 0 otherwise. The discounted empirical value for node i is updated as: 
+
+¯Xi,N i = 1
+
+Ni
+
+XTt=1 γT −tXi,t 1{at=i} . (8) Due to the interdependence among agents’ action se-quences, the expected reward μi,t may change abruptly over time. Specifically, reward distributions remain station-ary over certain intervals but shift at unknown time instants, referred to as breakpoints . Therefore, the analysis proceeds under the four key assumptions. 
+
+Assumption 1. (Independence) Fix 1 ≤ i ≤ K. Let 
+
+{F i,t }t be a filtration such that {Xi,t }t is {F i,t }t-adapted and Xi,t is conditionally independent of Fi,t +1 , Fi,t +2 , . . . 
+
+given Fi,t −1. Further, there exists an integer Tp such that for 
+
+ti ≥ Tp and t < t i, X i,t is independent from Fi,t .
+
+Let Υt denote the number of breakpoints before time t,where a breakpoint is defined as the time instant where dis-tributions of the rewards change. 
+
+Assumption 2. (Finite Number of Changes) The sequence 
+
+{Υt}t is known and bounded such that lim t→∞ Υt =sup t Υt < ∞ and Υt+1 ≥ Υt.
+
+We also assume that the expected payoff μi,t converges. 
+
+Assumption 3. (Convergence of means) The limit μi =lim t→∞ μi,t exists for all i ∈ { 1, . . . , K }.
+
+Let the difference between the two quantities be δi,t =
+
+μi,t − μi. For any arbitrary time t, denote the optimal arm as ti∗ , and define the optimal expected payoff by μi∗  
+
+> t,t
+
+=max i∈{ 1,...,K }μi,t . The average expected payoff up to time 
+
+t is 
+
+μ∗ 
+
+> t
+
+= 1
+
+t
+
+> t
+
+X
+
+> u=1
+
+μi∗
+
+> u,u
+
+.
+
+The minimum difference between the optimal reward and the instantaneous reward up to time t is defined as 
+
+∆i,t = min 
+
+> u∈{ 1,...,t }
+
+{μi∗ 
+
+> u,u
+
+− μiu,u : i̸ = i∗
+
+> u
+
+}.
+
+Let Mi(t) be the number of times arm i is pulled follow-ing the most recent breakpoints. The following assumption requires that the drift δi,t is proportional to ∆i,t after a finite burn-in period. 
+
+Assumption 4. (Small drifts) There exists an index T0(ϵ)
+
+such that for any arbitrary ϵ > 0 and Mi(t) ≥
+
+T0(ϵ), |δi,t | ≤ ϵ∆i,t /2 and |δ∗| ≤ ϵ∆i,t /2 for all i.
+
+Preliminary Results The CB-MCTS algorithm performs two fundamental tasks: exploration and recommendation .During the exploration phase, at each round t, the algorithm selects an arm It = i according to a sampling policy and observes the corresponding reward Xi,t . After T exploration rounds, the algorithm outputs a single arm JT to be pulled in a one-shot instance. The simple regret quantifies the loss in-curred when the recommended arm JT is suboptimal. More formally, the simple regret at round T equals the regret of a one-shot instance of the game for the recommended arm JT :
+
+rT = μi∗  
+
+> T,T
+
+− μJT = ∆ JT .
+
+Recall that CB-MCTS and Dec-MCTS recommend the action sequence an with the highest probability from the subset ˆAn, where probabilities are updated based on ob-served empirical returns. Consequently, the recommended action is, with high probability, the one achieving the high-est empirical reward. The expected simple regret can thus be related to the probability that a suboptimal arm attains a higher empirical mean than the optimal arm. In what fol-lows, we connect this probability to the expected number of pulls of suboptimal arms to derive the simple regret bound. 
+
+Lemma 2. Let rT denote the simple regret after T itera-tions, and suppose the expected number of pulls for subopti-mal arm i is E[Ni]. Then, the expected simple regret decays asymptotically as 
+
+E[rT ] = O
+
+> K
+
+X
+
+> i=1
+
+∆i,T exp  −ci∆2 
+
+> i,T
+
+E[Ni]!
+
+, (9) 
+
+for some constants ci > 0 depending on the algorithm pa-rameters. Proof. The expected simple regret can be related to the probability of selecting a suboptimal arm as follows: 
+
+E[rT ] = E[∆ JT ] = 
+
+> K
+
+X
+
+> i=1
+
+∆i,T P{JT = i} (10) 
+
+≤
+
+> K
+
+X
+
+> i=1
+
+∆i,T P{ ¯Xi,T ≥ ¯Xi∗,T }
+
+where the upper bound follows the fact that to be the empir-ical best arm, an arm i must have performed better than the best arm i∗. Split the interval between μi and μ∗ at μi + ∆i 
+
+> 2
+
+.With Assumptions 1 and 4 satisfied, applying Theorem 4 from (Garivier and Moulines 2011): 
+
+P{ ¯Xi,T ≥ ¯Xi∗,T } ≤ Pr 
+
+
+
+¯Xi,T > μ i + ∆i
+
+2
+
+
+
+(11) 
+
++ Pr 
+
+
+
+¯X∗,T < μ ∗ − ∆i
+
+2
+
+
+
+≤2
+
+& log 11−γ
+
+log(1 + η)
+
+'
+
+exp 
+
+− ∆2 
+
+> i,T
+
+E[Ni]2
+
+
+
+1 − η2
+
+> 16
+
+
+
+for all positive η.Substituting (11) into (10), we relate the bound on the ex-pected simple regret to the expected number of pulls of the suboptimal arms: 
+
+E[rT ] ≤ 2
+
+& log 11−γ
+
+log(1 + η)
+
+' KX
+
+> i=1
+
+∆i,T exp 
+
+− ∆2 
+
+> i,T
+
+E[Ni]2
+
+
+
+1 − η2
+
+> 16
+
+
+
+(12) 
+
+Proof of Lemma 1 We prove the lemma using contradic-tion. Recall that at each depth level d < D in the D-Chain problem, selecting action 1 transitions to the next decision node at level d + 1 , while choosing any other action termi-nates the path at a leaf node and yields an immediate reward of (D − d)/D . At depth D, action 1 yields an immediate reward of 1, whereas all other actions result in 0. During the planning phase, at each node in the tree search, Dec-MCTS with D-UCT selects the child node i with the highest D-UCT scores: 
+
+Bi,N i := ¯Xi,N i +
+
+s
+
+ε log( Nj )
+
+Ni
+
+. (13) For the optimal reward 1 to be reached for the first time, at each depth level d < D , we must have the confidence bound of all suboptimal actions less than the bound of action 1. That is: 
+
+¯Xd′,N d′ +
+
+s
+
+ε log( Nd)
+
+Nd′
+
+≤ ¯Xd+1 ,N d+1 +
+
+s
+
+ε log( Nd)
+
+Nd+1 
+
+, (14) with d′ is the leaf node resulting from the suboptimal ac-tions. Since ¯Xd′,N d′ = ( D − d)/D and ¯Xd+1 ,N d+1 ≤ (D −
+
+(d + 1)) /D (e.g., because the immediate reward of 1 has not been received yet), we can deduce that: 
+
+D − dD +
+
+s
+
+ε log( Nd)
+
+Nd′
+
+≤ D − (d + 1) 
+
+D +
+
+s
+
+ε log( Nd)
+
+Nd+1 
+
+⇔ 1
+
+D +
+
+s
+
+ε log( Nd)
+
+Nd′
+
+≤
+
+s
+
+ε log( Nd)
+
+Nd+1 
+
+⇒ 1
+
+D ≤
+
+s
+
+ε log( Nd)
+
+Nd+1 
+
+⇔ Nd ≥ exp 
+
+ Nd+1 
+
+εD 2
+
+
+
+. (15) By induction, we have the lower bound on the discounted number of times the root node is visited before the optimal reward 1 is reached for the first time as: 
+
+N1 = Ω( exp (exp (...exp (1) ... ))) (16) (composition of D − 1 exponential functions). On the other hand, from the discounted number of times the node i is visited given in (7), we can derive the upper Algorithm 2: Generalized Deceptive Tree Generation 
+
+Input : tree depth D, branching factor K, termination rule TERM RULES , value function V (s) 
+
+> 1:
+
+Initialize root node s0 
+
+> 2:
+
+BUILD MAIN TREE (s0, 0)  
+
+> 3:
+
+function BUILD MAIN TREE (s, d) 
+
+> 4:
+
+for a = 1 to K do  
+
+> 5:
+
+Create child s′ and assign to children s[a] 
+
+> 6:
+
+if d = D then  
+
+> 7:
+
+r(s′) ← 1{a=1 } ▷ 1 if a = 1 , else 0  
+
+> 8:
+
+else if a = 1 then  
+
+> 9:
+
+BUILD MAIN TREE (s′, d + 1 ) 
+
+> 10:
+
+else  
+
+> 11:
+
+BUILD SUBTREE (s′, d + 1 ) 
+
+> 12:
+
+end if  
+
+> 13:
+
+end for  
+
+> 14:
+
+end function  
+
+> 15:
+
+function BUILD SUBTREE (s, δ) 
+
+> 16:
+
+if TermRules (s, δ ) then  
+
+> 17:
+
+r(s) ← V (s); return  
+
+> 18:
+
+end if  
+
+> 19:
+
+for a = 1 to K do  
+
+> 20:
+
+Create child s′ and assign to children s[a] 
+
+> 21:
+
+BUILD SUBTREE (s′, δ + 1 ) 
+
+> 22:
+
+end for  
+
+> 23:
+
+end function 
+
+bound on the discounted number of times the root node is visited by: 
+
+N1 ≤ XTt=1 γT −t = 1 − γT
+
+1 − γ ≤ 11 − γ (17) Combining (16) with (17), for a large enough value of D
+
+such that 
+
+Ω( exp (exp (...exp (1) ... ))) ≥ 11 − γ
+
+the two bounds are contradictory. Thus, the algorithm cannot reach the optimal node for a large tree depth D. That is, Dec-MCTS with UCT will rec-ommend a non-optimal solution after a finite planning itera-tions in any D-chain environment with sufficient depth D.Algorithm 2 illustrates how this problem can be extended to a generalized skewed environment. In this extension, sub-optimal actions lead to bounded-depth subtrees that termi-nate according to a condition TermRules : S × N →{True , False }. The rewards of leaf nodes in these subtrees are determined by a value function V : S → [0 , 1) . These extensions allow the environment to capture deceptive re-ward structures that naturally arise in various domains, in-cluding classic grid-world games such as Frozen Lake (Tow-ers et al. 2024) and multi-agent applications like search and rescue (Rahman et al. 2022). 
+
+Proof of Theorem 1 We note that Assumptions 1-4 are also used in (Best et al. 2019). With these assumptions sat-isfied, Lemma 1 from (Best et al. 2019) provides the upper bound on the number of pulls of the suboptimal arms as: 
+
+E[Ni] ≤ O (√T log T ) (18) Combining this result with Lemma 2 yields the simple regret: 
+
+E[rT ] ≤ C exp 
+
+
+
+−k · √T log T
+
+
+
+(19) with some constants C, k > 0.
+
+Proof of Theorem 2 We first provide an upper bound on the number of pulls of the suboptimal arms i. From the defi-nition of πs,t (i) we decompose the expected number of pulls for arm i into two parts: 
+
+E[Ni] = 
+
+> T
+
+X
+
+> t=1
+
+E[πs,t (i)] (20) 
+
+=
+
+> T
+
+X
+
+> t=1
+
+
+
+(1 − λs,t ) · E[ρs,t (i)] + λs,t 
+
+K
+
+
+
+≤
+
+> T
+
+X
+
+> t=1
+
+E[ρs,t (i)] + 
+
+> T
+
+X
+
+> t=1
+
+λs,t 
+
+K
+
+Each part is the sum of pull probabilities over time due to two different factors: the first part is attributed to Boltzmann selection, and the second part is attributed to uniform explo-ration. We bound the second part first. Observe that λs,t is 1 when t is small and decays as t grows large. Specially, there exists t0 such that log( e + t0) = ε and for t > t 0 we have 
+
+λs,t = ε 
+
+> log( e+t)
+
+. The sum can then be upper-bounded by: 
+
+> T
+
+X
+
+> t=1
+
+λs,t =
+
+> T
+
+X
+
+> t=1
+
+min 
+
+
+
+1, ε
+
+log( e + t)
+
+
+
+(21) 
+
+≤ t0 + ε
+
+> T
+
+X
+
+> t=t0+1
+
+1log( e + t)
+
+We bound the second term using an integral: 
+
+> T
+
+X
+
+> t=t0+1
+
+1log( e + t) ≤
+
+Z Tt0+1 
+
+dt 
+
+log( e + t) ≤ T
+
+log T (22) Collecting terms yields the bound on the number of pulls from uniform exploration: 
+
+> T
+
+X
+
+> t=1
+
+λs,t 
+
+K ≤ O 
+
+ TK log T
+
+
+
+(23) We now bound the number of pulls from Boltzmann se-lection. Denote the number of times arm i has been pulled attributed to the Boltzmann selection up until timestep t as 
+
+Ni,t . We split the number of pulls from Boltzmann selection into a learning phase where each arm will be pulled at least 
+
+lT times to get a decent estimated empirical reward, and a later phase where the number of pulls depends on the Boltz-mann probabilities: 
+
+> T
+
+X
+
+> t=1
+
+E[πs,t ] ≤ lT +
+
+> T
+
+X
+
+> t=ln+1
+
+E[ρs,t (i)] (24) For simplicity, we give the exact form of ρs,t (i):
+
+ρs,t (i) = exp(( ¯Xi,t + β(Ns)Hi)/α (Ns)) 
+
+PKj=1 exp(( ¯Xj,t + β(Ns)Hj )/α (Ns)) (25) 
+
+≤ exp(( ¯Xi,t + β(Ns)Hi)/α (Ns)) exp(( ¯X∗,t + β(Ns)H∗)/α (Ns)) = exp 
+
+ ¯Xi,t − ¯X∗,t + β(Ns)( Hi − H∗)
+
+α(Ns)
+
+
+
+Using Lemma 20 from (Painter et al. 2023), we know that all arms will be sampled infinitely often. Thus, with Assumptions 2 and 3 satisfied, for any arm i, its empirical means ¯Xi,t will be close to its true mean μi,t with high prob-ability: 
+
+¯Xi,t ∈ [μi,t − ϵ, μ i,t + ϵ] (26) 
+
+¯X∗,t ∈ [μ∗,t − ϵ, μ ∗,t + ϵ] (27) We consider the good event where let ϵ = ∆ i/4 and with high probability: 
+
+¯X∗,t − ¯Xi,t ≥ (μ∗,t −ϵ)−(μi,t +ϵ) = ∆ i −2ϵ = ∆i
+
+2 (28) We argue that this good event does not hold when ¯X∗,t −
+
+¯Xi,t ≤ ∆i/2, which implies either ¯Xi,t ≥ μi,t + ∆ i/4 or 
+
+¯X∗,t ≤ μ∗,t − ∆i/4:
+
+P   ¯X∗,t − ¯Xi,t ≤ ∆i,t /2 = P
+
+
+
+| ¯Xi,t − μi| ≥ ∆i,t 
+
+4
+
+
+
+(29) 
+
++ P
+
+
+
+| ¯X∗,t − μ∗| ≥ ∆i,t 
+
+4
+
+
+
+With Assumptions 1 and 4 satisfied, applying Theorem 4 from (Garivier and Moulines 2011), we can bound the first probability as: 
+
+P
+
+
+
+| ¯Xi,t − μi| ≥ ∆i,t 
+
+4
+
+
+
+(30) 
+
+≤
+
+& log 11−γ
+
+log(1 + η)
+
+'
+
+exp − 21 − η2
+
+> 16
+
+ ∆i,t 
+
+4
+
+2
+
+Ni,t 
+
+!
+
+for all positive constant η. Similarly, we can also obtain a bound on the second probability. Observe that, Ni,t ≥ lT
+
+and Ni,t < N ∗,t , choosing lT = ⌈ 8 log T
+
+> ∆2
+> i,t
+
+⌉ we can bound the probability that the good event does not hold as: 
+
+P   ¯X∗,t − ¯Xi,t ≤ ∆i,t /2 (31) 
+
+≤ 2
+
+& log 11−γ
+
+log(1 + η)
+
+'
+
+exp − 2 log T
+
+1 − η2
+
+> 16
+
+!
+
+which is very small, i.e., O(1 /T ). Collecting terms yields the bound on the Boltzmann probabilities: 
+
+> T
+
+X
+
+> t=1
+
+E[ρs,t (i)] ≤ O (log T ) (32) 
+
++
+
+> T
+
+X 
+
+> t=lT+1
+
+exp 
+
+ −∆i + β(Ns)( Hi − H∗)2α(Ns)
+
+Since α(·) → 0 and β(·) → 0, the second term converges to a constant. This implies that after the initial lT pulls, the total number of additional pulls from the Boltzmann compo-nent is bounded by a constant. Combining the bounds for both parts, we get the final up-per bound on the total expected pulls for arm i as: 
+
+E[Ni] ≤ O (log T ) + O
+
+ TK log T
+
+
+
+(33) Since O
+
+ TK log T
+
+
+
+grows much faster than O(log T ), for sufficient large T , the final upper bound is: 
+
+E[Ni] ≤ O 
+
+ TK log T
+
+
+
+(34) Combining this result with Lemma 2 yields the simple regret: 
+
+E[rT ] ≤ C exp 
+
+
+
+−k · T
+
+log T
+
+
+
+(35) with some constants C, k > 0.
+
+Additional Experimental Results 
+
+This section discusses additional details of the experiments and results presented in the main paper. For simplicity, we set both the α(m) and β(m) functions of our algorithm to 
+
+1/log (e + m). We note that our convergence analysis re-quires α(m) → 0 and β(m) → 0 as m → ∞ to guarantee the convergence of simple regret in theory. However, the dis-count factor γ imposes an upper bound of 1/(1 − γ) on the effective number of node visits, so the decaying functions 
+
+1/log (e + m) never fully decay to zero. However, we ar-gue that in practice, a non-fully decay to 0 functions is still enough to promote sufficient exploration and provide good performance to the overall algorithm, given appropriate sys-tem parameter tuning. This section is structured as follows: • First, we provide a comprehensive analysis of the simple regret in the D-chain problem; • Second, we provide details on the environments and the hyperparameter search used to select parameters in the Frozen Lake problem; • Third, we provide details on the environments and the hyperparameter search used to select parameters in the Oil Rig Inspection problem; • Finally, we provide a study on the gap between theoret-ical assumptions and practical constraints, and analyze the effect of decaying functions α(·).
+
+Simple Regret in D-chain Problem We first analyze the simple regret and compare our approach with the lead-ing version of the decentralized MCTS with D-UCT (Dec-MCTS) (Best et al. 2019) to verify our theoretical results. To this end, we consider the multi-agent D-chain problem (Figure 4). For simplicity, we set the number of actions M
+
+at each depth level equal to the number of agents N . Each algorithm is evaluated 40 times across 4 different D-chain configurations and analyzed every 100 planning iterations (D - 1)/D  (D - 1)/D        
+
+> 2
+> 1
+> m
+> 2
+> 3
+> 1
+> (D - 2)/D (D - 2)/D
+> m21
+> 1/D 1/D
+> 2
+> D - 1
+> m
+> D
+> 1
+> 00
+> m21
+> 1
+
+Figure 4: An illustration of the D-chain problem on a m-ary tree for multi-agent. Blue nodes are decision states, which can have at most m children; and gray nodes are terminal states with corresponding rewards. under various combinations of parameter settings. For both algorithms, we considered all combinations of the following parameters (the search temperature αinit is only considered for CB-MCTS): • Exploration bias ε: 0.5, 1, 10, 20; • Discount factor γ: 0.7, 0.9, 0.95, 0.99; • Initial search temperature αinit : 0.01, 0.1, 0.5, 1. Figures 5 and 6 illustrate the performance of Dec-MCTS and CB-MCTS, respectively, in a baseline scenario with two agents and a tree depth of D = 10 . While CB-MCTS consis-tently identifies optimal joint policies for all parameter com-binations, Dec-MCTS requires a high exploration bias ( ε)and a high discount factor ( γ) to achieve similar results. This can be explained by the fact that in Dec-MCTS, γ governs how past statistics are discounted during planning, particu-larly affecting the weighted mean of node utilities. A high discount factor is required for stable convergence as it en-sures that older, more informative rollouts retain their influ-ence. However, in scenarios with deceptive optimal settings, a low γ impedes exploration and causes the algorithm to be-come trapped in local optima. To further illustrate that high exploration bias and high discount factor alone are insufficient for effective search space exploration, we examined configurations with three agents and a tree depth of D = 10 , and with two agents and a tree depth of D = 20 . Figures 7 and 9 show that Dec-MCTS consistently becomes stuck in local optima in both cases. In contrast, CB-MCTS uses γ similarly in discounted back-propagation, but its simple regret at the root node vanishes in all test cases (Figures 8 and 10). This robustness stems from CB-MCTS’s reliance on a Boltzmann search policy with a decaying entropy bonus, which naturally promotes explo-ration and smooths policy changes, even with more aggres-sive discounting. In practice, CB-MCTS can maintain strong performance across a broader range of γ values, as it does not depend solely on reward averaging to guide search. This makes it better suited to deceptive environments, where re-cent rollouts are more informative and rapid adaptation is critical. However, excessively high ε or αint can cause CB-MCTS to over-explore, preventing it from following optimal tree branches to completion. Lastly, to demonstrate how the suboptimal performance of Dec-MCTS can easily be exacerbated, we modify the D-chain problem such that at depth level d, the rewards for any action other than action 1 are reduced to (D − d + 1) /2D.Figures 11 and 12 present the results for Dec-MCTS and CB-MCTS in this modified scenario with two agents and a tree depth of D = 20 . The results are consistent with pre-vious findings: only CB-MCTS successfully identifies the optimal joint policies, while Dec-MCTS remains trapped in a local optimum, even though the local optimum has been reduced by 30%. This limitation could lead to more severe issues in practical applications, where an adversary could strategically place small rewards as decoys to deceive the agents. 0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.99 Figure 5: Results of Dec-MCTS on the D-chain problem with D = 10 and 2 agents for varying exploration bias ε and discount factor γ.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 6: Results of CB-MCTS on the D-chain problem with D = 10 and 2 agents for varying exploration bias ε, discount factor γ, and search temperature α.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.99 Figure 7: Results of Dec-MCTS on the D-chain problem with D = 10 and 3 agents for varying exploration bias ε and discount factor γ.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 8: Results of CB-MCTS on the D-chain problem with D = 10 and 3 agents for varying exploration bias ε and discount factor γ, and search temperature α.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.99 Figure 9: Results of Dec-MCTS on the D-chain problem with D = 20 and 2 agents for varying exploration bias ε and discount factor γ.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 10: Results of CB-MCTS on the D-chain problem with D = 20 and 2 agents for varying exploration bias ε and discount factor γ, and search temperature α.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 0.5, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 1, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 10, γ = 0.99 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.7 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.9 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.95 
+
+0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+0.0 
+
+0.2 
+
+0.4 
+
+0.6 
+
+0.8 
+
+1.0 
+
+> Simple regret at root
+
+ε = 20, γ = 0.99 Figure 11: Results of Dec-MCTS on the modified D-chain problem with D = 20 and 2 agents for varying exploration bias ε
+
+and discount factor γ.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 12: Results of CB-MCTS on the modified D-chain problem with D = 20 and 2 agents for varying exploration bias ε and discount factor γ, and search temperature α.Frozen Lake Environment & Parameters Details Fig-ure 13 presents the 8 × 12 Frozen Lake environments used to test the algorithms in the main paper. In each environ-ment, red square S is the starting location for the agents, 
+
+white squares F represent frozen plates that agents can walk on, blue squares H are holes that end agents’ trials, and yel-low squares G are the goal locations. Each environment is randomly generated, with each square having a 20% proba-bility of being a hole. All environments are verified to have a valid path to each goal using the Depth First Search algo-rithm. We conduct a hyperparameter search to select the param-eters for the experiments in the main paper. The search is carried out on the environment shown in Figure 13a, while the results presented in the main paper were averaged over the four environments. For all algorithms, we consider all combinations of the following parameters: • Exploration bias ε: 0.5, 1, 10, 100; • Discount factor γ: 0.6, 0.7, 0.9, 0.99; • Initial search temperature αinit : 0.01, 0.1, 1, 10. Table 1 provides the selected combinations for the experi-ments in the main paper, which achieved the best cumulative joint score performances. To better assess the contribution of each component in CB-MCTS, we evaluated the three ab-lated variants (CB-MCTS-Global, NE-MCTS, and Indepen-dent) with parameter settings identical to those of the full CB-MCTS algorithm. Table 1: Parameters used for the experiments in the main paper. 
+
+Algorithm ε γ αinit 
+
+Dec-MCTS 100 0.99 -CB-MCTS 0.5 0.9 1CAR-DENTS 0.5 - 1S H H F F H F H F F F F                                                                             
+
+> FFFFFFFHFFFF
+> FFFFFHFFFFHF
+> FFFFHHFFFFHF
+> FFFFFHFFFFFH
+> FFFHFFFFFFFF
+> FFFFFFFFFHFF
+> HHFFFFFFGFFG
+
+(a)                                                                                         
+
+> SHFFFHFFFFFF
+> FFFFFFHFFFFF
+> FFFFFFFHFFFF
+> HFFFFFFFFFFF
+> FHFFHFFFFFHF
+> FHFHFFFFFFFF
+> FFHFFFFFHHFF
+> FFGFHFFFFFFG
+
+(b)                                                                                         
+
+> SFFHFFFFFFFF
+> HHFHFHFHFFFF
+> FHFFFFFFFFFF
+> FFHFHFFFFFFF
+> HHHFFFFFHFFF
+> FFFFFHFFHFFF
+> HFFFFFFFFHFH
+> FFFGHFFHFFFG
+
+(c)                                                                                         
+
+> SHFFFFFFHFFF
+> FHFFFFFFFFFF
+> FHFFFHFFHHFH
+> FFFFFHFFHHHH
+> HFFFFFFFFFFG
+> FHFHHHFFFFFF
+> FFHFFFFFFHHF
+> FFFFFHFFFFHG
+
+(d) 
+
+Figure 13: Environment maps used for the Frozen Lake ex-periments. Figure 14: Environment used for parameter search for the Oil Rigs Inspection problem. Yellow star is the starting location of all agents, grey dots are the locations of the oil rigs, and red circles are observation ranges of the oil rigs requiring inspection. 
+
+Oil Rig Environment & Parameters Details The mo-tion graph for the agents in the main paper is constructed using a probabilistic roadmap with a Dubins path model (Kavraki et al. 1996). This model employs curves to re-fine the straight-line segments connecting waypoints and is extensively utilized for representing motion constraints pertinent to vehicle-like nonholonomic robots such as Au-tonomous Underwater Vehicles (Barsky and DeRose 1989). The graph has 2000 vertices and 81626 edges. The ground truth locations of the 1000 oil rigs are obtained from the Bu-reau of Ocean Energy Management 1. Four subsets of 200 oil rigs were randomly selected for the experiments in the main paper. We perform a hyperparameter search to select the optimal parameters for the experiments presented in the main paper. The search is performed on the environment shown in Figure 14 with 3 agents, a travel budget of 200 km, and a planning time of 100 iterations. The results presented in the main pa-per are averaged over all four different environments. For all algorithms, we consider all combinations of the following parameters: • Exploration bias ε: 0.5, 1, 10, 100; • Discount factor γ: 0.6, 0.7, 0.8, 0.9; • Initial search temperature αinit : 0.01, 0.1, 1, 10. Table 2 gives the combinations chosen for the experiments in the main paper, which have the best median joint score performances. To better assess the contribution of each com-ponent in CB-MCTS, we evaluated the three ablated variants (CB-MCTS-Global, NE-MCTS, and Independent) with pa-rameter settings identical to those of the full CB-MCTS al-gorithm. After parameter tuning, we evaluate the CAR-DENTS al-gorithm across four environments using four agents, a 200     
+
+> 1Available at: https://www.data.boem.gov. 12510 30
+> Planning iterations (×10²)
+> 17
+> 19
+> 21
+> 23
+> 25
+> 27
+> % ORs visited
+> CAR-DENTS
+
+Figure 15: Performance of CAR-DENTS across different numbers of planning iterations. Results are with a 95% con-fidence interval. Table 2: Parameters used for the experiments in the main paper. 
+
+Algorithm ε γ αinit 
+
+Dec-MCTS 100 0.6 -CB-MCTS 0.5 0.8 0.01 CAR-DENTS 0.5 - 10 km travel budget, and varying numbers of planning itera-tions. As shown in Figure 15, increasing the number of iter-ations initially improves performance but eventually yields diminishing returns. We therefore select 3000 iterations for the experiments in the main paper to ensure strong perfor-mance while maintaining runtime practicality. Search Temperature Decaying Rate Analysis In this section, we examine the effect of the decaying function 
+
+α(m) on the performance of our proposed CB-MCTS al-gorithm to understand how the rate of search temperature decay influences exploration. To this end, we design an ab-lated variant CB-MCTS with Fast-Decaying Alpha (FA-MCTS) , which sets the temperature decay function to 
+
+α(m) = e−m/ ( 11−γ −m),
+
+while keeping the original entropy coefficient 
+
+β(m) = 1 / log( e + m).
+
+This formulation ensures that α(m) rapidly approaches zero as m approaches the upper bound 1/(1 − γ), corre-sponding to the maximum effective discounted number of visits to a node. The motivation for this design arises from the gap be-tween theoretical assumptions and practical constraints. Our convergence analysis requires α(m) → 0 as m → ∞ to guarantee sufficient exploitation in the limit. In practice, however, the discount factor γ imposes an upper bound of 
+
+1/(1 − γ) on the effective number of node visits, so the orig-inal α(m) function never fully decays to zero. FA-MCTS addresses this by enforcing faster temperature decay within the bounded planning horizon, allowing us to investigate the trade-offs between exploration persistence, convergence be-havior, and policy robustness. 
+
+Simple Regret in D-chain Problem We first analyze the simple regret at the root node using the D-Chain problem. In this section, we also include the ablated version with no entropy NE-MCTS. We evaluate both FA-MCTS and NE-MCTS across four different multi-agent configurations of the D-chain problem and under the same parameter com-binations as in the main experiments. Our results show that NE-MCTS, which removes entropy regularization, is still capable of discovering joint optimal policies in the baseline setting with 2 agents and tree depth 
+
+D = 10 , particularly with a sufficiently high exploration bias ε or search temperature α (Figure 17). However, its per-formance worsens in more challenging settings with greater depth or more agents (Figures 19, 21, 23). Without entropy to maintain stochasticity, the algorithm fails to sufficiently explore the full chain, often missing the globally optimal path. In contrast, FA-MCTS, which enforces a faster decay of the search temperature α(m), maintains strong performance and successfully recovers the optimal joint strategy in nearly all evaluated scenarios (Figures 16, 18, 20, 22). Neverthe-less, we observe that excessively high values of ε or initial temperature αinit can lead to over-exploration early in the search, especially when paired with fast decay, causing the algorithm to fail to consistently commit to optimal branches. These findings highlight two key insights. First, entropy regularization is crucial for sustained exploration in decep-tive or skewed-reward environments, enabling the agent to reach and recognize optimal rewards. Second, the algorithm remains robust to variations in the temperature decay rate, provided that the initial search temperature and exploration bias are appropriately calibrated. 0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 16: Results of FA-MCTS on the D-chain problem with D = 10 and 2 agents for varying exploration bias ε and discount factor γ.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 17: Results of NE-MCTS on the D-chain problem with D = 10 and 2 agents for varying exploration bias ε, discount factor γ, and search temperature α.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 18: Results of FA-MCTS on the D-chain problem with D = 10 and 3 agents for varying exploration bias ε and discount factor γ.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 19: Results of NE-MCTS on the D-chain problem with D = 10 and 3 agents for varying exploration bias ε and discount factor γ, and search temperature α.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 20: Results of FA-MCTS on the D-chain problem with D = 20 and 2 agents for varying exploration bias ε and discount factor γ.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 21: Results of NE-MCTS on the D-chain problem with D = 20 and 2 agents for varying exploration bias ε and discount factor γ, and search temperature α.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 22: Results of FA-MCTS on the modified D-chain problem with D = 20 and 2 agents for varying exploration bias ε and discount factor γ.0 2000 4000 6000 8000 10000 
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 0.5, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 1, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 10, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.01 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 0.5 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99      
+
+> 02000 4000 6000 8000 10000
+
+Planning iterations 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Simple regret at root
+
+ε = 20, α = 1 
+
+γ = 0.7 
+
+γ = 0.9 
+
+γ = 0.95 
+
+γ = 0.99 Figure 23: Results of NE-MCTS on the modified D-chain problem with D = 20 and 2 agents for varying exploration bias ε and discount factor γ, and search temperature α.Frozen Lake Problem We repeated the same experiments and hyperparameter search procedure as in the main paper to determine the optimal configurations for FA-MCTS. The se-lected parameter combinations, corresponding to those that achieved the highest cumulative joint score, are ε = 0 .5,
+
+γ = 0 .9, and αinit = 1 .Figure 24 presents the performance of FA-MCTS in the Frozen Lake environment, alongside CB-MCTS and Dec-MCTS for reference. As expected, the faster decay rate reduces exploration, resulting in a 10% decrease in the probability of reaching both goals compared with CB-MCTS. Nevertheless, FA-MCTS still achieves joint scores that closely match those of CB-MCTS and substantially out-perform Dec-MCTS, highlighting its robustness even under more aggressive decay dynamics. 0 20000 40000 60000 80000 100000           
+
+> Planning iterations
+> (a)
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> 1.2
+> 1.4
+> 1.6
+> Joint score
+> CB-MCTS
+> Dec-MCTS
+> FA-MCTS
+> 020000 40000 60000 80000 100000
+> Planning iterations
+> (b)
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> PR1 (%)
+> CB-MCTS
+> Dec-MCTS
+> FA-MCTS
+> 020000 40000 60000 80000 100000
+> Planning iterations
+> (c)
+> 0
+> 20
+> 40
+> 60
+> 80
+> 100
+> PR2 (%)
+> CB-MCTS
+> Dec-MCTS
+> FA-MCTS
+
+Figure 24: Performances of different algorithms in the Frozen Lake problem: Joint scores (a), Probability that at least one goal is reached by any agent (b), and Probability that both goals are reached (c). Results are with 95% confi-dence interval. 
+
+Oil Rigs Inspection Problem We follow the same experi-mental procedure as in the main paper, using the identical parameter settings of the full algorithm for FA-MCTS with-out additional tuning. Figure 25 reports its performance on the Oil Rigs Inspection problem, compared with CB-MCTS and Dec-MCTS. Consistent with previous findings, FA-MCTS achieves strong and stable performance, often yielding the best results across tested configurations. However, while FA-MCTS benefits from rapid convergence due to its faster tempera-ture decay, the baseline CB-MCTS eventually surpasses it as the number of planning iterations grows. This contrast high-lights a fundamental trade-off: FA-MCTS prioritizes stabil-ity and faster convergence by reducing exploration persis-tence, whereas CB-MCTS, with its slower decay search tem-perature, maintains greater exploratory flexibility that pays off in larger planning horizons by committing more effec-tively to high-reward regions of the joint search space. These findings highlight the importance of tuning ex-ploration dynamics when scaling to more complex multi-agent domains. Overall, they reinforce the high adaptability and robustness of our proposed algorithm as a decentralized planning solution in both smooth and sparse reward environ-ments. 100 200 300 400 500         
+
+> Planning iterations
+> (a)
+> 12.5
+> 15.0
+> 17.5
+> 20.0
+> 22.5
+> 25.0
+> 27.5
+> 30.0
+> % ORs visited
+> CB-MCTS
+> Dec-MCTS
+> FA-MCTS
+> 45678
+> Numbers of agent
+> (b)
+> 15
+> 20
+> 25
+> 30
+> 35
+> % ORs visited
+> CB-MCTS
+> Dec-MCTS
+> FA-MCTS
+> 200 250 300 350 400
+> Travel budget (km)
+> (c)
+> 12
+> 14
+> 16
+> 18
+> 20
+> 22
+> 24
+> 26
+> % ORs visited
+> CB-MCTS
+> Dec-MCTS
+> FA-MCTS
+
+Figure 25: Impact of different system parameters on the al-gorithms’ performances in the Oil Rigs Inspection problem: Planning iterations (a), Number of agents (b), and Travel budget (c). Results are with 95% confidence interval.

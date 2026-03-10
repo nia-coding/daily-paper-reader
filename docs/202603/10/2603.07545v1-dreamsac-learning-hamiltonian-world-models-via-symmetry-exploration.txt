@@ -1,0 +1,796 @@
+Title: DreamSAC: Learning Hamiltonian World Models via Symmetry Exploration
+
+URL Source: https://arxiv.org/pdf/2603.07545v1
+
+Published Time: Tue, 10 Mar 2026 01:11:55 GMT
+
+Number of Pages: 19
+
+Markdown Content:
+# DreamSAC: Learning Hamiltonian World Models via Symmetry Exploration 
+
+## Jinzhou Tang UC San Diego 
+
+tangjzh.ai@gmail.com 
+
+## Fan Feng UC San Diego 
+
+ffeng1017@gmail.com 
+
+## Minghao Fu UC San Diego 
+
+isminghaofu@gmail.com 
+
+## Wenjun Lin Sun Yat-sen University 
+
+linwj59@mail2.sysu.edu.cn 
+
+## Biwei Huang UC San Diego 
+
+bih007@ucsd.edu 
+
+## Keze Wang 
+
+kezewang@gmail.com 
+
+Figure 1. From passive statistical learning to active physics discovery. (Left) General world models fail at extrapolation because they are passive learners. They are trained on data that, while potentially visually diverse, is often physically redundant, leading them to learn spurious statistical correlations rather than the environment’s underlying generative rules (e.g., physical laws). (Right) Our framework, DreamSAC, reframes this as an active, interaction-driven process. We introduce Symmetry Exploration, in which the agent is intrinsically motivated by a Hamiltonian-based curiosity to probe and challenge its own understanding of physical laws actively. This process gathers physically informative data for our Hamiltonian World Model, enabling it to discover the environment’s fundamental invariances. 
+
+## Abstract 
+
+Learned world models excel at interpolative generalization but fail at extrapolative generalization to novel physical properties. This limitation arises because they learn sta-tistical correlations rather than the environment’s underly-ing generative rules, such as physical invariances and con-servation laws. We argue that learning these invariances is key to robust extrapolation. To achieve this, we first introduce Symmetry Exploration , an unsupervised explo-ration strategy where an agent is intrinsically motivated by a Hamiltonian-based curiosity bonus to actively probe and challenge its understanding of conservation laws, thereby collecting physically informative data. Second, we design a Hamiltonian-based world model that learns from the col-lected data, using a novel self-supervised contrastive objec-tive to identify the invariant physical state from raw, view-dependent pixel observations. Our framework, DreamSAC ,trained on this actively curated data, significantly outper-forms state-of-the-art baselines in 3D physics simulations on tasks requiring extrapolation. 
+
+## 1. Introduction 
+
+World models are increasingly central to reinforce-ment learning (RL), enabling agents to plan from high-dimensional inputs like pixels by building predictive rep-resentations of their environment [14, 17, 30, 59]. These models have achieved notable success, demonstrating the ability to generate visually coherent predictions for scenar-ios involving familiar objects and dynamics, even in novel combinations — the capability often termed interpolative generalization [14, 16, 28, 36, 53, 63]. This success comes from their capacity to capture nonparametric statistical pat-terns within the observed pixel sequences during training. Despite these successes, a critical limitation persists: the 
+
+> arXiv:2603.07545v1 [cs.CV] 8 Mar 2026
+
+predictive capabilities of these models often break down drastically when confronted with scenarios involving com-plex physical interactions [9, 11, 61], particularly those gov-erned by dynamics or parameters different from the training patterns [2, 34], e.g. , collisions between objects with unseen mass ratios, novel contact dynamics. Such robustness is es-sential for agents operating in the unpredictable open world, yet remains a major hurdle [3, 35]. This difficulty reveals a fundamental issue: current models excel at learning the 
+
+statistical correlations of pixel-level dynamics, effectively becoming descriptive systems, but generally failing to cap-ture the underlying physical laws or generative rules gov-erning these interactions [8, 10, 21, 40, 43, 46, 57]. Specif-ically, they operate solely on pixel patterns without an in-herent understanding of concepts like force, momentum, or energy conservation [52]. We argue that achieving robust generalization requires shifting the learning objective from modeling pixel statistics towards discovering the environ-ment’s fundamental physical invariances , the conservation laws derived from underlying symmetries , which inherently govern these interactions [18, 25, 41, 50, 55]. Hence, we posit that explicitly learning these invariances is the key to building world models grounded in physical reality [48, 56]. Building upon this insight, we introduce DreamSAC 
+
+(Dream with Symmetry-Aware Curiosity, Figure 1), aframework that learns a physics-grounded world model ca-pable of extrapolative generalization. It integrates two core components: First, a Hamiltonian World Model Hϕ that en-forces physical symmetries. To reconcile this model’s need for viewpoint-invariant states with viewpoint-dependent pixel inputs, DreamSAC employs a self-supervised con-trastive learning objective [26, 60]. This objective places explicit, opposing pressure on the encoder against the re-construction loss, forcing it to factor out viewpoint varia-tions and isolate a latent state Zt that represents the underly-ing invariant physical dynamics[48, 62]. Second, Symmetry Exploration , an unsupervised exploration policy designed to iteratively refine this world model. This policy is driven by a novel intrinsic reward, rsym ≈ | ∆Hϕ|, calculated di-rectly from the model’s own current and imperfect Hamilto-nian Hϕ. This physics-based curiosity signal motivates the agent to seek interactions that perform the most work ( i.e. ,events predicted to cause the largest energy change). Such interactions are the most effective at exposing the model’s errors in understanding the underlying physics. By effi-ciently collecting this physically informative data, the agent iteratively corrects Hϕ, driving its convergence towards the environment’s invariant physical laws. We validate DreamSAC in 3D physics simulations, demonstrating 22%-163% higher performance over state-of-the-art baselines. Specifically, our framework achieves rapid adaptation to unseen physical parameters ( e.g. , fric-tion, gravity). Our contributions are mainly three-fold: (1) Symmetry exploration, an intrinsic motivation for targeted physical data collection; (2) A Hamiltonian world model, trained with a contrastive objective enabling viewpoint-invariant learning from pixels; (3) Comprehensive empiri-cal validation, showcasing DreamSAC’s significant extrap-olation capabilities. 
+
+## 2. Related Work 
+
+2.1. Structured World Models for RL 
+
+Integrating structural inductive biases into world models for Model-Based Reinforcement Learning (MBRL) is an active research area aimed at improving sample efficiency, inter-pretability, and generalization beyond standard approaches like Dreamer [16]. Common strategies include incorpo-rating physics-based priors derived from classical mechan-ics ( e.g. , Hamiltonian or Lagrangian formulations [6, 12, 62]) or learning object-centric representations [51, 58]. However, existing methods face limitations: methods like Dreamer struggle with extrapolation due to their lack of physical grounding [29], while physics-structured models (e.g. , HNNs, LNNs) have primarily demonstrated success on low-dimensional state inputs or in offline settings, and their integration into end-to-end agents learning from pix-els remains challenging [1, 7, 44]. We address these by embedding a Hamiltonian world model within an online MBRL agent that learns robust dynamics directly from pixel observations through symmetry-aware exploration and con-trastive representation learning. 
+
+2.2. Self-Supervised Invariant Representations 
+
+Learning informative representations from high-dimensional data, such as pixels, is a central challenge in machine learning [13]. A critical requirement for physical systems is learning representations that are invariant to nuisance factors, such as camera viewpoint [47] or light-ing [54], while retaining all physically salient information. This goal is often in direct conflict with reconstruction-based objectives, which may incentivize the model to encode these very nuisance factors to accurately render the observations [42]. To explicitly enforce invariance, self-supervised contrastive learning has emerged as adominant and highly effective paradigm [22, 23, 49]. Methods like SimCLR [5] train an encoder to produce similar embeddings for different “augmented” views of the same image ( e.g. , random crops, color jitter). This mechanism effectively teaches the model to ignore these predefined variations, thereby learning a representation that is robust to them. This principle of using augmentations to build specific invariance provides a powerful tool for disentangling latent factors of variation. Figure 2. Overview of DreamSAC. (Right) Our world model maps observations xt to object-centric slots Zt via SAVi [24]. We structure each slot zit into generalized coordinates ( qit ) and canonical momenta ( pit). The dynamics are twofold: the stochastic state Zt+1 is computed by integrating our G-invariant Hamiltonian Hϕ, while the deterministic state ht+1 is updated by a GRU. (Left) Symmetry Exploration: To efficiently learn Hϕ, a policy πθ is trained entirely in imagination to maximize our Symmetry-Aware Curiosity reward rsym . This incentivizes the policy to work to break symmetry. The imagined policy is then executed in the real environment to collect challenging data, which refines the world model. 
+
+2.3. Unsupervised Reinforcement Learning 
+
+To learn an accurate world model, an unsupervised agent must be intrinsically motivated to explore its environ-ment [19, 27, 33]. A dominant paradigm is novelty-based curiosity, such as Random Network Distillation (RND) [4] or prediction-error methods (ICM) [39]. These meth-ods reward the agent for visiting statistically novel or un-predictable states. However, a well-known limitation is the “noisy-TV” problem [32], where agents are irrecov-erably distracted by stochastic elements in the environ-ment [37]. We argue that for learning a physically grounded model, statistical novelty is not effective enough. Instead, our Symmetry-Aware Curiosity formalizes a physics-based objective. It does not reward statistical novelty, but rather rewards the agent for performing informative inter-actions [31] that challenge its current understanding of the system’s conservation laws, thus driving it to discover the true Hamiltonian dynamics. 
+
+## 3. Methodology 
+
+Our DreamSAC is an unsupervised reinforcement learn-ing framework designed to learn world models that are grounded in physical principles, as illustrated in Figure 2. It aims to achieve robust extrapolative generalization by dis-covering the underlying physical invariances of the envi-ronment. The overall architecture is based on the Dream-erV3 [17], but we introduce a physics-informed world model and a curiosity-driven learning objective. The en-tire learning process is divided into two phases: an unsu-pervised pretraining phase driven by our Symmetry Explo-ration mechanism, followed by a downstream task adapta-tion phase using extrinsic rewards. Full implementation de-tails, network architectures, and hyperparameters are avail-able in the Supp. 7. 
+
+3.1. Preliminaries 
+
+Controlled Hamiltonian Dynamics. We model the agent-environment interaction as a controlled Hamiltonian system [62], which separates the system’s internal dynam-ics , governed by an internal Hamiltonian Hϕ(z), from the influence of external actions at. Given a latent state z =(q, p) representing generalized coordinates and momenta, the internal Hamiltonian Hϕ(z) encodes the system’s en-ergy and underlying physical symmetries. The agent’s ac-tion at applies an external force via a learned input matrix 
+
+g(q). The complete dynamics are thus: 
+
+dq
+
+dt = ∂H ϕ(z)
+
+∂p , dp
+
+dt = − ∂H ϕ(z)
+
+∂q + g(q)at (1) We solve these equations using a symplectic integrator [48] during inference. Learning an accurate Hϕ(z) is the key to capturing the physical invariances required for extrapola-tion. Discretizing these continuous-time equations, how-ever, presents a critical trade-off between the gradient stability required for deep generative model training and the long-term physical conservation desired during infer-ence. We address this by employing different integration strategies in training and inference phases (details are in Supp. 6.2). 
+
+Invariant Internal Hamiltonian. To encode viewpoint-independent physical laws, we constrain the internal Hamiltonian Hϕ(Zt) to be invariant under transforma-tions g from the relevant 3D physical symmetry group G(e.g. , SE (3) ): 
+
+Hϕ(g · Zt) = Hϕ(Zt), ∀g ∈ G (2) Here, Zt = {zit }Ni=1 is the latent object-centric 3D state. We implement Hϕ using a G-invariant architecture ( i.e. , Lie Transformer [20]) that satisfies this property by construc-tion. The physical meaningfulness of Eq. (2) depends on the encoder qϕ learning a viewpoint-invariant repre-sentation Zt from the 2D observation xt, such that 
+
+qϕ(Render (S, v 1)) ≈ qϕ(Render (S, v 2)) ≈ Zt for a given 3D state S. We explicitly do not require the encoder qϕ to be equivariant to arbitrary 2D image transformations ( e.g. , in-plane rotation), which often lack 3D physical meaning. In-stead, as detailed in Supp. 6.3, we enforce robustness using a curated set of 2D augmentations ( e.g. , perspective shifts) that serve as a practical proxy for 3D viewpoint changes, and we provide further analysis in Supp. 7.2. 
+
+3.2. Hamiltonian World Model 
+
+Our core contribution is to modify the standard Recurrent State-Space Model (RSSM) [15] to create a Hamiltonian World Model. We argue that the unconstrained, entangled nature of the standard RSSM’s dynamics predictor is a pri-mary cause of failure in extrapolation tasks. Our design aims to disentangle the viewpoint-dependent nature of ob-servations from the viewpoint-independent nature of physi-cal laws. 
+
+State Representation and Encoder. We employ an object-centric encoder qϕ, based on SAVi [24] (see Supp. 7.2 for architectural details), to map an observation 
+
+xt and recurrent state ht to N object slots Zt = {zit }Ni=1 .Crucially, we impart physical meaning by structuring each slot to represent its generalized coordinates and momenta, 
+
+zit = ( qit, pit).While the ELBO (Eq. (5)) provides no formal guaran-tee that this split corresponds to true canonical coordinates, we hypothesize it creates a functionally useful decoupling .This functional decoupling is instead encouraged by the competing objectives within the ELBO: the prediction loss 
+
+Lpred grounds the entire latent state Zt in the visual ob-servation xt, while the Hamiltonian dynamics prior pϕ (en-forced via Ldyn and Lrep ) imposes a strong structural con-straint on the relationship between the qt and pt compo-nents as they evolve over time. This reliance on implicit structure learning via generative objectives has shown suc-cess in related work [48], and we provide further analysis of the learned representations in Supp. 9.1. 
+
+Viewpoint Robustness Constraints. A core challenge in our framework is the conflict between the viewpoint-dependent reconstruction objective Lpred (which drives Zt
+
+to encode camera parameters to reconstruct xt) and our G-invariant Hamiltonian prior pϕ (which requires Zt to be in-variant to these parameters). Relying solely on the implicit pressure of the ELBO’s KL terms (Eq. (5)) is insufficient. To resolve this, we introduce a Viewpoint-Robustness Loss ( Lvr ) based on self-supervised contrastive learning. This approach does not require access to privileged, syn-chronized multi-view data. Instead, it leverages strong 
+
+viewpoint augmentations τ (e.g. , random perspective shifts, camera jitter) applied to single observations xt from the re-play buffer. For each observation xt in a batch K, we generate two augmented views, xAt = τA(xt) and xBt = τB (xt). These augmentations share the underlying physical content but differ in their nuisance viewpoint parameters. The en-coder qϕ maps these to latent states ZAt = qϕ(xAt , h t) and 
+
+ZBt = qϕ(xBt , h t), which form a positive pair . All other 
+
+K − 1 representations from the second augmentation set (i.e. , ZBj where j̸ = t) serve as negative pairs .
+
+Lvr (ϕ) = −E
+
+"
+
+log exp( sim (ZAt , Z Bt )/τ )
+
+PKj=1 exp( sim (ZAt , Z Bj )/τ )
+
+#
+
+(3) where sim (Zi, Z j ) is a similarity metric ( i.e. , cosine simi-larity) and τ is a temperature hyperparameter. This loss ex-plicitly trains the encoder qϕ to factor out viewpoint varia-tions, thereby providing a “cleaned”, viewpoint-robust state 
+
+Zt that satisfies the requirements of our G-invariant Hamil-tonian Hϕ(Zt).
+
+Hamiltonian Dynamics Prior. Our dynamics prior 
+
+pϕ(Zt+1 |Zt, a t) replaces the standard black-box predictor with a physics-based process grounded in Eq. (1). This pro-cess is defined by two learned components: a G-invariant internal Hamiltonian Hϕ(Zt) (Eq. (2)) and an input ma-trix network g(Qt) [62]. We parameterize Hϕ using a G-invariant architecture ( i.e. , Lie Transformer [20]) to enforce symmetry by construction. Further architectural details are provided in Supp. 6.2. These components define the vector field for a Sym-plectic Integrator I, which deterministically computes the mean of the next state M t+1 = {μit+1 }Ni=1 =
+
+I(Hϕ, g, Z t, a t). To ensure compatibility with the varia-tional framework, we model the prior as a factorized Gaus-sian distribution: 
+
+pϕ(Zt+1 |Zt, a t) = 
+
+> N
+
+Y
+
+> i=1
+
+N (zit+1 ; μit+1 , Σϕ) (4) The mean μit+1 is the deterministic, coupled output from the integrator. Crucially, instead of a fixed unit variance 
+
+(I), we learn a shared, state-independent diagonal covari-ance Σϕ = diag (σ2
+
+> ϕ
+
+). This provides a more flexible target for the encoder posterior qϕ (within the Lrep KL-divergence) while maintaining tractability. Finally, a standard recur-rent model (GRU) updates the deterministic state ht+1 =
+
+fϕ(ht, Z t, a t) for use by the decoder and policy networks. 
+
+World Model Objective. The world model ( ϕ) is trained by maximizing a modified Evidence Lower Bound (ELBO) objective that incorporates our self-supervised robustness loss: 
+
+Ltotal (ϕ) = 
+
+> T
+
+X
+
+> t=1
+
+
+
+Lpred (ϕ) + βdyn Ldyn (ϕ)+ βrep Lrep (ϕ) + γLvr (ϕ)
+
+ (5) Here, Lpred = Eq [log p(xt|Zt, h t)] is the reconstruction loss , which trains the decoder and grounds the latent state 
+
+Zt in the observation. The Ldyn and Lrep terms are the dynamics and representation components of the KL diver-gence, KL (qϕ|| pϕ). Following [17], these are split to sep-arately train the Hamiltonian prior ( pϕ) to predict the en-coder’s posterior ( qϕ), and train the encoder ( qϕ) to be predictable by the prior. The overall objective thus bal-ances the Prediction Loss (grounding Zt in xt) and the Dy-namics/Representation Losses (enforcing the Hamiltonian prior). Crucially, the Viewpoint-Robustness Loss ( Lvr ), weighted by γ, provides the explicit self-supervisory sig-nal to remove viewpoint dependency from Zt, addressing the core conflict between reconstruction and physical invari-ance. We refer readers to Supp. 7.1 for the detailed design of these loss functions. 
+
+3.3. Unsupervised Symmetry Exploration 
+
+Unlike methods learning dynamics from passively observed trajectories, such as SymODEN [62], our unsupervised RL setting requires the agent to actively explore its envi-ronment to gather informative data for learning the world model (specifically, the internal Hamiltonian Hϕ). Con-sequently, a crucial component is an intrinsic motivation mechanism guiding this exploration. Our exploration strategy stems from a physical insight: to understand a system’s underlying symmetries (encoded by Hϕ), an agent cannot merely observe its autonomous evolution (where Hϕ is conserved, ∆H ≈ 0). It must ac-tively probe the system’s response to external forces (ap-plied via g(q)at). 
+
+Symmetry-Aware Curiosity To learn the Hamiltonian 
+
+Hϕ, the agent must actively probe the environment’s physi-cal properties. We propose an intrinsic reward based on the 
+
+work WC done on the system by the agent’s action, which, per Eq. (1), equals the change in the internal Hamiltonian 
+
+|Hϕ(Zt+1 ) − Hϕ(Zt)|.To encourage temporally coherent exploration rather than high-frequency “jitter”, we also introduce a standard action smoothness regularizer. The physics-based compo-nent of our intrinsic reward, rsym , is thus defined as: 
+
+rsym ,t +1 = |Hϕ(Zt+1 ) − Hϕ(Zt)|
+
+| {z }
+
+> Symmetry Probing
+
+− λs|| at − at−1|| 2
+
+| {z }
+
+> Action Smoothness
+
+(6) where λs is a balancing hyperparameter. This reward function addresses the paradox of learning symmetries: while symmetry implies conservation ( ∆H ≈
+
+0), an agent cannot learn this invariance by being passive. It must actively challenge the system’s inertia. Maximizing 
+
+rsym incentivizes the agent to find interactions that require significant work, thereby generating the most informative data for identifying the structural properties ( e.g. , stiffness, potential barriers) of Hϕ.
+
+Behavior Learning in Imagination The intrinsic actor-critic ( πθ , v ψ, int ) then trains on imagined trajectories fol-lowing Dreamer [17]. However, the rsym -based objective (Eq. (6)) introduces an instability: rsym is noisy and non-stationary when Hϕ is untrained, leading to poor data col-lection. We resolve this by annealing the intrinsic reward from a stable novelty bonus to our physics-based reward. For this stable bonus, we employ Random Network Dis-tillation (RND) [4], which generates a reward from the agent’s prediction error on its observations against a fixed, randomly initialized target network. This provides a broad and stable novelty signal during the initial phase of training. The final annealed reward is: 
+
+rint ,t +1 = (1 − wt) · rRND ,t +1 + wt · rsym ,t +1 (7) We initialize w0 = 0 (relying fully on RND) to stabilize the world model pϕ with diverse data, then linearly anneal 
+
+wt → 1 over Tanneal steps. This shifts exploration from novelty-seeking to symmetry-probing as Hϕ matures. To further mitigate noise, rsym is computed using an EMA tar-get Hamiltonian, Htarget . This hybrid, annealed reward boot-straps exploration, stabilizing the joint optimization. We refer readers to Supp. 6.4 for more details of these imple-mentations and hyperparameters. 
+
+3.4. Downstream Task Adaptation 
+
+After unsupervised pretraining, the agent’s world model pϕ
+
+has learned a dynamics prior that factorizes structural sym-metries from implicit physical parameters. To solve any downstream task, we employ a unified adaptation via a fine-tuning strategy as our primary method. 
+
+Adaptation via Differentiated Fine-tuning. Our main adaptation strategy is designed to leverage the factored na-ture of our model. When adapting to a new task (which Table 1. World model image prediction accuracy. We compare the Mean Squared Error (MSE) (lower is better) at 1M steps of our full model against the DreamerV3 [17] baselines (random policy, sample from policy replay buffers) and ablations of our exploration strategy (random policy, RND [4]. Models are evaluated across various DMCS and GymFetch tasks at varying rollout horizons (H).                                                                                                  
+
+> DeepMind Control Suite GymFetch Cheetah Acrobot Hopper Walker Humanoid FetchPush FetchReach Method H=16 H=100 H=16 H=100 H=16 H=100 H=16 H=100 H=5 H=10 H=16 H=8 H=16 H=8 H=16
+> DreamerV3+Policy 0.7981 0.7507 0.7723 0.9392 1.0355 —4.3769 ————1.275 2.030 0.855 1.492 DreamerV3+Random 0.8747 0.4048 0.8423 1.7547 0.6406 0.9239 2.2527 4.3760 5.2171 6.0500 6.5078 1.048 1.932 0.962 1.670 DreamerV3+RND 0.6364 0.4578 0.2109 0.5628 1.0643 1.2764 2.8976 3.2160 4.2077 5.7294 6.9389 0.976 1.708 0.574 0.682 DreamSAC+Random 0.1565 0.3367 0.2532 0.9347 0.5227 0.9762 2.4667 3.6391 5.6391 6.1402 6.8589 0.675 0.790 0.498 0.652 DreamSAC (Ours) 0.4052 0.3325 0.2064 0.1806 0.3149 0.5749 1.0044 2.9118 4.7776 5.7798 5.4902 0.302 0.645 0.313 0.386
+
+may have In-Distribution or OOD physical properties), we do not retrain from scratch. Instead, we perform rapid sys-tem identification using a differentiated fine-tuning loop: (i) the intrinsic policy πθ and intrinsic critic vψ, int are discarded and re-initialized for the new task; (ii) the viewpoint-robust encoder qϕ is kept frozen, as the visual properties of the en-vironment are unchanged; and (iii) the Hamiltonian world model ( Hϕ, g ) is fine-tuned with a small learning rate. We hypothesize that Hϕ’s invariant architecture acts as a strong regularizer, constraining optimization to primarily update implicit physical parameters ( e.g. , mass, friction) without corrupting the learned symmetries ( e.g. , SE (3) invariance). This enables far faster adaptation than unstructured models like DreamerV3. 
+
+Adaptation Training Loop. The adaptation loop collects new task-specific experiences (xt, a t−1, R ext ,t ). In each step, the world model pϕ updates its fine-tuning parame-ters (per strategy (iii) above) and its new extrinsic reward predictor vψ, ext using the ELBO (Eq. (5)) and a value loss. Simultaneously, the new actor-critic ( πθ , v ψ, ext ) updates en-tirely on imagined trajectories from the fine-tuning world model, maximizing the predicted Rext .
+
+Evaluation of Zero-Shot Generalization. To test the limits of the pretrained model’s generalization without any adaptation, we also evaluate its zero-shot capability. For this specific evaluation, we freeze the entire world model 
+
+pϕ (including Hϕ) and learn a new task-specific policy πθ
+
+entirely within the fixed, pretrained imagination. This tests the model’s ability to generalize using only its pretrained understanding of physics. 
+
+## 4. Experiments 
+
+Our experimental evaluation is designed to answer three key questions: (1) Does our Hamiltonian world model achieve superior predictive accuracy (Sec. 4.2) compared to base-lines? (2) Can this accuracy translate to robust down-stream generalization, allowing DreamSAC to outperform baselines on both challenging OOD tasks and standard ID benchmarks (Sec. 4.3)? (3) Are our key contributions, specifically the Hamiltonian model and symmetry explo-ration, necessary for this performance (Sec. 4.4), and do they learn the intended physical mechanisms (Sec. 4.5)? 
+
+4.1. Experimental Setup 
+
+Environments We evaluate our method on a diverse suite of 3D physics benchmarks from DeepMind Con-trol Suite (DMCS) and GymFetch. Our experimen-tal design addresses three distinct goals: (1) To vali-date world model performance , we test prediction MSE on a broad diagnostic suite ( e.g. , Cheetah , Acrobot ,
+
+Hopper , Humanoid ). (2) To test extrapolative gen-eralization , we evaluate OOD performance on a curated set of tasks ( Reacher , FetchReach , Walker-walk ,
+
+Cheetah-run ). (3) To measure downstream task gen-eralization , we test adaptation on standard control bench-marks ( Hopper , Quadruped , Walker ). All OOD split definitions and further details are in Supp. 8. 
+
+Baselines We compare our full method, DreamSAC, against baselines built from the state-of-the-art world model, DreamerV3 [17], and the state-of-the-art exploration method, RND [4]. Our baseline variants are as follows: (1) DreamerV3+Policy, the standard DreamerV3 model trained on its native policy replay buffer. (2) DreamerV3+Random, the DreamerV3 model trained on data from a random policy. (3) DreamerV3+RND, the DreamerV3 model combined with the RND curiosity bonus. (4) DreamSAC+Random, an ablation of our method using a random exploration pol-icy instead of our Symmetry Exploration. 
+
+Implementation Details Our world model is built upon the DreamerV3 JAX codebase. We replace the encoder with a SAVi [24] architecture to obtain object slots Zt. The dynamics prior pϕ is replaced by our Hamiltonian model, where Hϕ is implemented as a Lie Transformer [20] to enforce SE (3) invariance. All models are pre-trained for 2M environment steps using their respective unsupervised objectives, and then finetuned them 500K steps for down-stream tasks for ID and OOD experiments. For our evalua-tion metrics, we choose the final task reward and the MSE of image reconstruction. We evaluate the MSE at 1M steps, Table 2. Comprehensive comparison of extrapolative generalization on all OOD tasks. We report final performance (Success Rate for 
+
+FetchReach tasks, Mean Reward for all others) after 2M unsupervised pre-training steps and 500K task adaptation steps (mean ± std. over 5 seeds). The tasks evaluate Structural OOD (Unseen View: new viewpoints, Unseen Object: new object counts, Unseen Goal) and 
+
+Parametric OOD (Unseen Gravity: 1.5x gravity, Unseen Friction: 2.0x friction, Unseen Dist.: physical properties domain shift).                                                                                                                             
+
+> Structural & Interaction Generalization Parametric Generalization Model Reacher-hard FetchReach Walker-walk Cheetah-run Unseen View Unseen Goal Unseen Object Unseen Goal Unseen Gravity Unseen Dist. Unseen Friction Unseen Dist.
+> DreamerV3+Policy 265.33 ±10.33 919.73 ±9.12 0.65 ±0.12 0.76 ±0.11 189.76 ±23.27 125.44 ±35.70 118.79 ±62.23 80.38 ±28.43 DreamerV3+RND 0-shot 79.31 ±52.98 892.90 ±10.37 ——86.75 ±39.72 34.28 ±6.29 9.42 ±4.27 7.71 ±1.41 DreamerV3+RND 313.97 ±27.31 927.36 ±18.73 0.70 ±0.07 0.72 ±0.13 167.52 ±21.57 113.40 ±32.99 97.43 ±67.82 103.42 ±27.91 DreamSAC 0-shot 149.64 ±37.62 934.21 ±7.98 ——124.78 ±21.77 67.22 ±30.13 27.53 ±10.98 107.31 ±45.41
+> DreamSAC (Ours) 321.90 ±13.28 967.64 ±9.29 0.80 ±0.09 0.91 ±0.04 499.91 ±19.77 231.73 ±67.08 120.23 ±41.26 126.33 ±56.59
+
+Figure 3. Qualitative analysis of DreamSAC’s internal mechanisms. (a) t-SNE projections show our full model (with Lvr ) learns viewpoint-invariant representations, unlike an ablation without it. (b) The learned Hamiltonian Hϕ (red dashed line) is conserved during a zero-action rollout, confirming the model learned a physical invariant (energy conservation). (c) Reward and Loss curves comparing DreamSAC with different baselines. (d) The latent states (q, p) demonstrate physics-awareness: representations for pre-train (yellow) and fine-tune (blue) mix for familiar In-Distribution properties, but clearly separate to learn novel Out-of-Distribution properties. 
+
+as we observed this was a sufficient duration for the predic-tive loss of all models to have converged. Further details are provided in the Supp. 7. 
+
+4.2. World Model Predictive Performance 
+
+We first evaluate the foundational predictive accuracy of our Hamiltonian world model against the DreamerV3 base-lines. We measure the image prediction Mean Squared Er-ror (MSE) from a rollout conditioned on a single initial image, with results consolidated in Table 1. The results clearly show that DreamSAC (Ours) achieves significantly lower prediction error (lower MSE) than the DreamerV3 baselines across all environments and rollout horizons (H) tested. For instance, in the Acrobot (H=16) environment, our model achieves an MSE of 0.2064 , a more than 10x improvement over DreamerV3+Policy’s 3.6390. Similarly, in FetchPush (H=8), our model’s MSE of 0.302 is sub-stantially lower than DreamerV3+Random’s 1.048, demon-strating a more accurate and stable dynamics model. Crucially, this table also validates our exploration strat-egy. Our full model using Symmetry Exploration consis-tently outperforms other exploration methods. For example, on FetchPush (H=8), our 0.302 MSE is more than twice as accurate as the DreamSAC+Random baseline’s 0.675 and drastically better than the DreamerV3+RND baseline’s 0.976. This demonstrates that our Symmetry-Aware Curios-ity actively gathers more physically informative data, which in turn allows the model to learn the underlying dynamics more accurately. This superior predictive accuracy under-pins our model’s ability to handle OOD and downstream-task challenges presented in the following sections. Table 3. In-Distribution (ID) Task Generalization. DreamSAC is compared against baselines on standard downstream tasks after pre-training and fine-tuning except for DreamerV3+Policy which is trained from scratch. We report the final Mean Reward (avg. over 5 seeds), showing highly competitive performance.                           
+
+> Hopper Quadruped Walker Method Hop Stand Run Escape Stand Walk
+> DreamerV3+Policy 354.264 929.851 901.963 207.691 903.556 965.217 DreamerV3+RND 389.142 937.651 867.324 179.169 942.684 979.340 DreamSAC (Ours) 366.117 967.865 911.488 236.538 963.251 996.502
+
+4.3. Downstream Task Generalization Performance 
+
+Out-of-Distribution (OOD) Generalization We first test OOD performance, our core challenge, with results con-solidated in Table 2. DreamSAC consistently outperforms both DreamerV3 and RND baselines across all OOD chal-lenges. On Structural Generalization tasks (columns 1-4), our model’s success rate on FetchReach (Unseen Object, Unseen Goal) clearly surpasses the DreamerV3 baseline. On Reacher-hard , DreamSAC achieves the highest reward on both Unseen View and Unseen Goal, demonstrating a robust advantage over both DreamerV3 and RND. On Parametric Generalization tasks (last four columns), DreamSAC again achieves the highest reward on all Walker-walk and Cheetah-run tasks. The most significant gains are on the Unseen Dist. tasks (physi-cal properties domain shift). This confirms our hypothe-sis (Sec. 3.4): our differentiated fine-tuning performs rapid system identification on our Hamiltonian parameters. This rapid adaptation is further visualized in Figure 3c, which shows the reward curves for several tasks, where our model (green) mostly learns faster and achieves higher rewards than the baselines (red, orange). 
+
+Standard Task Generalization To confirm our model’s applicability as a general-purpose prior, we also evaluate it on standard In-Distribution (ID) downstream control tasks, with results in Table 3. After the same pre-training and fine-tuning process, DreamSAC achieves highly competitive or state-of-the-art performance against both DreamerV3 and RND baselines across all tasks. This demonstrates that our model’s strong physical grounding does not compromise its ability to solve standard control benchmarks. 
+
+4.4. Ablation Studies 
+
+To validate that our proposed components are necessary, we evaluate three key ablations: (1) Ours (w/o. Lvr ), which removes the viewpoint-robustness loss ( γ = 0 ); (2) Ours (w/o. Hϕ), which replaces the G-invariant Lie Transformer 
+
+Hϕ with a standard MLP; and (3) Ours (w/o. SAVi), which removes the object-centric encoder. We present a focused evaluation of these ablations on tasks that most directly probe their respective functions in Table 4. The (w/o. Lvr ) model’s performance on the 
+
+Table 4. Ablation study of DreamSAC components. We report final performance on representative OOD tasks. Removing any component causes a significant performance drop on the task it is designed to solve. †Metric is Reward; all other metrics are MSE.                                  
+
+> Reacher †Cheetah Walker Avg. OOD Model Unseen View Seen Env. 1.5x Gravity MSE
+> Ours w/o Lvr 212.37 ±32.47 0.5182 1.0681 0.7932 Ours w/o Hϕ159.63 ±27.12 0.8313 4.9673 2.8993 Ours w/o SAVI 279.68 ±19.24 0.6179 1.1882 0.9031
+> DreamSAC (Full) 321.90 ±13.28 0.4052 1.0044 0.7048
+
+Reacher (Unseen View) task significantly drops, confirm-ing that the contrastive loss is essential for viewpoint invari-ance. The (w/o. Hϕ) model, which lacks our Hamiltonian prior, shows a severe performance drop on the Walker 
+
+(1.5x Gravity) task, demonstrating that the G-invariant ar-chitecture is critical for generalizing to new physical pa-rameters. Removing the object-centric encoder (w/o. SAVi) also hurts performance on parametric generalization, con-firming all components are essential for robust extrapola-tion. 
+
+4.5. Qualitative Analysis 
+
+We provide qualitative visualizations in Figure 3 to con-firm our model’s internal mechanisms. First, t-SNE projec-tions (Fig. 3a) show our full model (with Lvr ) learns a tight, viewpoint-invariant cluster from different camera views, while an ablation’s representations are scattered, confirming the necessity of our contrastive loss. Second, the learned Hamiltonian Hϕ (Fig. 3b) remains nearly constant during a zero-action rollout (red dashed line), demonstrating the model has learned a physical invariant (energy conserva-tion). Finally, the t-SNE plots in Figure 3d visualize the physics-aware nature of the learned latent states ( q, p). For familiar In-Distribution properties, the fine-tune (blue) and pre-train (yellow) representations remain heavily mixed. In contrast, for novel Out-of-Distribution properties, the fine-tune states form distinct clusters, clearly separating from the pre-train representations. This ability to distinguish be-tween familiar and novel physical properties confirms the model has learned physically meaningful features. 
+
+## 5. Conclusion 
+
+In this work, we address the limitation of world models in extrapolative generalization, arguing that they learn sta-tistical correlations rather than underlying physical laws. We introduce DreamSAC, a framework that learns aphysically-grounded model through two key innovations: (1) Symmetry Exploration, an unsupervised strategy using Hamiltonian-based curiosity to actively collect physically informative data, and (2) a Hamiltonian World Model with a G-invariant prior. Crucially, we use a self-supervised contrastive loss to force the encoder to learn a viewpoint-robust latent state, resolving the conflict between recon-struction and physical invariance. Our results confirm that DreamSAC achieves robust generalization to novel poses and views and enables rapid adaptation to new physical parameters (via its differentiated fine-tuning), significantly outperforming state-of-the-art baselines. 
+
+## Acknowledgments 
+
+The authors would like to thank Prof. Biwei Huang for the generous support of computing resources. We also thank our colleagues for their helpful discussions and technical support throughout the development of this project. 
+
+## References 
+
+[1] Mohamadreza Ahmadi, Ufuk Topcu, and Clarence Rowley. Control-oriented learning of lagrangian and hamiltonian sys-tems. In 2018 Annual American Control Conference (ACC) ,pages 520–525, 2018. 2 [2] Anonymous. Beyond interpolation: Extrapolative reasoning with reinforcement learning and graph neural networks. In 
+
+Submitted to The First Workshop on Neural Reasoning and Mathematical Discovery at AAAI’2025 , 2024. under review. 2[3] Amirhossein Arzani, Lingxiao Yuan, Pania Newell, and Bei Wang. Interpreting and generalizing deep learning in physics-based problems with functional linear models. En-gineering with Computers , 41(1):135–157, 2025. 2 [4] Yuri Burda, Harrison Edwards, Amos Storkey, and Oleg Klimov. Exploration by random network distillation. In In-ternational Conference on Learning Representations , 2019. 3, 5, 6, 2 [5] Ting Chen, Simon Kornblith, Mohammad Norouzi, and Ge-offrey Hinton. A simple framework for contrastive learning of visual representations. In Proceedings of the 37th Inter-national Conference on Machine Learning . JMLR.org, 2020. 2[6] Miles Cranmer, Sam Greydanus, Stephan Hoyer, Peter Battaglia, David Spergel, and Shirley Ho. Lagrangian neural networks. In ICLR 2020 Workshop on Integration of Deep Neural Models and Differential Equations , 2019. 2 [7] Congyue Deng, Brandon Y. Feng, Cecilia Garraffo, Alan Garbarz, Robin Walters, William T. Freeman, Leonidas Guibas, and Kaiming He. Denoising hamiltonian network for physical reasoning, 2025. 2 [8] Eva Dierkes, Christian Offen, Sina Ober-Bl¨ obaum, and Kathrin Flaßkamp. Hamiltonian neural networks with au-tomatic symmetry detection. Chaos: An Interdisciplinary Journal of Nonlinear Science , 33(6), 2023. 2 [9] Haoyi Duan, Hong-Xing Yu, Sirui Chen, Li Fei-Fei, and Ji-ajun Wu. Worldscore: A unified evaluation benchmark for world generation. arXiv preprint arXiv:2504.00983 , 2025. 2 [10] Haotian Fu, Yixiang Sun, Michael Littman, and George Konidaris. Knowledge retention in continual model-based reinforcement learning. In Forty-second International Con-ference on Machine Learning . 2 [11] Alejandro Casta˜ neda Garcia, Jan Warchocki, Jan van Gemert, Daan Brinks, and Nergis Tomen. Learning physics from video: Unsupervised physical parameter estimation for continuous dynamical systems. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pages 27924–27933, 2025. 2 [12] Sam Greydanus, Misko Dzamba, and Jason Yosinski. Hamil-tonian neural networks . Curran Associates Inc., Red Hook, NY, USA, 2019. 2 [13] Jie Gui, Tuo Chen, Jing Zhang, Qiong Cao, Zhenan Sun, Hao Luo, and Dacheng Tao. A survey on self-supervised learning: Algorithms, applications, and future trends. IEEE Transactions on Pattern Analysis and Machine Intelligence ,46(12):9052–9071, 2024. 2 [14] David Ha and J¨ urgen Schmidhuber. World models. arXiv preprint arXiv:1803.10122 , 2(3), 2018. 1 [15] Danijar Hafner, Timothy Lillicrap, Ian Fischer, Ruben Ville-gas, David Ha, Honglak Lee, and James Davidson. Learning latent dynamics for planning from pixels. In International conference on machine learning , pages 2555–2565. PMLR, 2019. 4 [16] Danijar Hafner, Jurgis Pasukonis, Jimmy Ba, and Timothy Lillicrap. Mastering diverse domains through world models. 
+
+arXiv preprint arXiv:2301.04104 , 2023. 1, 2 [17] Danijar Hafner, Jurgis Pasukonis, Jimmy Ba, and Timothy Lillicrap. Mastering diverse control tasks through world models. Nature , pages 1–7, 2025. 1, 3, 5, 6, 2, 4 [18] Shuhua Huang, Chenhao Hu, Weiyang Kong, and Yubao Liu. Disentangled contrastive learning for knowledge-aware rec-ommender system. In The Semantic Web – ISWC 2023: 22nd International Semantic Web Conference, Athens, Greece, November 6–10, 2023, Proceedings, Part I , page 140–158, Berlin, Heidelberg, 2023. Springer-Verlag. 2 [19] Adriana Hugessen, Roger Creus Castanyer, and Glen Berseth. Surprise-adaptive intrinsic motivation for unsuper-vised reinforcement learning. In Intrinsically-Motivated and Open-Ended Learning Workshop @NeurIPS2023 , 2023. 3 [20] Michael J Hutchinson, Charline Le Lan, Sheheryar Zaidi, Emilien Dupont, Yee Whye Teh, and Hyunjik Kim. Lietrans-former: Equivariant self-attention for lie groups. In Interna-tional conference on machine learning , pages 4533–4543. PMLR, 2021. 4, 6 [21] Joel Jang, Seonghyeon Ye, Zongyu Lin, Jiannan Xiang, Jo-han Bjorck, Yu Fang, Fengyuan Hu, Spencer Huang, Kaushil Kundalia, Yen-Chen Lin, et al. Dreamgen: Unlocking gen-eralization in robot learning through video world models. 
+
+arXiv preprint arXiv:2505.12705 , 2025. 2 [22] Bingyi Kang, Yang Yue, Rui Lu, Zhijie Lin, Yang Zhao, Kaixin Wang, Gao Huang, and Jiashi Feng. How far is video generation from world model: A physical law perspective. 
+
+arXiv preprint arXiv:2411.02385 , 2024. 2 [23] Asifullah Khan, Laiba Asmatullah, Anza Malik, Shahzaib Khan, and Hamna Asif. A survey on self-supervised con-trastive learning for multimodal text-image analysis, 2025. 2[24] Thomas Kipf, Gamaleldin F Elsayed, Aravindh Mahen-dran, Austin Stone, Sara Sabour, Georg Heigold, Rico Jon-schkowski, Alexey Dosovitskiy, and Klaus Greff. Condi-tional object-centric learning from video. arXiv preprint arXiv:2111.12594 , 2021. 3, 4, 6 [25] Kenneth Li, Aspen K Hopkins, David Bau, Fernanda Vi´ egas, Hanspeter Pfister, and Martin Wattenberg. Emergent world representations: Exploring a sequence model trained on a synthetic task. ICLR , 2023. 2 [26] Zheng Li, Pei Qu, Yufei Jia, Shihui Zhou, Haizhou Ge, Jia-hang Cao, Jinni Zhou, Guyue Zhou, and Jun Ma. Manivid-3d: Generalizable view-invariant reinforcement learning for robotic manipulation via disentangled 3d representations. 
+
+ArXiv , abs/2509.11125, 2025. 2 [27] Aly Lidayan, Michael D Dennis, and Stuart Russell. BAMDP shaping: a unified theoretical framework for intrin-sic motivation and reward shaping. In The Thirteenth Inter-national Conference on Learning Representations , 2025. 3 [28] Yuren Liu, Biwei Huang, Zhengmao Zhu, Honglong Tian, Mingming Gong, Yang Yu, and Kun Zhang. Learning world models with identifiable factorization. Advances in Neural Information Processing Systems , 36:31831–31864, 2023. 1 [29] Michael Lutter, Johannes Silberbauer, Joe Watson, and Jan Peters. Differentiable physics models for real-world offline model-based reinforcement learning. In 2021 IEEE Interna-tional Conference on Robotics and Automation (ICRA) , page 4163–4170. IEEE Press, 2021. 2 [30] Jiangran Lyu, Ziming Li, Xuesong Shi, Chaoyi Xu, Yizhou Wang, and He Wang. DyWA: Dynamics-adaptive world ac-tion model for generalizable non-prehensile manipulation. In 
+
+ICRA 2025 Workshop: Beyond Pick and Place , 2025. 1 [31] Fryderyk Mantiuk, Hanqi Zhou, and Charley M. Wu. From curiosity to competence: How world models interact with the dynamics of exploration, 2025. 3 [32] Augustine Mavor-Parker, Kimberly Young, Caswell Barry, and Lewis Griffin. How to stay curious while avoiding noisy TVs using aleatoric uncertainty estimation. In Proceedings of the 39th International Conference on Machine Learning ,pages 15220–15240. PMLR, 2022. 3 [33] Russell Mendonca, Oleh Rybkin, Kostas Daniilidis, Danijar Hafner, and Deepak Pathak. Discovering and achieving goals via world models. Advances in Neural Information Process-ing Systems , 34:24379–24391, 2021. 3 [34] Victor RF Miranda, Armando A Neto, Gustavo M Freitas, and Leonardo A Mozelli. Generalization in deep reinforce-ment learning for robotic navigation by reward shaping. 
+
+IEEE Transactions on Industrial Electronics , 71(6):6013– 6020, 2023. 2 [35] Kohei Noda, Araki Wakiuchi, Yoshihiro Hayashi, and Ryo Yoshida. Advancing extrapolative predictions of mate-rial properties through learning to learn. arXiv preprint arXiv:2404.08657 , 2024. 2 [36] Minting Pan, Xiangming Zhu, Yunbo Wang, and Xiaokang Yang. Iso-dream: Isolating and leveraging noncontrollable visual dynamics in world models. In Neural Information Processing Systems , 2022. 1 [37] Yiyuan Pan, Zhe Liu, and Hesheng Wang. Wonder wins ways: Curiosity-driven exploration through multi-agent con-textual calibration, 2025. 3 [38] Deepak Pathak, Pulkit Agrawal, Alexei A Efros, and Trevor Darrell. Curiosity-driven exploration by self-supervised pre-diction. In International conference on machine learning ,pages 2778–2787. PMLR, 2017. 6 [39] Deepak Pathak et al. Curiosity-driven exploration by self-supervised prediction. In ICML , 2017. 3 [40] Pai Peng, Xiaoyang Huang, Chao Yin, Linta Joseph, Chan-drasekhar Ramanathan, and Paola Cappellaro. Deep re-inforcement learning for quantum hamiltonian engineering. 
+
+Physical Review Applied , 18(2):024033, 2022. 2 [41] Jordan Peper, Zhenjiang Mao, Yuang Geng, Siyuan Pan, and Ivan Ruchkin. Four principles for physically interpretable world models. In ICRA 2025 Workshop on Foundation Mod-els and Neuro-Symbolic AI for Robotics . 2 [42] Senthil Purushwalkam and Abhinav Gupta. Demystifying contrastive self-supervised learning: invariances, augmenta-tions and dataset biases. In Proceedings of the 34th Inter-national Conference on Neural Information Processing Sys-tems , Red Hook, NY, USA, 2020. Curran Associates Inc. 2 [43] Julian Quevedo, Percy Liang, and Sherry Yang. Eval-uating robot policies in a world model. arXiv preprint arXiv:2506.00613 , 2025. 2 [44] Robin Schiewer, Anand Subramoney*, and Laurenz Wiskott*. Exploring the limits of hierarchical world models in reinforcement learning. Scientific Reports , 14(1):26856, 2024. 2 [45] Ramanan Sekar et al. Planning to explore via self-supervised world models. In ICML , 2020. 6 [46] Torbjørn Smith and Olav Egeland. Learning hamiltonian dy-namics with reproducing kernel hilbert spaces and random features. European Journal of Control , 80:101128, 2024. 2 [47] Yonglong Tian, Chen Sun, Ben Poole, Dilip Krishnan, Cordelia Schmid, and Phillip Isola. What makes for good views for contrastive learning? In Proceedings of the 34th International Conference on Neural Information Processing Systems , Red Hook, NY, USA, 2020. Curran Associates Inc. 2[48] Peter Toth, Danilo J Rezende, Andrew Jaegle, S´ ebastien Racani` ere, Aleksandar Botev, and Irina Higgins. Hamilto-nian generative networks. In International Conference on Learning Representations . 2, 3, 4 [49] A¨ aron van den Oord, Yazhe Li, and Oriol Vinyals. Repre-sentation learning with contrastive predictive coding. ArXiv ,abs/1807.03748, 2018. 2 [50] Miguel Vaquero, Jorge Cort´ es, and David Mart´ ın de Diego. Symmetry preservation in hamiltonian systems: simulation and learning. Journal of Nonlinear Science , 34(6):115, 2024. 2[51] Rishi Veerapaneni, John D. Co-Reyes, Michael Chang, Michael Janner, Chelsea Finn, Jiajun Wu, Joshua Tenen-baum, and Sergey Levine. Entity abstraction in visual model-based reinforcement learning. In Proceedings of the Confer-ence on Robot Learning , pages 1439–1456. PMLR, 2020. 2 [52] Fei Wang, Liping Chen, and Jianwan Ding. Symplectic physics-embedded learning via lie groups hamiltonian for-mulation for serial manipulator dynamics prediction. Scien-tific Reports , 15(1):33179, 2025. 2 [53] Qi Wang, Junming Yang, Yunbo Wang, Xin Jin, Wenjun Zeng, and Xiaokang Yang. Making offline rl online: Collab-orative world models for offline visual reinforcement learn-ing. Advances in Neural Information Processing Systems ,37:97203–97230, 2024. 1 [54] Zhixiang Wei, Lin Chen, Tao Tu, Pengyang Ling, Huaian Chen, and Yi Jin. Disentangle then parse: Night-time se-mantic segmentation with illumination disentanglement. In 
+
+Proceedings of the IEEE/CVF International Conference on Computer Vision , pages 21593–21603, 2023. 2 [55] Matthias Weissenbacher, Samarth Sinha, Animesh Garg, and Kawahara Yoshinobu. Koopman q-learning: Offline rein-forcement learning via symmetries of dynamics. In Pro-ceedings of the 39th International Conference on Machine Learning , pages 23645–23667. PMLR, 2022. 2 [56] Matthias Weissenbacher, Rishabh Agarwal, and Yoshinobu Kawahara. Sit: symmetry-invariant transformers for gener-alisation in reinforcement learning. In Proceedings of the 41st International Conference on Machine Learning , pages 52695–52719, 2024. 2 [57] Jialong Wu, Shaofeng Yin, Ningya Feng, Xu He, Dong Li, Jianye Hao, and Mingsheng Long. ivideogpt: Interactive videogpts are scalable world models. Advances in Neural Information Processing Systems , 37:68082–68119, 2024. 2 [58] Ziyi Wu, Nikita Dvornik, Klaus Greff, Thomas Kipf, and Animesh Garg. Slotformer: Unsupervised visual dynamics simulation with object-centric models. In The Eleventh In-ternational Conference on Learning Representations , 2023. 2[59] Yingchen Xu, Jack Parker-Holder, Aldo Pacchiano, Philip Ball, Oleh Rybkin, Tim Rockt¨ aschel, and Edward Grefen-stette. Learning general world models in a handful of reward-free deployments. Advances in Neural Information Process-ing Systems , 35:26820–26838, 2022. 1 [60] Zhecheng Yuan, Tianming Wei, Shuiqi Cheng, Gu Zhang, Yuanpei Chen, and Huazhe Xu. Learning to manipulate anywhere: A visual generalizable framework for reinforce-ment learning. In 8th Annual Conference on Robot Learning ,2024. 2 [61] Jiahan Zhang, Muqing Jiang, Nanru Dai, Taiming Lu, Arda Uzunoglu, Shunchi Zhang, Yana Wei, Jiahao Wang, Vishal M Patel, Paul Pu Liang, et al. World-in-world: World models in a closed-loop world. arXiv preprint arXiv:2510.18135 , 2025. 2 [62] Yaofeng Desmond Zhong, Biswadip Dey, and Amit Chakraborty. Symplectic ode-net: Learning hamiltonian dy-namics with control. In International Conference on Learn-ing Representations . 2, 3, 4, 5 [63] Siyuan Zhou, Yilun Du, Jiaben Chen, Yandong Li, Dit-Yan Yeung, and Chuang Gan. Robodreamer: learning composi-tional world models for robot imagination. In Proceedings of the 41st International Conference on Machine Learning ,pages 61885–61896, 2024. 1 DreamSAC: Learning Hamiltonian World Models via Symmetry Exploration 
+
+# Supplementary Material 
+
+## 6. Detailed Methodology 
+
+6.1. Work as Symmetry Breaking 
+
+Our symmetry-aware exploration aims to learn the internal Hamiltonian Hϕ, which encodes the system’s conservative dynamics and symmetries. By Noether’s theorem, contin-uous symmetries in a physical system correspond to con-served quantities. For an autonomous (closed) Hamiltonian system, time-translation symmetry implies conservation of energy, meaning the Hamiltonian is constant along trajecto-ries: 
+
+dH dt = ∂H ∂q ˙q + ∂H ∂p ˙p
+
+= ∂H ∂q 
+
+ ∂H ∂p 
+
+
+
++ ∂H ∂p 
+
+
+
+− ∂H ∂q 
+
+
+
+= 0 
+
+(8) In such a closed system, observing passive evolution pro-vides limited information about the underlying structure of 
+
+H, as the system remains on a fixed energy level set. To efficiently learn H across its entire domain, an agent must actively break this conservation. In our controlled setting (Eq. 11), the agent’s action at acts as a non-conservative external force. The time evolution of the Hamiltonian in this open system becomes: 
+
+dH dt = ∂H ∂q ˙q + ∂H ∂p ˙p
+
+= ∂H ∂q 
+
+ ∂H ∂p 
+
+
+
++ ∂H ∂p 
+
+
+
+− ∂H ∂q + g(q)at
+
+ (9) Simplifying this yields a direct relationship between the change in the Hamiltonian and the external work done by the agent: 
+
+dH dt =
+
+ ∂H ∂p 
+
+⊤
+
+g(q)at = ˙ q⊤Fext = Pext (10) where Fext = g(q)at is the effective external force and Pext 
+
+is the external power delivered to the system. Equation (10) provides the theoretical justification for our intrinsic reward, rsym ≈ |∆H|. By maximizing 
+
+|H(Zt+1 ) − H(Zt)|, the agent is intrinsically motivated to perform actions that maximize work done on or by the sys-tem. This actively steers the system away from its current energy level sets, effectively ”breaking” the symmetries that hold for unforced trajectories and exploring new regions of the phase space essential for robustly learning the global structure of Hϕ.
+
+6.2. Hamiltonian Dynamics and Discretization 
+
+Our world model’s latent dynamics follow the controlled Hamiltonian equations of motion. In continuous time, for a latent state Z = ( q, p) and control action at, these are: 
+
+˙q = ∂H ϕ
+
+∂p (q, p)˙p = − ∂H ϕ
+
+∂q (q, p) + gϕ(q)at
+
+(11) 
+
+Dual Integration Strategy. Discretizing these equations requires careful consideration. While Symplectic Integra-tors are essential for long-term energy conservation, they can sometimes yield less stable gradients during the early phases of training deep generative models compared to stan-dard numerical methods. To balance training stability with physical faithfulness during imagination, we employ a dual integration strategy: • World Model Training (Gradient Stability): During the pretraining and adaptation phases, where we opti-mize the world model parameters ϕ via the ELBO (short-horizon predictions), we employ a standard explicit Euler integrator for maximum gradient stability and computa-tional efficiency. • Imagination & Inference (Physical Conservation): 
+
+During actor-critic training (imagined rollouts) and evaluation, where long-horizon physical consistency is paramount, we switch to the explicit Symplectic Leapfrog Integrator. 
+
+Discussion of Limitations. We acknowledge that opti-mizing the vector field under Euler discretization while evaluating it with Leapfrog introduces a theoretical gap: the model is not strictly “trained to be symplectic.” However, this is a deliberate design choice. Training directly through a multi-step Symplectic Integrator can lead to exploding gradients in the early stages of learning deep generative models. By using a small time step ∆t, the discretization er-ror between Euler and Leapfrog is minimized. Empirically, we find that the vector field learned via Euler approximation sufficiently captures the underlying continuous Hamiltonian dynamics. Crucially, with our sufficiently small integration step ( ∆t = 0 .1), the learned dynamics approach the con-tinuous ODE limit. This ensures that the Symplectic Inte-grator utilized during inference theoretically guarantees the preservation of symplectic structure and energy conserva-tion, rendering it a structurally grounded choice rather than merely an empirical heuristic. Explicit Leapfrog with Control. Despite using a general parameterized Hamiltonian Hϕ(q, p ), our network architec-ture ensures efficient computation of partial derivatives via automatic differentiation, allowing for an explicit approxi-mation. We apply the control input at (assumed constant over ∆t) during both momentum half-steps. The update from (qt, p t) to (qt+1 , p t+1 ) is: 1. Half-step Momentum Update: 
+
+pt+1 /2 = pt + ∆t
+
+2
+
+
+
+− ∂H ϕ
+
+∂q (qt, p t) + gϕ(qt)at
+
+
+
+(12) 2. Full-step Position Update: 
+
+qt+1 = qt + ∆ t · ∂H ϕ
+
+∂p (qt, p t+1 /2) (13) 3. Full-step Momentum Completion:        
+
+> pt+1 =pt+1 /2+∆t
+> 2
+> 
+> −∂H ϕ
+> ∂q (qt+1 , p t+1 /2) + gϕ(qt+1 )at
+> 
+
+(14) This formulation ensures that the external work done by the agent is correctly accounted for in the system’s momentum change while preserving the symplectic structure of the in-ternal dynamics during rollout. 
+
+6.3. Viewpoint-Robustness 
+
+To ensure the latent state Zt captures underlying physical dynamics rather than nuisance viewpoint parameters, we employ a self-supervised contrastive loss, Lvr . This loss explicitly incentivizes the encoder qϕ to be invariant to im-age transformations that preserve the physical state. 
+
+Augmentation Pipeline. We construct positive pairs 
+
+(xAt , x Bt ) from a single observation xt by applying a stochastic sequence of augmentations. To effectively sim-ulate complex viewpoint changes and environmental varia-tions, we utilize the following augmentations in order (all implemented using standard TorchVision transforms): • Random Resized Crop: Simulates changes in camera distance and focus. We use a scale range of [0.8, 1.0] and an aspect ratio range of [0.75, 1.33]. • Random Perspective: Crucial for simulating drastic camera angle shifts. We use a distortion scale of 0.5 ap-plied with a probability of 0.5. • Color Jitter: Simulates lighting variations. We adjust brightness, contrast, saturation, and hue with factors of [0.4, 0.4, 0.4, 0.1] respectively, applied with probability 0.8. • Gaussian Blur: Prevents reliance on high-frequency ar-tifacts. We use a kernel size of 23(roughly 10% of image size) and a sigma range of [0.1, 2.0], applied with proba-bility 0.5. 
+
+Loss Implementation Details. We adopt the InfoNCE loss. For a minibatch of size K, we use the other 2( K − 1) 
+
+augmented views within the same batch as negative sam-ples. No external memory bank is used. For a positive pair 
+
+(i, j ), the loss is: 
+
+ℓi,j = − log exp( sim (Zi, Z j )/τ )
+
+P2Kk=1 ,k ̸ =i exp( sim (Zi, Z k)/τ ) (15) where sim (u, v ) is cosine similarity. 
+
+Temperature Parameter τ Analysis. The temperature parameter τ controls the sharpness of the distribution and the ”hardness” of negative samples. We use τ = 0 .07 for all main experiments. Table 5 shows a sensitivity analysis on the ’FetchPush New View’ task, demonstrating that our chosen value provides an optimal balance between learning discriminative features and training stability. 
+
+Preserving Physical Signal under Augmentation. Acritical concern is whether strong visual augmentations might degrade the model’s ability to identify fine-grained physical properties ( e.g. , mass or friction) required for para-metric generalization. We address this by strictly limiting our augmentation pipeline to spatial and chromatic trans-formations (e.g. , crop, perspective, color) while strictly forbidding temporal augmentations ( e.g. , frame skipping, speed jitter). Since physical parameters like mass are in-ferred from the temporal evolution of the state ( i.e. , accel-eration under force), our strategy ensures that the tempo-ral structure remains intact. The contrastive loss Lvr thus forces the encoder to discard static visual nuisances (view-point) while retaining the temporal dynamics information essential for the Hamiltonian world model to infer implicit physical parameters.               
+
+> Table 5. Sensitivity analysis of the temperature parameter τon Reacher Hard (Unseen View) mean reward (mean over 5 seeds).
+> Temperature τ0.05 0.07 (Ours) 0.1 0.2 0.5 Mean Reward 312.4 321.9 308.7 245.3 112.8
+
+6.4. Symmetry Exploration Reward Annealing 
+
+The intrinsic reward rint,t combines a standard novelty-based exploration bonus ( rRN D ) and our proposed physics-based symmetry probing bonus ( rsym ). Since these two sig-nals originate from different sources (prediction error vs. Hamiltonian difference) and fluctuate significantly during training, proper normalization is crucial. Following the standard practice in Dreamer [17] and RND [4], we normalize each reward component using 0.0M 0.2M 0.4M 0.6M 0.8M 1.0M 1.2M    
+
+> Training Steps ( t)
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Intrinsic Reward Weight
+> Tanneal
+> Exploration
+> Bootstrap
+> Physics
+> Probing
+> RND Weight (1 wt)
+> Symmetry Weight (wt)
+
+Figure 4. Visual illustration of the linear annealing schedule for an environment with Tanneal = 10 6.
+
+its running standard deviation . We maintain a run-ning standard deviation σi for each reward stream i ∈{RN D, sym }. The normalized rewards used in the anneal-ing equation are calculated as: 
+
+˜ri,t = ri,t 
+
+σi,t 
+
+(16) The final annealed reward is then computed as: 
+
+rint,t = (1 − wt) · ˜rRN D,t + wt · ˜rsym,t (17) This dynamic normalization ensures that the magnitude of the intrinsic rewards remains consistent ( ≈ 1.0) through-out the training process, preventing either component from dominating the learning signal due to scale differences. 
+
+Rationale for Annealing. At the beginning of training, the Hamiltonian world model Hϕ is randomly initialized. Consequently, the symmetry probing reward rsym,t ∝|Hϕ(Zt+1 ) − Hϕ(Zt)| is extremely noisy and does not yet reflect true physical information gain. Relying solely on it initially can lead to degenerate exploration behaviors. To bootstrap the learning process, we initially rely on rRN D .We use a standard RND implementation that operates di-rectly on pixel observations, providing a stable, model-agnostic diversity signal. This ensures broad coverage of the state space, collecting the initial data necessary to start training Hϕ. As Hϕ becomes more accurate, we linearly shift the exploration focus towards active symmetry prob-ing. 
+
+Annealing Schedule. We employ a linear annealing schedule for the weight wt:
+
+wt = clip 
+
+ tTanneal 
+
+, 0, 1
+
+
+
+(18) The annealing duration Tanneal is a task-dependent hyper-parameter, generally set longer for environments with more complex dynamics that require more initial data to stabilize 
+
+Hϕ. Table 6 lists the specific values used. 
+
+Table 6. Annealing duration Tanneal for different environments. We set longer annealing phases for environments with com-plex dynamics or high-dimensional state spaces ( e.g. , Humanoid, Quadruped) to allow sufficient exploration via RND before switch-ing to symmetry probing. 
+
+Environment Tanneal (Steps) 
+
+GymFetch Manipulation 
+
+FetchReach 2 × 10 5
+
+FetchPush 5 × 10 5
+
+FetchSlide 1 × 10 6
+
+DeepMind Control Suite 
+
+Acrobot Swingup 2 × 10 5
+
+Reacher Hard 5 × 10 5
+
+Hopper Hop 5 × 10 5
+
+Walker Walk / Run 5 × 10 5
+
+Cheetah Run 5 × 10 5
+
+Quadruped Run / Escape 1 × 10 6
+
+Humanoid Walk 1 × 10 6
+
+## 7. Implementation Details 
+
+7.1. World Model Loss Functions 
+
+Our full world model objective (Eq. 5 in the main paper) is: 
+
+Ltotal (ϕ) = 
+
+> T
+
+X
+
+> t=1
+
+
+
+Lpred (ϕ) + βdyn Ldyn (ϕ)+ βrep Lrep (ϕ) + γLvr (ϕ)
+
+
+
+As we introduce a novel Hamiltonian dynamics prior, pϕ,the standard KL divergence losses from [17] must be adapted. We define these components as follows: 
+
+Prediction Loss ( Lpred ) This is the standard reconstruc-tion loss, formulated as the log-likelihood of the observation 
+
+xt given the latent state Zt and the recurrent state ht:
+
+Lpred = −Eqϕ(Zt|xt,h t) [log pϕ(xt|Zt, h t)] 
+
+where qϕ(Zt|xt, h t) is the posterior from the object-centric encoder, and pϕ(xt|Zt, h t) is the decoder. 
+
+Dynamics and Representation Losses (Ldyn , Lrep )
+
+These are the two components of the KL divergence that force the latent state Zt inferred from the image (the pos-terior qϕ) to match the state predicted by the Hamiltonian dynamics (the prior pϕ). Our key modification is that our prior pϕ is Markovian on Z and does not depend on the re-current state ht.The posterior qϕ is inferred from the current image xt
+
+and history ht. The prior pϕ is predicted from the previous latent state Zt−1 and action at−1 using our Hamiltonian in-tegrator (Eq. 4). Following [17], we split the KL divergence and apply stop-gradients (sg) to create two distinct losses that train the encoder and the prior separately: 
+
+Ldyn = KL [sg (qϕ(Zt|xt, h t)) ∥ pϕ(Zt|Zt−1, a t−1)] 
+
+This loss trains the Hamiltonian prior pϕ (i.e. , Hϕ) to cor-rectly predict the latent state Zt that the encoder inferred from the image. 
+
+Lrep = KL [qϕ(Zt|xt, h t) ∥ sg (pϕ(Zt|Zt−1, a t−1))] 
+
+This loss trains the encoder qϕ to produce latent states Zt
+
+that are consistent with the predictions of the (fixed) dynam-ics prior. Following DreamerV3 [17], we do not use fixed static weights for Ldyn and Lrep . Instead, we employ KL Balancing to encourage the posterior to maintain sufficient entropy while pulling the prior towards it. The objective is computed as: 
+
+LKL = βdyn KL [sg (qϕ)|| pϕ] + βrep KL [qϕ|| sg (pϕ)] (19) We set the coefficients to βdyn = 0 .5 and βrep = 0 .1. This configuration allows the prior to learn the dynamics rapidly without collapsing the posterior’s representation capacity, ensuring the Hamiltonian structure Hϕ captures rich physi-cal features from the start. 
+
+7.2. Network Architectures 
+
+7.2.1. Object-Centric Encoder (SAVi) 
+
+We utilize the Slot Attention for Video (SAVi) [24] architec-ture to decompose the visual scene into object-centric latent slots Zt = {z1 
+
+> t
+
+, . . . , z Nt }.• Backbone: A ResNet-18 (truncated) extracts a feature map of size H′ × W ′ × Denc from the 64 × 64 input im-age. We add sinusoidal position embeddings to the fea-ture map. • Slot Attention: We use N = 6 slots for all environments (sufficient for the robot, objects, and background). The attention mechanism runs for 3 iterations per time step. • Slot Dimensions: Each slot has a dimension of Dslot =128 .• Latent Projection: The output of the slot attention is pro-jected via an MLP to parameterize the mean and variance of the posterior Gaussian qϕ. Crucially, the slot dimen-sion is split evenly into generalized coordinates and mo-menta: zi = [ qi, p i], where q, p ∈ R64 .
+
+Table 7. Hyperparameters used for DreamSAC training.                               
+
+> Parameter Value
+> Training Config
+> Batch Size 50 Sequence Length ( T)64 Total Training Steps 2×10 6(Pretrain) + 5×10 5(Adapt) Optimizer AdamW Learning Rate (World Model) 1×10 −4
+> Learning Rate (Actor-Critic) 3×10 −5
+> Grad Clip Norm 100.0
+> Loss Weights
+> Prediction Loss Scale 1.0 Dynamics Loss Scale ( βdyn )0.5 Representation Loss Scale ( βrep )0.1 Viewpoint-Robustness Scale ( γ)1.0 InfoNCE Temperature ( τ)0.07
+> Exploration & Physics
+> Intrinsic Reward Scale 1.0 Action Smoothness ( λs)0.01 Annealing Steps ( Tanneal )See Table 6 Physics Integration Step ( ∆t)0.1
+
+7.2.2. Invariant Hamiltonian (Lie Transformer) 
+
+The internal Hamiltonian Hϕ(Zt) is parameterized as a Lie Transformer [20] to enforce SE (3) invariance by construc-tion. • Input: The set of object slots Zt is treated as a set of particles. • Group Structure: We lift the inputs to the Lie Algebra of SE (3) .• Architecture: The network consists of L = 4 Lie Self-Attention layers with 4 attention heads each. The embed-ding dimension is 128 .• Output: A final invariant pooling layer aggregates the features followed by an MLP to output a single scalar value: the Hamiltonian H ∈ R.
+
+7.2.3. Input Matrix Network ( gϕ)
+
+The input matrix gϕ(qt) determines how the action at in-fluences the system’s momentum. It is parameterized as a 3-layer MLP with 128 hidden units and ELU activations. • Input: The generalized coordinates qt ∈ R64 extracted from the object slots. • Output: A matrix of dimension 64 ×| A|, where |A| is the action dimension. This matrix is reshaped to perform the element-wise product with the action vector in Eq. 11. • Initialization: The final layer weights are initialized with a small scale ( 10 −3) to ensure the initial dynamics are close to autonomous evolution, stabilizing the early train-ing of the Hamiltonian prior. 
+
+7.2.4. Decoder and Actor-Critic 
+
+• Decoder: A standard transposed convolutional network with 4 layers (kernels: 4 × 4, stride: 2) and ELU acti-vations. It receives the concatenated slots and recurrent state. • Actor & Critic: Both are MLPs with 4 hidden layers of 256 units and ELU activations. The Actor outputs a 
+
+tanh Gaussian policy; the Critic outputs a scalar value estimate. 
+
+7.3. Hyperparameters 
+
+Table 7 summarizes the hyperparameters used across our experiments. We adhered closely to the default Dream-erV3 parameters where possible to isolate the gains from our Hamiltonian contribution. 
+
+7.4. Training Pseudocode 
+
+The training process is distinctively split into an unsuper-vised curiosity-driven phase and a task-driven adaptation phase. 
+
+Algorithm 1 DreamSAC Training Procedure  
+
+> 1:
+
+Params: ϕ (World Model), θ (Actor), ψ (Critic)  
+
+> 2:
+
+Init: Buffer B, random weights  
+
+> 3:
+
+▷ Phase 1: Unsup. Pretraining  
+
+> 4:
+
+while t < T pretrain do  
+
+> 5:
+
+wt ← min( t/T anneal , 1)  
+
+> 6:
+
+Interact: Execute at ∼ πθ (ht, Z t), observe xt+1  
+
+> 7:
+
+rint ← (1 − wt)rRND + wt|∆Hϕ| 
+
+> 8:
+
+Add (xt, a t, r int ) to B 
+
+> 9:
+
+Train: Sample batch B ∼ B  
+
+> 10:
+
+Optimize ϕ via Ltotal (Eq. 5, incl. Lvr ) 
+
+> 11:
+
+Imagine {Zτ } via Ham. Integrator  
+
+> 12:
+
+Update πθ , v ψ on imagined data  
+
+> 13:
+
+end while  
+
+> 14:
+
+▷ Phase 2: Adaptation  
+
+> 15:
+
+for task with reward rext do  
+
+> 16:
+
+Opt A (ID):  
+
+> 17:
+
+Freeze pϕ, q ϕ 
+
+> 18:
+
+Re-init & train πθ′ via rext  
+
+> 19:
+
+Opt B (OOD):  
+
+> 20:
+
+Freeze qϕ 
+
+> 21:
+
+Finetune Hϕ (LR 10 −5); Train πθ′ 
+
+> 22:
+
+end for 
+
+## 8. Experimental Setup Details 
+
+8.1. Baseline Configurations and Oracle Definitions 
+
+To provide a comprehensive evaluation, we compare against different training protocols. It is crucial to distinguish be-tween the extrapolation capabilities and the theoretical up-per bound of the tasks: • DreamerV3+Policy (Oracle / Reference): In Table 2 (Main Paper), the entries for “DreamerV3+Policy” repre-sent the Oracle performance . For these specific entries, the model was trained directly on the target OOD envi-ronment ( e.g. , the specific Unseen View or Unseen Grav-ity configuration) from scratch. This serves as an empir-ical upper bound , quantifying the maximum achievable reward if the agent were perfectly adapted to the target domain. The significant gap between this Oracle score (e.g. , ∼ 954 on Reacher Unseen View) and the adapta-tion scores ( e.g. , ∼ 321 for DreamSAC) highlights the extreme difficulty of the zero-shot/few-shot extrapolation task compared to standard i.i.d. training. • DreamerV3+RND & DreamSAC (OOD Extrapola-tion): In contrast, all other baselines and our method follow the strict OOD protocols defined below (Single-Parameter Shift or Distribution Extrapolation), where the agent has never seen the specific target configuration dur-ing the pre-training phase. 
+
+8.2. Environment Configurations 
+
+To rigorously test extrapolative generalization, we con-structed specific OOD variants of standard DeepMind Con-trol Suite and GymFetch tasks. We categorize these into Structural Generalization and Parametric Generalization tasks. 
+
+Structural Generalization (Visual & Configuration). 
+
+These tasks test the model’s ability to handle unseen visual perspectives and spatial configurations. For the standard training distribution (used by extrapolation models), we fix the camera azimuth at ϕ = 0 ◦ and elevation at θ = 15 ◦ with a single dynamic object. In the Unseen View OOD setting, we sample the camera azimuth uniformly from [0 ◦, 90 ◦] to test viewpoint invariance. Note on Baselines: It is important to distinguish that the DreamerV3+Policy baseline reported in Table 2 serves as an Oracle: it was trained directly on the target views to establish an empirical upper bound. In contrast, DreamSAC and other baselines are evaluated in a strict zero-shot manner, having never encountered these viewing angles during pre-training. For the Unseen Object task, we increase the number of dynamic objects from 1 to 3, testing the slot attention’s ability to instantiate new slots for physics interactions. Crucially, for the Unseen Goal task (in FetchReach and Reacher), we sample target positions that lie strictly outside the distance range encountered dur-ing training ( e.g. , targets are generated in the outer 20% of the workspace radius, whereas training targets are confined to the inner 50%). This requires the agent to spatially ex-trapolate its motion planning policy to reach novel coordi-nates never visited before. 
+
+Parametric Generalization (Physical Laws). These tasks test the Hamiltonian model’s ability to adapt to changes in the fundamental constants of the environment. We employ two distinct evaluation protocols to rigorously test different aspects of generalization. (1) For the Un-seen Gravity, Unseen Friction, and GymFetch Heavy Block tasks, we utilize a single-parameter shift (zero-shot extrap-olation) protocol. Here, models are trained on a fixed stan-dard configuration ( e.g. , standard gravity g = −9.81 m/s 2
+
+or block mass 2kg ) and evaluated on a significantly shifted configuration ( e.g. , gravity scaled by 1.5×, friction by 
+
+2.0×, or mass to 10 kg ). This tests the model’s ability to extrapolate physical laws from a single data point without prior exposure to parameter variations. (2) Crucially dif-ferent is the protocol for the Walker and Cheetah Unseen Dist. tasks, where we adopt a distribution extrapolation protocol. Unlike the single-parameter shift, this task em-ploys a rigorous train/test split strategy to evaluate robust-ness against compound domain shifts. We define a broad range of physical parameters (simultaneously perturbing torso mass, joint damping, and contact friction) and sam-ple training environments exclusively from the lower 80% of this range ( Dtrain ). Evaluation is performed solely on the held-out upper 20% ( Dtest ). This setup implies that all models—including the DreamerV3 baseline—are trained on the randomized Dtrain distribution, effectively making the baseline a domain randomization (DR) agent. Con-sequently, DreamSAC’s superior performance on this task demonstrates that it has not merely memorized the training distribution (interpolation) but has learned the underlying functional form of the dynamics to generalize to unseen pa-rameter ranges (extrapolation). 
+
+## 9. Additional Experimental Results 
+
+9.1. Analysis of Learned Physical Representations 
+
+A core hypothesis of DreamSAC is that the split latent rep-resentation Zt = ( qt, p t) learns to encode underlying phys-ical laws and symmetries, rather than mere visual statistics. We validate this through the qualitative analyses presented in Figure 3 of the main paper. We first verify the conservation laws by analyzing the evolution of the learned internal Hamiltonian Hϕ during a rollout. As shown in Figure 3b (Main Paper), the value of 
+
+Hϕ remains nearly constant (red dashed line) during a zero-action rollout. This empirically confirms that our model has successfully discovered the environment’s underlying physical invariant (energy conservation) and satisfies the au-tonomous Hamiltonian dynamics condition ˙H ≈ 0 without direct supervision. In contrast, during random action roll-outs, Hϕ fluctuates, reflecting the work done by external forces. Furthermore, we investigate the physics-aware latent structure by visualizing the high-dimensional latent states 
+
+(q, p) using t-SNE. Figure 3d (Main Paper) compares the latent distributions of the pre-trained model against the model fine-tuned on downstream tasks. For In-Distribution (ID) tasks where physical properties match the training set, the representations of the fine-tuned model and pre-trained model remain heavily mixed, indicating that the pre-trained physics prior is directly applicable. Conversely, for Out-of-Distribution (OOD) tasks with novel physical properties (e.g. , modified friction or gravity), the fine-tuned states form distinct clusters that clearly separate from the pre-training distribution. This separation demonstrates that the encoder 
+
+qϕ has learned a physics-aware topology capable of distin-guishing between familiar and novel dynamics based on in-teraction. 
+
+9.2. Extended Baseline Comparisons 
+
+We compared Symmetry Exploration against other intrinsic motivation baselines on the GymFetch Heavy Block OOD task, which requires precise physical adaptation. 
+
+Implementation of Baselines. To ensure a fair compar-ison and isolate the efficacy of our Symmetry Exploration strategy, we did not use the original pixel-based implemen-tations of ICM [38] or Plan2Explore [45]. Instead, we re-implemented both baselines on top of the exact same DreamerV3 backbone (with Hamiltonian) used by Dream-SAC. Specifically, they operate on the same latent features 
+
+Zt, share the same hyperparameters for the world model training, and use the same SAVi encoder. This guarantees that the performance gains reported below are solely driven by our physics-aware curiosity mechanism, rather than dif-ferences in the underlying generative model capacity. • ICM (Prediction Error): Focuses on parts of the state space that are hard to predict. We found this often led the agent to get stuck in ”stochastic traps” ( e.g. , white noise), failing to learn the precise dynamics required to manipulate the heavy object. • Plan2Explore: Maximizes information gain about the dynamics. While effective, it requires training an ensem-ble of dynamics models, which is computationally heav-ier than our single Hamiltonian method. Furthermore, it lacks the specific incentive to probe energy boundaries. As shown in Table 8, DreamSAC significantly outper-forms both baselines on the DMCS Walker-walk task with unseen gravity. This suggests that seeking energy changes (rsym ≈ | ∆H|) is a more efficient heuristic for discover-ing physical parameters (like mass) than generic informa-tion gain, enabling the agent to adapt to the heavier object dynamics. 
+
+9.3. Hyperparameter Sensitivity Analysis 
+
+We analyze the impact of the action smoothness regular-ization weight λs (Eq. 6). A potential critique is that per-formance gains might stem solely from action smoothing. However, our ablation on Reacher-Hard (Table 9) refutes this. The intrinsic reward rsym ≈ | ∆H| encourages the agent to maximize energy changes (work). Without regularization Table 8. Mean Reward on the DMCS Walker-walk Unseen Gravity OOD task (Gravity 1× → 1.5×). Comparison ensures identical backbone architectures (with Hamiltonian). 
+
+Method Mean Reward 
+
+DreamerV3+ICM 469.72 DreamerV3+Plan2Explore 379.28 
+
+DreamSAC (Ours) 499.91 
+
+(λs = 0 ), the agent can trivially maximize this via high-frequency “jitter,” which generates large numerical ∆H but lacks physical meaningfulness (effective work). As shown in Table 9, setting λs = 0 results in a reward of 306.5 .While this is lower than our peak performance, it remains significantly effective (far exceeding random policies), con-firming that the Hamiltonian exploration mechanism itself is the primary driver of learning. Introducing λs = 0 .01 filters out this “jitter noise,” al-lowing rsym to accurately reflect coherent physical work, boosting the reward to 321.90 . Conversely, excessive smoothing ( λs = 0 .1) overly restricts the agent’s ability to manipulate the system, dropping performance to 152.4. Thus, λs acts as a necessary signal-to-noise filter for the physics-based reward, rather than a standalone performance hack.               
+
+> Table 9. Sensitivity analysis of Action Smoothness λson Walker-walk . Note that even with λs= 0 , the model maintains decent performance, indicating that the Hamiltonian prior is robust. The smoothing parameter primarily serves to filter out high-frequency jitter that creates false energy deltas.
+> λsValue Mean Reward Behavior 0.0 (No Reg.) 967.43 Jitter
+> 0.01 (Ours) 996.50 Coherent 0.1 (High Reg.) 921.66 Over-smooth
+
+## 10. Impact of Integrator Choice during Infer-ence 
+
+A core design choice in DreamSAC is the Dual Integration Strategy , which employs a standard explicit Euler integra-tor during training for gradient stability while switching to a Symplectic Leapfrog integrator during imagination and in-ference to better preserve physical invariants. To validate that this discrepancy does not degrade predictive perfor-mance and indeed improves physical consistency, we con-ducted a comparative experiment on the Acrobot task. We evaluated the pre-trained DreamSAC model using both Eu-ler and Leapfrog integrators over a long prediction horizon (H = 100 ). Our evaluation relies on two key metrics: the 
+
+Long-term Prediction MSE to measure visual dynamics accuracy, and the Energy Drift ( σH ), defined as the stan-dard deviation of the learned Hamiltonian value Hϕ(zt)
+
+over a zero-action rollout, where a lower value indicates better adherence to the conservation of energy law. As shown in Table 10, the results demonstrate that while both integrators achieve comparable predictive MSE with Leapfrog being slightly superior (0.198 vs. 0.215), the Symplectic Leapfrog integrator significantly outperforms Euler in terms of energy conservation. Specifically, the Euler integrator suffers from numerical dissipation, lead-ing to a high energy drift ( σH = 0.128 ), whereas the Leapfrog integrator maintains a nearly constant Hamilto-nian ( σH = 0 .015 ). This confirms that our dual strategy successfully combines training stability with the long-term physical plausibility required for robust planning.          
+
+> Table 10. Comparison of Inference Integrators on Acrobot ( H=100 ). While MSE remains similar, the Symplectic Leapfrog inte-grator (Ours) drastically reduces Energy Drift, confirming its abil-ity to enforce physical conservation laws that explicit Euler fails to maintain over long horizons.
+> Metric Euler Inference Leapfrog Inference (Ours)
+> Prediction MSE ( ↓)0.215 0.198
+> Energy Drift ( σH,↓)0.128 0.015
+
+10.1. Computational Efficiency Analysis 
+
+A potential concern with Hamiltonian-based models is the computational overhead of the symplectic integrator, which requires evaluating gradients of the Hamiltonian during the forward pass. We provide a breakdown of the training and inference costs in Table 11, measured on a single NVIDIA A100 GPU. While DreamSAC introduces a ∼ 35% increase in train-ing wall-clock time per step due to the dual integration strat-egy (Euler for world model updates, Leapfrog for imag-ination), this is offset by its superior sample efficiency .DreamSAC typically converges to higher rewards with sig-nificantly fewer environment interaction steps compared to the baselines, making it more efficient in terms of total time-to-convergence for complex physical tasks.       
+
+> Table 11. Computational cost comparison (normalized relative to DreamerV3).
+> Method Training Time / Step GPU Memory Usage
+> DreamerV3 1.00 ×1.00 ×
+> DreamSAC (Ours) 1.35 ×1.12 ×
+
+## 11. Limitations and Future Work 
+
+While DreamSAC demonstrates robust extrapolative capa-bilities via symmetry discovery, an analysis through the lenses of theoretical modeling, algorithmic stability, and computational scalability reveals key areas for future devel-opment. 
+
+Theoretical Boundaries of Conservative Modeling. 
+
+Our framework currently models the world as a controlled Hamiltonian system, presupposing that the underlying dy-namics are fundamentally conservative with external con-trol. This assumption faces challenges in highly dissipa-tive environments—such as movement through viscous flu-ids or soft-body deformations with internal friction—where energy is continuously dissipated. In our current formula-tion, the model must implicitly ”overload” the control term 
+
+g(q)at to mimic friction as a negative force, effectively con-flating system dynamics with actuation. A promising direc-tion is to extend this formulation to the Port-Hamiltonian System (PHS) framework, which explicitly separates en-ergy storage, energy dissipation (via Rayleigh functions), and external ports, offering a theoretically unified view of open physical systems. Furthermore, complex robotic in-teractions often involve non-holonomic constraints ( e.g. , a rolling wheel preventing sideways sliding) which are diffi-cult to capture purely via the potential energy shaping used in our current approach. 
+
+Numerical Stiffness and Discretization Gaps. Model-ing hard contacts as stiff potential barriers within Hϕ in-troduces significant numerical stiffness into the ordinary differential equations. During inference, if the symplec-tic integrator’s time step ∆t is not sufficiently infinitesi-mal, high-velocity impacts can lead to numerical instabil-ity or non-physical energy spikes (tunneling effects). Fu-ture iterations could integrate Differentiable Linear Com-plementarity Problems (LCP) or learned jump maps directly into the integration step to handle instantaneous momen-tum updates without requiring computationally expensive small time steps. Additionally, as discussed in Sec. 6.2, our dual integration strategy (training on Euler, imagining on Leapfrog) introduces a discretization gap: the vector field is optimized for one numerical scheme but evaluated on an-other. Developing stable methods for end-to-end symplectic training ( e.g. , via implicit differentiation or adjoint sensi-tivity methods) remains a critical open challenge for deep generative models. 
+
+Computational and Representational Scalability. The reliance on a symplectic integrator imposes a computational overhead, requiring two evaluations of the Hamiltonian gra-dients per time step. This results in an inference cost ap-proximately 1.5× higher than standard GRU-based RSSMs, creating non-negligible latency for high-frequency real-time control ( > 30 Hz). Future work could explore model distillation techniques to compress the learned Hamiltonian dynamics into faster, explicit predictors for deployment. Fi-nally, our SAVi-based encoder assumes the scene decom-poses into a fixed number of discrete slots, which limits ap-plicability to unstructured environments containing liquids, cloth, or granular media. Integrating Grid-based Neural Physics or hierarchical representations with our Hamilto-nian prior could extend extrapolative generalization to these more complex, physically unstructured domains.

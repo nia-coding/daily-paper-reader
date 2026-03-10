@@ -85,74 +85,30 @@ subscriptions:
           note: ''
       updated_at: '2026-03-08T16:36:27.403Z'
     - tag: SR AI
-      description: >-
-        聚焦大型语言模型（LLM）向自主智能体（Autonomous Agents）与具身智能（Embodied AI）的演进。涵盖智能体架构（如 ReAct、LangGraph）、多模态感知与物理交互、长短期记忆机制、以及 AI
-        在自动化软件工程（如 SWE-bench 场景）和跨应用工作流中的前沿应用与突破。
+      description: ai 前沿与智能体协作
       enabled: true
       keywords:
         - keyword: Diffusion-based Large Language Model
           keyword_cn: 扩散大语言模型
           query: Diffusion-based Large Language Model
-        - keyword: World Models
-          keyword_cn: 世界模型
-          query: World models and physical causality in artificial intelligence
-        - keyword: VLA models
-          keyword_cn: 视觉-语言-动作模型
-          query: Vision-Language-Action models for robotics and embodied AI
-        - keyword: Embodied Reasoning
-          keyword_cn: 具身推理
-          query: Embodied reasoning and robot navigation foundation models
         - keyword: Long-term Memory
           keyword_cn: 长效记忆
           query: Neural long-term memory and infinite context architectures
-        - keyword: Titans architecture
-          keyword_cn: Titans 架构
-          query: Google Titans architecture for memory management in LLMs
-        - keyword: Reinforcement Learning
-          keyword_cn: 强化学习
-          query: Reinforcement learning for self-evolving reasoning capabilities
-        - keyword: Reasoning Scaling Laws
-          keyword_cn: 推理缩放定律
-          query: Scaling laws for chain-of-thought and reasoning expansion
         - keyword: Multi-Agent Systems
           keyword_cn: 多智能体系统
           query: Multi-agent coordination and agentic workflow orchestration
-        - keyword: Self-Evolving Agents
-          keyword_cn: 自我进化智能体
-          query: Autonomous self-evolution and algorithm discovery in AI agents
-        - keyword: Foundation Models for Robotics
-          keyword_cn: 机器人基础模型
-          query: Generalizable robot skills and foundation models for manipulation
-        - keyword: Autonomous Agents
-          keyword_cn: 自主智能体
-          query: Autonomous AI agents architecture and decision making
-        - keyword: Embodied AI
-          keyword_cn: 具身智能
-          query: Embodied artificial intelligence and physical interaction
-        - keyword: ReAct framework
-          keyword_cn: ReAct 架构
-          query: ReAct reasoning and acting framework for LLMs
-        - keyword: LangGraph
-          keyword_cn: LangGraph 框架
-          query: LangGraph for building stateful multi-agent workflows
         - keyword: Multimodal perception
           keyword_cn: 多模态感知
           query: Multimodal perception and sensory integration in AI
         - keyword: Agent Memory
           keyword_cn: 智能体记忆机制
           query: Long-term and short-term memory mechanisms for AI agents
-        - keyword: SWE-bench
-          keyword_cn: 软件工程基准测试
-          query: Software engineering benchmarks for autonomous agents
         - keyword: Agentic Workflows
           keyword_cn: 智能体工作流
           query: Cross-application automated workflows and agent orchestration
         - keyword: Tool Use
           keyword_cn: 工具调用
           query: LLM tool use and external API calling capabilities
-        - keyword: Robotic Control
-          keyword_cn: 机器人控制
-          query: LLM-based robotic control and physical task execution
       intent_queries:
         - query: How do world models improve physical causality understanding in AI?
           query_cn: 世界模型如何提升AI对物理因果律的理解？
@@ -214,4 +170,9 @@ subscriptions:
           enabled: true
           source: manual
           note: ''
-      updated_at: '2026-03-10T06:14:55.283Z'
+        - query: Is it too technical, with a lot of cutting edge terminology that makes it incomprehensible to non experts?
+          query_cn: 是否过于专业而出现前沿名词堆叠以至于无法让非专业人士看懂？
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-03-10T07:17:04.823Z'

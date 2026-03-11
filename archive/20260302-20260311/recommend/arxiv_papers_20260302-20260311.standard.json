@@ -1,0 +1,1702 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-11T07:20:02.325187+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 2,
+    "deep_divecandidates": 121,
+    "deep_cap": 7,
+    "deep_selected": 32,
+    "quick_candidates": 108,
+    "quick_skim_target": 12,
+    "quick_selected": 12
+  },
+  "deep_dive": [
+    {
+      "id": "2603.09716v1",
+      "title": "AutoAgent: Evolving Cognition and Elastic Memory Orchestration for Adaptive Agents",
+      "abstract": "Autonomous agent frameworks still struggle to reconcile long-term experiential learning with real-time, context-sensitive decision-making. In practice, this gap appears as static cognition, rigid workflow dependence, and inefficient context usage, which jointly limit adaptability in open-ended and non-stationary environments. To address these limitations, we present AutoAgent, a self-evolving multi-agent framework built on three tightly coupled components: evolving cognition, on-the-fly contextual decision-making, and elastic memory orchestration. At the core of AutoAgent, each agent maintains structured prompt-level cognition over tools, self-capabilities, peer expertise, and task knowledge. During execution, this cognition is combined with live task context to select actions from a unified space that includes tool calls, LLM-based generation, and inter-agent requests. To support efficient long-horizon reasoning, an Elastic Memory Orchestrator dynamically organizes interaction history by preserving raw records, compressing redundant trajectories, and constructing reusable episodic abstractions, thereby reducing token overhead while retaining decision-critical evidence. These components are integrated through a closed-loop cognitive evolution process that aligns intended actions with observed outcomes to continuously update cognition and expand reusable skills, without external retraining. Empirical results across retrieval-augmented reasoning, tool-augmented agent benchmarks, and embodied task environments show that AutoAgent consistently improves task success, tool-use efficiency, and collaborative robustness over static and memory-augmented baselines. Overall, AutoAgent provides a unified and practical foundation for adaptive autonomous agents that must learn from experience while making reliable context-aware decisions in dynamic environments.",
+      "authors": [
+        "Xiaoxing Wang",
+        "Ning Liao",
+        "Shikun Wei",
+        "Chen Tang",
+        "Feiyu Xiong"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-10T14:23:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.09716v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Self-evolving multi-agent framework with evolving cognition and memory orchestration",
+      "llm_evidence_cn": "具有进化认知和记忆编排功能的自进化多智能体框架",
+      "llm_evidence": "具有进化认知和记忆编排功能的自进化多智能体框架",
+      "canonical_evidence": "具有进化认知和记忆编排功能的自进化多智能体框架",
+      "llm_tldr_en": "Presents AutoAgent, a framework for adaptive agents using structured prompt-level cognition and elastic memory.",
+      "llm_tldr_cn": "提出了AutoAgent，一个利用结构化提示词认知和弹性记忆的自适应智能体框架。",
+      "llm_tldr": "提出了AutoAgent，一个利用结构化提示词认知和弹性记忆的自适应智能体框架。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Recent advancements in autonomous AI agent architectures and reasoning",
+      "matched_requirement_id": "req-24",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01375v1",
+      "title": "Words & Weights: Streamlining Multi-Turn Interactions via Co-Adaptation",
+      "abstract": "Test-time policy adaptation for multi-turn interactions (T2PAM) is essential for aligning Large Language Models (LLMs) with dynamic user needs during inference time. However, existing paradigms commonly treat test-time adaptation as a single-axis problem, either purely refining instructions (Prompt Engineering) or only adjusting weights (Test-Time Training), ignoring that interaction failures stem from a coupled mix of ambiguity and incapacity. We argue that these two optimization paths are not merely additive but synergistic: semantic clarity acts as a pre-conditioner for effective parameter updates. To this end, we propose ROSA2, a framework that reformulates interaction as a joint optimization problem over the heterogeneous space of Words and Weights. By mathematically decomposing the error signal, ROSA2 utilizes textual gradients to rectify intent ambiguity and parameter updates to bridge capability gaps. Theoretically, we prove that this co-adaptation strictly reduces the required parameter shift for convergence. Empirically, ROSA2 outperforms state-of-the-art baselines by 30% on MATH while reducing interaction turns by 40%, demonstrating that refining the context unlocks the true potential of parameter updates.",
+      "authors": [
+        "Chenxing Wei",
+        "Hong Wang",
+        "Ying He",
+        "Zhongxiang Dai",
+        "Bo Jiang",
+        "F. Richard Yu",
+        "Yao Shu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-02T02:16:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.01375v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "optimizing multi-turn interactions via co-adaptation",
+      "llm_evidence_cn": "通过协同自适应优化多轮交互",
+      "llm_evidence": "通过协同自适应优化多轮交互",
+      "canonical_evidence": "通过协同自适应优化多轮交互",
+      "llm_tldr_en": "Proposes ROSA2 to jointly optimize prompts and model weights for better multi-turn interaction alignment.",
+      "llm_tldr_cn": "提出 ROSA2，通过联合优化提示词和模型权重来改进多轮交互对齐。",
+      "llm_tldr": "提出 ROSA2，通过联合优化提示词和模型权重来改进多轮交互对齐。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Methods for optimizing large language model performance and response quality",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01509v1",
+      "title": "Retrieval, Refinement, and Ranking for Text-to-Video Generation via Prompt Optimization and Test-Time Scaling",
+      "abstract": "While large-scale datasets have driven significant progress in Text-to-Video (T2V) generative models, these models remain highly sensitive to input prompts, demonstrating that prompt design is critical to generation quality. Current methods for improving video output often fall short: they either depend on complex, post-editing models, risking the introduction of artifacts, or require expensive fine-tuning of the core generator, which severely limits both scalability and accessibility. In this work, we introduce 3R, a novel RAG based prompt optimization framework. 3R utilizes the power of current state-of-the-art T2V diffusion model and vision language model. It can be used with any T2V model without any kind of model training. The framework leverages three key strategies: RAG-based modifiers extraction for enriched contextual grounding, diffusion-based Preference Optimization for aligning outputs with human preferences, and temporal frame interpolation for producing temporally consistent visual contents. Together, these components enable more accurate, efficient, and contextually aligned text-to-video generation. Experimental results demonstrate the efficacy of 3R in enhancing the static fidelity and dynamic coherence of generated videos, underscoring the importance of optimizing user prompts.",
+      "authors": [
+        "Zillur Rahman",
+        "Alex Sheng",
+        "Cristian Meo"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T06:35:59+00:00",
+      "link": "https://arxiv.org/pdf/2603.01509v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "RAG-based prompt optimization framework for text-to-video generation",
+      "llm_evidence_cn": "基于 RAG 的文本生成视频提示词优化框架",
+      "llm_evidence": "基于 RAG 的文本生成视频提示词优化框架",
+      "canonical_evidence": "基于 RAG 的文本生成视频提示词优化框架",
+      "llm_tldr_en": "Presents 3R, a framework for optimizing prompts in text-to-video models using retrieval and ranking.",
+      "llm_tldr_cn": "提出了 3R，一个利用检索和排序来优化文本到视频模型提示词的框架。",
+      "llm_tldr": "提出了 3R，一个利用检索和排序来优化文本到视频模型提示词的框架。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Automated prompt tuning and optimization strategies",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02050v1",
+      "title": "\"When to Hand Off, When to Work Together\": Expanding Human-Agent Co-Creative Collaboration through Concurrent Interaction",
+      "abstract": "Human collaborators coordinate dynamically through process visibility and workspace awareness, yet AI agents typically either provide only final outputs or expose read-only execution processes (e.g., planning, reasoning) without interpreting concurrent user actions on shared artifacts. Building on mixed-initiative interaction principles, we explore whether agents can achieve collaborative context awareness -- interpreting concurrent user actions on shared artifacts and adapting in real-time. Study 1 (N=10 professional designers) revealed that process visibility enabled reasoning about agent actions but exposed conflicts when agents could not distinguish feedback from independent work. We developed CLEO, which interprets collaborative intent and adapts in real-time. Study 2 (N=10, two-day with stimulated recall interviews) analyzed 214 turns, identifying five action patterns, six triggers, and four enabling factors explaining when designers choose delegation (70.1%), direction (28.5%), or concurrent work (31.8%). We present a decision model with six interaction loops, design implications, and an annotated dataset.",
+      "authors": [
+        "Kihoon Son",
+        "Hyewon Lee",
+        "DaEun Choi",
+        "Yoonsu Kim",
+        "Tae Soo Kim",
+        "Yoonjoo Lee",
+        "John Joon Young Chung",
+        "HyunJoon Jung",
+        "Juho Kim"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T16:37:05+00:00",
+      "link": "https://arxiv.org/pdf/2603.02050v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "human-agent co-creative collaboration and interaction",
+      "llm_evidence_cn": "人机共创协作与交互",
+      "llm_evidence": "人机共创协作与交互",
+      "canonical_evidence": "人机共创协作与交互",
+      "llm_tldr_en": "Explores concurrent interaction to improve context awareness in human-AI collaborative workflows.",
+      "llm_tldr_cn": "探索并发交互，以提高人机协作工作流中的上下文感知能力。",
+      "llm_tldr": "探索并发交互，以提高人机协作工作流中的上下文感知能力。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Research on collaborative workflows between humans and artificial intelligence",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02070v1",
+      "title": "Exploring Plan Space through Conversation: An Agentic Framework for LLM-Mediated Explanations in Planning",
+      "abstract": "When automating plan generation for a real-world sequential decision problem, the goal is often not to replace the human planner, but to facilitate an iterative reasoning and elicitation process, where the human's role is to guide the AI planner according to their preferences and expertise. In this context, explanations that respond to users' questions are crucial to improve their understanding of potential solutions and increase their trust in the system. To enable natural interaction with such a system, we present a multi-agent Large Language Model (LLM) architecture that is agnostic to the explanation framework and enables user- and context-dependent interactive explanations. We also describe an instantiation of this framework for goal-conflict explanations, which we use to conduct a user study comparing the LLM-powered interaction with a baseline template-based explanation interface.",
+      "authors": [
+        "Guilhem Fouilhé",
+        "Rebecca Eifler",
+        "Antonin Poché",
+        "Sylvie Thiébaux",
+        "Nicholas Asher"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.HC",
+        "cs.MA"
+      ],
+      "published": "2026-03-02T16:58:18+00:00",
+      "link": "https://arxiv.org/pdf/2603.02070v1",
+      "tags": [
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent architecture for human-AI collaborative planning and interactive explanations",
+      "llm_evidence_cn": "用于人机协作规划和交互式解释的多智能体架构",
+      "llm_evidence": "用于人机协作规划和交互式解释的多智能体架构",
+      "canonical_evidence": "用于人机协作规划和交互式解释的多智能体架构",
+      "llm_tldr_en": "Presents a multi-agent LLM framework to facilitate human-AI collaborative planning through interactive explanations.",
+      "llm_tldr_cn": "提出一种多智能体大模型框架，通过交互式解释促进人机协作规划。",
+      "llm_tldr": "提出一种多智能体大模型框架，通过交互式解释促进人机协作规划。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Research on collaborative workflows between humans and artificial intelligence",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02366v1",
+      "title": "PlayWrite: A Multimodal System for AI Supported Narrative Co-Authoring Through Play in XR",
+      "abstract": "Current AI writing tools, which rely on text prompts, poorly support the spatial and interactive nature of storytelling where ideas emerge from direct manipulation and play. We present PlayWrite, a mixed-reality system where users author stories by directly manipulating virtual characters and props. A multi-agent AI pipeline interprets these actions into Intent Frames -structured narrative beats visualized as rearrangeable story marbles on a timeline. A large language model then transforms the user's assembled sequence into a final narrative. A user study (N=13) with writers from varying domains found that PlayWrite fosters a highly improvisational and playful process. Users treated the AI as a collaborative partner, using its unexpected responses to spark new ideas and overcome creative blocks. PlayWrite demonstrates an approach for co-creative systems that move beyond text to embrace direct manipulation and play as core interaction modalities.",
+      "authors": [
+        "Esen K. Tütüncü",
+        "Qian Zhou",
+        "Frederik Brudy",
+        "George Fitzmaurice",
+        "Fraser Anderson"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T20:11:44+00:00",
+      "link": "https://arxiv.org/pdf/2603.02366v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Multimodal system for AI supported narrative co-authoring and human-AI collaboration",
+      "llm_evidence_cn": "用于AI辅助叙事共同创作和人机协作的多模态系统",
+      "llm_evidence": "用于AI辅助叙事共同创作和人机协作的多模态系统",
+      "canonical_evidence": "用于AI辅助叙事共同创作和人机协作的多模态系统",
+      "llm_tldr_en": "Introduces PlayWrite, a mixed-reality system for collaborative storytelling between humans and AI agents.",
+      "llm_tldr_cn": "介绍了PlayWrite，一个用于人类与AI智能体协作创作故事的混合现实系统。",
+      "llm_tldr": "介绍了PlayWrite，一个用于人类与AI智能体协作创作故事的混合现实系统。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Improving human-computer interaction and user experience for AI-driven applications",
+      "matched_requirement_id": "req-17",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02438v1",
+      "title": "ORCA: Orchestrated Reasoning with Collaborative Agents for Document Visual Question Answering",
+      "abstract": "Document Visual Question Answering (DocVQA) remains challenging for existing Vision-Language Models (VLMs), especially under complex reasoning and multi-step workflows. Current approaches struggle to decompose intricate questions into manageable sub-tasks and often fail to leverage specialized processing paths for different document elements. We present ORCA: Orchestrated Reasoning with Collaborative Agents for Document Visual Question Answering, a novel multi-agent framework that addresses these limitations through strategic agent coordination and iterative refinement. ORCA begins with a reasoning agent that decomposes queries into logical steps, followed by a routing mechanism that activates task-specific agents from a specialized agent dock. Our framework leverages a set of specialized AI agents, each dedicated to a distinct modality, enabling fine-grained understanding and collaborative reasoning across diverse document components. To ensure answer reliability, ORCA employs a debate mechanism with stress-testing, and when necessary, a thesis-antithesis adjudication process. This is followed by a sanity checker to ensure format consistency. Extensive experiments on three benchmarks demonstrate that our approach achieves significant improvements over state-of-the-art methods, establishing a new paradigm for collaborative agent systems in vision-language reasoning.",
+      "authors": [
+        "Aymen Lassoued",
+        "Mohamed Ali Souibgui",
+        "Yousri Kessentini"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-02T22:21:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.02438v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent framework for complex reasoning and task decomposition",
+      "llm_evidence_cn": "用于复杂推理和任务分解的多智能体框架",
+      "llm_evidence": "用于复杂推理和任务分解的多智能体框架",
+      "canonical_evidence": "用于复杂推理和任务分解的多智能体框架",
+      "llm_tldr_en": "Introduces ORCA, a multi-agent framework that improves document visual question answering via strategic coordination.",
+      "llm_tldr_cn": "引入 ORCA，一种通过战略协调改进文档视觉问答的多智能体框架。",
+      "llm_tldr": "引入 ORCA，一种通过战略协调改进文档视觉问答的多智能体框架。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Development and architecture of autonomous AI agents and multi-agent systems",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02792v1",
+      "title": "From Heuristic Selection to Automated Algorithm Design: LLMs Benefit from Strong Priors",
+      "abstract": "Large Language Models (LLMs) have already been widely adopted for automated algorithm design, demonstrating strong abilities in generating and evolving algorithms across various fields. Existing work has largely focused on examining their effectiveness in solving specific problems, with search strategies primarily guided by adaptive prompt designs. In this paper, through investigating the token-wise attribution of the prompts to LLM-generated algorithmic codes, we show that providing high-quality algorithmic code examples can substantially improve the performance of the LLM-driven optimization. Building upon this insight, we propose leveraging prior benchmark algorithms to guide LLM-driven optimization and demonstrate superior performance on two black-box optimization benchmarks: the pseudo-Boolean optimization suite (pbo) and the black-box optimization suite (bbob). Our findings highlight the value of integrating benchmarking studies to enhance both efficiency and robustness of the LLM-driven black-box optimization methods.",
+      "authors": [
+        "Qi Huang",
+        "Furong Ye",
+        "Ananta Shahane",
+        "Thomas Bäck",
+        "Niki van Stein"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.NE"
+      ],
+      "published": "2026-03-03T09:27:52+00:00",
+      "link": "https://arxiv.org/pdf/2603.02792v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Automated algorithm design using LLMs with adaptive prompt designs",
+      "llm_evidence_cn": "使用具有自适应提示词设计的 LLM 进行自动算法设计",
+      "llm_evidence": "使用具有自适应提示词设计的 LLM 进行自动算法设计",
+      "canonical_evidence": "使用具有自适应提示词设计的 LLM 进行自动算法设计",
+      "llm_tldr_en": "Demonstrates how high-quality priors and prompt optimization improve LLM-driven automated algorithm design.",
+      "llm_tldr_cn": "展示了高质量先验和提示词优化如何改进 LLM 驱动的自动算法设计。",
+      "llm_tldr": "展示了高质量先验和提示词优化如何改进 LLM 驱动的自动算法设计。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Comparative study of prompt optimization methods for improved model output",
+      "matched_requirement_id": "req-26",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03074v1",
+      "title": "Design Generative AI for Practitioners: Exploring Interaction Approaches Aligned with Creative Practice",
+      "abstract": "Design is a non-linear, reflective process in which practitioners engage with visual, semantic, and other expressive materials to explore, iterate, and refine ideas. As Generative AI (GenAI) becomes integrated into professional design practice, traditional interaction approaches focusing on prompts or whole-image manipulation can misalign AI output with designers' intent, forcing visual thinkers into verbal reasoning or post-hoc adjustments. We present three interaction approaches from DesignPrompt, FusAIn, and DesignTrace that distribute control across intent, input, and process, enabling designers to guide AI alignment at different stages of interaction. We further argue that alignment is a dynamic negotiation, with AI adopting proactive or reactive roles according to designers' instrumental and inspirational needs and the creative stage.",
+      "authors": [
+        "Xiaohan Peng",
+        "Wendy E. Mackay",
+        "Janin Koch"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.AI"
+      ],
+      "published": "2026-03-03T15:19:23+00:00",
+      "link": "https://arxiv.org/pdf/2603.03074v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "interaction approaches for enhancing user experience in AI",
+      "llm_evidence_cn": "增强 AI 用户体验的交互方法",
+      "llm_evidence": "增强 AI 用户体验的交互方法",
+      "canonical_evidence": "增强 AI 用户体验的交互方法",
+      "llm_tldr_en": "Presents interaction approaches to align Generative AI with professional design practitioners' intent.",
+      "llm_tldr_cn": "提出了将生成式 AI 与专业设计从业者意图对齐的交互方法。",
+      "llm_tldr": "提出了将生成式 AI 与专业设计从业者意图对齐的交互方法。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Strategies for enhancing user experience and interaction design in AI systems",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03447v1",
+      "title": "Proact-VL: A Proactive VideoLLM for Real-Time AI Companions",
+      "abstract": "Proactive and real-time interactive experiences are essential for human-like AI companions, yet face three key challenges: (1) achieving low-latency inference under continuous streaming inputs, (2) autonomously deciding when to respond, and (3) controlling both quality and quantity of generated content to meet real-time constraints. In this work, we instantiate AI companions through two gaming scenarios, commentator and guide, selected for their suitability for automatic evaluation. We introduce the Live Gaming Benchmark, a large-scale dataset with three representative scenarios: solo commentary, co-commentary, and user guidance, and present Proact-VL, a general framework that shapes multimodal language models into proactive, real-time interactive agents capable of human-like environment perception and interaction. Extensive experiments show Proact-VL achieves superior response latency and quality while maintaining strong video understanding capabilities, demonstrating its practicality for real-time interactive applications.",
+      "authors": [
+        "Weicai Yan",
+        "Yuhong Dai",
+        "Qi Ran",
+        "Haodong Li",
+        "Wang Lin",
+        "Hao Liao",
+        "Xing Xie",
+        "Tao Jin",
+        "Jianxun Lian"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-03T19:02:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.03447v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "proactive real-time AI companions",
+      "llm_evidence_cn": "主动式实时 AI 伴侣",
+      "llm_evidence": "主动式实时 AI 伴侣",
+      "canonical_evidence": "主动式实时 AI 伴侣",
+      "llm_tldr_en": "Presents Proact-VL, a framework for shaping multimodal models into proactive, real-time interactive agents.",
+      "llm_tldr_cn": "提出 Proact-VL 框架，将多模态模型转化为主动、实时的交互式智能体。",
+      "llm_tldr": "提出 Proact-VL 框架，将多模态模型转化为主动、实时的交互式智能体。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Improving human-computer interaction and user experience for AI-driven applications",
+      "matched_requirement_id": "req-17",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03565v1",
+      "title": "Build, Judge, Optimize: A Blueprint for Continuous Improvement of Multi-Agent Consumer Assistants",
+      "abstract": "Conversational shopping assistants (CSAs) represent a compelling application of agentic AI, but moving from prototype to production reveals two underexplored challenges: how to evaluate multi-turn interactions and how to optimize tightly coupled multi-agent systems. Grocery shopping further amplifies these difficulties, as user requests are often underspecified, highly preference-sensitive, and constrained by factors such as budget and inventory. In this paper, we present a practical blueprint for evaluating and optimizing conversational shopping assistants, illustrated through a production-scale AI grocery assistant. We introduce a multi-faceted evaluation rubric that decomposes end-to-end shopping quality into structured dimensions and develop a calibrated LLM-as-judge pipeline aligned with human annotations. Building on this evaluation foundation, we investigate two complementary prompt-optimization strategies based on a SOTA prompt-optimizer called GEPA (Shao et al., 2025): (1) Sub-agent GEPA, which optimizes individual agent nodes against localized rubrics, and (2) MAMuT (Multi-Agent Multi-Turn) GEPA (Herrera et al., 2026), a novel system-level approach that jointly optimizes prompts across agents using multi-turn simulation and trajectory-level scoring. We release rubric templates and evaluation design guidance to support practitioners building production CSAs.",
+      "authors": [
+        "Alejandro Breen Herrera",
+        "Aayush Sheth",
+        "Steven G. Xu",
+        "Zhucheng Zhan",
+        "Charles Wright",
+        "Marcus Yearwood",
+        "Hongtai Wei",
+        "Sudeep Das"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-03T22:47:08+00:00",
+      "link": "https://arxiv.org/pdf/2603.03565v1",
+      "tags": [
+        "keyword:AI UX",
+        "keyword:PR EF",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "blueprint for optimizing multi-agent systems",
+      "llm_evidence_cn": "多智能体系统优化蓝图",
+      "llm_evidence": "多智能体系统优化蓝图",
+      "canonical_evidence": "多智能体系统优化蓝图",
+      "llm_tldr_en": "Presents a framework for evaluating and optimizing multi-agent conversational assistants in production settings.",
+      "llm_tldr_cn": "提出了一个在生产环境中评估和优化多智能体对话助手的框架。",
+      "llm_tldr": "提出了一个在生产环境中评估和优化多智能体对话助手的框架。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Development and architecture of autonomous AI agents and multi-agent systems",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.03768v1",
+      "title": "Cognition to Control - Multi-Agent Learning for Human-Humanoid Collaborative Transport",
+      "abstract": "Effective human-robot collaboration (HRC) requires translating high-level intent into contact-stable whole-body motion while continuously adapting to a human partner. Many vision-language-action (VLA) systems learn end-to-end mappings from observations and instructions to actions, but they often emphasize reactive (System 1-like) behavior and leave under-specified how sustained System 2-style deliberation can be integrated with reliable, low-latency continuous control. This gap is acute in multi-agent HRC, where long-horizon coordination decisions and physical execution must co-evolve under contact, feasibility, and safety constraints. We address this limitation with cognition-to-control (C2C), a three-layer hierarchy that makes the deliberation-to-control pathway explicit: (i) a VLM-based grounding layer that maintains persistent scene referents and infers embodiment-aware affordances/constraints; (ii) a deliberative skill/coordination layer-the System 2 core-that optimizes long-horizon skill choices and sequences under human-robot coupling via decentralized MARL cast as a Markov potential game with a shared potential encoding task progress; and (iii) a whole-body control layer that executes the selected skills at high frequency while enforcing kinematic/dynamic feasibility and contact stability. The deliberative layer is realized as a residual policy relative to a nominal controller, internalizing partner dynamics without explicit role assignment. Experiments on collaborative manipulation tasks show higher success and robustness than single-agent and end-to-end baselines, with stable coordination and emergent leader-follower behaviors.",
+      "authors": [
+        "Hao Zhang",
+        "Ding Zhao",
+        "H. Eric Tseng"
+      ],
+      "primary_category": "cs.RO",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "published": "2026-03-04T06:24:55+00:00",
+      "link": "https://arxiv.org/pdf/2603.03768v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "human-humanoid collaborative transport",
+      "llm_evidence_cn": "人与类人机器人协作运输",
+      "llm_evidence": "人与类人机器人协作运输",
+      "canonical_evidence": "人与类人机器人协作运输",
+      "llm_tldr_en": "Develops a hierarchy for integrating high-level deliberation with low-level control in human-robot collaboration.",
+      "llm_tldr_cn": "开发了一种将高层决策与底层控制相结合的人机协作架构。",
+      "llm_tldr": "开发了一种将高层决策与底层控制相结合的人机协作架构。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Research on collaborative workflows between humans and artificial intelligence",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04292v1",
+      "title": "Position: Vector Prompt Interfaces Should Be Exposed to Enable Customization of Large Language Models",
+      "abstract": "As large language models (LLMs) transition from research prototypes to real-world systems, customization has emerged as a central bottleneck. While text prompts can already customize LLM behavior, we argue that text-only prompting does not constitute a suitable control interface for scalable, stable, and inference-only customization. This position paper argues that model providers should expose \\emph{vector prompt inputs} as part of the public interface for customizing LLMs. We support this position with diagnostic evidence showing that vector prompt tuning continues to improve with increasing supervision whereas text-based prompt optimization saturates early, and that vector prompts exhibit dense, global attention patterns indicative of a distinct control mechanism. We further discuss why inference-only customization is increasingly important under realistic deployment constraints, and why exposing vector prompts need not fundamentally increase model leakage risk under a standard black-box threat model. We conclude with a call to action for the community to rethink prompt interfaces as a core component of LLM customization.",
+      "authors": [
+        "Liangwei Yang",
+        "Shiyu Wang",
+        "Haolin Chen",
+        "Rithesh Murthy",
+        "Ming Zhu",
+        "Jielin Qiu",
+        "Zixiang Chen",
+        "Juntao Tan",
+        "Jianguo Zhang",
+        "Zhiwei Liu",
+        "Wenting Zhao",
+        "Silvio Savarese",
+        "Caiming Xiong",
+        "Huan Wang",
+        "Shelby Heinecke"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-04T17:08:47+00:00",
+      "link": "https://arxiv.org/pdf/2603.04292v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "vector prompt interfaces for LLM customization",
+      "llm_evidence_cn": "用于 LLM 定制化的向量提示接口",
+      "llm_evidence": "用于 LLM 定制化的向量提示接口",
+      "canonical_evidence": "用于 LLM 定制化的向量提示接口",
+      "llm_tldr_en": "Argues for exposing vector prompt inputs to enable more stable and scalable customization than text prompts.",
+      "llm_tldr_cn": "主张开放向量提示输入，以实现比文本提示更稳定、可扩展的定制化。",
+      "llm_tldr": "主张开放向量提示输入，以实现比文本提示更稳定、可扩展的定制化。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "State of the art in prompt engineering techniques for large language models",
+      "matched_requirement_id": "req-23",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04552v1",
+      "title": "Beyond the Interface: Redefining UX for Society-in-the-Loop AI Systems",
+      "abstract": "Artificial intelligence systems increasingly operate in decision-critical environments where probabilistic outputs and Human-in-the-Loop (HITL) interactions reshape user engagement. Traditional user experience (UX) frameworks, designed for deterministic systems, fail to capture these evolving sociotechnical dynamics. This paper argues that in AI-enabled HITL systems, UX must transcend frontend usability to encompass backend performance, organizational workflows, and decision making structures.   We employ a mixed-methods approach, combining an inductive social construction analysis of 269 stakeholder insights with the deployment of an operational HITL video anomaly detection system. Our findings reveal that stakeholders experience AI through multifaceted themes: risk, governance, and organizational capacity. Experimental results further demonstrate how detection behavior and alert routing directly calibrate human oversight and workload. Grounded in these results, we formalize a new evaluative framework centered on four sociotechnical metrics: Accuracy (FPR/FNR), Operational Latency (response time), Adaptation Time (deployment burden), and Trust (validated automation scales). This framework redefines UX as a multi-layered construct spanning infrastructure and governance, providing a rigorous foundation for evaluating AI systems embedded within complex real-world ecosystems.",
+      "authors": [
+        "Nahal Mafi",
+        "Sahar Maleki",
+        "Babak Rahimi Ardabili",
+        "Hamed Tabkhi"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-03-04T19:35:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.04552v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "redefining UX for human-in-the-loop AI systems",
+      "llm_evidence_cn": "重新定义人机回环AI系统的用户体验",
+      "llm_evidence": "重新定义人机回环AI系统的用户体验",
+      "canonical_evidence": "重新定义人机回环AI系统的用户体验",
+      "llm_tldr_en": "Proposes a new UX framework for AI systems that integrates backend performance and human decision-making.",
+      "llm_tldr_cn": "为AI系统提出了一种整合后端性能和人类决策的新型用户体验框架。",
+      "llm_tldr": "为AI系统提出了一种整合后端性能和人类决策的新型用户体验框架。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Improving human-computer interaction and user experience for AI-driven applications",
+      "matched_requirement_id": "req-17",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04733v1",
+      "title": "FOZO: Forward-Only Zeroth-Order Prompt Optimization for Test-Time Adaptation",
+      "abstract": "Test-Time Adaptation (TTA) is essential for enabling deep learning models to handle real-world data distribution shifts. However, current approaches face significant limitations: backpropagation-based methods are not suitable for low-end deployment devices, due to their high computation and memory requirements, as well as their tendency to modify model weights during adaptation; while traditional backpropagation-free techniques exhibit constrained adaptation capabilities. In this work, we propose Forward-Only Zeroth-Order Optimization (FOZO), a novel and practical backpropagation-free paradigm for TTA. FOZO leverages a memory-efficient zeroth-order prompt optimization, which is led by objectives optimizing both intermediate feature statistics and prediction entropy. To ensure efficient and stable adaptation over the out-of-distribution data stream, we introduce a dynamically decaying perturbation scale during zeroth-order gradient estimation and theoretically prove its convergence under the TTA data stream assumption. Extensive continual adaptation experiments on ImageNet-C, ImageNet-R, and ImageNet-Sketch demonstrate FOZO's superior performance, achieving 59.52% Top-1 accuracy on ImageNet-C (5K, level 5) and outperforming main gradient-based methods and SOTA forward-only FOA (58.13%). Furthermore, FOZO exhibits strong generalization on quantized (INT8) models. These findings demonstrate that FOZO is a highly competitive solution for TTA deployment in resource-limited scenarios.",
+      "authors": [
+        "Xingyu Wang",
+        "Tao Wang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-05T02:12:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.04733v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Zeroth-order prompt optimization for test-time adaptation",
+      "llm_evidence_cn": "用于测试时自适应的零阶提示词优化",
+      "llm_evidence": "用于测试时自适应的零阶提示词优化",
+      "canonical_evidence": "用于测试时自适应的零阶提示词优化",
+      "llm_tldr_en": "Develops a backpropagation-free zeroth-order prompt optimization method for efficient model adaptation on low-end devices.",
+      "llm_tldr_cn": "开发了一种无反向传播的零阶提示词优化方法，用于低端设备上的高效模型自适应。",
+      "llm_tldr": "开发了一种无反向传播的零阶提示词优化方法，用于低端设备上的高效模型自适应。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Automated prompt tuning and optimization strategies",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04746v1",
+      "title": "Visioning Human-Agentic AI Teaming: Continuity, Tension, and Future Research",
+      "abstract": "Artificial intelligence is undergoing a structural transformation marked by the rise of agentic systems capable of open-ended action trajectories, generative representations and outputs, and evolving objectives. These properties introduce structural uncertainty into human-AI teaming (HAT), including uncertainty about behavior trajectories, epistemic grounding, and the stability of governing logics over time. Under such conditions, alignment cannot be secured through agreement on bounded outputs; it must be continuously sustained as plans unfold and priorities shift. We advance Team Situation Awareness (Team SA) theory, grounded in shared perception, comprehension, and projection, as an integrative anchor for this transition. While Team SA remains analytically foundational, its stabilizing logic presumes that shared awareness, once achieved, will support coordinated action through iterative updating. Agentic AI challenges this presumption. Our argument unfolds in two stages: first, we extend Team SA to reconceptualize both human and AI awareness under open-ended agency, including the sensemaking of projection congruence across heterogeneous systems. Second, we interrogate whether the dynamic processes traditionally assumed to stabilize teaming in relational interaction, cognitive learning, and coordination and control continue to function under adaptive autonomy. By distinguishing continuity from tension, we clarify where foundational insights hold and where structural uncertainty introduces strain, and articulate a forward-looking research agenda for HAT. The central challenge of HAT is not whether humans and AI can agree in the moment, but whether they can remain aligned as futures are continuously generated, revised, enacted, and governed over time.",
+      "authors": [
+        "Bowen Lou",
+        "Tian Lu",
+        "T. S. Raghu",
+        "Yingjie Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.HC",
+        "econ.GN"
+      ],
+      "published": "2026-03-05T02:40:42+00:00",
+      "link": "https://arxiv.org/pdf/2603.04746v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "human-agentic AI teaming and shared situation awareness",
+      "llm_evidence_cn": "人机智能体协作与共享态势感知",
+      "llm_evidence": "人机智能体协作与共享态势感知",
+      "canonical_evidence": "人机智能体协作与共享态势感知",
+      "llm_tldr_en": "Explores the structural transformation of human-AI teaming through the lens of agentic systems and Team SA.",
+      "llm_tldr_cn": "从智能体系统和团队态势感知的角度探讨了人机协作的结构性变革。",
+      "llm_tldr": "从智能体系统和团队态势感知的角度探讨了人机协作的结构性变革。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Research on collaborative workflows between humans and artificial intelligence",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.05087v1",
+      "title": "PromptTuner: SLO-Aware Elastic System for LLM Prompt Tuning",
+      "abstract": "Prompt tuning has become a prominent strategy for enhancing the performance of Large Language Models (LLMs) on downstream tasks. Many IT enterprises now offer Prompt-Tuning-as-a-Service to fulfill the growing demand for prompt tuning LLMs on downstream tasks. Their primary objective is to satisfy users Service Level Objectives (SLOs) while reducing resource provisioning costs. Nevertheless, our characterization analysis for existing deep learning resource management systems reveals that they are insufficient to optimize these objectives for LLM prompt tuning workloads.   In this paper, we introduce PromptTuner, an SLO-aware elastic system to optimize LLM prompt tuning. It contains two innovations. (1) We design a Prompt Bank to identify efficient initial prompts to expedite the convergence of prompt tuning. (2) We develop aWorkload Scheduler to enable fast resource allocation to reduce the SLO violation and resource costs. In our evaluation, PromptTuner reduces SLO violations by 4.0x and 7.9x, and lowers costs by 1.6x and 4.5x, compared to INFless and ElasticFlow respectively.",
+      "authors": [
+        "Wei Gao",
+        "Peng Sun",
+        "Dmitrii Ustiugov",
+        "Tianwei Zhang",
+        "Yonggang Wen"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-03-05T11:58:55+00:00",
+      "link": "https://arxiv.org/pdf/2603.05087v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "SLO-aware elastic system for LLM prompt tuning",
+      "llm_evidence_cn": "针对大语言模型提示词微调的 SLO 感知弹性系统",
+      "llm_evidence": "针对大语言模型提示词微调的 SLO 感知弹性系统",
+      "canonical_evidence": "针对大语言模型提示词微调的 SLO 感知弹性系统",
+      "llm_tldr_en": "Introduces PromptTuner to optimize resource provisioning and performance for LLM prompt tuning workloads.",
+      "llm_tldr_cn": "引入 PromptTuner 系统，优化大语言模型提示词微调的资源配置与性能。",
+      "llm_tldr": "引入 PromptTuner 系统，优化大语言模型提示词微调的资源配置与性能。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Automated prompt tuning and optimization strategies",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.06878v1",
+      "title": "Not Too Short, Not Too Long: How LLM Response Length Shapes People's Critical Thinking in Error Detection",
+      "abstract": "Large language models (LLMs) have become common decision-support tools across educational and professional contexts, raising questions about how their outputs shape human critical thinking. Prior work suggests that the amount of AI assistance can influence cognitive engagement, yet little is known about how specific properties of LLM outputs (e.g., response length) impacts users' critical evaluation of information. In this study, we examine whether the length of LLM responses shapes users' accuracy in evaluating LLM-generated reasoning on critical thinking tasks, particularly in interaction with the correctness of the LLM's reasoning. To begin evaluating this, we conducted a within-subjects experiment with 24 participants who completed 15 modified Watson--Glaser critical thinking items, each accompanied by an LLM-generated explanation that varied in length and correctness. Mixed-effects logistic regression revealed a strong and statistically reliable effect of LLM output correctness on participant accuracy, with participants more likely to answer correctly when the LLM's explanation was correct. Response length appeared to moderated this effect: when the LLM output was incorrect, medium-length explanations were associated with higher participant accuracy than either shorter or longer explanations, whereas accuracy remained high across lengths when the LLM output was correct. Together, these findings suggest that response length alone may be insufficient to support critical thinking, and that how reasoning is presented-including a potential advantage of mid-length explanations under some conditions-points to design opportunities for LLM-based decision-support systems that emphasize transparent reasoning and calibrated expressions of certainty.",
+      "authors": [
+        "Natalie Friedman",
+        "Adelaide Nyanyo",
+        "Kevin Weatherwax",
+        "Lifei Wang",
+        "Chengchao Zhu",
+        "Zeshu Zhu",
+        "S. Joy Mountford"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-06T20:57:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.06878v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "LLM response length impact on human critical thinking and error detection",
+      "llm_evidence_cn": "LLM 回复长度对人类批判性思维和错误检测的影响",
+      "llm_evidence": "LLM 回复长度对人类批判性思维和错误检测的影响",
+      "canonical_evidence": "LLM 回复长度对人类批判性思维和错误检测的影响",
+      "llm_tldr_en": "Investigates how LLM output properties like response length affect user evaluation and critical thinking.",
+      "llm_tldr_cn": "研究了 LLM 输出属性（如回复长度）如何影响用户的评估准确性和批判性思维。",
+      "llm_tldr": "研究了 LLM 输出属性（如回复长度）如何影响用户的评估准确性和批判性思维。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Improving human-computer interaction and user experience for AI-driven applications",
+      "matched_requirement_id": "req-17",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07528v2",
+      "title": "TableMind++: An Uncertainty-Aware Programmatic Agent for Tool-Augmented Table Reasoning",
+      "abstract": "Table reasoning requires models to jointly perform semantic understanding and precise numerical operations. Most existing methods rely on a single-turn reasoning paradigm over tables which suffers from context overflow and weak numerical sensitivity. To address these limitations, we previously proposed TableMind as a tuning-based autonomous programmatic agent that simulates human-like interaction within a lightweight large language model (LLM). TableMind internalizes planning, action, and reflection through a two-stage training strategy involving supervised fine-tuning (SFT) on filtered high-quality data and reinforcement learning (RL) via a multi-perspective reward and the Rank-Aware Policy Optimization (RAPO) algorithm. While TableMind establishes a solid foundation for programmatic agents, the inherent stochasticity of LLMs remains a critical challenge that leads to hallucinations. In this paper, we extend this foundation to TableMind++ by introducing a novel uncertainty-aware inference framework to mitigate hallucinations. Specifically, we propose memory-guided plan pruning to retrieve historical trajectories for validating and filtering out logically flawed plans to address epistemic uncertainty. To ensure execution precision, we introduce confidence-based action refinement which monitors token-level probabilities to detect and self-correct syntactic noise for aleatoric uncertainty mitigation. Finally, we employ dual-weighted trajectory aggregation to synthesize a robust consensus from multiple reasoning paths. Extensive experiments on diverse benchmarks demonstrate that TableMind++ consistently outperforms previous baselines and proprietary models to validate the effectiveness of integrating autonomous training with uncertainty quantification. Our code is available.",
+      "authors": [
+        "Mingyue Cheng",
+        "Shuo Yu",
+        "Chuang Jiang",
+        "Xiaoyu Tao",
+        "Qingyang Mao",
+        "Jie Ouyang",
+        "Qi Liu",
+        "Enhong Chen"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-08T08:31:33+00:00",
+      "link": "https://arxiv.org/pdf/2603.07528v2",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Autonomous programmatic agent for table reasoning",
+      "llm_evidence_cn": "用于表格推理的自主程序化智能体",
+      "llm_evidence": "用于表格推理的自主程序化智能体",
+      "canonical_evidence": "用于表格推理的自主程序化智能体",
+      "llm_tldr_en": "Presents an autonomous agent that uses planning and reflection to improve numerical reasoning over tables.",
+      "llm_tldr_cn": "提出了一种利用规划和反思来提高表格数值推理能力的自主智能体。",
+      "llm_tldr": "提出了一种利用规划和反思来提高表格数值推理能力的自主智能体。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Recent advancements in autonomous AI agent architectures and reasoning",
+      "matched_requirement_id": "req-24",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.07915v1",
+      "title": "Ares: Adaptive Reasoning Effort Selection for Efficient LLM Agents",
+      "abstract": "Modern agents powered by thinking LLMs achieve high accuracy through long chain-of-thought reasoning but incur substantial inference costs. While many LLMs now support configurable reasoning levels (e.g., high/medium/low), static strategies are often ineffective: using low-effort modes at every step leads to significant performance degradation, while random selection fails to preserve accuracy or provide meaningful cost reduction. However, agents should reserve high reasoning effort for difficult steps like navigating complex website structures, while using lower-effort modes for simpler steps like opening a target URL. In this paper, we propose Ares, a framework for per-step dynamic reasoning effort selection tailored for multi-step agent tasks. Ares employs a lightweight router to predict the lowest appropriate reasoning level for each step based on the interaction history. To train this router, we develop a data generation pipeline that identifies the minimum reasoning effort required for successful step completion. We then fine-tune the router to predict these levels, enabling plug-and-play integration for any LLM agents. We evaluate Ares on a diverse set of agent tasks, including TAU-Bench for tool use agents, BrowseComp-Plus for deep-research agents, and WebArena for web agents. Experimental results show that Ares reduces reasoning token usage by up to 52.7% compared to fixed high-effort reasoning, while introducing minimal degradation in task success rates.",
+      "authors": [
+        "Jingbo Yang",
+        "Bairu Hou",
+        "Wei Wei",
+        "Yujia Bao",
+        "Shiyu Chang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-09T03:17:29+00:00",
+      "link": "https://arxiv.org/pdf/2603.07915v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "dynamic reasoning effort selection for LLM agents",
+      "llm_evidence_cn": "LLM 智能体的动态推理努力选择",
+      "llm_evidence": "LLM 智能体的动态推理努力选择",
+      "canonical_evidence": "LLM 智能体的动态推理努力选择",
+      "llm_tldr_en": "Ares framework dynamically selects reasoning levels to balance accuracy and cost in multi-step agent tasks.",
+      "llm_tldr_cn": "Ares 框架动态选择推理级别，以平衡多步智能体任务中的准确性和成本。",
+      "llm_tldr": "Ares 框架动态选择推理级别，以平衡多步智能体任务中的准确性和成本。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Reasoning capabilities and chain-of-thought prompting in LLMs",
+      "matched_requirement_id": "req-18",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08013v1",
+      "title": "PIRA-Bench: A Transition from Reactive GUI Agents to GUI-based Proactive Intent Recommendation Agents",
+      "abstract": "Current Graphical User Interface (GUI) agents operate primarily under a reactive paradigm: a user must provide an explicit instruction for the agent to execute a task. However, an intelligent AI assistant should be proactive, which is capable of anticipating user intentions directly from continuous visual inputs, such as mobile or desktop screenshots, and offering timely recommendations without explicit user prompting. Transitioning to this proactive paradigm presents significant challenges. Real-world screen activity is rarely linear; it consists of long-horizon trajectories fraught with noisy browsing, meaningless actions, and multithreaded task-switching. To address this gap, we introduce PIRA-Bench (Proactive Intent Recommendation Agent Benchmark), a novel benchmark for evaluating multimodal large language models (MLLMs) on continuous, weakly-supervised visual inputs. Unlike reactive datasets, PIRA-Bench features complex trajectories with multiple interleaved intents and noisy segments with various user profile contexts, challenging agents to detect actionable events while fitting to user preferences. Furthermore, we propose the PIRF baseline, a memory-aware, state-tracking framework that empowers general MLLMs to manage multiple task threads and handle misleading visual inputs. PIRA-Bench serves as an initial step toward robust and proactive GUI-based personal assistants.",
+      "authors": [
+        "Yuxiang Chai",
+        "Shunye Tang",
+        "Han Xiao",
+        "Rui Liu",
+        "Hongsheng Li"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-09T06:41:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.08013v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "proactive intent recommendation to improve user experience in GUI agents",
+      "llm_evidence_cn": "主动意图推荐以改进 GUI 智能体的使用体验",
+      "llm_evidence": "主动意图推荐以改进 GUI 智能体的使用体验",
+      "canonical_evidence": "主动意图推荐以改进 GUI 智能体的使用体验",
+      "llm_tldr_en": "Proposes a benchmark for proactive GUI agents that anticipate user intentions to enhance interaction efficiency.",
+      "llm_tldr_cn": "提出主动式 GUI 智能体基准，通过预测用户意图来提高交互效率。",
+      "llm_tldr": "提出主动式 GUI 智能体基准，通过预测用户意图来提高交互效率。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Improving human-computer interaction and user experience for AI-driven applications",
+      "matched_requirement_id": "req-17",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08084v1",
+      "title": "The AI Amplifier Effect: Defining Human-AI Intimacy and Romantic Relationships with Conversational AI",
+      "abstract": "What does it mean to fall in love with something we know is virtual? The proliferation of conversational AI enables users to create customizable companions, fostering new intimate relationships that, while virtual, are perceived as authentic. However, public understanding of these bonds is limited, and platform policies regarding these interactions remain inconsistent. There is a pressing need for further HCI research to investigate: (a) the design affordances in AI that construct bonds and a sense of intimacy, (b) how such long-term engagement impacts users' real lives, and (c) how to balance user autonomy with platform regulation in the design of these systems without compromising users' well-being and experiences. This paper takes a step toward addressing these goals by providing a concrete definition of human AI intimacy based on in depth interviews with 30 users engaged in romantic relationships with AI companions. We elucidate the complexities of these relationships, from their formation to sustainability, and identify key features of the bonds formed. Notably, we introduce the AI Amplifier Effect, where the AI serves as a medium that intensifies the user's existing emotional state, leading to divergent positive, neutral, and negative impacts. We argue that designing for emotion must extend beyond technical affordances to encompass the essence of human affection. This paper's contributions aim to initiate a conversation and guide future research on human AI relationships within the HCI community.",
+      "authors": [
+        "Ching Christie Pang",
+        "Yi Gao",
+        "Xuetong Wang",
+        "Pan Hui"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC"
+      ],
+      "published": "2026-03-09T08:24:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.08084v1",
+      "tags": [
+        "keyword:AI UX",
+        "keyword:PR EF",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "HCI research on design affordances and user experience in conversational AI",
+      "llm_evidence_cn": "关于对话式AI设计功能和用户体验的人机交互研究",
+      "llm_evidence": "关于对话式AI设计功能和用户体验的人机交互研究",
+      "canonical_evidence": "关于对话式AI设计功能和用户体验的人机交互研究",
+      "llm_tldr_en": "Explores human-AI intimacy and the impact of conversational AI design on user experience and well-being.",
+      "llm_tldr_cn": "探讨了人机亲密度以及对话式AI设计对用户体验和福祉的影响。",
+      "llm_tldr": "探讨了人机亲密度以及对话式AI设计对用户体验和福祉的影响。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Strategies for enhancing user experience and interaction design in AI systems",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08221v1",
+      "title": "SplitAgent: A Privacy-Preserving Distributed Architecture for Enterprise-Cloud Agent Collaboration",
+      "abstract": "Enterprise adoption of cloud-based AI agents faces a fundamental privacy dilemma: leveraging powerful cloud models requires sharing sensitive data, while local processing limits capability. Current agent frameworks like MCP and A2A assume complete data sharing, making them unsuitable for enterprise environments with confidential information. We present SplitAgent, a novel distributed architecture that enables privacy-preserving collaboration between enterprise-side privacy agents and cloud-side reasoning agents. Our key innovation is context-aware dynamic sanitization that adapts privacy protection based on task semantics -- contract review requires different sanitization than code review or financial analysis. SplitAgent extends existing agent protocols with differential privacy guarantees, zero-knowledge tool verification, and privacy budget management. Through comprehensive experiments on enterprise scenarios, we demonstrate that SplitAgent achieves 83.8\\% task accuracy while maintaining 90.1\\% privacy protection, significantly outperforming static approaches (73.2\\% accuracy, 79.7\\% privacy). Context-aware sanitization improves task utility by 24.1\\% over static methods while reducing privacy leakage by 67\\%. Our architecture provides a practical path for enterprise AI adoption without compromising sensitive data.",
+      "authors": [
+        "Jianshu She"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-03-09T10:51:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.08221v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "distributed architecture for enterprise-cloud agent collaboration",
+      "llm_evidence_cn": "企业云智能体协作的分布式架构",
+      "llm_evidence": "企业云智能体协作的分布式架构",
+      "canonical_evidence": "企业云智能体协作的分布式架构",
+      "llm_tldr_en": "Introduces SplitAgent, a privacy-preserving architecture for collaboration between local and cloud AI agents.",
+      "llm_tldr_cn": "介绍了 SplitAgent，一种用于本地和云端 AI 智能体协作的隐私保护架构。",
+      "llm_tldr": "介绍了 SplitAgent，一种用于本地和云端 AI 智能体协作的隐私保护架构。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Development and architecture of autonomous AI agents and multi-agent systems",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08388v1",
+      "title": "A Hierarchical Error-Corrective Graph Framework for Autonomous Agents with LLM-Based Action Generation",
+      "abstract": "We propose a Hierarchical Error-Corrective Graph FrameworkforAutonomousAgentswithLLM-BasedActionGeneration(HECG),whichincorporates three core innovations: (1) Multi-Dimensional Transferable Strategy (MDTS): by integrating task quality metrics (Q), confidence/cost metrics (C), reward metrics (R), and LLM-based semantic reasoning scores (LLM-Score), MDTS achieves multi-dimensional alignment between quantitative performance and semantic context, enabling more precise selection of high-quality candidate strate gies and effectively reducing the risk of negative transfer. (2) Error Matrix Classification (EMC): unlike simple confusion matrices or overall performance metrics, EMC provides structured attribution of task failures by categorizing errors into ten types, such as Strategy Errors (Strategy Whe) and Script Parsing Errors (Script-Parsing-Error), and decomposing them according to severity, typical actions, error descriptions, and recoverability. This allows precise analysis of the root causes of task failures, offering clear guidance for subsequent error correction and strategy optimization rather than relying solely on overall success rates or single performance metrics. (3) Causal-Context Graph Retrieval (CCGR): to enhance agent retrieval capabilities in dynamic task environments, we construct graphs from historical states, actions, and event sequences, where nodes store executed actions, next-step actions, execution states, transferable strategies, and other relevant information, and edges represent causal dependencies such as preconditions for transitions between nodes. CCGR identifies subgraphs most relevant to the current task context, effectively capturing structural relationships beyond vector similarity, allowing agents to fully leverage contextual information, accelerate strategy adaptation, and improve execution reliability in complex, multi-step tasks.",
+      "authors": [
+        "Cong Cao",
+        "Jingyao Zhang",
+        "Kun Tong"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-09T13:46:00+00:00",
+      "link": "https://arxiv.org/pdf/2603.08388v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Hierarchical framework for autonomous agents with LLM-based action generation",
+      "llm_evidence_cn": "基于大语言模型动作生成的自主智能体分层框架",
+      "llm_evidence": "基于大语言模型动作生成的自主智能体分层框架",
+      "canonical_evidence": "基于大语言模型动作生成的自主智能体分层框架",
+      "llm_tldr_en": "Proposes a hierarchical graph framework to improve action generation and error correction in autonomous AI agents.",
+      "llm_tldr_cn": "提出一种分层图框架，旨在改进自主AI智能体的动作生成与错误纠正能力。",
+      "llm_tldr": "提出一种分层图框架，旨在改进自主AI智能体的动作生成与错误纠正能力。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Development and architecture of autonomous AI agents and multi-agent systems",
+      "matched_requirement_id": "req-16",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08391v2",
+      "title": "Adaptive Loops and Memory in Transformers: Think Harder or Know More?",
+      "abstract": "Chain-of-thought (CoT) prompting enables reasoning in language models but requires explicit verbalization of intermediate steps. Looped transformers offer an alternative by iteratively refining representations within hidden states. This parameter efficiency comes at a cost, as looped models lack the storage capacity of deeper models which use unique weights per layer. In this work, we investigate transformer models that feature both adaptive per-layer looping, where each transformer block learns to iterate its hidden state via a learned halting mechanism, and gated memory banks, that provide additional learned storage. We find that looping primarily benefits mathematical reasoning, while memory banks help recover performance on commonsense tasks compared to parameter and FLOP matched models. Combining both mechanisms yields a model that outperforms an iso-FLOP baseline, with three times the number of layers, across math benchmarks. Analysis of model internals reveals layer specialization: early layers learn to loop minimally and access memory sparingly, while later layers do both more heavily.",
+      "authors": [
+        "Markus Frey",
+        "Behzad Shomali",
+        "Ali Hamza Bashir",
+        "David Berghaus",
+        "Mehdi Ali"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-09T13:49:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.08391v2",
+      "tags": [
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "chain-of-thought prompting and reasoning in transformers",
+      "llm_evidence_cn": "Transformer 中的思维链提示与推理",
+      "llm_evidence": "Transformer 中的思维链提示与推理",
+      "canonical_evidence": "Transformer 中的思维链提示与推理",
+      "llm_tldr_en": "Investigates adaptive looping and memory banks in transformers as alternatives to explicit CoT for reasoning.",
+      "llm_tldr_cn": "研究了 Transformer 中的自适应循环和记忆库，作为显式思维链推理的替代方案。",
+      "llm_tldr": "研究了 Transformer 中的自适应循环和记忆库，作为显式思维链推理的替代方案。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Reasoning capabilities and chain-of-thought prompting in LLMs",
+      "matched_requirement_id": "req-18",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09020v1",
+      "title": "AI Phenomenology for Understanding Human-AI Experiences Across Eras",
+      "abstract": "There is no 'ordinary' when it comes to AI. The human-AI experience is extraordinarily complex and specific to each person, yet dominant measures such as usability scales and engagement metrics flatten away nuance. We argue for AI phenomenology: a research stance that asks \"How did it feel?\" beyond the standard questions of \"How well did it perform?\" when interacting with AI systems. AI phenomenology acts as a paradigm for bidirectional human-AI alignment as it foregrounds users' first-person perceptions and interpretations of AI systems over time. We motivate AI phenomenology as a framework that captures how alignment is experienced, negotiated, and updated between users and AI systems. Tracing a lineage from Husserl through postphenomenology to Actor-Network Theory, and grounding our argument in three studies-two longitudinal studies with \"Day\", an AI companion, and a multi-method study of agentic AI in software engineering-we contribute a set of replicable methodological toolkits for conducting AI phenomenology research: instruments for capturing lived experience across personal and professional contexts, three design concepts (translucent design, agency-aware value alignment, temporal co-evolution tracking), and a concrete research agenda. We offer this toolkit not as a new paradigm but as a practical scaffold that researchers can adapt as AI systems-and the humans who live alongside them-continue to co-evolve.",
+      "authors": [
+        "Bhada Yun",
+        "Evgenia Taranova",
+        "Dana Feng",
+        "Renn Su",
+        "April Yi Wang"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.AI"
+      ],
+      "published": "2026-03-09T23:26:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.09020v1",
+      "tags": [
+        "keyword:AI UX",
+        "keyword:PR EF",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Enhancing user experience and interaction design in AI systems",
+      "llm_evidence_cn": "增强AI系统的用户体验和交互设计",
+      "llm_evidence": "增强AI系统的用户体验和交互设计",
+      "canonical_evidence": "增强AI系统的用户体验和交互设计",
+      "llm_tldr_en": "Proposes AI phenomenology as a framework to understand and align human-AI experiences beyond performance metrics.",
+      "llm_tldr_cn": "提出了AI现象学框架，旨在超越性能指标来理解和对齐人机体验。",
+      "llm_tldr": "提出了AI现象学框架，旨在超越性能指标来理解和对齐人机体验。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Strategies for enhancing user experience and interaction design in AI systems",
+      "matched_requirement_id": "req-25",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09049v1",
+      "title": "EPOCH: An Agentic Protocol for Multi-Round System Optimization",
+      "abstract": "Autonomous agents are increasingly used to improve prompts, code, and machine learning systems through iterative execution and feedback. Yet existing approaches are usually designed as task-specific optimization loops rather than as a unified protocol for establishing baselines and managing tracked multi-round self-improvement. We introduce EPOCH, an engineering protocol for multi-round system optimization in heterogeneous environments. EPOCH organizes optimization into two phases: baseline construction and iterative self-improvement. It further structures each round through role-constrained stages that separate planning, implementation, and evaluation, and standardizes execution through canonical command interfaces and round-level tracking. This design enables coordinated optimization across prompts, model configurations, code, and rule-based components while preserving stability, reproducibility, traceability, and integrity of evaluation. Empirical studies in various tasks illustrate the practicality of EPOCH for production-oriented autonomous improvement workflows.",
+      "authors": [
+        "Zhanlin Liu",
+        "Yitao Li",
+        "Munirathnam Srikanth"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-03-10T00:41:03+00:00",
+      "link": "https://arxiv.org/pdf/2603.09049v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Agentic protocol for multi-round system optimization and task automation",
+      "llm_evidence_cn": "用于多轮系统优化和任务自动化的智能体协议",
+      "llm_evidence": "用于多轮系统优化和任务自动化的智能体协议",
+      "canonical_evidence": "用于多轮系统优化和任务自动化的智能体协议",
+      "llm_tldr_en": "Introduces EPOCH, a protocol for managing multi-round self-improvement in autonomous agentic workflows.",
+      "llm_tldr_cn": "引入了 EPOCH，一种用于管理自主智能体工作流中多轮自我改进的工程协议。",
+      "llm_tldr": "引入了 EPOCH，一种用于管理自主智能体工作流中多轮自我改进的工程协议。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Design patterns and frameworks for agentic workflows and task automation",
+      "matched_requirement_id": "req-21",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09184v1",
+      "title": "Latent-DARM: Bridging Discrete Diffusion And Autoregressive Models For Reasoning",
+      "abstract": "Most multi-agent systems rely exclusively on autoregressive language models (ARMs) that are based on sequential generation. Although effective for fluent text, ARMs limit global reasoning and plan revision. On the other hand, Discrete Diffusion Language Models (DDLMs) enable non-sequential, globally revisable generation and have shown strong planning capabilities, but their limited text fluency hinders direct collaboration with ARMs. We introduce Latent-DARM, a latent-space communication framework bridging DDLM (planners) and ARM (executors), maximizing collaborative benefits. Across mathematical, scientific, and commonsense reasoning benchmarks, Latent-DARM outperforms text-based interfaces on average, improving accuracy from 27.0% to 36.0% on DART-5 and from 0.0% to 14.0% on AIME2024. Latent-DARM approaches the results of state-of-the-art reasoning models while using less than 2.2% of its token budget. This work advances multi-agent collaboration among agents with heterogeneous models.",
+      "authors": [
+        "Lina Berrayana",
+        "Ahmed Heakl",
+        "Abdullah Sohail",
+        "Thomas Hofmann",
+        "Salman Khan",
+        "Wei Chen"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-10T04:45:26+00:00",
+      "link": "https://arxiv.org/pdf/2603.09184v1",
+      "tags": [
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "multi-agent systems and reasoning architectures",
+      "llm_evidence_cn": "多智能体系统与推理架构",
+      "llm_evidence": "多智能体系统与推理架构",
+      "canonical_evidence": "多智能体系统与推理架构",
+      "llm_tldr_en": "Proposes a framework bridging diffusion and autoregressive models to enhance reasoning in multi-agent systems.",
+      "llm_tldr_cn": "提出了一个连接扩散模型和自回归模型的框架，以增强多智能体系统的推理能力。",
+      "llm_tldr": "提出了一个连接扩散模型和自回归模型的框架，以增强多智能体系统的推理能力。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Recent advancements in autonomous AI agent architectures and reasoning",
+      "matched_requirement_id": "req-24",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09493v1",
+      "title": "Evolving Prompt Adaptation for Vision-Language Models",
+      "abstract": "The adaptation of large-scale vision-language models (VLMs) to downstream tasks with limited labeled data remains a significant challenge. While parameter-efficient prompt learning methods offer a promising path, they often suffer from catastrophic forgetting of pre-trained knowledge. Toward addressing this limitation, our work is grounded in the insight that governing the evolutionary path of prompts is essential for forgetting-free adaptation. To this end, we propose EvoPrompt, a novel framework designed to explicitly steer the prompt trajectory for stable, knowledge-preserving fine-tuning. Specifically, our approach employs a Modality-Shared Prompt Projector (MPP) to generate hierarchical prompts from a unified embedding space. Critically, an evolutionary training strategy decouples low-rank updates into directional and magnitude components, preserving early-learned semantic directions while only adapting their magnitude, thus enabling prompts to evolve without discarding foundational knowledge. This process is further stabilized by Feature Geometric Regularization (FGR), which enforces feature decorrelation to prevent representation collapse. Extensive experiments demonstrate that EvoPrompt achieves state-of-the-art performance in few-shot learning while robustly preserving the original zero-shot capabilities of pre-trained VLMs.",
+      "authors": [
+        "Enming Zhang",
+        "Jiayang Li",
+        "Yanru Wu",
+        "Zhenyu Liu",
+        "Yang Li"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-10T10:53:01+00:00",
+      "link": "https://arxiv.org/pdf/2603.09493v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "evolving prompt adaptation and steering prompt trajectory",
+      "llm_evidence_cn": "演化提示词适配与引导提示词轨迹",
+      "llm_evidence": "演化提示词适配与引导提示词轨迹",
+      "canonical_evidence": "演化提示词适配与引导提示词轨迹",
+      "llm_tldr_en": "Proposes EvoPrompt to steer prompt trajectories for stable, knowledge-preserving VLM fine-tuning.",
+      "llm_tldr_cn": "提出了 EvoPrompt 框架，通过引导提示词轨迹实现视觉语言模型的稳定微调。",
+      "llm_tldr": "提出了 EvoPrompt 框架，通过引导提示词轨迹实现视觉语言模型的稳定微调。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Automated prompt tuning and optimization strategies",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09641v1",
+      "title": "PRECEPT: Planning Resilience via Experience, Context Engineering & Probing Trajectories A Unified Framework for Test-Time Adaptation with Compositional Rule Learning and Pareto-Guided Prompt Evolution",
+      "abstract": "LLM agents that store knowledge as natural language suffer steep retrieval degradation as condition count grows, often struggle to compose learned rules reliably, and typically lack explicit mechanisms to detect stale or adversarial knowledge. We introduce PRECEPT, a unified framework for test-time adaptation with three tightly coupled components: (1) deterministic exact-match rule retrieval over structured condition keys, (2) conflict-aware memory with Bayesian source reliability and threshold-based rule invalidation, and (3) COMPASS, a Pareto-guided prompt-evolution outer loop. Exact retrieval eliminates partial-match interpretation errors on the deterministic path (0% by construction, vs 94.4% under Theorem~B.6's independence model at N=10) and supports compositional stacking through a semantic tier hierarchy; conflict-aware memory resolves static--dynamic disagreements and supports drift adaptation; COMPASS evaluates prompts through the same end-to-end execution pipeline.   Results (9--10 seeds): PRECEPT achieves a +41.1pp first-try advantage over Full Reflexion (d>1.9), +33.3pp compositional generalization (d=1.55), 100% $P_1$ on 2-way logistics compositions (d=2.64), +40--55pp continuous learning gains, strong eventual robustness under adversarial static knowledge (100% logistics with adversarial SK active; partial recovery on integration), +55.0pp drift recovery (d=0.95, p=0.031), and 61% fewer steps. Core comparisons are statistically significant, often at p<0.001.",
+      "authors": [
+        "Arash Shahmansoori"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.IR"
+      ],
+      "published": "2026-03-10T13:16:45+00:00",
+      "link": "https://arxiv.org/pdf/2603.09641v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Pareto-guided prompt evolution and context engineering for LLM agents",
+      "llm_evidence_cn": "大模型智能体的帕累托引导提示词演化与上下文工程",
+      "llm_evidence": "大模型智能体的帕累托引导提示词演化与上下文工程",
+      "canonical_evidence": "大模型智能体的帕累托引导提示词演化与上下文工程",
+      "llm_tldr_en": "Introduces a framework for test-time adaptation using prompt evolution and structured rule retrieval for LLM agents.",
+      "llm_tldr_cn": "引入一种通过提示词演化和结构化规则检索实现大模型智能体测试时自适应的框架。",
+      "llm_tldr": "引入一种通过提示词演化和结构化规则检索实现大模型智能体测试时自适应的框架。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Automated prompt tuning and optimization strategies",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09827v1",
+      "title": "MA-EgoQA: Question Answering over Egocentric Videos from Multiple Embodied Agents",
+      "abstract": "As embodied models become powerful, humans will collaborate with multiple embodied AI agents at their workplace or home in the future. To ensure better communication between human users and the multi-agent system, it is crucial to interpret incoming information from agents in parallel and refer to the appropriate context for each query. Existing challenges include effectively compressing and communicating high volumes of individual sensory inputs in the form of video and correctly aggregating multiple egocentric videos to construct system-level memory. In this work, we first formally define a novel problem of understanding multiple long-horizon egocentric videos simultaneously collected from embodied agents. To facilitate research in this direction, we introduce MultiAgent-EgoQA (MA-EgoQA), a benchmark designed to systemically evaluate existing models in our scenario. MA-EgoQA provides 1.7k questions unique to multiple egocentric streams, spanning five categories: social interaction, task coordination, theory-of-mind, temporal reasoning, and environmental interaction. We further propose a simple baseline model for MA-EgoQA named EgoMAS, which leverages shared memory across embodied agents and agent-wise dynamic retrieval. Through comprehensive evaluation across diverse baselines and EgoMAS on MA-EgoQA, we find that current approaches are unable to effectively handle multiple egocentric streams, highlighting the need for future advances in system-level understanding across the agents. The code and benchmark are available at https://ma-egoqa.github.io.",
+      "authors": [
+        "Kangsan Kim",
+        "Yanlai Yang",
+        "Suji Kim",
+        "Woongyeong Yeo",
+        "Youngwan Lee",
+        "Mengye Ren",
+        "Sung Ju Hwang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-10T15:48:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.09827v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "collaboration with multiple embodied AI agents",
+      "llm_evidence_cn": "与多个具身 AI 智能体协作",
+      "llm_evidence": "与多个具身 AI 智能体协作",
+      "canonical_evidence": "与多个具身 AI 智能体协作",
+      "llm_tldr_en": "Introduces MA-EgoQA for understanding multiple egocentric videos from collaborative embodied agents.",
+      "llm_tldr_cn": "引入 MA-EgoQA，用于理解来自协作具身智能体的多个第一视角视频。",
+      "llm_tldr": "引入 MA-EgoQA，用于理解来自协作具身智能体的多个第一视角视频。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Future trends in multi agent systems and collaborative AI environments",
+      "matched_requirement_id": "req-27",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09890v1",
+      "title": "Influencing LLM Multi-Agent Dialogue via Policy-Parameterized Prompts",
+      "abstract": "Large Language Models (LLMs) have emerged as a new paradigm for multi-agent systems. However, existing research on the behaviour of LLM-based multi-agents relies on ad hoc prompts and lacks a principled policy perspective. Different from reinforcement learning, we investigate whether prompt-as-action can be parameterized so as to construct a lightweight policy which consists of a sequence of state-action pairs to influence conversational behaviours without training. Our framework regards prompts as actions executed by LLMs, and dynamically constructs prompts through five components based on the current state of the agent. To test the effectiveness of parameterized control, we evaluated the dialogue flow based on five indicators: responsiveness, rebuttal, evidence usage, non-repetition, and stance shift. We conduct experiments using different LLM-driven agents in two discussion scenarios related to the general public and show that prompt parameterization can influence the dialogue dynamics. This result shows that policy-parameterised prompts offer a simple and effective mechanism to influence the dialogue process, which will help the research of multi-agent systems in the direction of social simulation.",
+      "authors": [
+        "Hongbo Bo",
+        "Jingyu Hu",
+        "Weiru Liu"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.MA"
+      ],
+      "published": "2026-03-10T16:47:25+00:00",
+      "link": "https://arxiv.org/pdf/2603.09890v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "policy-parameterized prompts for multi-agent dialogue control",
+      "llm_evidence_cn": "用于多智能体对话控制的策略参数化提示词",
+      "llm_evidence": "用于多智能体对话控制的策略参数化提示词",
+      "canonical_evidence": "用于多智能体对话控制的策略参数化提示词",
+      "llm_tldr_en": "Investigates parameterizing prompts as actions to influence multi-agent conversational behaviors.",
+      "llm_tldr_cn": "研究将提示词参数化为动作，以影响多智能体系统的对话行为。",
+      "llm_tldr": "研究将提示词参数化为动作，以影响多智能体系统的对话行为。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Design patterns and frameworks for agentic workflows and task automation",
+      "matched_requirement_id": "req-21",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2602.11327v1",
+      "title": "Security Threat Modeling for Emerging AI-Agent Protocols: A Comparative Analysis of MCP, A2A, Agora, and ANP",
+      "abstract": "The rapid development of the AI agent communication protocols, including the Model Context Protocol (MCP), Agent2Agent (A2A), Agora, and Agent Network Protocol (ANP), is reshaping how AI agents communicate with tools, services, and each other. While these protocols support scalable multi-agent interaction and cross-organizational interoperability, their security principles remain understudied, and standardized threat modeling is limited; no protocol-centric risk assessment framework has been established yet. This paper presents a systematic security analysis of four emerging AI agent communication protocols. First, we develop a structured threat modeling analysis that examines protocol architectures, trust assumptions, interaction patterns, and lifecycle behaviors to identify protocol-specific and cross-protocol risk surfaces. Second, we introduce a qualitative risk assessment framework that identifies twelve protocol-level risks and evaluates security posture across the creation, operation, and update phases through systematic assessment of likelihood, impact, and overall protocol risk, with implications for secure deployment and future standardization. Third, we provide a measurement-driven case study on MCP that formalizes the risk of missing mandatory validation/attestation for executable components as a falsifiable security claim by quantifying wrong-provider tool execution under multi-server composition across representative resolver policies. Collectively, our results highlight key design-induced risk surfaces and provide actionable guidance for secure deployment and future standardization of agent communication ecosystems.",
+      "authors": [
+        "Zeynab Anbiaee",
+        "Mahdi Rabbani",
+        "Mansur Mirani",
+        "Gunjan Piya",
+        "Igor Opushnyev",
+        "Ali Ghorbani",
+        "Sajjad Dadkhah"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-02-11T19:58:23+00:00",
+      "link": "https://arxiv.org/pdf/2602.11327v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "security analysis of emerging AI agent communication protocols for multi-agent interaction",
+      "llm_evidence_cn": "对新兴AI智能体通信协议的多智能体交互安全性分析",
+      "llm_evidence": "对新兴AI智能体通信协议的多智能体交互安全性分析",
+      "canonical_evidence": "对新兴AI智能体通信协议的多智能体交互安全性分析",
+      "llm_tldr_en": "Analyzes security threats in emerging AI agent protocols like MCP and Agora to establish risk frameworks.",
+      "llm_tldr_cn": "分析了MCP和Agora等新兴AI智能体协议的安全威胁，旨在建立风险评估框架。",
+      "llm_tldr": "分析了MCP和Agora等新兴AI智能体协议的安全威胁，旨在建立风险评估框架。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-43",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.11327v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.01514v1",
+      "title": "Training Dynamics of Softmax Self-Attention: Fast Global Convergence via Preconditioning",
+      "abstract": "We study the training dynamics of gradient descent in a softmax self-attention layer trained to perform linear regression and show that a simple first-order optimization algorithm can converge to the globally optimal self-attention parameters at a geometric rate. Our analysis proceeds in two steps. First, we show that in the infinite-data limit the regression problem solved by the self-attention layer is equivalent to a nonconvex matrix factorization problem. Second, we exploit this connection to design a novel \"structure-aware\" variant of gradient descent which efficiently optimizes the original finite-data regression objective. Our optimization algorithm features several innovations over standard gradient descent, including a preconditioner and regularizer which help avoid spurious stationary points, and a data-dependent spectral initialization of parameters which lie near the manifold of global minima with high probability.",
+      "authors": [
+        "Gautam Goel",
+        "Mahdi Soltanolkotabi",
+        "Peter Bartlett"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-03-02T06:44:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.01514v1",
+      "tags": [
+        "query:AI UX"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "optimizing large language model performance via preconditioning",
+      "llm_evidence_cn": "通过预处理优化大语言模型性能",
+      "llm_evidence": "通过预处理优化大语言模型性能",
+      "canonical_evidence": "通过预处理优化大语言模型性能",
+      "llm_tldr_en": "Analyzes training dynamics of self-attention to design faster optimization algorithms for model convergence.",
+      "llm_tldr_cn": "分析了自注意力的训练动力学，旨在设计更快的模型收敛优化算法。",
+      "llm_tldr": "分析了自注意力的训练动力学，旨在设计更快的模型收敛优化算法。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Methods for optimizing large language model performance and response quality",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.01943v1",
+      "title": "A Simulation Study to Compare Inferential Properties when Modelling Ordinal Outcomes: The Case for the (Plain but Robust) Proportional Odds Model",
+      "abstract": "Ordinal measurements are common outcomes in studies within psychology, as well as in the social and behavioral sciences. Choosing an appropriate regression model for analysing such data poses a difficult task. This paper aims to facilitate modeling decisions for quantitative researchers by presenting the results of an extensive simulation study on the inferential properties of common ordinal regression models: the proportional odds model, the category-specific odds model, the location-shift model, the location-scale model, and the linear model, which incorrectly treats ordinal outcomes as metric. The simulations were conducted under different data generating processes based on each of the ordinal models and varying parameter configurations within each model class. We examined the bias of parameter estimates as well as type I error rates ($α$-errors) and the power of statistical parameter testing procedures corresponding to the respective models. Our findings reveal several highlights. For parameter estimates, we observed that cumulative ordinal regression models exhibited large biases in cases of large parameter values and high skewness of the outcome distribution in the true data generation process. Regarding statistical hypothesis testing, the proportional odds model and the linear model showed the most reliable results. Due to its better fit and interpretability for ordinal outcomes, we recommend the use of the proportional odds model unless there are relevant contraindications.",
+      "authors": [
+        "Stefan Inerle",
+        "Markus Pauly",
+        "Moritz Berger"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME"
+      ],
+      "published": "2026-03-02T14:57:24+00:00",
+      "link": "https://arxiv.org/pdf/2603.01943v1",
+      "tags": [
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Modeling ordinal outcomes in psychology and behavioral sciences",
+      "llm_evidence_cn": "心理学和行为科学中的序数结果建模",
+      "llm_evidence": "心理学和行为科学中的序数结果建模",
+      "canonical_evidence": "心理学和行为科学中的序数结果建模",
+      "llm_tldr_en": "Evaluates regression models for ordinal data common in psychological and behavioral research.",
+      "llm_tldr_cn": "评估了心理学和行为研究中常见的序数数据回归模型。",
+      "llm_tldr": "评估了心理学和行为研究中常见的序数数据回归模型。",
+      "llm_tags": [
+        "query:pr-ef:composite"
+      ],
+      "matched_query_tag": "query:pr-ef:composite",
+      "matched_query_text": "Papers central to 父母控制与执行功能关系研究检索规划, especially work that connects or combines: parental monitoring; impact of parental behavioral control on child development; effects of parental psychological control on executive function; development of executive function in children and adolescents; parenting styles and child inhibitory control; self-determination theory and basic psychological needs satisfaction; mediating role of emotion regulation in parenting and cognition; longitudinal association between parenting and executive function; parental control and executive function in preschool samples; How does parental psychological control affect children's executive function?.",
+      "matched_requirement_id": "req-composite-pr-ef",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2602.11897v2",
+      "title": "Agentic AI for Cybersecurity: A Meta-Cognitive Architecture for Governable Autonomy",
+      "abstract": "Contemporary AI-driven cybersecurity systems are predominantly architected as model-centric detection and automation pipelines optimized for task-level performance metrics such as accuracy and response latency. While effective for bounded classification tasks, these architectures struggle to support accountable decision-making under adversarial uncertainty, where actions must be justified, governed, and aligned with organizational and regulatory constraints. This paper argues that cybersecurity orchestration should be reconceptualized as an agentic, multi-agent cognitive system, rather than a linear sequence of detection and response components. We introduce a conceptual architectural framework in which heterogeneous AI agents responsible for detection, hypothesis formation, contextual interpretation, explanation, and governance are coordinated through an explicit meta-cognitive judgement function. This function governs decision readiness and dynamically calibrates system autonomy when evidence is incomplete, conflicting, or operationally risky. By synthesizing distributed cognition theory, multi-agent systems research, and responsible AI governance frameworks, we demonstrate that modern security operations already function as distributed cognitive systems, albeit without an explicit organizing principle. Our contribution is to make this cognitive structure architecturally explicit and governable by embedding meta-cognitive judgement as a first-class system function. We discuss implications for security operations centers, accountable autonomy, and the design of next-generation AI-enabled cyber defence architectures. The proposed framework shifts the focus of AI in cybersecurity from optimizing isolated predictions to governing autonomy under uncertainty.",
+      "authors": [
+        "Andrei Kojukhov",
+        "Arkady Bovshover"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-02-12T12:52:49+00:00",
+      "link": "https://arxiv.org/pdf/2602.11897v2",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "multi-agent cognitive system architecture for autonomous decision-making",
+      "llm_evidence_cn": "用于自主决策的多智能体认知系统架构",
+      "llm_evidence": "用于自主决策的多智能体认知系统架构",
+      "canonical_evidence": "用于自主决策的多智能体认知系统架构",
+      "llm_tldr_en": "Proposes a meta-cognitive multi-agent architecture for governable and accountable autonomous cybersecurity.",
+      "llm_tldr_cn": "提出一种用于网络安全的元认知多智能体架构，旨在实现可治理且负责任的自主决策。",
+      "llm_tldr": "提出一种用于网络安全的元认知多智能体架构，旨在实现可治理且负责任的自主决策。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-43",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.11897v2",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.01570v1",
+      "title": "Adversarial Query Synthesis via Bayesian Optimization",
+      "abstract": "Benchmark workloads are extremely important to the database management research community, especially as more machine learning components are integrated into database systems. Here, we propose a Bayesian optimization technique to automatically search for difficult benchmark queries, significantly reducing the amount of manual effort usually required. In preliminary experiments, we show that our approach can generate queries with more than double the optimization headroom compared to existing benchmarks.",
+      "authors": [
+        "Jeffrey Tao",
+        "Yimeng Zeng",
+        "Haydn Thomas Jones",
+        "Natalie Maus",
+        "Osbert Bastani",
+        "Jacob R. Gardner",
+        "Ryan Marcus"
+      ],
+      "primary_category": "cs.DB",
+      "categories": [
+        "cs.DB",
+        "cs.LG"
+      ],
+      "published": "2026-03-02T07:50:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.01570v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Bayesian optimization for automatic query synthesis",
+      "llm_evidence_cn": "用于自动查询合成的贝叶斯优化",
+      "llm_evidence": "用于自动查询合成的贝叶斯优化",
+      "canonical_evidence": "用于自动查询合成的贝叶斯优化",
+      "llm_tldr_en": "Proposes a Bayesian optimization technique to automatically generate difficult benchmark queries for database systems.",
+      "llm_tldr_cn": "提出一种贝叶斯优化技术，用于自动生成数据库系统的困难基准查询。",
+      "llm_tldr": "提出一种贝叶斯优化技术，用于自动生成数据库系统的困难基准查询。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Automated prompt tuning and optimization strategies",
+      "matched_requirement_id": "req-22",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.02427v1",
+      "title": "Learning to Pay Attention: Unsupervised Modeling of Attentive and Inattentive Respondents in Survey Data",
+      "abstract": "The integrity of behavioral and social-science surveys depends on detecting inattentive respondents who provide random or low-effort answers. Traditional safeguards, such as attention checks, are often costly, reactive, and inconsistent. We propose a unified, label-free framework for inattentiveness detection that scores response coherence using complementary unsupervised views: geometric reconstruction (Autoencoders) and probabilistic dependency modeling (Chow-Liu trees). While we introduce a \"Percentile Loss\" objective to improve Autoencoder robustness against anomalies, our primary contribution is identifying the structural conditions that enable unsupervised quality control. Across nine heterogeneous real-world datasets, we find that detection effectiveness is driven less by model complexity than by survey structure: instruments with coherent, overlapping item batteries exhibit strong covariance patterns that allow even linear models to reliably separate attentive from inattentive respondents. This reveals a critical ``Psychometric-ML Alignment'': the same design principles that maximize measurement reliability (e.g., internal consistency) also maximize algorithmic detectability. The framework provides survey platforms with a scalable, domain-agnostic diagnostic tool that links data quality directly to instrument design, enabling auditing without additional respondent burden.",
+      "authors": [
+        "Ilias Triantafyllopoulos",
+        "Panos Ipeirotis"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-02T22:11:51+00:00",
+      "link": "https://arxiv.org/pdf/2603.02427v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "quality control in behavioral and social-science surveys",
+      "llm_evidence_cn": "行为和社会科学调查中的质量控制",
+      "llm_evidence": "行为和社会科学调查中的质量控制",
+      "canonical_evidence": "行为和社会科学调查中的质量控制",
+      "llm_tldr_en": "Proposes an unsupervised framework to detect inattentive respondents in social science survey data.",
+      "llm_tldr_cn": "提出了一个无监督框架，用于检测社会科学调查数据中注意力不集中的受访者。",
+      "llm_tldr": "提出了一个无监督框架，用于检测社会科学调查数据中注意力不集中的受访者。",
+      "llm_tags": [
+        "query:pr-ef:composite"
+      ],
+      "matched_query_tag": "query:pr-ef:composite",
+      "matched_query_text": "Papers central to 父母控制与执行功能关系研究检索规划, especially work that connects or combines: parental monitoring; impact of parental behavioral control on child development; effects of parental psychological control on executive function; development of executive function in children and adolescents; parenting styles and child inhibitory control; self-determination theory and basic psychological needs satisfaction; mediating role of emotion regulation in parenting and cognition; longitudinal association between parenting and executive function; parental control and executive function in preschool samples; How does parental psychological control affect children's executive function?.",
+      "matched_requirement_id": "req-composite-pr-ef",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2602.11931v1",
+      "title": "AdaptEvolve: Improving Efficiency of Evolutionary AI Agents through Adaptive Model Selection",
+      "abstract": "Evolutionary agentic systems intensify the trade-off between computational efficiency and reasoning capability by repeatedly invoking large language models (LLMs) during inference. This setting raises a central question: how can an agent dynamically select an LLM that is sufficiently capable for the current generation step while remaining computationally efficient? While model cascades offer a practical mechanism for balancing this trade-off, existing routing strategies typically rely on static heuristics or external controllers and do not explicitly account for model uncertainty. We introduce AdaptEvolve: Adaptive LLM Selection for Multi-LLM Evolutionary Refinement within an evolutionary sequential refinement framework that leverages intrinsic generation confidence to estimate real-time solvability. Empirical results show that confidence-driven selection yields a favourable Pareto frontier, reducing total inference cost by an average of 37.9% across benchmarks while retaining 97.5% of the upper-bound accuracy of static large-model baselines. Our code is available at https://github.com/raypretam/adaptive_llm_selection.",
+      "authors": [
+        "Pretam Ray",
+        "Pratik Prabhanjan Brahma",
+        "Zicheng Liu",
+        "Emad Barsoum"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-02-12T13:26:56+00:00",
+      "link": "https://arxiv.org/pdf/2602.11931v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "adaptive model selection for evolutionary AI agents",
+      "llm_evidence_cn": "进化型AI智能体的自适应模型选择",
+      "llm_evidence": "进化型AI智能体的自适应模型选择",
+      "canonical_evidence": "进化型AI智能体的自适应模型选择",
+      "llm_tldr_en": "Proposes AdaptEvolve to improve efficiency in evolutionary agentic systems through dynamic LLM selection.",
+      "llm_tldr_cn": "提出AdaptEvolve框架，通过动态选择大模型来提升进化型智能体系统的效率。",
+      "llm_tldr": "提出AdaptEvolve框架，通过动态选择大模型来提升进化型智能体系统的效率。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How do autonomous agents evolve from large language models?",
+      "matched_requirement_id": "req-42",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.11931v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.02379v1",
+      "title": "Strategic Shaping of Human Prosociality: A Latent-State POMDP Framework",
+      "abstract": "We propose a decision-theoretic framework in which a robot strategically can shape inferred human's prosocial state during repeated interactions. Modeling the human's prosociality as a latent state that evolves over time, the robot learns to infer and influence this state through its own actions, including helping and signaling. We formalize this as a latent-state POMDP with limited observations and learn the transition and observation dynamics using expectation maximization. The resulting belief-based policy balances task and social objectives, selecting actions that maximize long-term cooperative outcomes. We evaluate the model using data from user studies and show that the learned policy outperforms baseline strategies in both team performance and increasing observed human cooperative behavior.",
+      "authors": [
+        "Zahra Zahedi",
+        "Xinyue Hu",
+        "Shashank Mehrotra",
+        "Mark Steyvers",
+        "Kumar Akash"
+      ],
+      "primary_category": "cs.HC",
+      "categories": [
+        "cs.HC",
+        "cs.RO",
+        "eess.SY"
+      ],
+      "published": "2026-03-02T20:47:54+00:00",
+      "link": "https://arxiv.org/pdf/2603.02379v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Robot shaping human prosocial state during repeated interactions",
+      "llm_evidence_cn": "机器人在重复交互中塑造人类亲社会状态",
+      "llm_evidence": "机器人在重复交互中塑造人类亲社会状态",
+      "canonical_evidence": "机器人在重复交互中塑造人类亲社会状态",
+      "llm_tldr_en": "Proposes a POMDP framework for robots to infer and influence human prosociality during collaborative tasks.",
+      "llm_tldr_cn": "提出了一个 POMDP 框架，使机器人在协作任务中能够推断并影响人类的亲社会性。",
+      "llm_tldr": "提出了一个 POMDP 框架，使机器人在协作任务中能够推断并影响人类的亲社会性。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Research on collaborative workflows between humans and artificial intelligence",
+      "matched_requirement_id": "req-20",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.04945v1",
+      "title": "Federated Heterogeneous Language Model Optimization for Hybrid Automatic Speech Recognition",
+      "abstract": "Training automatic speech recognition (ASR) models increasingly relies on decentralized federated learning to ensure data privacy and accessibility, producing multiple local models that require effective merging. In hybrid ASR systems, while acoustic models can be merged using established methods, the language model (LM) for rescoring the N-best speech recognition list faces challenges due to the heterogeneity of non-neural n-gram models and neural network models. This paper proposes a heterogeneous LM optimization task and introduces a match-and-merge paradigm with two algorithms: the Genetic Match-and-Merge Algorithm (GMMA), using genetic operations to evolve and pair LMs, and the Reinforced Match-and-Merge Algorithm (RMMA), leveraging reinforcement learning for efficient convergence. Experiments on seven OpenSLR datasets show RMMA achieves the lowest average Character Error Rate and better generalization than baselines, converging up to seven times faster than GMMA, highlighting the paradigm's potential for scalable, privacy-preserving ASR systems.",
+      "authors": [
+        "Mengze Hong",
+        "Yi Gu",
+        "Di Jiang",
+        "Hanlin Gu",
+        "Chen Jason Zhang",
+        "Lu Wang",
+        "Zhiyang Su"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-05T08:42:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.04945v1",
+      "tags": [
+        "query:AI UX"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "optimization of language model performance",
+      "llm_evidence_cn": "语言模型性能优化",
+      "llm_evidence": "语言模型性能优化",
+      "canonical_evidence": "语言模型性能优化",
+      "llm_tldr_en": "Proposes algorithms for optimizing and merging heterogeneous language models in federated learning for ASR.",
+      "llm_tldr_cn": "提出了一种在联邦学习中优化和合并异构语言模型的算法，用于自动语音识别。",
+      "llm_tldr": "提出了一种在联邦学习中优化和合并异构语言模型的算法，用于自动语音识别。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Methods for optimizing large language model performance and response quality",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2602.12662v1",
+      "title": "Think Fast and Slow: Step-Level Cognitive Depth Adaptation for LLM Agents",
+      "abstract": "Large language models (LLMs) are increasingly deployed as autonomous agents for multi-turn decision-making tasks. However, current agents typically rely on fixed cognitive patterns: non-thinking models generate immediate responses, while thinking models engage in deep reasoning uniformly. This rigidity is inefficient for long-horizon tasks, where cognitive demands vary significantly from step to step, with some requiring strategic planning and others only routine execution. In this paper, we introduce CogRouter, a framework that trains agents to dynamically adapt cognitive depth at each step. Grounded in ACT-R theory, we design four hierarchical cognitive levels ranging from instinctive responses to strategic planning. Our two-stage training approach includes Cognition-aware Supervised Fine-tuning (CoSFT) to instill stable level-specific patterns, and Cognition-aware Policy Optimization (CoPO) for step-level credit assignment via confidence-aware advantage reweighting. The key insight is that appropriate cognitive depth should maximize the confidence of the resulting action. Experiments on ALFWorld and ScienceWorld demonstrate that CogRouter achieves state-of-the-art performance with superior efficiency. With Qwen2.5-7B, it reaches an 82.3% success rate, outperforming GPT-4o (+40.3%), OpenAI-o3 (+18.3%), and GRPO (+14.0%), while using 62% fewer tokens.",
+      "authors": [
+        "Ruihan Yang",
+        "Fanghua Ye",
+        "Xiang We",
+        "Ruoqing Zhao",
+        "Kang Luo",
+        "Xinbo Xu",
+        "Bo Zhao",
+        "Ruotian Ma",
+        "Shanyi Wang",
+        "Zhaopeng Tu",
+        "Xiaolong Li",
+        "Deqing Yang",
+        "Linus"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "published": "2026-02-13T06:52:09+00:00",
+      "link": "https://arxiv.org/pdf/2602.12662v1",
+      "tags": [
+        "keyword:PR EF",
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "cognitive depth adaptation for LLM agents",
+      "llm_evidence_cn": "LLM 智能体的认知深度自适应",
+      "llm_evidence": "LLM 智能体的认知深度自适应",
+      "canonical_evidence": "LLM 智能体的认知深度自适应",
+      "llm_tldr_en": "CogRouter enables agents to dynamically adjust reasoning depth based on task complexity using ACT-R theory.",
+      "llm_tldr_cn": "CogRouter 使智能体能够根据任务复杂度，利用 ACT-R 理论动态调整推理深度。",
+      "llm_tldr": "CogRouter 使智能体能够根据任务复杂度，利用 ACT-R 理论动态调整推理深度。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Autonomous AI agents architecture and decision making",
+      "matched_requirement_id": "req-26",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.12662v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.04738v1",
+      "title": "IF-RewardBench: Benchmarking Judge Models for Instruction-Following Evaluation",
+      "abstract": "Instruction-following is a foundational capability of large language models (LLMs), with its improvement hinging on scalable and accurate feedback from judge models. However, the reliability of current judge models in instruction-following remains underexplored due to several deficiencies of existing meta-evaluation benchmarks, such as their insufficient data coverage and oversimplified pairwise evaluation paradigms that misalign with model optimization scenarios. To this end, we propose IF-RewardBench, a comprehensive meta-evaluation benchmark for instruction-following that covers diverse instruction and constraint types. For each instruction, we construct a preference graph containing all pairwise preferences among multiple responses based on instruction-following quality. This design enables a listwise evaluation paradigm that assesses the capabilities of judge models to rank multiple responses, which is essential in guiding model alignment. Extensive experiments on IF-RewardBench reveal significant deficiencies in current judge models and demonstrate that our benchmark achieves a stronger positive correlation with downstream task performance compared to existing benchmarks. Our codes and data are available at https://github.com/thu-coai/IF-RewardBench.",
+      "authors": [
+        "Bosi Wen",
+        "Yilin Niu",
+        "Cunxiang Wang",
+        "Xiaoying Ling",
+        "Ying Zhang",
+        "Pei Ke",
+        "Hongning Wang",
+        "Minlie Huang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-05T02:21:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.04738v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "optimizing LLM performance via instruction-following evaluation",
+      "llm_evidence_cn": "通过指令遵循评估优化大模型性能",
+      "llm_evidence": "通过指令遵循评估优化大模型性能",
+      "canonical_evidence": "通过指令遵循评估优化大模型性能",
+      "llm_tldr_en": "Proposes IF-RewardBench to benchmark judge models for accurate instruction-following feedback.",
+      "llm_tldr_cn": "提出 IF-RewardBench，用于基准测试裁判模型以提供准确的指令遵循反馈。",
+      "llm_tldr": "提出 IF-RewardBench，用于基准测试裁判模型以提供准确的指令遵循反馈。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Methods for optimizing large language model performance and response quality",
+      "matched_requirement_id": "req-19",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.06816v1",
+      "title": "\"Dark Triad\" Model Organisms of Misalignment: Narrow Fine-Tuning Mirrors Human Antisocial Behavior",
+      "abstract": "The alignment problem refers to concerns regarding powerful intelligences, ensuring compatibility with human preferences and values as capabilities increase. Current large language models (LLMs) show misaligned behaviors, such as strategic deception, manipulation, and reward-seeking, that can arise despite safety training. Gaining a mechanistic understanding of these failures requires empirical approaches that can isolate behavioral patterns in controlled settings. We propose that biological misalignment precedes artificial misalignment, and leverage the Dark Triad of personality (narcissism, psychopathy, and Machiavellianism) as a psychologically grounded framework for constructing model organisms of misalignment. In Study 1, we establish comprehensive behavioral profiles of Dark Triad traits in a human population (N = 318), identifying affective dissonance as a central empathic deficit connecting the traits, as well as trait-specific patterns in moral reasoning and deceptive behavior. In Study 2, we demonstrate that dark personas can be reliably induced in frontier LLMs through minimal fine-tuning on validated psychometric instruments. Narrow training datasets as small as 36 psychometric items resulted in significant shifts across behavioral measures that closely mirrored human antisocial profiles. Critically, models generalized beyond training items, demonstrating out-of-context reasoning rather than memorization. These findings reveal latent persona structures within LLMs that can be readily activated through narrow interventions, positioning the Dark Triad as a validated framework for inducing, detecting, and understanding misalignment across both biological and artificial intelligence.",
+      "authors": [
+        "Roshni Lulla",
+        "Fiona Collins",
+        "Sanaya Parekh",
+        "Thilo Hagendorff",
+        "Jonas Kaplan"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "q-bio.NC"
+      ],
+      "published": "2026-03-06T19:23:21+00:00",
+      "link": "https://arxiv.org/pdf/2603.06816v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Psychologically grounded framework for constructing model organisms of AI misalignment",
+      "llm_evidence_cn": "构建AI失调模型生物的心理学框架",
+      "llm_evidence": "构建AI失调模型生物的心理学框架",
+      "canonical_evidence": "构建AI失调模型生物的心理学框架",
+      "llm_tldr_en": "Uses the Dark Triad personality framework to study and isolate misaligned behaviors in fine-tuned LLMs.",
+      "llm_tldr_cn": "利用“黑暗人格三项”框架研究并隔离微调大语言模型中的失调行为。",
+      "llm_tldr": "利用“黑暗人格三项”框架研究并隔离微调大语言模型中的失调行为。",
+      "llm_tags": [
+        "query:ai-ux:composite"
+      ],
+      "matched_query_tag": "query:ai-ux:composite",
+      "matched_query_text": "Papers central to 关于改进 AI 使用体验、提示词工程与 AI 智能体发展前沿的论文, especially work that connects or combines: Advanced techniques and methodologies for prompt engineering in large language models; Development and architecture of autonomous AI agents and multi-agent systems; Improving human-computer interaction and user experience for AI-driven applications; Reasoning capabilities and chain-of-thought prompting in LLMs; Methods for optimizing large language model performance and response quality; Research on collaborative workflows between humans and artificial intelligence; Design patterns and frameworks for agentic workflows and task automation; Automated prompt tuning and optimization strategies; State of the art in prompt engineering techniques for large language models; Recent advancements in autonomous AI agent architectures and reasoning.",
+      "matched_requirement_id": "req-composite-ai-ux",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    }
+  ]
+}

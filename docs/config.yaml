@@ -84,95 +84,58 @@ subscriptions:
           source: manual
           note: ''
       updated_at: '2026-03-08T16:36:27.403Z'
-    - tag: SR AI
-      description: ai 前沿与智能体协作
+    - tag: AI UX
+      description: 关于改进 AI 使用体验、提示词工程与 AI 智能体发展前沿的论文
       enabled: true
       keywords:
-        - keyword: Diffusion-based Large Language Model
-          keyword_cn: 扩散大语言模型
-          query: Diffusion-based Large Language Model
-        - keyword: Long-term Memory
-          keyword_cn: 长效记忆
-          query: Neural long-term memory and infinite context architectures
-        - keyword: Multi-Agent Systems
-          keyword_cn: 多智能体系统
-          query: Multi-agent coordination and agentic workflow orchestration
-        - keyword: Multimodal perception
-          keyword_cn: 多模态感知
-          query: Multimodal perception and sensory integration in AI
-        - keyword: Agent Memory
-          keyword_cn: 智能体记忆机制
-          query: Long-term and short-term memory mechanisms for AI agents
+        - keyword: Prompt Engineering
+          keyword_cn: 提示词工程
+          query: Advanced techniques and methodologies for prompt engineering in large language models
+        - keyword: AI Agents
+          keyword_cn: AI 智能体
+          query: Development and architecture of autonomous AI agents and multi-agent systems
+        - keyword: User Experience AI
+          keyword_cn: AI 用户体验
+          query: Improving human-computer interaction and user experience for AI-driven applications
+        - keyword: Chain of Thought
+          keyword_cn: 思维链
+          query: Reasoning capabilities and chain-of-thought prompting in LLMs
+        - keyword: LLM Optimization
+          keyword_cn: 大语言模型优化
+          query: Methods for optimizing large language model performance and response quality
+        - keyword: Human-AI Interaction
+          keyword_cn: 人机交互
+          query: Research on collaborative workflows between humans and artificial intelligence
         - keyword: Agentic Workflows
           keyword_cn: 智能体工作流
-          query: Cross-application automated workflows and agent orchestration
-        - keyword: Tool Use
-          keyword_cn: 工具调用
-          query: LLM tool use and external API calling capabilities
+          query: Design patterns and frameworks for agentic workflows and task automation
+        - keyword: Prompt Optimization
+          keyword_cn: 提示词优化
+          query: Automated prompt tuning and optimization strategies
       intent_queries:
-        - query: How do world models improve physical causality understanding in AI?
-          query_cn: 世界模型如何提升AI对物理因果律的理解？
+        - query: State of the art in prompt engineering techniques for large language models
+          query_cn: 大语言模型提示词工程的前沿技术
           enabled: true
           source: manual
           note: ''
-        - query: Latest advancements in Vision Language Action models for robot control
-          query_cn: 用于机器人控制的VLA模型最新进展
+        - query: Recent advancements in autonomous AI agent architectures and reasoning
+          query_cn: 自主 AI 智能体架构与推理的最新进展
           enabled: true
           source: manual
           note: ''
-        - query: Architectures for infinite context and long term neural memory
-          query_cn: 无限上下文与长效神经内存的架构研究
+        - query: Strategies for enhancing user experience and interaction design in AI systems
+          query_cn: 增强 AI 系统用户体验与交互设计的策略
           enabled: true
           source: manual
           note: ''
-        - query: Self evolving reasoning through reinforcement learning without human labels
-          query_cn: 通过强化学习实现无人类标注的自我进化推理
+        - query: Comparative study of prompt optimization methods for improved model output
+          query_cn: 改进模型输出的提示词优化方法对比研究
           enabled: true
           source: manual
           note: ''
-        - query: Multi agent coordination protocols and collaborative error correction
-          query_cn: 多智能体协作协议与协同纠错机制
+        - query: Future trends in multi agent systems and collaborative AI environments
+          query_cn: 多智能体系统与协作 AI 环境的未来趋势
           enabled: true
           source: manual
           note: ''
-        - query: Scaling laws for reasoning chains in large language models
-          query_cn: 大语言模型推理链的缩放定律研究
-          enabled: true
-          source: manual
-          note: ''
-        - query: How do autonomous agents evolve from large language models?
-          query_cn: 自主智能体如何从大语言模型演进？
-          enabled: true
-          source: manual
-          note: ''
-        - query: What are the latest architectures for multi agent systems?
-          query_cn: 多智能体系统的最新架构有哪些？
-          enabled: true
-          source: manual
-          note: ''
-        - query: How does embodied AI integrate multimodal perception with physical action?
-          query_cn: 具身智能如何将多模态感知与物理行动结合？
-          enabled: true
-          source: manual
-          note: ''
-        - query: What are the mechanisms for long term memory in AI agents?
-          query_cn: AI 智能体的长期记忆机制是什么？
-          enabled: true
-          source: manual
-          note: ''
-        - query: How is AI automating software engineering tasks in SWE bench scenarios?
-          query_cn: AI 如何在 SWE bench 场景下自动化软件工程任务？
-          enabled: true
-          source: manual
-          note: ''
-        - query: What are the breakthroughs in cross application agentic workflows?
-          query_cn: 跨应用智能体工作流有哪些突破？
-          enabled: true
-          source: manual
-          note: ''
-        - query: Is it too technical, with a lot of cutting edge terminology that makes it incomprehensible to non experts?
-          query_cn: 是否过于专业而出现前沿名词堆叠以至于无法让非专业人士看懂？
-          enabled: true
-          source: manual
-          note: ''
-      updated_at: '2026-03-10T07:18:09.273Z'
+      updated_at: '2026-03-11T01:47:37.036Z'

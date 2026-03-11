@@ -1,0 +1,826 @@
+Title: 2602.11897v2.pdf
+
+URL Source: https://arxiv.org/pdf/2602.11897v2
+
+Published Time: Wed, 18 Feb 2026 01:04:00 GMT
+
+Number of Pages: 12
+
+Markdown Content:
+Agentic AI for Cybersecurity: A Meta -Cognitive 
+
+# Architecture for Governable Autonomy 
+
+Authors : Andrei Kojukhov and Arkady Bovshover 
+
+# Abstract 
+
+Contemporary AI -driven cybersecurity systems are predominantly architected as model -centric 
+
+detection and automation pipelines optimized for task -level performance metrics such as 
+
+accuracy and response latency. While effective for bounded classification ta sks, these 
+
+architectures struggle to support accountable decision -making under adversarial uncertainty, 
+
+where actions must be justified, governed, and aligned with organizational and regulatory 
+
+constraints. 
+
+This paper argues that cybersecurity orchestration should be reconceptualized as an agentic, 
+
+multi -agent cognitive system , rather than a linear sequence of detection and response 
+
+components. We introduce a conceptual architectural framework in which heterogeneous AI 
+
+agents —responsible for detection, hypothesis formation, contextual interpretation, 
+
+explanation, and governance —are coordinated through an explicit meta -cognitive judgement 
+
+function . This function governs decision readiness and dynamically calibr ates system 
+
+autonomy when evidence is incomplete, conflicting, or operationally risky. 
+
+By synthesizing distributed cognition theory, multi -agent systems research, and responsible AI 
+
+governance frameworks , we demonstrate that modern security operations already function as 
+
+distributed cognitive systems, albeit without an explicit organizing principle. Our contribution is 
+
+to make this cognitive structure architecturally explicit and governable by embedding m eta -
+
+cognitive judgement as a first -class system function. 
+
+We discuss implications for security operations centers, accountable autonomy, and the design 
+
+of next -generation AI -enabled cyber defence architectures. The proposed framework shifts the 
+
+focus of AI in cybersecurity from optimizing isolated predictions to governing autonomy under 
+
+uncertainty. 
+
+# 1. Introduction 
+
+Cybersecurity has undergone a profound transformation over the past decade. Once dominated 
+
+by signature -based detection and rule -driven automation, modern cyber defence increasingly 
+
+relies on machine learning, large -scale data analytics, and automated response mechanisms to 
+
+cope with the growing volume and velocity of security events. These advances have significantly 
+
+improved detection coverage and operational efficienc y. However, they have also revealed 
+
+structural limitations in how cybersecurity systems are conceptualized and designed. Most contemporary AI -enabled cybersecurity platforms are organized as pipelines [1,2] .
+
+Telemetry is ingested, processed by detection models, filtered into alerts, and optionally 
+
+translated into automated responses. This architectural paradigm implicitly treats AI as a 
+
+collection of tools embedded within a largely linear workflow. Even when multiple models are 
+
+employed, coordination logic remains centralized and opaque, with limited support for 
+
+reasoning under uncertainty, explanation of decisions, or meaningful human –AI collaboration 
+
+[1,7,8 ].
+
+At the same time, the operational reality of cybersecurity is changing. Recent industry analyses 
+
+document the emergence of agentic AI systems capable of planning, reasoning, and acting 
+
+autonomously across both offensive and defensive cyber operations. Attackers increasingly 
+
+employ AI to automate reconnaissance, generate adaptive phishing campaigns, and 
+
+dynamically modify attack strategies. Defe nders, in turn, deploy AI -driven systems that operate 
+
+continuously, make real -time decisions, and interact directly with production environments. In 
+
+this context, cybersecurity is no longer a problem of isolated detections, but one of 
+
+coordinated decision -making under adversarial uncertainty .
+
+Recent work surveys the evolving role of agentic AI in cybersecurity, tracing a shift from single -
+
+step generative models to multi -agent systems and semi -autonomous pipelines that require 
+
+continuous reasoning, tool use, and iterative decision cycles [ 17 , 18 ]. This evolution motivates 
+
+the need for architectures that can not only coordinate agentic behaviour but also govern 
+
+decision autonomy under uncertainty. 
+
+Academic surveys of artificial intelligence in cybersecurity provide a complementary 
+
+perspective. They document substantial progress in applying machine learning and deep 
+
+learning to tasks such as intrusion detection, malware classification, and anomaly de tection 
+
+[1,2] . However, these surveys also reveal an implicit assumption that AI systems operate as 
+
+bounded, task -specific components. Explainability, governance, and trust are typically treated 
+
+as secondary concerns or future challenges [7,8,10 ], rather t han as integral elements of system 
+
+design. 
+
+Recent comprehensive surveys of artificial intelligence in cybersecurity provide valuable 
+
+overviews of machine learning, deep learning, and natural language processing techniques 
+
+applied across detection, response, and threat intelligence tasks [16]. Howev er, such accounts 
+
+largely assume pipeline -oriented architectures and do not explicitly address how autonomous 
+
+decisions are coordinated, justified, and governed under adversarial uncertainty. 
+
+This disconnect between model -centric academic framings and agentic operational 
+
+realities points to a deeper conceptual gap. We argue that cybersecurity should be understood 
+
+not merely as a technical pipeline, but as a distributed cognitive process [4,5,6] involving 
+
+multiple artificial and human agents. From this perspective, orchestration is not simply 
+
+automation, but coordination, negotiation, explanation, and accountability. 
+
+The central contribution of this paper is a theoretical re -framing of cybersecurity orchestration 
+
+as an agentic, multi -agent cognitive system , enabled by generative AI and grounded in 
+
+principles of responsible and explainable AI. By making this structure explicit, we aim to provide a foundation for designing cybersecurity systems that are more adaptive, interpretable, and 
+
+governable in the face of growing complexity. 
+
+# 1. 1 Positioning Relative to SOAR Architectures 
+
+Security Orchestration, Automation, and Response (SOAR) platforms play a central role in 
+
+contemporary security operations by coordinating tools, alerts, and predefined response 
+
+workflows [12] . These systems have significantly improved operational efficiency by automating 
+
+repetitive tasks and enforcing consistent playbooks. However, SOAR architectures remain 
+
+fundamentally action -centric: they orchestrate responses rather than the reasoning proc esses 
+
+[4,5] that precede and justify those responses. 
+
+The framework proposed in this paper is not an extension or replacement of SOAR, nor does it 
+
+seek to automate additional security tasks. Instead, it operates at a different conceptual layer. 
+
+We focus on orchestrating epistemic functions —such as interpretat ion, hypothesis formation, 
+
+contextual integration, explanation, and governance [7,8,10] —that are largely implicit or 
+
+externalized in existing SOAR systems. In practice, a SOAR platform may serve as an execution 
+
+substrate within our framework, but it does not provide the cognitive coordination required for 
+
+decision -making under uncertainty. 
+
+Similarly, recent integrations of large language models into SOC workflows typically position 
+
+generative AI as an interface layer for summarization or analyst interaction. In contrast, we 
+
+position generative AI as a coordination substrate that enables sema ntic negotiation [7,9,11] 
+
+and alignment across heterogeneous agents and human analysts. This distinction reflects a 
+
+shift from automating actions to governing autonomy, which becomes increasingly critical as AI 
+
+systems assume more active roles in cyber def ence. 
+
+# 1.2 Positioning Relative to Multi -Agent Systems Theory 
+
+The proposed framework draws inspiration from multi -agent systems (MAS) research but differs 
+
+from classical MAS formulations in both objective and scope. Traditional MAS theory focuses on 
+
+coordination, negotiation, and optimization [3] among autonomous agents operating under 
+
+predefined goals and utility functions. In contrast, cybersecurity decision -making is 
+
+characterized by ambiguous objectives, adversarial uncertainty [1] , and strong accountability 
+
+constraints, where the correctness of an action cannot b e evaluated solely in terms of 
+
+optimality or convergence. 
+
+Rather than treating autonomy as a property to be maximized, we treat it as a governable and 
+
+revisable attribute. Explainability, policy compliance, and human oversight [7,8,10,12] are 
+
+therefore modelled as first -class cognitive functions, not as external constraints applied after 
+
+agent coordination. This shifts the role of agent interaction from optimizing behaviour to 
+
+justifying decisions under uncertainty, a distinction that is not central in classical MAS 
+
+frameworks. 
+
+Accordingly, our contribution is not the application of existing MAS algorithms to cybersecurity 
+
+tasks, but the articulation of an architectural and cognitive perspective in which agent 
+
+interaction serves accountable decision -making rather than purely inst rumental coordination. This perspective aligns more closely with theories of distributed cognition and socio -technical 
+
+systems than with classical MAS optimization paradigms. 
+
+# 2. Theoretical Concept: Cybersecurity as a Cognitive, Agentic System 
+
+# 2.1 From Linear Pipelines to Distributed Cognition 
+
+Traditional cybersecurity architectures are rooted in a pipeline metaphor [1,2] : data flows 
+
+through predefined stages, each performing a narrowly defined function. This metaphor 
+
+assumes that decision -making can be decomposed into independent steps and that 
+
+uncertainty can be resolved locally at each stage. While effective for determi nistic or well -
+
+understood threats, this assumption breaks down in adversarial environments where signals 
+
+are ambiguous, incomplete, and often contradictory. 
+
+We propose an alternative theoretical framing: cybersecurity as a distributed cognitive 
+
+system . In this view, security operations resemble human cognitive activity more than industrial 
+
+automation. Observations must be interpreted, hypotheses formed and revised, context 
+
+integrated, decisions explained, and actions justified within organizational and regulatory 
+
+constraints. These processes are inherently interactive, iterative, and social rather than linear. 
+
+# 2.2 Agentic Decomposition of Cybersecurity Functions 
+
+An agentic perspective enables a principled decomposition of cybersecurity into specialized 
+
+cognitive roles, implemented as interacting agents:  
+
+> •
+
+Detection identifies and surfaces weak or ambiguous signals from heterogeneous data 
+
+sources.  
+
+> •
+
+Hypothesis Formation supports abductive reasoning by generating and revising competing 
+
+explanations under uncertainty.  
+
+> •
+
+Contextualization integrates organizational, temporal, and situational knowledge to inform 
+
+interpretation and decision -making.  
+
+> •
+
+Explanation translates machine -generated reasoning into forms that are interpretable, 
+
+inspectable, and actionable by human analysts.  
+
+> •
+
+Governance enforces policy, ethical, and regulatory constraints on permissible actions and 
+
+system behaviour . 
+
+> •
+
+Meta -cognitive judgement operates as defined in Definition 1, integrating uncertainty 
+
+signals, explanation adequacy, and governance constraints to assess decision readiness 
+
+and regulate action authority. 
+
+Definition 1 (Meta -Cognitive Judgement). 
+
+Meta -cognitive judgement is the system -level capacity of an AI -assisted cybersecurity 
+
+architecture to determine whether, when, and under what authority conditions an action should 
+
+be executed, given uncertainty, agent disagreement, operational risk, and accountability 
+
+constraints . Unlike predictive accuracy or control logic, meta -cognitive judgement governs decision readiness: it evaluates the legitimacy, proportionality, and autonomy of actions before 
+
+execution, including the need for deferral, escalation, or human oversight. 
+
+Crucially, no single agent possesses global authority or complete knowledge. Security decisions 
+
+emerge through coordination and negotiation , rather than centralized control. This mirrors 
+
+human team -based decision -making and provides a natural foundation for accountable 
+
+autonomy. 
+
+# 2.3 Generative AI as a Semantic Coordination Substrate 
+
+Generative AI plays a pivotal role in enabling agentic orchestration. Unlike traditional predictive 
+
+models, generative systems support semantic reasoning, dialogue, and adaptive explanation. 
+
+These capabilities allow agents to exchange hypotheses, express u ncertainty, align 
+
+interpretations, and interact naturally with human analysts. 
+
+From a theoretical perspective, generative AI functions as a cognitive coordination substrate ,
+
+enabling distributed reasoning across heterogeneous agents. 
+
+# 2.4 Explainability and Governance as Cognitive Functions 
+
+A defining aspect of the proposed framework is the elevation of explainability and governance 
+
+from peripheral concerns to first -class cognitive functions . Explanation is treated not as post -
+
+hoc reporting, but as an active constraint [7,8] on decision -making. Governance similarly 
+
+operates continuously, mediating between automated recommendations and permissible 
+
+actions [10,11,12] .
+
+This approach aligns autonomy with accountability and reflects emerging responsible AI 
+
+principles that emphasize transparency, traceability, and meaningful human control. 
+
+Meta -cognitive judgement is operationalized through the interaction between explanation and 
+
+governance , serving as the mechanism through which system recommendations become 
+
+procedurally legitimate decisions rather than opaque outputs. 
+
+# 2. 5 Meta -Cognition and Meta -AI as Foundations of Judgement 
+
+The meta -cognitive judgement function in the proposed framework is explicitly meta -cognitive, 
+
+operating at a level distinct from domain -level threat reasoning [13,14]. By regulating decision 
+
+readiness rather than predictive accuracy, meta -cognitive judgement supports accountable 
+
+autonomy consistent with responsible AI principles [14,15]. This meta -level role is instantiated 
+
+architecturally through meta -cognitive judgement agents, as discussed in Section 3, where its 
+
+operational implications are specified .
+
+From a Meta -AI perspective, meta -cognitive judgement operates as a regulatory layer that 
+
+governs when and how autonomous decisions may be taken. In this sense, meta -cognition 
+
+enables proportional autonomy by dynamically calibrating the system’s level of independence 
+
+based on epistemic conditions. 
+
+By embedding meta -cognitive judgement directly into the architecture, the framework supports 
+
+reflective autonomy rather than reactive automation, aligning AI decision -making with 
+
+principles of accountability, transparency, and meaningful human control. Related educational research on Meta -AI skills and human –AI collaboration has similarly 
+
+emphasized meta -cognitive monitoring and regulation as prerequisites for effective interaction 
+
+with generative AI systems. 
+
+Conceptual work on metacognitive AI foregrounds the value of self -monitoring and adaptive 
+
+reasoning for managing uncertainty and enhancing accountability in autonomous systems [ 21 ], 
+
+aligning with our use of meta -cognitive judgement as a structural oversight mechanism. 
+
+# 3. Architecture and Framework: Agentic Cybersecurity Orchestration 
+
+# 3.1 Architectural Overview 
+
+Building on the theoretical framing, we propose an Agentic Cybersecurity Orchestration 
+
+Framework that operationalizes cybersecurity as a multi -agent cognitive system. The 
+
+architecture consists of five interacting agent classes coordinated through an orchestration 
+
+layer powered by generative AI, with humans integrated as active participants. 
+
+Unlike traditional SOC architectures, which centralize logic in SIEMs or automation engines, this 
+
+framework distributes reasoning across agents with distinct epistemic responsibilities, 
+
+increasing resilience and transparency. 
+
+# 3.2 Agent Roles  
+
+> •
+
+Detection Agents ingest raw telemetry and surface probabilistic signals.  
+
+> •
+
+Hypothesis Agents generate and manage competing explanations.  
+
+> •
+
+Context Agents integrate business, temporal, and threat intelligence context.  
+
+> •
+
+Explainability Agents ensure decisions remain interpretable and defensible.  
+
+> •
+
+Meta -cognitive judgement Agents operate at the meta -level of the architecture, assessing 
+
+the adequacy and legitimacy of system decisions . Drawing on principles of meta -cognition, 
+
+these agents monitor uncertainty, confidence alignment across contributing agents, 
+
+completeness of contextualization, and the sufficiency of explanations relative to 
+
+governance constraints. Rather than optimizing outcomes or enforcing policy, judgement 
+
+agents assess decision readiness: whether available evidence, interpretations, and 
+
+constraints justify autonomou s action, require human escalation, or warrant continued 
+
+deliberation. In this role, judgement functions as a regulatory mechanism that dynamically 
+
+calibrates system autonomy under adversarial uncertainty.  
+
+> •
+
+Governance Agents encode policy, compliance, and ethical constraints. 
+
+Each agent is explicitly designed to be fallible and revisable , supporting proportional and 
+
+accountable decision -making. 
+
+# 3.3 Orchestration and Human Oversight 
+
+The orchestration layer enables communication, negotiation, and coordination among agents. 
+
+Generative AI facilitates semantic alignment and adaptive explanation, while providing a focal 
+
+point for logging, audit, and accountability. Human analysts interact with the system at multiple levels, from hypothesis evaluation to policy 
+
+override, enabling graduated autonomy consistent with regulatory expectations. 
+
+Meta -cognitive judgement provides a natural locus for human oversight, enabling analysts to 
+
+interrogate not only system outputs, but also the procedural rationale and criteria by which 
+
+decision readiness and autonomy thresholds are evaluated and revised. 
+
+# 3.4 Conceptual Architecture 
+
+Below Figure 1 describes the conceptual architecture of agentic cybersecurity orchestration. 
+
+The framework is organized as a network of interacting agents coordinated by a generative 
+
+orchestration layer, with humans integrated as active participants. Domain -level agents support 
+
+detecti on, hypothesis generation, contextual interpretation, explanation, and governance, while 
+
+a meta -cognitive judgement function operates at a higher level to evaluate decision readiness 
+
+and regulate system autonomy. This meta -lev el control enables reflective, accountable 
+
+decision -making by mediating between competing interpretations, uncertainty, and policy 
+
+constraints. The figure contrasts traditional linear pipelines with cyclic, negotiated, and 
+
+reflective decision flows charact eristic of agentic cybersecurity systems. 
+
+Figure 1 : Conceptual Architecture of Agentic Cybersecurity Orchestration 
+
+Crucially, control does not flow linearly through the architecture; authority is conditionally 
+
+granted by the meta -cognitive judgement function. 4. Related Work 
+
+# 4.1 AI in Cybersecurity: Model -Centric Foundations 
+
+Extensive prior research has explored the application of machine learning and deep learning to 
+
+cybersecurity tasks, including intrusion detection, malware classification, phishing detection, 
+
+and anomaly detection [1,2] . Survey papers systematically organize this literature by algorithm, 
+
+dataset, and performance metric. 
+
+This body of work has produced substantial technical advances, but largely adopts a model -
+
+centric, pipeline -oriented framing .
+
+Agentic AI systems introduce unique security challenges — including dynamic environmental 
+
+interactions, adversarial exploitation of autonomy, and emergent behaviors unaccounted for in 
+
+traditional frameworks — necessitating dedicated lifecycle -aware securit y approaches [ 19 ]. 
+
+Complementary architectural proposals such as sentinel -based oversight highlight the value of 
+
+distributed meta -control within multi -agent ecosystems [ 20 ]. 
+
+# 4.2 Limitations of Existing Framings 
+
+In the reviewed literature, AI systems are typically treated as bounded components whose 
+
+outputs are consumed by external decision logic. Coordination, uncertainty management, 
+
+explanation, and governance are acknowledged but not structurally integrated [7,8,10] .
+
+As a result, explainability and responsible AI concerns are positioned as auxiliary rather than 
+
+foundational. 
+
+# 4.3 Beyond Pipelines: Toward Agentic Perspectives 
+
+Emerging work on autonomous agents and reinforcement learning in cybersecurity begins to 
+
+address adaptive decision -making but often focuses on narrow optimization problems and 
+
+overlooks governance and accountability. 
+
+The present work advances this trajectory by proposing a unifying agentic orchestration 
+
+framework that integrates technical performance with cognitive, organizational, and regulatory 
+
+considerations. 
+
+# 4.4 Positioning and Policy Alignment 
+
+This paper positions cybersecurity autonomy as a governable property , not a technical 
+
+inevitability. By embedding explainability, governance, and human oversight directly into the 
+
+architecture, the proposed framework aligns with emerging responsible AI principles and policy 
+
+frameworks. 
+
+The agentic orchestration perspective thus offers a foundation for designing cybersecurity 
+
+systems that are not only effective, but also transparent, accountable, and aligned with societal 
+
+and regulatory expectations [10,12] .5. Preliminary Evaluation and Illustrative Scenarios 
+
+As a conceptual and architectural contribution, this work prioritizes system -level decision 
+
+properties over task -level performance metrics . Instead, we outline preliminary evaluation 
+
+criteria and illustrative scenarios that demonstrate how the proposed framework can be 
+
+assessed and instantiated in practice. 
+
+Evaluation of agentic cybersecurity orchestration should focus not only on detection accuracy 
+
+or response latency, but on system -level properties such as decision readiness, explanation 
+
+adequacy, autonomy calibration, and governance compliance. For example , in a simulated 
+
+security operations scenario involving ambiguous lateral movement activity, the framework 
+
+enables multiple hypothesis agents to propose competing interpretations, while meta -cognitive 
+
+judgement agents assess confidence alignment, contextual sufficiency, and policy constraints 
+
+before authorizing automated containment or escalating to human analysts. 
+
+Such scenarios provide a basis for future empirical studies, including simulation -based 
+
+evaluations, human -in -the -loop experiments, and comparative analyses against pipeline -based 
+
+SOC architectures. 
+
+# 5.1 Exploratory Evaluation through Student Design Projects 
+
+As an initial exploratory evaluation of the proposed framework, elements of agentic 
+
+cybersecurity orchestration were instantiated and examined through advanced student project 
+
+work in graduate -level cybersecurity and AI courses. In these projects, student teams were 
+
+tasked with designing conceptual or prototype systems inspired by the framework, including 
+
+explicit decomposition into agent roles, orchestration logic, and judgement mechanisms. 
+
+While these projects do not constitute empirical validation of operational effectiveness, they 
+
+provide valuable insight into the framework’s conceptual clarity, expressive power, and practical 
+
+intelligibility. Across projects, students were able to meaning fully differentiate between domain -
+
+level reasoning agents and judgement functions, articulate decision readiness criteria, and 
+
+reason explicitly about autonomy calibration and human oversight. 
+
+These exploratory observations suggest that the framework is sufficiently concrete to guide 
+
+system design and reasoning, while also highlighting areas requiring further refinement, such as 
+
+the operationalization of judgement thresholds and the coordination overhead introduced by 
+
+agentic decomposition. A systematic analysis of these projects, including qualitative 
+
+assessment of design decisions and interaction patterns, is an ongoing work in progress. 
+
+These observations are not presented as validation, but as evidence of conceptual tractability 
+
+and design intelligibility. 
+
+Ongoing work on agentic AI evaluation and secure multi -agent supervision suggests promising 
+
+directions for empirically assessing meta -cognitive judgement, including task -level 
+
+performance, coordination robustness, and resilience to adversarial disruption [ 17 –20 ]. 6. Discussion 
+
+The proposed framework reframes cybersecurity from a pipeline -oriented automation problem 
+
+to a distributed cognitive process involving artificial and human agents. This shift has several 
+
+implications. 
+
+First, it suggests that many operational failures in contemporary SOCs are cognitive rather than 
+
+computational, arising from misalignment between detection outputs, contextual 
+
+understanding, explanation, and governance. Second, by treating judgement and me ta -
+
+cognition as first -class architectural elements, the framework supports proportional and 
+
+reflective autonomy, addressing growing concerns around uncontrolled automation in 
+
+adversarial environments. 
+
+At the same time, the framework introduces new challenges. Agentic orchestration and meta -
+
+cognitive judgement may incur additional computational and organizational overhead, and their 
+
+effectiveness depends on the quality of underlying models and human –AI i nteraction practices. 
+
+Moreover, while the framework emphasizes governability, its deployment in real -world 
+
+environments raises questions about responsibility allocation, operator trust, and institutional 
+
+readiness. 
+
+These considerations highlight the need for future work that empirically studies agentic 
+
+cybersecurity systems in operational settings and examines their organizational and regulatory 
+
+impact. 
+
+The use of student design projects as an exploratory evaluation mechanism also highlights the 
+
+educational and cognitive dimensions of agentic cybersecurity systems. The relative ease with 
+
+which participants adopted meta -cognitive concepts such as meta -cognitive judgement ,
+
+decision readiness, and autonomy regulation suggests that these constructs align with human 
+
+reasoning practices and may support more transparent human –AI collaboration. At the same 
+
+time, the variability observed across projects underscores the need for c learer design patterns 
+
+and tooling to support agentic orchestration in practice. 
+
+In environments where actions are trivially reversible or fully deterministic, the overhead of 
+
+agentic meta -cognitive judgement may outweigh its benefits. 
+
+# 7. Conclusion 
+
+This paper proposed a conceptual re -framing of cybersecurity orchestration as an agentic, 
+
+multi -agent cognitive system. By making explicit the roles of interpretation, explanation, 
+
+governance, and meta -cognitive judgement , the framework moves beyond pipeline -centric 
+
+architectures toward reflective and accountable autonomy. 
+
+The introduction of a meta -cognitive judgement function enables cybersecurity systems to 
+
+reason about decision readiness and regulate their own autonomy under uncertainty, aligning 
+
+technical capabilities with responsible AI principles and human oversight r equirements. Rather 
+
+than optimizing isolated detection or response tasks , the proposed approach emphasizes 
+
+governable decision -making in adversarial and uncertain environments. We argue that this perspective provides a foundation for next -generation AI -enabled 
+
+cybersecurity systems and opens new directions for research at the intersection of AI systems 
+
+design, cybersecurity operations, and socio -technical governance. 
+
+# 8. Bibliography 
+
+1.  Sommer, R.; Paxson, V. Outside the Closed World: On Using Machine Learning for 
+
+Network Intrusion Detection. Proc. IEEE Symp. Security and Privacy (SP) 2010 , 305 –316. 
+
+https://doi.org/10.1109/SP.2010.25 .
+
+2.  Apruzzese, G.; Colajanni, M.; Ferretti, L.; Guido, A.; Marchetti, M. On the Effectiveness of 
+
+Machine and Deep Learning for Cyber Security. In Proc. 10th Int. Conf. on Cyber Conflict 
+
+(CyCon) ; 2018 .
+
+3.  Wooldridge, M. An Introduction to MultiAgent Systems , 2nd ed.; Wiley: Chichester, UK, 
+
+2009 .
+
+4.  Hutchins, E. Cognition in the Wild ; MIT Press: Cambridge, MA, USA, 1995 .
+
+https://doi.org/10.7551/mitpress/1881.001.0001. 
+
+5.  Hollnagel, E.; Woods, D.D. Joint Cognitive Systems: Foundations of Cognitive Systems 
+
+Engineering ; CRC Press/Taylor & Francis: Boca Raton, FL, USA, 2005 .
+
+6.  Suchman, L. Human –Machine Reconfigurations: Plans and Situated Actions , 2nd ed.; 
+
+Cambridge University Press: Cambridge, UK, 2012 .
+
+https://doi.org/10.1017/CBO9780511808418. 
+
+7.  Miller, T. Explanation in Artificial Intelligence: Insights from the Social Sciences. Artif. 
+
+Intell. 2019 , 267 , 1 –38. 
+
+8.  Doshi -Velez, F.; Kim, B. Towards a Rigorous Science of Interpretable Machine Learning. 
+
+arXiv 2017 , arXiv:1702.08608. 
+
+9.  Bender, E.M.; Gebru, T.; McMillan -Major, A.; Shmitchell, S. On the Dangers of Stochastic 
+
+Parrots: Can Language Models Be Too Big? In Proc. ACM Conf. on Fairness, 
+
+Accountability, and Transparency (FAccT ’21) ; 2021 ; pp. 610 –623. 
+
+https://doi.org/10.1145/3442188.3445922 .
+
+10.  National Institute of Standards and Technology (NIST). Artificial Intelligence Risk 
+
+Management Framework (AI RMF 1.0) ; NIST: Gaithersburg, MD, USA, 2023 .
+
+https://doi.org/10.6028/NIST.AI.100 -1.
+
+11.  National Institute of Standards and Technology (NIST). Artificial Intelligence Risk 
+
+Management Framework: Generative Artificial Intelligence Profile (NIST AI 600 -1) ; NIST 
+
+‘‘NVLAP’’: 2024 .
+
+12.  European Union. Regulation (EU) 2024/1689 of the European Parliament and of the 
+
+Council of 13 June 2024 Laying Down Harmonised Rules on Artificial Intelligence 
+
+(Artificial Intelligence Act). OJ L 2024 , 2024/1689. 13.  Nelson, T.O.; Narens, L. Metamemory: A Theoretical Framework and New Findings. In 
+
+Psychology of Learning and Motivation; Bower, G.H., Ed.; Academic Press: San Diego, 
+
+CA, USA, 1990; Volume 26, pp. 125 –173. 
+
+14.  Cox, M.T. Metacognition in Computation: A Selected Research Review. Artificial 
+
+Intelligence 2005, 169, 104 –141. https://doi.org/10.1016/j.artint.2005.10.009 
+
+15.  Floridi, L.; Cowls, J.; Beltrametti, M.; Chatila, R.; Chazerand, P.; Dignum, V.; Luetge, C.; 
+
+Madelin, R.; Pagallo, U.; Rossi, F.; Schafer, B.; Valcke, P.; Vayena, E. AI4People —An 
+
+Ethical Framework for a Good AI Society. Minds Mach. 2018, 28, 689 –707. 
+
+https://doi.org/10.1007/s11023 -018 -9482 -5
+
+16.  Rafy, A.; Ahmed, M. Artificial Intelligence in Cybersecurity: A Comprehensive 
+
+Multidomain Review of Techniques, Applications, Challenges, and Future Directions. 
+
+Electronics 2023 , 12 , 4040.  https://doi.org/10.3390/electronics12194040 
+
+17.  Vinay, V. The Evolution of Agentic AI in Cybersecurity: From Single LLM Reasoners to 
+
+Multi -Agent Systems and Autonomous Pipelines. arXiv 2025 , arXiv:2512.06659. 
+
+18.  Jestus Lazer, S.; Aryal, K.; Gupta, M.; Bertino, E. A Survey of Agentic AI and 
+
+Cybersecurity: Challenges, Opportunities and Use -Case Prototypes. arXiv 2026 ,
+
+arXiv:2601.05293. 
+
+19.  Arora, S.; Hastings, J. Securing Agentic AI Systems — A Multilayer Security Framework. 
+
+arXiv 2025 , arXiv:2512.18043. 
+
+20.  Gosmar, D.; Dahl, D.A. Sentinel Agents for Secure and Trustworthy Agentic AI in Multi -
+
+Agent Systems. arXiv 2025 , arXiv:2509.14956. 
+
+21.  Wei, H.; Shakarian, P.; Lebiere, C.; Draper, B.; Krishnaswamy, N.; Sreedharan, S. 
+
+Metacognitive AI: Framework and the Case for a Neurosymbolic Approach. In Proc. 
+
+Metacognitive AI Workshop ; Springer, 2024.

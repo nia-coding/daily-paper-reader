@@ -1,0 +1,1542 @@
+Title: A Simulation Study to Compare Inferential Properties when Modelling Ordinal Outcomes: The Case for the (Plain but Robust) Proportional Odds Model
+
+URL Source: https://arxiv.org/pdf/2603.01943v1
+
+Published Time: Tue, 03 Mar 2026 03:42:29 GMT
+
+Number of Pages: 49
+
+Markdown Content:
+# A Simulation Study to Compare Inferential Properties when Modelling Ordinal Outcomes: The Case for the (Plain but Robust) Proportional Odds Model 
+
+Stefan Inerle 1, Markus Pauly 1,2, Moritz Berger 3
+
+> 1
+
+Department of Statistics, TU Dortmund University 
+
+> 2
+
+Research Center Trustworthy Data Science and Security, University Alliance Ruhr (UA Ruhr) 
+
+> 3
+
+Core Facility Biostatistics, Central Institute of Mental Health, Medical Faculty Mannheim, Heidelberg University, Mannheim, Germany 
+
+Autor Note 
+
+Stefan Inerle https://orcid.org/0009-0002-7259-4760 
+
+Markus Pauly https://orcid.org/0000-0002-0976-7190 
+
+Moritz Berger https://orcid.org/0000-0002-0656-5286 
+
+Correspondence concerning this article should be addressed to Stefan Inerle, Department of Statistics, TU Dortmund University, Vogelpothsweg 87, 44221 Dortmund Germany. Email: stefan.inerle@tu-dortmund.de 
+
+> arXiv:2603.01943v1 [stat.ME] 2 Mar 2026
+
+Comparing models for ordinal outcomes 2
+
+Abstract 
+
+Ordinal measurements are common outcomes in studies within psychology, as well as in the social and behavioral sciences. Choosing an appropriate regression model for analysing such data poses a difficult task. This paper aims to facilitate modeling decisions for quantitative researchers by pre-senting the results of an extensive simulation study on the inferential properties of common ordinal regression models: the proportional odds model, the category-specific odds model, the location-shift model, the location-scale model, and the linear model, which incorrectly treats ordinal outcomes as metric. The simulations were conducted under different data generating processes based on each of the ordinal models and varying parameter configurations within each model class. We examined the bias of parameter estimates as well as type I error rates ( α-errors) and the power of statistical parameter testing procedures corresponding to the respective models. Our findings reveal several highlights. For parameter estimates, we observed that cumulative ordinal regression models exhibited large biases in cases of large parameter values and high skewness of the outcome distribution in the true data generation process. Regarding statistical hypothesis testing, the proportional odds model and the linear model showed the most reliable results. Due to its better fit and interpretability for ordinal outcomes, we recommend the use of the proportional odds model unless there are relevant contraindications. 
+
+Keywords : Ordinal Regression, Regression Models, Odds, Estimation Bias, α-Error, Power Comparing models for ordinal outcomes 3
+
+# 1 Introduction 
+
+Handling ordinal data is a common challenge in various scientific fields, especially in psychology (e.g. Joshi et al., 2015), but also in other disciplines such as medicine (e.g. Sullivan & Artino, 2013). This is particularly true for regression problems, which we study in this paper. A key challenge is the selection of an appropriate model and method for analyzing ordinal outcomes. To this end, we first need to decide whether we want to treat the outcome as metric or not. Many authors recommend the use of ordinal models to emphasize that treating ordinal outcomes as metric can lead to interpretational problems (e.g. Brunner et al., 2018) or inferential errors (e.g. Liddell & Kruschke, 2018), for example when means are close to the end of the ordinal scale. If we choose to use an ordinal model, the next step is to decide which one. Tutz (2022a) provides a comprehensive review of ordinal regression models, while Bürkner & Vuorre (2019) offer a theoretically motivated recommendation to select an ordinal model based on how well it reflects the theoretically assumed relations in the data. In contrast, Knief & Forstmeier (2021) argue that Gaussian models are remarkably robust, even for categorical data. They additionally stress that more sophisticated methods may carry inherent risks that quantitative researchers might not fully understand or be aware of. Moreover, many applied researchers favor simpler Gaussian linear models. The latter is also reflected in the literature review presented in Liddell & Kruschke (2018), in which all reviewed studies involving ordinal outcomes used metric models to analyze them. To underpin this discussion more closely, and in preparation for our paper, we conducted a litera-ture review using PubPsych. The goal was to gain a clearer understanding of which ordinal models are used for ordinal outcomes in empirical research. To this end, we searched PubPsych ( https:// pubpsych.zpid.de/pubpsych/ ) using the search terms “regression” and either “ordinal” or “ordered”, and only included studies published between 2014 and 2023 for which we had access to the full text. After excluding all papers that did not explicitly report the use of an ordinal model, we were left with 458 papers. Among these, 6 papers used two different methods, and one paper used 4 different methods. In 11 papers, it was unclear how or where an ordinal model was used. 50 papers implemented some form of mixed model, and 4 used Bayesian methods, which both extend beyond the scope of this study. Among the remaining 396 papers, the most frequent model was the proportional odds model (McCullagh, 1980; Tutz, 2011) appearing in 205 (52%) papers. Additional identified models were the partial proportional odds model (Peterson & Harrell, 1990) in 14 papers (3.5%) and the category-specific odds model (Peter-son & Harrell, 1990; Tutz, 2011) in 2 papers (0.5%). Other papers used different link functions than the logit link: We observed 12 papers with a probit link and 5 with a negative log-log link. 23 papers did not state the link function explicitly. 136 (34.3%) papers used the logit link function, but did not explicitly Comparing models for ordinal outcomes 4state which model was used. Out of these papers, 105 papers reported one odds ratio per covariate, 14 reported one regression weight per covariate, and 7 reported both, while 10 reported none. In summary, our literature review reveals that many empirical studies do not specify the applied ordi-nal model. Among those that do, the proportional odds model was the most frequently used ordinal regression approach. While such theoretical and empirical discussions are valuable, simulation studies can provide deeper insight and guide practitioners to select the most suitable models for the analysis of ordinal outcomes. Although there are several simulation studies that compare the predictive performance of various ordinal regression models (e.g. Janitza et al., 2016; Hornung, 2020; Tutz, 2022b; Buczak et al., 2024; Buczak, 2025), simulation studies regarding inferential analyses are scarce. Closing this gap to provide concrete recommendations for inference in parametric ordinal regression models for ordinal outcomes is the pri-mary goal of our paper. To maintain a clear focus and ensure comparability, we excluded models that incorporate regularization (e.g., via mixed modeling or Bayesian approaches, for details see Friedrich et al., 2023) from our study. The chosen models for comparison, which are formally introduced in the next section, include the proportional odds model (McCullagh, 1980; Tutz, 2011), the category-specific odds model (Peterson & Harrell, 1990; Tutz, 2011), the location-shift model (Tutz & Berger, 2017), and the location-scale model (McCullagh, 1980). The location-shift model is a relatively recent development (Tutz & Berger, 2017) which may be the reason why it did not appear in our literature review. It was invented as an alternative to the location-scale model with a software implementation in R (Berger, 2020). For all these models, we investigate parameter estimations (bias) and tests ( α-error and power). To contribute to the discourse on whether choosing metric models may lead to worse results, we also include the linear model for the investigation of parameter tests. 
+
+# 2 Methods 
+
+Our simulation study compares the bias of parameter estimates as well as α-error and power of statistical tests. In this section, we sketch the different models considered and describe our experimental design. We denote Y ∈ { 1, . . . , k } as the ordinal outcome variable with k categories and X = ( X1, . . . , X p)⊤ as the vector of covariates. Comparing models for ordinal outcomes 5
+
+## 2.1 Regression Models 
+
+Treating Y as metric, the Gaussian model (LM) with linear predictor function (e.g. Hastie et al., 2009) is given by 
+
+Y = β0 +
+
+> p
+
+X
+
+> j=1
+
+Xj βj + ε = β0 + X⊤β + ε , ε ∼ N (0 , σ 2) , (1) where β0 ∈ R is the intercept coefficient, β = ( β1, . . . , β p) ∈ Rp is the vector of real-valued regression coefficients and σ2 ∈ R>0 denotes the error variance. Treating Y as ordinal, a widely used tool is the class of cumulative regression models (McCullagh, 1980; Tutz, 2011). It is derived from an underlying latent continuous variable Y ∗ which follows a regression model Y ∗ = −X⊤β + ε, where ε is a noise variable with continuous distribution function F (·). Instead of Y ∗, we only observe the coarser categorical version Y determined by (Y = r) ⇔ (θr−1 < Y ∗ ≤ θr ) ,
+
+where −∞ = θ0 < θ 1 < . . . < θ k = ∞ are thresholds on the latent scale. We then obtain the cumulative model 
+
+P( Y ≤ r | X) = F( θr + X⊤β) , r = 1 , . . . , k − 1 .
+
+Since P (Y ≤ k|X) = 1 , we don’t explicitly model it. The most popular choice for F (·) according to our literature review is the logistic distribution function yielding the proportional odds model (PO) 
+
+P( Y ≤ r | x) = exp ( θr + X⊤β)1 + exp ( θr + X⊤β) , r = 1 , . . . , k − 1 . (2) It uses the same global linear predictor function for all categories r and allows for a simple interpretation of the regression coefficients: Let γ(r|X) = P( Y ≤ r | X)/P( Y > r | X) denote the cumulative odds. Then the proportion of cumulative odds for two sets of covariates X and ˜X is given by 
+
+γ(r|X)
+
+γ(r| ˜X) = exp 
+
+
+
+(X − ˜X)⊤β
+
+
+
+,
+
+which does not depend on category r. Thus, if Xj increases by one unit, the cumulative odds change by the factor exp( βj ).The proportional odds model can be extended to contain category-specific effects (Peterson & Harrell, 1990; Tutz, 2011) by assuming that each category has a distinct vector of regression coefficients. This Comparing models for ordinal outcomes 6leads to the category-specific odds model (CSO) 
+
+P( Y ≤ r | X) = exp ( θr + X⊤βr )1 + exp ( θr + X⊤βr ) , r = 1 , . . . , k − 1 , (3) which contains parameter vectors β⊤ 
+
+> r
+
+= ( β1r , . . . , β pr ) that might differ across categories. The model in (3) is also referred to as non-proportional odds model . It provides high flexibility, however, postulates that θr + X⊤β1 ≤ . . . ≤ θk−1 + X⊤βk−1 for all values of X. This strongly restricts the possible values of covariates, which was also one of the major issues that caused problems in our simulation. If not all parameters vary over categories in (3), we observe two types of covariates: those with a global effect, for which βj1 = . . . = βj,k −1 = βj , and those with category-specific effects. Peterson & Harrell (1990) refer to this model as the partial proportional odds model. To distinguish between covariates with global and category-specific effects, a selection strategy is required. In our literature review, we found that some researchers apply a selection algorithm implemented in STATA, where category-specific effects are successively collapsed using a backward selection procedure based on p-values of Wald tests. Another alternative for the proportional odds model, which allows for differing variability in subgroups of the population – so-called dispersion effects – is the location-shift model (LSH) introduced by Tutz & Berger (2017). Let Z = ( Z1, . . . , Z q )⊤ be an additional vector of covariates for which dispersion effects are assumed. Then the location-shift model has the form 
+
+P( Y ≤ r | X) = exp ( θr + X⊤β + ( r − k/ 2) Z⊤γ)1 + exp ( θr + X⊤β + ( r − k/ 2) Z⊤γ) , r = 1 , . . . , k − 1 , (4) where γ = ( γ1, . . . , γ q ) ∈ Rq is the vector of dispersion parameters. The model in (4) additionally contains the scaled shifting term (r − k/ 2) Z⊤γ, which determines the shifting of thresholds and reflects the tendency to low or high categories. The scaling factor (r − k/ 2) is an additional weight, which affects that the shifting of thresholds is proportional to the distance from the middle threshold, and hence the intervals between all thresholds are widened by the same value. The location-shift model can be seen as a category-specific odds model with specific constrains: Let X = Z, then one has 
+
+θr + X⊤β + ( r − k/ 2) X⊤γ = θr + X⊤ (β + ( r − k/ 2) γ) = θr + X⊤βr . Because the proportional odds model is a submodel of the location-shift model, the following nested structure holds proportional odds model ⊂ location-shift model ⊂ category-specific odds model ,
+
+which is outlined in detail in Tutz & Berger (2022). An alternative to account for additional dispersion effects is obtained by assuming Y ∗ = −X⊤β +τZ ε for the latent regression model, where τZ is the variance parameter depending on Z. Then the cumulative Comparing models for ordinal outcomes 7model is called location-scale model (LSC) and has the form (McCullagh, 1980) 
+
+P( Y ≤ r | X) = exp 
+
+ θr + X⊤β
+
+τZ
+
+
+
+·
+
+
+
+1 + exp 
+
+ θr + X⊤β
+
+τZ
+
+−1
+
+, r = 1 , . . . , k − 1 , (5) where τZ = exp( Z⊤γ). This model is non-linear and therefore cannot be embedded within the framework of multivariate generalized linear models. If X and Z are distinct, the interpretation of the X variables in terms of cumulative odds for the location-shift model as well as for the location-scale model is the same as in the proportional odds model described above. In our simulation study, we include the following five models: the linear model (LM), the proportional odds model (PO), the category-specific odds model (CSO), the location-shift model (LSH), and the location-scale model (LSC). However, the selection of covariates with global and category-specific effects, as in the partial proportional odds model, is out of the scope of this paper. 
+
+## 2.2 Simulation 
+
+In this study, we generated data from the proportional odds model, the category-specific odds model, the location-shift model, and the location-scale model. The number of observations for this simulation study was set to n ∈ { 250 , 500 , 1000 }, as we recognized in a pilot study that lower sample sizes will not lead to relatively stable models and higher values may be unrealistic in many applications. Furthermore, picking 250 observations as the lowest number made sure that in each scenario there were more observations than parameters to be estimated. We included either 5 or 35 covariates, where none, one, or four of them were truly informative (with a coefficient different from zero). The number of categories k of the ordinal outcome was chosen as 3, 5, or 7. All covariates were independently normally distributed with mean zero and standard deviation 0.5. For models with constant location parameters β, we used parameter values 0 (non-informative) and 0.1, 0.2, 0.5, 1, 2 (informative) for all categories. These values were also used for the dispersion parameters γ. All β values were combined with γ values of 0 and 1, and all γ
+
+values were combined with β values of 0 and 1. This procedure was chosen to include a situation where neither location nor dispersion had a true effect, two situations where one of them had a true effect once, and one situation where both of them had true effects larger than zero. For the category-specific odds model, we also set the values βr to 0, 0.1, 0.2, 0.5, 1 and 2, but with varying signs so that there was not simply a constant effect. For five categories, we chose β = ( −u, u, u, −u) and for seven categories 
+
+β = ( −u, 0, u, u, 0, −u). In the case of three covariates, the category-specific model can be transformed into a location-shift model. Therefore, no data was generated with the category-specific model for k = 3 .In the case of four informative covariates, all of them were drawn with the same regression weights. Comparing models for ordinal outcomes 8In the cases where none of the covariates is informative, the thresholds θ define the distribution of the outcome variable. Therefore, three different θ vectors were implemented. In the first setting (uniform), the probabilities of the outcome variable were uniformly distributed without the effects of the covariates. For the second setting (skewed), the true distribution was cho-sen so that at least six percent of the observations fell in each category. Additionally, higher val-ues were exponentially more likely than lower values. For seven categories, this led to the values 
+
+θ = ( −2.74 , −1.96 , −1.45 , −1.00 , −0.50 , 0.29) T and the distribution shown in Figure 1. In the third setting (unstructured) for θ, we chose a distribution where the middle category and the lowest cate-gory were always a little more than twice as likely as all other categories, which were equally likely. When introducing effects for β or γ different from zero, the conditional outcome distributions change; nonetheless, the values for θ were kept the same to achieve higher comparability between the simulation settings. Taking all combinations of varying simulation parameters, we obtained 4032 different simulation settings. 1 2 3 4 5 6 7
+
+> Categories
+> 0.0 0.1 0.2 0.3 0.4 Probability distribution
+
+Figure 1: Probability distribution of the outcome variable for seven categories and no effect of the co-variates when setting θ = ( −2.74 , −1.96 , −1.45 , −1.00 , −0.50 , 0.29) T (skewed setting). We performed 2000 replications for each setting and fitted the proportional odds model, the category-specific odds model, the location-shift model, and the location-scale model. For these models, the biases of the parameter estimates were calculated. Including the linear model as well, the proportion of significant parameter tests for each single parameter was calculated to achieve an estimation of the 
+
+α-error (considering the zero effects) and the power of the corresponding Wald-type tests with α = 0 .05 
+
+(considering the nonzero effects). Comparing models for ordinal outcomes 9
+
+Problems in the simulation When drawing data from the ordinal regression models, several problems appeared. In case a data set was drawn, where one outcome category included fewer than five obser-vations, the data set was discarded and redrawn. This happened particularly often for data generation mechanisms with large dispersion, a low number of observations, a high number of outcome categories, and in the skewed distribution setting. As outlined in the previous section, for cumulative ordinal regression models, the condition P (Y ≤
+
+r|X) ≤ P (Y ≤ r + 1 |X) must hold for all r. If observations were generated that did not fulfill this criterion, the observations were discarded and redrawn. This condition was often not met when drawing data from the category-specific model with high β values and four informative covariates. For the category-specific model, there were 382 simulation settings, in which at least 20% of the models did not converge and 639 simulation settings in which at least 5% of the models did not converge. For the location-scale model, the respective numbers were 807 and 1150 simulation settings. Non-convergence in the category-specific model happened relatively often when there was a high number of covariates, a low number of observations, and large dispersion effects. The location-scale model exhibited convergence difficulties when there was a high number of covariates, a low number of observations, few response categories, and large dispersion effects. When the data was drawn from a location-scale model, there was large dispersion and low β values, the location-shift model occasionally showed non-convergence in three settings where at least 20% of the models did not converge and 105 settings where at least 5% of the models did not converge. More details concerning these convergence problems can be found in Appendix B. In the following, results are only reported for those settings, where at least 100 out of the 2000 (i.e. 5% )simulation replications converged. 
+
+## 2.3 R packages 
+
+All calculations were performed in R, version 4.4.0 (R Core Team, 2024). The package VGAM version 1.1-11 (Yee, 2010) was used for the proportional odds models and category-specific odds models. ordDisp 
+
+version 2.1.1 (Berger, 2020) was used for the location-shift models and ordinal version 2023.12-4 (Chris-tensen, 2023) for location-scale models. Transparency in plots is achieved with the scales package version 1.3.0 (Wickham et al., 2023). Comparing models for ordinal outcomes 10 
+
+# 3 Results 
+
+In this section, first, the bias of parameter estimates is presented and then the resulting α-errors and power of the corresponding Wald tests follow. 
+
+## 3.1 Evaluation of the bias 
+
+In this section, the average bias across all converged simulation replications is reported for the propor-tional odds model, the category-specific odds model, the location-shift model, and the location-scale model. Here, we report the fitted model that corresponds to the true data generating model to ensure that the true values of the regression parameters are known. 
+
+Location parameters β When generating data from the proportional odds model, the location parame-ters are the same and therefore comparable for all the cumulative models of interest. Therefore, Figure 2 displays the bias of the location parameter of the four models with the proportional odds model as the data generation process. The results display the most important influences on the bias aggregated across all other simulation parameters. Figure 2 shows that an increasing number of covariates lead to a larger bias for all models and a larger dispersion of the bias. In particular, a higher number of informative covariates increased negative bias in the category-specific odds models and, to a lesser extent, in the location-shift model. In contrast, they increased positive bias in the proportional odds and the location-scale models. More informative covariates lead to a large dispersion in bias for the category-specific model. The biggest influence on location bias was the true value of the location parameters, with higher values resulting in larger absolute bias and larger dispersion of the bias, especially for the category-specific odds model and the location-shift model. Overall, we observed that the proportional odds model and the location-scale model skewed slightly towards larger estimates than the true value. On the other hand, for the category-specific model and the location-shift model, we observed slightly lower estimates than the true value. We observed that for all models, the distribution θ did not have a relevant influence on the biases. The number of categories was irrelevant for all models except for the category-specific model, where more categories increased the negative bias very slightly. As expected, all biases decreased with an increasing number of observations. However, even with 1000 observations, some bias remained. Comparing models for ordinal outcomes 11 When generating data with the location-shift model, we saw the same patterns for the location parameter as before, but the negative bias was slightly larger for large true location parameter values and there was more dispersion in the estimations (displayed in Appendix C). Similarly, when generating data with the location-scale model, the same patterns as described above appeared, though with slightly larger dispersion in the estimations (displayed in Appendix C). Larger dispersion parameter values also increased the bias and the dispersion of the bias of the location parameters of the location-shift and the location-scale model. In the same way, when data was generated using the category-specific odds model and the corresponding location parameter estimates were calculated, similar patterns as described above were observed, with slightly stronger dispersion in the estimations (displayed in Appendix C). 
+
+Dispersion parameters γ In this paragraph, the location-shift and location-scale models are each eval-uated under their respective data-generating processes. This procedure ensures that we know the true value of the parameters and can compare the two methods concerning the bias of the dispersion param-eters. For our simulation settings, we saw that the estimation of the dispersion parameter of the location-shift model underestimated the true value, while the location-scale model slightly overestimated the true value. We observed that for both models, the distribution parameter θ did not have a relevant influence on the biases. Looking at the number of covariates, for the location-shift model, the negative bias slightly increased, and for the location-scale model, the positive bias slightly increased. For both models, the biases slightly decreased with increasing number of observations. Nonetheless, with 1000 observations, there was still bias left. The influence of all other simulation parameters can be seen in Figure 3. We observed that a higher number of categories increased the absolute value of the negative bias of the location-shift model, while it did not meaningfully change the bias in the location-scale model. The same effect could be seen for a higher number of informative covariates. Furthermore, we saw that with increasing true value of the location parameter, the absolute value of the bias of the dispersion parameter increased in the location-shift model, but not in the location-scale model. Lastly, we saw an increase in the absolute value of the bias with an increase in the true value of γ in both models, which was more pronounced in the location-shift model. Comparing models for ordinal outcomes 12 0.0 0.1 0.2 0.3 0.4 0.5 0.6  
+
+> POC location bias
+> 0.0 0.1 0.2 0.3 0.4 0.5 0.6
+> −0.8 −0.6 −0.4 −0.2 0.0
+> CSO location bias
+> −0.8 −0.6 −0.4 −0.2 0.0
+> −0.8 −0.6 −0.4 −0.2 0.0
+> LSH location bias
+> −0.8 −0.6 −0.4 −0.2 0.0
+> 535 −0.2 0.0 0.2 0.4 0.6 0.8 1.0
+
+Variables LSC location bias   
+
+> 535 −0.2 0.0 0.2 0.4 0.6 0.8 1.0
+> 14
+
+Informative variables        
+
+> 1400.1 0.2 0.5 12
+
+True β value      
+
+> 00.1 0.2 0.5 12
+
+Variables Informative variables True β value POC Location bias CSO Location bias LSH Location bias LSC Location bias 
+
+Figure 2: Influence of simulation settings on the biases when drawing with the proportional odds model aggregated across all n, k, and all distribution settings. Except in their specific columns, boxplots were aggregated across all numbers of covariates, number of informative variables, and true location parameter values. Comparing models for ordinal outcomes 13 −1.2 −1.0 −0.8 −0.6 −0.4 −0.2 0.0 
+
+> Bias LSH
+
+Dispersion bias LSH   
+
+> −1.2 −1.0 −0.8 −0.6 −0.4 −0.2 0.0
+> 357−1.0 −0.5 0.0 0.5
+> Categories Bias LSC
+
+Dispersion bias LSC                           
+
+> 357−1.0 −0.5 0.0 0.5
+> 14
+> Informative variables
+> 1400.1 0.5 12
+> True βvalue
+> 00.1 0.5 1200.1 0.5 12
+> True γvalue
+> 00.1 0.5 12
+
+Categories Informative variables True β value True γ value 
+
+Figure 3: Influence of simulation settings on the dispersion biases when drawing with the respective model, including dispersion aggregated across all n, number of covariates, and all distribution settings. Except in their specific columns, boxplots were aggregated across all numbers of categories k, number of informative variables, and true location parameter values, and true dispersion parameter values. Comparing models for ordinal outcomes 14 In Figure 4, we can see the relationship between the biases of the location parameter and the dispersion parameter for both the location-shift model and the location-scale model. The correlation between these biases for the location-shift model was 0.45 and -0.17 for the location-scale model, showing that the biases of the location-shift model were positively related. −0.8 −0.4 0.0 −1.2 −1.0 −0.8 −0.6 −0.4 −0.2 0.0 
+
+# Biases LSH 
+
+## Bias location parameter 
+
+Bias dispersion parameter 
+
+0.0 0.5 1.0 1.5 2.0 2.5 −1.0 −0.5 0.0 0.5 
+
+# Biases LSC 
+
+## Bias location parameter 
+
+Figure 4: Relationship between the biases of the location parameter and the dispersion parameter in the location-shift and the location-scale model. Comparing models for ordinal outcomes 15 
+
+## 3.2 α-Error 
+
+The evaluation of the α-error is done for hypothesis tests for the relevant parameter to be zero, where the true regression parameters are zero as well. 
+
+α-Error when drawing from the proportional odds model In the following, we chose the simulation setting with p = 5 covariates, k = 3 categories, the uniform distribution, and data drawn from the proportional odds model with β = 0 (i.e., no informative covariate) and γ = 0 as the baseline model. We then displayed the α-error for this model as well as for variations from this setting. We see in Figure 5 that in the baseline setting, the parameters of every model got close to adhering to the α-level with an increasing number of observations. The dispersion parameter of the location-shift model showed the highest α-error overall, with a value of about 0.08 for 250 observations. Additionally, both parameters of the location-scale model displayed relatively high α-errors compared to the parameters of the other models. Figure 5 also shows how changing one simulation parameter in the data generation process changed the 
+
+α-error. When increasing the number of covariates, the tests for the linear model, the category-specific odds model, and the location parameter of the location-shift model got slightly more conservative, while the parameter tests of the proportional odds model got slightly more liberal. The dispersion parameter of the location-shift model showed considerably higher values, with about 0.15 at 250 observations. The location-scale model was most affected by the number of covariates, where tests for both parameters be-came too liberal, resulting in α-errors of approximately 0.16 for 500 observations. For 250 observations, only 12 out of 2000 location-scale models converged. Increasing the number of categories had minimal impact on the relative performance of the models com-pared to the baseline setting. However, the category-specific odds model became increasingly liberal, especially for a lower number of observations. For seven categories, six parameters needed to be esti-mated, and all of them showed an α-error of about 0.15 for 250 observations. Changing the distribution from uniform to skewed lead to a large increase in the α-errors of the location-shift, the location-scale, and the category-specific odds model, especially for a lower number of observa-tions. For 250 observations, we saw an α-error of about 0.5 for the tests of the dispersion parameter of the location-shift model. The unstructured distribution performed similarly to the baseline model. Comparing models for ordinal outcomes 16 0.03 0.04 0.05 0.06 0.07 0.08 
+
+Base model 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β
+
+250 500 1000 
+
+α−error 
+
+0.00 0.05 0.10 0.15 
+
+35 covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β
+
+250 500 1000 
+
+0.03 0.04 0.05 0.06 0.07 
+
+5 categories 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4LM β
+
+250 500 1000 
+
+α−error 
+
+0.00 0.05 0.10 0.15 
+
+7 categories 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4CSO β5CSO β6LM β
+
+250 500 1000 
+
+−0.1 0.0 0.1 0.2 0.3 0.4 0.5 
+
+Skewed distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β
+
+250 500 1000 
+
+α−error 
+
+0.03 0.04 0.05 0.06 0.07 
+
+Unstructured distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β
+
+250 500 1000 nn
+
+Figure 5: α-error of the models when drawing with the PO model. The chosen base model has p = 5 
+
+covariates, one informative covariate, k = 3 categories, and the uniform distribution setting. Comparing models for ordinal outcomes 17 
+
+α-Error when drawing from models with dispersion effect Figures 6 and 7 display the α-errors for the data generation process of the location-shift and the location-scale model, respectively. True parameters were chosen as γ = 1 and β = 1 for all informative covariates. To compare all models, we looked at an uninformative covariate. The setting k = 5 for the number of categories was mostly between the base setting with k = 3 and the setting for k = 7 , so these results will not be displayed. In comparison to data generation with the PO model, we saw higher α-errors for the location-shift and the category-specific odds parameter tests across all settings. In the base setting, the α-error of the dispersion parameter test of the location-shift model was highly inflated with values around 0.2. The two models that were the closest to keeping the α-level are the linear model and the proportional odds model. Increasing the number of covariates lead to more inflated α-errors for both parameters of the location-scale model. The dispersion parameter of the location shift model stayed inflated, while the location parameter got more conservative. For small n, the proportional odds model showed slightly inflated 
+
+α-errors. However, for increasing n, this effect disappeared. The linear model was closest to the α-level overall. Increasing the number of categories lead to strongly inflated α-errors for all parameters in the category-specific odds model and the location-shift model. When drawing with the location-scale model, the inflated error rates seemed to increase with increasing n, especially for the location-shift model parameters. In the settings with 4 informative covariates instead of 1, the dispersion parameter of the location-shift model consistently showed the highest α-error again. When drawing with the location-scale model, both parameters showed increased α-errors as well, but only for n ∈ { 250 , 500 }, while drawing with the location-shift model lead to specific increases of the α-error of the parameters of the category-specific odds model for small n. Changing the distribution from uniform to skewed lead to highly inflated 
+
+α-errors for all parameters in the location-shift and the category-specific odds model. Similarly, but less affected, were the parameters of the location-scale model. The only two models close to keeping the 
+
+α-level are the linear model and the proportional odds model. These two models were also closest to keeping the α-error for the unstructured distribution. Drawing with the unstructured distribution from the location-shift model lead to comparatively low α-error inflation for the location-scale and category-specific odds model parameters and also for the location parameter of the location-shift model. The dispersion parameter still showed consistently high error rates. Using the unstructured distribution in the location-scale model lead to inflated α-errors for all parameters of the location-shift and the category-specific odds model, which even increased with increasing n. The location-scale, proportional odds, and linear model parameters were all close to keeping the α-level. Comparing models for ordinal outcomes 18 −0.10 −0.05 0.00 0.05 0.10 0.15 0.20 
+
+Base model 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+
+α−error 
+
+> 0.00 0.05 0.10 0.15 0.20
+
+35 covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8
+
+7 categories 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4CSO β5CSO β6LM β  
+
+> 250 500 1000
+
+α−error 
+
+> −0.1 0.0 0.1 0.2
+
+4 informative covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6
+
+Skewed distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+
+α−error n
+
+> 0.00 0.02 0.04 0.06 0.08 0.10 0.12
+
+Unstructured distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+
+n
+
+Figure 6: Influence of simulation settings on the α-errors of an uninformative covariate of the model. Data was drawn from the location-shift model with β = 1 and γ = 1 . The chosen base model has p = 5 covariates, k = 3 categories, 1 informative covariate, and the uniform distribution setting. Comparing models for ordinal outcomes 19 −0.10 −0.05 0.00 0.05 0.10 0.15 0.20 
+
+Base model 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+
+α−error 
+
+> −0.10 −0.05 0.00 0.05 0.10 0.15 0.20
+
+35 covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8 1.0
+
+7 categories 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4CSO β5CSO β6LM β  
+
+> 250 500 1000
+
+α−error 
+
+> −0.10 −0.05 0.00 0.05 0.10 0.15 0.20
+
+4 informative covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6
+
+Skewed distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+
+α−error n
+
+> 0.0 0.2 0.4 0.6
+
+Unstructured distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+
+n
+
+Figure 7: Influence of simulation settings on the α-errors of an uninformative covariate of the model. Data was drawn from the location-scale model with β = 1 and γ = 1 . The chosen base model has p = 5 covariates, k = 3 categories, 1 informative covariate, and the uniform distribution setting. Comparing models for ordinal outcomes 20 Further results for data generation with a dispersion parameter of γ = 1 and a location parameter of 
+
+β = 0 can be found in Appendix D. Figures 18 and 19 show the α-errors of an uninformative variable for all models when drawing with the location-shift model and the location-scale model, respectively. Overall, we saw the proportional odds model and the linear model keep closest to the α-error. Figures 20 and 21 show the α-error for the location parameter of an informative variable where the dispersion parameter γ = 1 and the location parameter β = 0 when data was drawn from the location-shift model or the location-scale model, respectively. In the location-shift setting, the linear model consistently upheld the α-level for the uniform distribution, while the proportional odds model was close to the α-level. For many covariates, the location parameter of the location shift model also kept the α-level. When changing the distribution to the skewed case, all location parameters showed inflated α-errors which did not improve with increasing n, with the linear model being closest to the α-level. In the case of the unstructured distribution, only the location-shift model kept the α-level. The location parameters of the location-scale, the proportional odds, and the linear model generally were at least close to keeping the α-error overall when drawing with the location-scale model. The location shift model only upheld the α-level for 35 covariates. In this case and for the skewed distribution, we saw the location parameter of the location-scale model display higher α-error inflation. However, for the skewed distribution, all other models showed much higher α-errors of about 1. In the case of the unstructured distribution, only the location-scale parameter upheld the α-level, while the proportional odds model showed slightly increased α-errors, the linear model showed increased α-errors, and the location shift model showed highly increased α-errors. Comparing models for ordinal outcomes 21 
+
+α-Error when drawing from the category-specific model Figure 8 displays the α-error for the data gen-eration process with the CSO model with u = 1 and γ = 0 for all informative covariates. k = 5 categories were chosen as baseline, because then the CSO model should profit from having more parameters (4) in comparison to the dispersion models with two parameters. In all settings with data drawn from the CSO model, the α-error for the parameter tests in the CSO model was very highly inflated, and with increasing n, the errors increased overall. For 35 covariates, the location-scale model showed highly inflated α-errors for both parameters for n = 250 . However, with increasing n, these errors decreased. The location-shift model showed inflated α-errors in most settings with n = 250 observations, which decreased with increasing n. The closest to keeping the α-level were the linear model and the proportional odds model. Figure 22 in Appendix D displays results for the α-error of the category-specific odds model parameters for data drawn from the CSO model. We present results for an informative covariate with u = 1 , so that in the case of 7 covariates, β2 = β6 = 0 . We observed that for every parameter setting, the α-errors for 
+
+β2 and β6 were highly inflated, with α-errors of 0.6 at the lowest. Comparing models for ordinal outcomes 22 0.0 0.2 0.4 0.6 0.8 
+
+Base model 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4LM β  
+
+> 250 500 1000
+
+α−error 
+
+> 0.0 0.2 0.4 0.6
+
+35 covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4LM β  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8
+
+7 categories 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4CSO β5CSO β6LM β  
+
+> 250 500 1000
+
+α−error 
+
+> 0.0 0.2 0.4 0.6 0.8
+
+4 informative covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4LM β  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8
+
+Skewed distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4LM β  
+
+> 250 500 1000
+
+α−error n
+
+> 0.0 0.2 0.4 0.6 0.8
+
+Unstructured distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4LM β  
+
+> 250 500 1000
+
+n
+
+Figure 8: α-error of the models when drawing with the CSO model. The chosen base model has p = 5 
+
+covariates, one informative covariate with u = 1 , k = 5 categories, and the uniform distribution setting. Comparing models for ordinal outcomes 23 
+
+## 3.3 Power 
+
+The power evaluation is performed for hypothesis tests for the relevant parameter to be zero, where the true parameter takes all predefined values. At the point of the power curve where the real parameter value is 0, the curve displays the α-error. All informative covariates had the same true parameter values. 
+
+Power of the location parameters when drawing from the proportional odds model In the following, we chose the simulation setting with p = 5 covariates, of which one was informative, k = 3 categories, 
+
+n = 250 observations, the uniform distribution, and data drawn from the proportional odds model with varying β values as the baseline model. Figure 9 displays the power curve for this base setting and for variations where one parameter was changed. In the baseline settings for β = 0 , most models started close to the α-level and increased their power with increasing β. The proportional odds model, the location parameter of the location-shift and the location-scale model, and the linear model all showed slightly higher power for medium-sized β-values than the tests for the parameters of the category-specific odds model. Since the number of informative covariates had the least impact on the power curve, it is not considered further. Increasing the number of covariates to 35 did not meaningfully alter the power curves, although the tests overall are slightly more conservative. Location-scale models mostly did not converge and could not be considered here. Increasing the number of categories only clearly influenced the category-specific odds model. The higher the number of categories, the higher the α-error got and the flatter the power curve got as well. As the number of observations increased, all power curves became steeper. However, the tests for the parameters of the category-specific odds model stayed consistently equal to or performed worse than those of the other models. Changing the distribution from uniform to skewed lead to strong changes: The location parameter of the location-scale model showed a very flat power curve, and all parameters in the location-shift, the location scale, and the category-specific odds model showed highly inflated α-errors. Only the linear model and the proportional odds model showed acceptable α-errors and still reached similar power to the other models with relatively high β values. For the unstructured distribution, the power curve was similar to the uniform setting. Comparing models for ordinal outcomes 24 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Base model 
+
+PO β
+
+LSH β
+
+LSC β
+
+CSO β1CSO β2LM β
+
+Power 
+
+0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0 
+
+35 covariates 
+
+PO β
+
+LSH β
+
+LSC β
+
+CSO β1CSO β2LM β
+
+0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0 
+
+5 categories 
+
+PO β
+
+LSH β
+
+LSC β
+
+CSO β1CSO β2CSO β3CSO β4LM β
+
+Power 
+
+0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0 
+
+7 categories 
+
+PO β
+
+LSH β
+
+LSC β
+
+CSO β1CSO β2CSO β3CSO β4CSO β5CSO β6LM β
+
+0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0 
+
+500 observations 
+
+PO β
+
+LSH β
+
+LSC β
+
+CSO β1CSO β2LM β
+
+Power 
+
+0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0 
+
+1000 observations 
+
+PO β
+
+LSH β
+
+LSC β
+
+CSO β1CSO β2LM β
+
+0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Skewed distribution 
+
+PO β
+
+LSH β
+
+LSC β
+
+CSO β1CSO β2LM β
+
+Power 
+
+0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Unstructured distribution 
+
+PO β
+
+LSH β
+
+LSC β
+
+CSO β1CSO β2LM β
+
+True β value True β value 
+
+Figure 9: Power of models comparatively to the chosen base model with p = 5 covariates, one of them informative, k = 3 categories, 250 observations and the uniform θ setting. Data was generated with a proportional odds model. For β = 0 the plots show the α-error. Comparing models for ordinal outcomes 25 
+
+Power of dispersion parameters when drawing from models with dispersion effect Figure 10 shows the power curve for the tests for the dispersion parameters of the location-shift and the location-scale model. To ensure we know the true dispersion value, the location-shift models were calculated on data generated with the location-shift model, and the location-scale models were calculated on data generated with the location-scale model. The simulation settings chosen as base model have p = 5 covariates, one of them informative, k = 3 categories, 250 observations, uniform θ setting, and β = 0 .In the base setting, we observed that the tests for the dispersion parameters almost kept the α-level and increased with increasing true γ. The power curve of the dispersion parameter of the location-scale model was a little steeper. We also considered settings withK β = 1 , but the results were very similar to the base model and are omitted for brevity. When increasing the number of categories, the power curve for both models got steeper. The dispersion parameter of the location-shift model benefited more from a higher number of categories and had higher power than the location-scale model for 7 categories with small to moderate γ values. When looking at the base settings, but with 35 covariates, we saw that most of the location-scale models did not converge. The dispersion parameter of the location-shift model did not adhere to the α-level. Increasing the number of observations lead to steeper power curves, while keeping the test for the dispersion parameter of the location-scale model as the slightly more powerful test. When choosing 4 instead of one covariate, we saw that the location-shift model outperformed the location-scale model for low values of γ.Changing the distribution from uniform to skewed resulted in highly inflated α-errors, especially for the location-shift model and relatively flat power curves. Again, the setting with an unstructured distribution looked relatively similar to the uniform one. However, the power was slightly lower for the tests of the dispersion parameter in the location-shift model. Comparing models for ordinal outcomes 26 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Base model 
+
+LSC γ
+
+LSH γ
+
+Power     
+
+> 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0
+
+5 categories 
+
+LSC γ
+
+LSH γ    
+
+> 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0
+
+7 categories 
+
+LSC γ
+
+LSH γ    
+
+> 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0
+
+35 covariates 
+
+LSC γ
+
+LSH γ
+
+Power     
+
+> 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0
+
+500 observations 
+
+LSC γ
+
+LSH γ    
+
+> 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0
+
+1000 observations 
+
+LSC γ
+
+LSH γ    
+
+> 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0
+
+4 informative covariates 
+
+LSC γ
+
+LSH γ
+
+Power     
+
+> 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0
+
+Skewed distribution 
+
+LSC γ
+
+LSH γ    
+
+> 0.0 0.5 1.0 1.5 2.0 0.0 0.2 0.4 0.6 0.8 1.0
+
+Unstructured distribution 
+
+LSC γ
+
+LSH γ
+
+True γ value True γ value True γ value 
+
+Figure 10: Power of models with dispersion estimations compared to the chosen base model with p = 5 
+
+covariates, one of them informative, k = 3 categories, 250 observations, uniform θ setting and 
+
+β = 0 . The dispersion parameter of the location-scale model was calculated with the data generation process of the location-scale model, and the dispersion parameter of the location-shift model was calculated with the location-shift model. For γ = 0 , the plots display the 
+
+α-error. Comparing models for ordinal outcomes 27 
+
+Power when drawing from the category-specific model Figure 11 shows the power curve for the drawing process with the category-specific odds model. For five categories this means the true parameter vector β = ( −u, u, u, −u) and for seven categories β = ( −u, 0, u, u, 0, −u). On the x-axis, we always displayed the value of u. As the base setting, we chose p = 5 covariates, one of them informative, k = 5 
+
+categories, 250 observations, and the uniform θ distribution. For the category-specific odds model, we saw that β2 and β3 (positive parameter value) had slightly steeper power curves and a slightly lower α-error than β1 and β4 (negative parameter value). The number of informative covariates had the least relevant influence on the results and is therefore not displayed. Looking at the results for 35 covariates, the α-errors were higher than for five categories, especially for 
+
+β1. The power for these parameters was still at maximum 0.7 for a u value of 2. For seven categories, the true regression coefficient vector for the data generation was β = ( −u, 0, u, u, 0, −u),which means for these results, Figure 11 displays the α-error for β2 and β5. However, this could not be recognized in the figure, as with increasing u, the α-error was getting increasingly inflated for β2 and β5
+
+until about 0.8 for u = 2 , which was on par with β1 and β6. The power curve for the tests for β3 and β4
+
+were steeper, almost reaching 1 for u = 2 , similar to the base model. For 1000 observations, the α-level for u = 0 was roughly held by all parameters, and we saw a steep power curve for the parameters of the CSO. When changing the distribution to the skewed setting, β1, β2, and β3 of the category-specific odds model showed highly inflated α-errors, and β4 a slightly inflated α-error. The unstructured distribution setting appeared similar to the uniform setting. Comparing models for ordinal outcomes 28 0.0 0.5 1.0 1.5 2.0 −0.2 0.0 0.2 0.4 0.6 0.8 
+
+Base model 
+
+CSO β1CSO β2CSO β3CSO β4
+
+Power     
+
+> 0.0 0.5 1.0 1.5 2.0 −0.2 0.0 0.2 0.4 0.6
+
+35 covariates 
+
+CSO β1CSO β2CSO β3CSO β4    
+
+> 0.0 0.5 1.0 1.5 2.0 −0.2 0.0 0.2 0.4 0.6 0.8 1.0
+
+7 categories 
+
+CSO β1CSO β2CSO β3CSO β4CSO β5CSO β6
+
+Power     
+
+> 0.0 0.5 1.0 1.5 2.0 −0.2 0.0 0.2 0.4 0.6 0.8 1.0
+
+1000 observations 
+
+CSO β1CSO β2CSO β3CSO β4    
+
+> 0.0 0.5 1.0 1.5 2.0 −0.2 0.0 0.2 0.4 0.6 0.8
+
+Skewed distribution 
+
+CSO β1CSO β2CSO β3CSO β4
+
+Power     
+
+> 0.0 0.5 1.0 1.5 2.0 −0.2 0.0 0.2 0.4 0.6 0.8
+
+Unstructured distribution 
+
+CSO β1CSO β2CSO β3CSO β4
+
+True u value True u value 
+
+Figure 11: Power of the CSO parameter tests when drawing with the CSO model compared to the chosen base model with p = 5 covariates, one of them informative, k = 5 categories, 250 observations, and uniform θ setting. For seven categories, the true β2 and β5 were chosen to be zero. In the case where the true value of u was zero, the plots display the α-error for all models. Comparing models for ordinal outcomes 29 
+
+# 4 Discussion 
+
+In this paper, a simulation study was conducted to examine the properties of the parameter estimates of the proportional odds model (POM), the category-specific odds model (CSO), the location-shift model (LSH), and the location-scale model (LSC). The linear model (LM) was included, given the ongoing discussion on whether normal approximations for ordinal data are acceptable in practical settings (Knief & Forstmeier, 2021), or whether more complex models should be used (Liddell & Kruschke, 2018). Performing the simulations, we observed that the location-scale model exhibited more convergence issues than all other investigated models, particularly for many covariates, few observations, and a low number of categories. Firstly, we examined the bias of the parameter estimations of the POM, the CSO, the LSH, and the LSC. Regarding biases, the CSO and the LSH tended to underestimate the true parameters, whereas the LSC and the POM tended to overestimate them. For the location parameters across all models, we observed especially high biases for high values of the true parameter. For dispersion parameters, high values lead to strong biases for the location-shift and smaller biases for the location-scale models. Biases of the location and the dispersion parameters of the location-shift model were positively correlated. The number of categories and informative variables primarily increased the negative bias in the dispersion parameter of the location-shift model, and the location parameter of the category-specific model slightly, but did not affect the bias of the other models. Afterwards, we investigated the α-error for the parameter tests of the POM, the CSO, the LSH, the LSC, and the LM. When generating data from the POM, the linear model and the proportional odds model were closest to keeping the intended α-level. Especially when a skewed distribution was chosen, all other models showed highly inflated errors. During data generation from the models with dispersion parameters, again, the linear model and the proportional odds model were the best at keeping the α-level. Only for 35 covariates, the α-error of the POM was inflated. For the data generation process with the category-specific odds model, we observed especially high inflated α-errors for the CSO across all settings, while the linear model and the proportional odds model kept relatively close to the α-level. Similarly, we reported the respective power curves, where again, the linear model and the POM appeared to be best suited for different data generation settings. Especially when a skewed distribution was chosen, the power curve for the parameter tests for both parameters of the location-scale model and the dispersion parameter of the location-shift model was very flat. Liddell & Kruschke (2018) suggested, when the mean of observations is close to the end of a scale, metric models may produce errors. The skewed distribution was chosen to examine this case, and at least for Comparing models for ordinal outcomes 30 the linear model in our simulation study, the gravity of the errors was small in comparison to most other models examined. In conclusion, among the examined models, the linear model and the proportional odds model demon-strated the best overall inferential properties in our simulation study. They kept the α-level across almost all simulation settings and showed comparatively steep power curves when drawing with the proportional odds model. Among ordinal models, the strong performance of the proportional odds model is in line with earlier findings (Buczak et al., 2024; Tutz, 2022a). The good performance of the linear model supports the claim that the linear model is rather robust against violations of the normality assumption (Knief & Forstmeier, 2021) when sample sizes are rather large, as in our study ( n ≥ 250 ). However, its interpretation is more challenging since ordinal categories cannot be treated as equidistant data points. Based on our results, we thus generally recommend the use of simpler regression models, particularly the proportional odds model, over more complex alternatives, when in doubt. Models with a dispersion parameter should only be used if there are very relevant contraindications to the use of just one location parameter, and the inferential properties of the CSO lead us to advise against this model in general. 
+
+## 4.1 Limitations 
+
+In this simulation study, the influence of all informative covariates on the target variable was always simulated with identical regression weights. This ensures that with increasing regression parameter values, the influence of all informative covariates increases similarly and influences on the properties of the model are not due to different values in regression parameters across covariates but due to the value of the regression parameter itself. Nonetheless, the argument can be made that varying the regression parameter values in the settings with four informative covariates should only influence the parameters of the variable of interest and may lead to different results in the power analysis. The data generation processes were chosen with the covariates being normally distributed with a mean of zero and a standard deviation of 0.5 to limit the number of cases with negative probabilities. Furthermore, if negative probabilities appeared, the observations were discarded. In reality, this data exists and is neglected in our simulation study. Different distributions and a sensible way to deal with negative probabilities may be needed in future simulations. As there are 4032 simulation settings and 2000 simulation repetitions, there were many models that showed warnings in R. In this simulation study, these warnings were ignored. In application scenarios, we would naturally advise against ignoring such warnings, as they may indicate issues that impact result Comparing models for ordinal outcomes 31 reliability. This may have lead to worse performances of the more complex models, like the category-specific, the location-shift, and the location-scale model. In this simulation study, we focus on inferential properties. Nonetheless, there are various further ways to evaluate the performance of a model. Future studies might aim to investigate the predictions of these models. This also allows us to extend comparisons with other ordinal regression models like tree-based models (Hornung, 2020; Buczak et al., 2024; Buczak, 2025). Finally, we used Wald-type tests for our simulation. These tests are simple and are used in many packages (e.g. Yee, 2010). However, they may not be ideally suited for ordinal outcomes and work more reliably with a larger number of observations. These drawbacks may be avoided by using resampling methods, as proposed for nonparametric analyses in factorial designs (e.g. Umlauft et al., 2017; Dobler et al., 2020). Comparing models for ordinal outcomes 32 
+
+## Declarations 
+
+Funding No funding was received for conducting this study. 
+
+Conflicts of interest The authors have no competing interests to declare that are relevant to the content of this article. 
+
+Ethics approval Not applicable. 
+
+Consent to participate Not applicable. 
+
+Consent for publication Not applicable. 
+
+Availability of data and materials This study only uses artificially generated (simulation) data and no personal data. 
+
+Code availability The code and all simulated data sets will be published as supplementary material. 
+
+## Open Practices 
+
+The code and all simulated data sets will be published as supplementary material. The study itself was not preregistered. 
+
+# References 
+
+Berger, M. (2020). ordDisp: Separating Location and Dispersion in Ordinal Regression Models. Retrieved from https://CRAN.R-project.org/package=ordDisp 
+
+Brunner, E., Bathke, A. C., & Konietschke, F. (2018). Rank and Pseudo-rank Procedures for Independent Observations in Factorial Designs . Springer. Buczak, P. (2025). Frequency-adjusted borders ordinal forest: A novel tree ensemble method for ordinal prediction. British Journal of Mathematical and Statistical Psychology , 78 (2), 594–616. Comparing models for ordinal outcomes 33 Buczak, P., Horn, D., & Pauly, M. (2024). Old but Gold or New and Shiny? Comparing Tree Ensembles for Ordinal Prediction with a Classic Parametric Approach. Center for Open Science: OSF Preprints. Retrieved from https://osf.io/v7bcf doi: 10.31219/osf.io/v7bcf Bürkner, P.-C., & Vuorre, M. (2019). Ordinal Regression Models in Psychology: A Tutorial. Advances in Methods and Practices in Psychological Science , 2 (1), 77–101. doi: 10.1177/2515245918823199 Christensen, R. H. B. (2023). ordinal-Regression Models for Ordinal Data. Retrieved from https:// CRAN.R-project.org/package=ordinal 
+
+Dobler, D., Friedrich, S., & Pauly, M. (2020). Nonparametric MANOVA in meaningful effects. Annals of the Institute of Statistical Mathematics , 72 (4), 997–1022. Friedrich, S., Groll, A., Ickstadt, K., Kneib, T., Pauly, M., Rahnenführer, J., & Friede, T. (2023). Reg-ularization approaches in clinical biostatistics: A review of methods and their applications. Statistical Methods in Medical Research , 32 (2), 425–440. Hastie, T., Tibshirani, R., & Friedman, J. (2009). The Elements of Statistical Learning: Data Mining, Inference, and Prediction (2nd ed.). New York: Springer. Hornung, R. (2020). Ordinal Forests. Journal of Classification , 37 (1), 4–17. Retrieved from http:// link.springer.com/10.1007/s00357-018-9302-x doi: 10.1007/s00357-018-9302-x Janitza, S., Tutz, G., & Boulesteix, A.-L. (2016). Random Forest for ordinal responses: Prediction and variable selection. Computational Statistics & Data Analysis , 96 , 57–73. Retrieved from https:// linkinghub.elsevier.com/retrieve/pii/S0167947315002601 doi: 10.1016/j.csda.2015.10.005 Joshi, A., Kale, S., Chandel, S., & Pal, D. (2015). Likert Scale: Explored and Explained. British Journal of Applied Science & Technology , 7 (4), 396–403. Retrieved from https://journalcjast.com/ index.php/CJAST/article/view/381 doi: 10.9734/BJAST/2015/14975 Knief, U., & Forstmeier, W. (2021). Violating the normality assumption may be the lesser of two evils. Behavior Research Methods , 53 (6), 2576–2590. Retrieved from https://link.springer.com/ 10.3758/s13428-021-01587-5 doi: 10.3758/s13428-021-01587-5 Liddell, T. M., & Kruschke, J. K. (2018). Analyzing ordinal data with metric models: What could possibly go wrong? Journal of Experimental Social Psychology , 79 , 328–348. Retrieved from https:// linkinghub.elsevier.com/retrieve/pii/S0022103117307746 doi: 10.1016/j.jesp.2018.08.009 McCullagh, P. (1980). Regression Models for Ordinal Data. Journal of the Royal Statistical Society: Series B (Methodological) , 42 (2), 109–142. doi: 10.1111/j.2517-6161.1980.tb01109.x Comparing models for ordinal outcomes 34 Peterson, B., & Harrell, F. E. (1990). Partial Proportional Odds Models for Ordinal Response Variables. 
+
+Journal of the Royal Statistical Society: Series C (Applied Statistics) , 39 (2), 205–217. Retrieved from 
+
+https://www.jstor.org/stable/10.2307/2347760?origin=crossref doi: 10.2307/2347760 R Core Team. (2024). R: A language and environment for statistical computing [Computer software manual]. Vienna, Austria. Retrieved from https://www.R-project.org/ 
+
+Sullivan, G. M., & Artino, A. R. (2013). Analyzing and Interpreting Data From Likert-Type Scales. Jour-nal of Graduate Medical Education , 5 (4), 541–542. Retrieved from https://meridian.allenpress .com/jgme/article/5/4/541/34037/Analyzing-and-Interpreting-Data-From-LikertType doi: 10.4300/JGME-5-4-18 Tutz, G. (2011). Regression for categorical data (Vol. 34). Cambridge University Press. Tutz, G. (2022a). Ordinal regression: A review and a taxonomy of models. WIREs Computational Statistics , 14 (2), e1545. Retrieved from https://wires.onlinelibrary.wiley.com/doi/10.1002/ wics.1545 doi: 10.1002/wics.1545 Tutz, G. (2022b). Ordinal Trees and Random Forests: Score-Free Recursive Partitioning and Improved Ensembles. Journal of Classification , 39 (2), 241–263. Retrieved from https://link.springer.com/ 10.1007/s00357-021-09406-4 doi: 10.1007/s00357-021-09406-4 Tutz, G., & Berger, M. (2017). Separating location and dispersion in ordinal regression models. Econo-metrics and Statistics , 2 , 131–148. Retrieved from https://linkinghub.elsevier.com/retrieve/ pii/S245230621630003X doi: 10.1016/j.ecosta.2016.10.002 Tutz, G., & Berger, M. (2022). Sparser Ordinal Regression Models Based on Parametric and Additive Location-Shift Approaches. International Statistical Review , 90 (2), 306–327. Retrieved from https:// onlinelibrary.wiley.com/doi/10.1111/insr.12484 doi: 10.1111/insr.12484 Umlauft, M., Konietschke, F., & Pauly, M. (2017). Rank-based permutation approaches for non-parametric factorial designs. British Journal of Mathematical and Statistical Psychology , 70 (3), 368– 390. Wickham, H., Pedersen, T., & Seidel, D. (2023). scales: Scale Functions for Visualization. Retrieved from https://CRAN.R-project.org/package=scales 
+
+Yee, T. W. (2010). The VGAM Package for Categorical Data Analysis. Journal of Statistical Software ,
+
+32 (10). doi: 10.18637/jss.v032.i10 Comparing models for ordinal outcomes 35 
+
+# A Literature review details 
+
+To gain a clearer understanding of which models are used for ordinal outcomes in practice, we conducted a literature review using PubPsych (https://pubpsych.zpid.de/pubpsych/). We used the search terms "regression" and either "ordinal" or "ordered" and only included studies that were published between 2014 and 2023. We obtained 676 articles, of which 16 were not accessible. After excluding all papers that did not explicitly report the use of an ordinal model, we were left with 458 papers. Among these, 6 papers used two different methods, and one paper used 4 different methods; the specific models can be found in Table 1. We classified a paper as using a specific model, when either the paper explicitly named the model, stated the respective formulas, listed the assumptions, mentioned the model as having passed respective assumption tests or if the model was calculated with the logit link in SPSS without extra packages, as to our knowledge, there is only an implementation of the proportional odds model and no other ordinal regression model. In 11 papers, it was unclear how or where an ordinal model was used, or no details about the model were given. 50 papers implemented some form of mixed model, and 4 used Bayesian methods, which both extend beyond the scope of this study. The models used in this simulation study that were named in the literature review were the proportional odds model appearing in 205 papers (52%), the partial proportional odds model in 14 papers (3.54%), and the category-specific odds model in 2 papers (0.5%). One paper reported a location and a scale parameter. Other papers used different link functions than the logit link: We observed 12 papers with a probit link, 5 with a negative log-log link and one with a log-log link. 136 papers used the logit link function but did not explicitly state which model was used. Out of these papers, 105 papers reported one odds ratio per covariate, 14 reported one regression weight per covariate, and 7 reported both, while 10 reported none. 23 papers did not state the link function explicitly, with 1 paper reporting an odds ratio and one regression parameter per covariate, 5 reporting no odds ratios, but one regression parameter per covariate, and 17 papers reporting an odds ratio but no regression parameters. A detailed listing can be seen in Table 1. Comparing models for ordinal outcomes 36 Table 1: Literature review results Type of model Number Percentage Percentage of studies respective to respective to Total (1) Total (3) Mixed 47 .1006 Bayes 2 .0043 Bayes Mixed 2 .0043 Unclear 11 .0236 Other 6 .0128 .0152 Probit Link 11 .0236 .0278 Probit mixed 1 .0021 .0025 Loglog link 1 .0021 .0025 Negative Loglog Link 5 .0107 .0126 Proportional Odds (PO) 205 .4390 .5177 Partial Proportional Odds (PPO) 14 .0300 .0354 Category-specific Odds (CSO) 2 .0043 .0051 Location + scale parameter 1 .0021 .0025 Log-link rep, no OR rep, no param rep 10 .0214 .0253 Log-link rep, OR rep, no param rep 105 .2248 .2652 Log-link rep, OR rep, one param per covariate rep 7 .0150 .0177 Log-link rep, no OR rep, one param per covariate rep 14 .0300 .0354 No link rep, OR rep, one param per covariate rep 1 .0021 .0025 No link rep, no OR rep, one param per covariate rep 5 .0107 .0126 No link rep, OR rep, no param rep 17 .0364 .0429 Total different models in studies (1) 467 PPO and PO 2Loglog link and location + scale parameter 1Mixed and ordinal model with OR estimated 1Probit link and mixed with probit link 1PPO and CSO 1PPO, PO, CSO and other model 1Total different studies with ordinal models (2) 458 Total excluding mixed and bayes and unclear (3) 396 
+
+> Note . PO = proportional odds model; PPO = partial proportional odds model; CSO = Category-specific odds model; OR = Odds ratio; rep means reported;
+
+Comparing models for ordinal outcomes 37 
+
+# B Problems in the simulation 
+
+In the data generation process, in case the condition P (Y ≤ r|x) ≤ P (Y ≤ r + 1 |x) did not hold, the data was redrawn. For our simulation study, this happened especially often in the case of drawing data from the category-specific model with high β values and four informative covariates. In these cases, for one observation that held the condition, on average, about 4-6 observations had to be drawn. For all other settings, this number was lower. If the observed number of observations per category was less than 5, the whole dataset was redrawn. This happened especially often in the data generation setting with large dispersion, a low number of observations, a high number of categories, and the skewed distribution setting. In some of these cases, up to 1540 samples had to be redrawn. For all other settings, the number of redrawn samples was lower than 200. Among the cumulative models of interest, the category-specific odds model, the location-shift model, and the location-scale model showed relevant problems with convergence in some settings. The proportion of non-converging proportional odds models was less than 0.01% in any setting. Comparing models for ordinal outcomes 38 
+
+Non-convergence in the category-specific model In 1537 out of the 4032 simulation settings, all category-specific models converged. In 382 settings, at least 20% of the models did not converge. In Figure 12 the most influential simulation settings for non-convergence of models are displayed. Category-specific models have issues with convergence when the number of covariates is rather high, the number of observations is low, and the true γ value is rather high. 5 35 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Proportion of non−converging models 
+
+Number of covariates 250 500 1000 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Proportion of non−converging models 
+
+Number of observations 0 0.1 0.2 0.5 1 20.0 0.2 0.4 0.6 0.8 1.0 
+
+Proportion of non−converging models 
+
+γ value 
+
+Figure 12: Relevant influences on convergence of category-specific models. Comparing models for ordinal outcomes 39 
+
+Non-convergence in the location-shift model In 2454 of the 4032 simulation settings, all location-shift models converged. In 3 settings, at least 20% of the models did not converge. In Figure 13, the most influential simulation settings for the non-convergence of models are displayed. Location-shift models had issues with convergence when the data generation process was performed with the location-scale model and higher γ values, and there were rather low true β values. Location scale None 0.00 0.05 0.10 0.15 0.20 0.25 
+
+Proportion of non−converging models 
+
+Variance model 0 0.1 0.2 0.5 1 20.00 0.05 0.10 0.15 0.20 0.25 
+
+Proportion of non−converging models 
+
+β value 0 0.1 0.2 0.5 1 20.00 0.05 0.10 0.15 0.20 0.25 
+
+Proportion of non−converging models 
+
+γ value 
+
+Figure 13: Relevant influences on convergence of location-shift models. Comparing models for ordinal outcomes 40 
+
+Non-convergence in the location-scale model In 1827 of the 4032 simulation settings, all location-scale models converged. In 807 settings, at least 20% of the models did not converge, and for 66 simulation settings, no models converged. In Figure 14, the most relevant simulation settings influencing the non-convergence of models are displayed. Location-scale models had issues with convergence when the data generation process was performed with the location-scale model and higher γ values, and there were rather low β values. 5 35 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Proportion of non−converging models 
+
+Number of covariates 250 500 1000 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Proportion of non−converging models 
+
+Number of observations 3 5 70.0 0.2 0.4 0.6 0.8 1.0 
+
+Proportion of non−converging models 
+
+Number of categories 0 0.1 0.2 0.5 1 20.0 0.2 0.4 0.6 0.8 1.0 
+
+Proportion of non−converging models 
+
+γ value 
+
+Figure 14: Relevant influences on convergence of location-scale models. Comparing models for ordinal outcomes 41 
+
+# C Bias in the location parameter of the location-scale, location-shift and category-specific odds model 
+
+In Figure 15, biases for the location parameter of the location-shift model are displayed. The estimations of the location parameters showed increased dispersion with a larger number of covariates, compared to a lower number. Similarly, dispersion of the estimations increased with more categories and more informative covariates. A slightly larger bias could be seen for more informative covariates and the unstructured distribution. We saw that the higher the real value for the location parameter β, the higher the (negative) bias of the estimated location parameter, and high values were also accompanied by higher dispersion of the estimation. The (negative) bias of the location parameter also increased with increasing dispersion value, and high values were also accompanied by higher dispersion of the estimation. Comparing models for ordinal outcomes 42 Variables                 
+
+> 535 −0.8 −0.6 −0.4 −0.2 0.0 0.2 LSH Location bias
+> Categories
+> 357
+> Informative variables
+> 14
+> Uniform Skewed Unstructured
+> θ−distribution
+> −0.8 −0.6 −0.4 −0.2 0.0 0.2 LSH Location bias
+> β−value
+> 00.1 0.2 0.5 12
+> γ−value
+> 00.1 0.2 0.5 12
+
+Figure 15: Influence of simulation settings on the bias of the location-shift model, when drawing with the location-shift model aggregated across all n. Except in their specific columns, boxplots aggregated across all numbers of covariates, number of categories, number of informative variables, true location and scale parameter values, and distribution settings. In Figure 16, biases for the location parameter of the location-scale model are displayed. The estimations of the location parameters showed increased dispersion with a larger number of covariates, compared to a lower number. Similarly, dispersion of the estimations increased slightly with fewer categories and the skewed distribution. We saw that the higher the real value for the location parameter β, the higher the bias of the estimated location parameter, and high values were also accompanied by higher dispersion of the estimation. The bias of the location parameter also increased with increasing dispersion value, and high values were also accompanied by higher dispersion of the estimation. Comparing models for ordinal outcomes 43 Variables  
+
+> 535 −0.2 0.0 0.2 0.4 0.6 0.8 1.0
+
+LSC Location bias 
+
+Categories   
+
+> 357
+
+Informative variables    
+
+> 14
+> Uniform Skewed Unstructured
+
+θ−distribution 
+
+> −0.2 0.0 0.2 0.4 0.6 0.8 1.0
+
+LSC Location bias 
+
+β−value      
+
+> 00.1 0.2 0.5 12
+
+γ−value      
+
+> 00.1 0.2 0.5 12
+
+Figure 16: Influence of simulation settings on the bias of the location-scale model, when drawing with the location-scale model aggregated across all n. Except in their specific columns, boxplots aggregated across all numbers of covariates, number of categories, number of informative variables, true location and scale parameter values, and distribution settings. 12 values in the range of 1.04 to 2.49 were excluded from the Figures for the purpose of clearly seeing the boxes. Comparing models for ordinal outcomes 44 In Figure 17, biases for the location parameter of the category-specific odds model are displayed. As described in the Methods section, the location-shift model can be expressed as a category-specific odds model. Therefore, these models were included in the bias calculations as well, which lead to real β-values differing from the values chosen in the simulation settings, as the dispersion parameter needed to be expressed in the location parameters. The estimations of the location parameters showed increased dispersion with a larger number of infor-mative variables. Dispersion of the estimations seemed to increase with increasing categories, but this is due to larger β-values in settings with more categories when a bias term was drawn from the location-shift model. We saw that the higher the real value for the location parameter β, the higher the bias of the estimated location parameter, and high values were also accompanied by higher dispersion of the estimation. The number of variables, observations, and the distribution did not play a relevant role. Variables              
+
+> 535 −4 −2 02CSO Location bias
+> Categories
+> 57
+> Informative variables
+> 14
+> Observations
+> 250 500 1000 −4 −2 02
+> Uniform Skewed Unstructured
+> θ−distribution
+> −6 −4 −2 0246
+> β−value
+> CSO Location bias
+
+Figure 17: Influence of simulation settings on the bias of the category-specific odds model and models nested within the category-specific odds model. Except in their specific columns, boxplots aggregated across all numbers of observations, covariates, categories, number of informative variables, distributions, and true location parameter values. Comparing models for ordinal outcomes 45 
+
+# D Further results for the α-errors 
+
+Figure 18 shows the α-errors of an uninformative variable for all models when drawing with the location-shift model for γ = 1 and β = 0 .−0.1 0.0 0.1 0.2 0.3 
+
+Base model 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β
+
+250 500 1000 
+
+α−error 
+
+−0.10 −0.05 0.00 0.05 0.10 0.15 0.20 
+
+35 covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β
+
+250 500 1000 
+
+0.0 0.2 0.4 0.6 0.8 
+
+7 categories 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4CSO β5CSO β6LM β
+
+250 500 1000 
+
+α−error 
+
+0.0 0.2 0.4 0.6 
+
+4 informative covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β
+
+250 500 1000 
+
+0.0 0.2 0.4 0.6 0.8 
+
+Skewed distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β
+
+250 500 1000 
+
+α−error n
+
+0.00 0.02 0.04 0.06 0.08 0.10 0.12 
+
+Unstructured distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β
+
+250 500 1000 n
+
+Figure 18: Influence of simulation settings on the α-errors of the model. Data was drawn from the location-shift model with γ = 1 and β = 0 Comparing models for ordinal outcomes 46 Figure 19 shows the α-errors of an uninformative variable for all models when drawing from the location-scale model with γ = 1 and β = 0 .0.0 0.2 0.4 0.6 0.8 1.0 
+
+Base model 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+
+α−error 
+
+> −0.1 0.0 0.1 0.2 0.3 0.4 0.5
+
+35 covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8 1.0
+
+7 categories 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2CSO β3CSO β4CSO β5CSO β6LM β  
+
+> 250 500 1000
+
+α−error 
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+
+4 informative covariates 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6
+
+Skewed distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+
+n
+
+α−error 
+
+> 0.0 0.2 0.4 0.6 0.8
+
+Unstructured distribution 
+
+PO β
+
+LSH β
+
+LSH γ
+
+LSC β
+
+LSC γ
+
+CSO β1CSO β2LM β  
+
+> 250 500 1000
+
+n
+
+Figure 19: Influence of simulation settings on the α-errors of the model. Data was drawn from the location-scale model with γ = 1 and β = 0 Comparing models for ordinal outcomes 47 Figure 20 shows the α-errors of the location parameters for the linear model, the proportional odds model, and the two dispersion models of an informative variable when drawing from the location-shift model with γ = 1 and β = 0 . The CSO model was not included as the location parameters are able to model dispersion, so the real β values for the CSO are not zero. 0.03 0.04 0.05 0.06 0.07 0.08 0.09 0.10       
+
+> Base model
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+
+α−error             
+
+> 0.00 0.05 0.10 0.15
+> 35 covariates
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+> −0.1 0.0 0.1 0.2
+> 7 categories
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+
+α−error             
+
+> −0.1 0.0 0.1 0.2 0.3 0.4
+> 4 informative covariates
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Skewed distribution
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+
+α−error n      
+
+> −0.1 0.0 0.1 0.2 0.3 0.4 0.5 0.6
+> Unstructured distribution
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+
+n
+
+Figure 20: Influence of simulation settings on the α-errors of the location parameter of the model. Data was drawn from the location-shift model with β = 0 and γ = 1 . The chosen base model has 
+
+p = 5 covariates, k = 3 categories, one informative covariate, and the uniform distribution setting. Comparing models for ordinal outcomes 48 Figure 21 shows the α-errors of the location parameters for the linear model, the proportional odds model, and the two dispersion models of an informative variable when drawing from the location-scale model with γ = 1 and β = 0 . The CSO model was not included as the location parameters are able to model dispersion, as in the case of the location-shift model, so the real β values for the CSO may not be zero. 0.0 0.2 0.4 0.6 0.8       
+
+> Base model
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+
+α−error             
+
+> 0.00 0.02 0.04 0.06 0.08 0.10 0.12 0.14
+> 35 covariates
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 7 categories
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+
+α−error             
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> 4 informative covariates
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Skewed distribution
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+
+α−error n      
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+> Unstructured distribution
+> PO β
+> LSH β
+> LSC β
+> LM β
+> 250 500 1000
+
+n
+
+Figure 21: Influence of simulation settings on the α-errors of the location parameter of the model. Data was drawn from the location-scale model with β = 0 and γ = 1 . The chosen base model has 
+
+p = 5 covariates, k = 3 categories, one informative covariate, and the uniform distribution setting. Comparing models for ordinal outcomes 49 Figure 22 displays results for the α-error of the category-specific odds model parameters for data drawn from the CSO model. We present results for an informative covariate with u = 1 , so that in the case of 7 covariates β2 = β6 = 0 .0.0 0.2 0.4 0.6 0.8 1.0 
+
+Base model 
+
+CSO β2 CSO β6  
+
+> 250 500 1000
+
+α−error 
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+
+35 covariates 
+
+CSO β2 CSO β6  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8 1.0
+
+4 informative covariates 
+
+CSO β2 CSO β6  
+
+> 250 500 1000
+
+α−error 
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+
+Skewed distribution 
+
+CSO β2 CSO β6  
+
+> 250 500 1000
+> 0.0 0.2 0.4 0.6 0.8
+
+Unstructured distribution 
+
+CSO β2 CSO β6  
+
+> 250 500 1000
+
+α−error n
+
+> 0.0 0.2 0.4 0.6 0.8 1.0
+
+β = 2 
+
+CSO β2 CSO β6  
+
+> 250 500 1000
+
+n
+
+Figure 22: Influence of simulation settings on the α-errors of the location parameter of the model. Data was drawn from the location-scale model with β = 0 and γ = 1 . The chosen base model has 
+
+p = 5 covariates, k = 3 categories, one informative covariate, and the uniform distribution setting.

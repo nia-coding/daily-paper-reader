@@ -1,0 +1,1032 @@
+Title: Learning to Pay Attention: Unsupervised Modeling of Attentive and Inattentive Respondents in Survey Data
+
+URL Source: https://arxiv.org/pdf/2603.02427v1
+
+Published Time: Wed, 04 Mar 2026 01:20:04 GMT
+
+Number of Pages: 36
+
+Markdown Content:
+# Learning to Pay Attention: Unsupervised Modeling of Attentive and Inattentive Respondents in Survey Data 
+
+## Ilias Triantafyllopoulos 
+
+Stern School of Business, New York University New York, NY, USA 
+
+ilias.triantafyllopoulos@nyu.edu 
+
+## Panos Ipeirotis 
+
+Stern School of Business, New York University New York, NY, USA 
+
+panos@nyu.edu 
+
+Abstract 
+
+The integrity of behavioral and social-science surveys depends on detecting inattentive re-spondents who provide random or low-effort answers. Traditional safeguards, such as attention checks, are often costly, reactive, and inconsistent. We propose a unified, label-free framework for inattentiveness detection that scores response coherence using complementary unsuper-vised views: geometric reconstruction (Autoencoders) and probabilistic dependency modeling (Chow-Liu trees). While we introduce a ”Percentile Loss” objective to improve Autoencoder robustness against anomalies, our primary contribution is identifying the structural conditions that enable unsupervised quality control. Across nine heterogeneous real-world datasets, we find that detection effectiveness is driven less by model complexity than by survey structure: instruments with coherent, overlapping item batteries exhibit strong covariance patterns that allow even linear models to reliably separate attentive from inattentive respondents. This reveals a critical “Psychometric-ML Alignment”: the same design principles that maximize measurement reliability (e.g., internal consistency) also maximize algorithmic detectability. The framework provides survey platforms with a scalable, domain-agnostic diagnostic tool that links data quality directly to instrument design, enabling auditing without additional respondent burden. 
+
+# 1 Introduction 
+
+Behavioral, social, and political scientists rely heavily on surveys to capture human sentiment and behavior. However, the validity of this research is constantly threatened by “content nonrespon-sivity”—responses that fail to consistently reflect the respondent’s internal state due to inattention, fatigue, or lack of engagement. Researchers define this phenomenon as a loss in the consistency 1    
+
+> arXiv:2603.02427v1 [cs.HC] 2 Mar 2026 participant 1
+> Age
+> Model
+> 22
+> Task 1: Reconstruction
+> Weight Height Sex
+> participant 2
+> participant 3
+> participant 4
+> 18
+> 14
+> 20
+> 192
+> 155
+> 242
+> 214
+> M
+> F
+> M
+> M
+> 6'4"
+> 5'0"
+> 4'4"
+> 6'5"
+> error 1
+> Age
+> 22
+> Weight Height Sex
+> error 2
+> error 3
+> error 4
+> 18
+> 16
+> 20
+> 192
+> 180
+> 160
+> 214
+> M
+> F
+> F
+> M
+> 6'4"
+> 5'2"
+> 4'4"
+> 6'5"
+> Task 2: Inattentive Participants Detection
+> participant 3
+
+Figure 1: A toy example illustrating the proposed approach. Survey responses from multiple participants are represented as structured categorical data across questions (e.g., 
+
+⟨Age , Height , Sex , Weight ⟩). The model first learns to reconstruct each participant’s responses (Task 1) and, based on reconstruction errors, detects incoherent (hard-to-model) responses. We hypothesize that participants with many such inconsistencies are inattentive (Task 2). Green de-notes attentive respondents or well-reconstructed answers; red indicates inattentive respondents or poorly reconstructed patterns. Together, the two tasks demonstrate how unsupervised reconstruc-tion enables automated detection of low-quality survey data. of responses to data items (Nichols et al. 1989). Respondents may provide random answers due to survey fatigue or unwillingness, thereby affecting the validity of research outcomes (Meade and Craig 2012). This issue has been exacerbated by the growing reliance on online crowdsourcing platforms such as Amazon Mechanical Turk (MTurk) and Prolific. While these platforms offer fast and diverse data collection, workers are often more likely to multitask during studies (Good-man et al. 2013), and inattentive or fraudulent responses are more common, particularly when participants have the opportunity to cheat (Peer et al. 2022). Current techniques for mitigating these issues remain largely reactive. Researchers rely on embedded attention checks (Berinsky et al. 2014), metrics of individual response variation (Curran 2016), or mechanism-design approaches like the Bayesian Truth Serum (Weaver and Prelec 2013). While useful, these methods impose significant “taxes” on the research process: they increase respondent cognitive load, extend survey completion time, and can induce measurement reactivity. Unsupervised machine learning offers a promising alternative: detecting inattentiveness by modeling the “coherence” of response patterns directly, without requiring labeled training data or explicit “trap” questions. Crucially, this approach addresses a fundamental limitation of super-vised classification in this domain: the impossibility of objective ground truth. When collecting respondents’ data, we cannot definitively ensure who answered randomly or if they gave fabricated information, as we do not have a ground truth to compare against. Creating datasets that include this information would require substantial cost and time, and even if achievable, they would likely include biases and inconsistencies, as definitions of inattentiveness vary across studies. Conse-quently, unsupervised learning techniques are not just efficient; they offer a necessary, label-free alternative to ground-truth dependence. In this study, we move beyond simple algorithm benchmarking to develop a structural theory 
+
+2of unsupervised data quality . We unify and evaluate three domain-agnostic method families: (i) non-linear autoencoders (AE), (ii) linear (zero-layer) autoencoders, and (iii) generative Bayesian networks with Chow–Liu tree structure (Chow and Liu 1968). To our knowledge, no prior work benchmarks these families side-by-side for inattentiveness detection in structured survey data. Furthermore, we empirically characterize a key phenomenon: as an AE’s reconstruction capacity increases to fit all inputs, anomaly sensitivity can diminish because even incoherent patterns begin to be reconstructed well. To address this reconstruction-detection trade-off and the challenge of “contaminant learning” (where models learn to reconstruct noise), we introduce a Percentile Loss 
+
+(PL) objective, adapting a robust training technique to the survey domain. This label-free approach is critical for scalable deployment. First, it avoids measurement reactivity and reduces the risk of automation. Second, it remains compatible with legacy datasets that lack embedded checks. Third, it lowers dependence on context-specific rules, enabling pre-deployment screening and post-collection auditing across heterogeneous samples (Hong et al. 2020). Our contributions are the following: 1. Comprehensive Benchmarking on “Uncleaned” Data: Validating unsupervised detection requires raw datasets where inattentive responses have not yet been filtered out—a rarity in public repositories where data is typically pre-cleaned. We curate nine heterogeneous real-world datasets spanning diverse populations (adolescents, MTurk workers, representative samples) and topics. This allows us to establish the first rigorous, domain-agnostic benchmark for inattentiveness detection in the absence of perfect ground truth. 2. The Psychometric-ML Alignment: Using this diverse testbed, we demonstrate that the success of unsupervised detection is governed primarily by survey structure , not dataset size or model complexity. We find the performance of various unsupervised models for detecting inattention correlates with well-designed surveys that are built on covariance structures (e.g., coherent, overlapping item batteries) (Cronbach 1951, Clark and Watson 1995, 2019). This creates a powerful design principle: instruments with high “coherence” are inherently easier to quality-control algorithmically. 3. Robust Percentile Loss (PL): We introduce Percentile Loss for autoencoders in this do-main. Instead of minimizing average reconstruction error, PL minimizes the average of the lowest-error 𝑝 -percentile. This resolves the reconstruction-detection trade-off by focusing on the majority structure while de-emphasizing incoherent “noisy” cases, preventing the autoencoder from overfitting to anomalies. 4. Probabilistic Baseline: We adapt a Chow–Liu tree to categorical survey data to use its per-row likelihood as a typicality score. While widely used for modeling, we document its competitiveness as an interpretable, unsupervised inattentiveness detector that complements reconstruction-based views. 5. Actionable Framework: We translate these findings into concrete recommendations for designing surveys and setting an adaptable pipeline that can be embedded into organizational survey platforms. 3Figure 1 illustrates our two-stage workflow: (1) unsupervised modeling that reconstructs or probabilistically explains typical patterns, followed by (2) respondent ranking using reconstruction error or (negative) likelihood for inattentiveness detection. Our methods are fully label-free at training time and require no additional items or attention checks, making them practical for existing datasets and for pre-deployment quality monitoring. 
+
+# 2 Related Work 
+
+## 2.1 Survey Inattentiveness Detection 
+
+Traditional approaches to inattentiveness rely on embedded design features such as attention checks, response time thresholds, or pattern-based indicators like straightlining (Kim et al. 2019). The Bayesian Truth Serum (Weaver and Prelec 2013) represents another strand, incentivizing truthful responses through mechanism design. More advanced statistical and machine learning approaches include EM-based truth discovery (Dawid and Skene 1979), unsupervised credibility modeling (Yin et al. 2007), and supervised classification using behavioral features (Schroeders et al. 2022, Ozaki 2024). However, supervised methods depend heavily on scarce and survey-specific labels, often derived from attention checks that capture only partial inattentiveness. This limits their scala-bility and generalization, motivating unsupervised, data-driven alternatives that infer respondent coherence directly from response structure. Psychometric approaches grounded in Item Response Theory (IRT) provide person-level screen-ing via person-fit statistics, which flag response patterns that are improbable under a fitted model. A prominent example is the standardized log-likelihood index 𝑙 𝑧 , which evaluates how surprising a re-spondent’s full item-score vector is given estimated item parameters and the respondent’s estimated latent trait (Drasgow et al. 1985). In this context, large negative values indicate careless responding. Subsequent research introduced corrected variants, such as 𝑙 ∗ 
+
+> 𝑧
+
+, to account for the statistical bias that occurs when using estimated ability levels rather than true latent traits (Snijders 2001). When full IRT calibration is computationally or practically impractical, simpler ”group-based” proxies approximate the same intuition by checking whether a respondent’s answers align with empirical item easiness (i.e., the average response rate or mean score for each item across the sample). For instance, the person-total correlation 𝑟 𝑝𝑡 computes the correlation between an individual’s response vector and the vector of item means ordered by difficulty (Donlon and Fischer 1968). Near-zero or negative values for 𝑟 𝑝𝑡 suggest that the respondent is answering randomly or in a manner that is incoherent relative to the rest of the population. 
+
+## 2.2 Autoencoders for Anomaly Detection & Survey Inattentiveness 
+
+Autoencoders were originally introduced for unsupervised anomaly detection because they can reconstruct typical inputs while producing higher errors for unusual ones (Hawkins et al. 2002). This principle has been extended with variants such as Denoising Autoencoders (Vincent et al. 2010), Variational Autoencoders (Kingma and Welling 2013), and Robust Deep Autoencoders (Zhou and Paffenroth 2017), each aiming to improve robustness to noise or explicitly model outliers. These innovations established autoencoders as a flexible foundation for anomaly detection in diverse domains (Goodge et al. 2021, Rubio et al. 2020). 4Only recently have autoencoders been applied specifically to inattentive responding. Alfons and Welz (2024) introduced autoencoders for classifying inattentive responses, but their evaluation was limited to synthetic data. Welz and Alfons (2023) proposed CODERS, which combines autoencoder reconstruction errors with changepoint detection to identify when a respondent begins answering carelessly within a survey, demonstrating proof-of-concept in one real and several synthetic datasets. Our work differs in three key respects. First, we adapt autoencoders for categorical survey data, introducing variable-level loss weighting and Percentile Loss to address the reconstruction–detection trade-off. Second, instead of focusing on within-survey onset, we target the identification of inattentive respondents as a whole. Third, we validate our approach on nine diverse, real-world survey datasets that include both attentive and inattentive participants, establishing large-scale empirical benchmarks. In doing so, we position autoencoders as a scalable and domain-agnostic tool for inattentiveness detection in survey practice. 
+
+## 2.3 Probabilistic Methods 
+
+In recent years, probabilistic models have been leveraged for detecting anomalies or inattentive respondents in survey data. Bayesian networks can approximate the joint distribution of item responses, flagging outliers (Lindskou et al. 2021). Latent class analysis and mixture modeling ap-proaches similarly identify outliers by positing an “outliers” latent class separate from normal. For example, mixture IRT models distinguish a class of insufficient-effort respondents (characterized by near-random or content-independent answers) from attentive respondents, improving parameter estimation and person-fit (Ulitzsch et al. 2024). The probabilistic frameworks have also demon-strated practical utility in even detecting automated “bot” respondents via Bayesian latent-class joint models (Roman et al. 2022). 
+
+## 2.4 Survey Design and Detection Reliability 
+
+The use of overlapping or coherent item batteries have a substantial impact on the effectiveness of inattentiveness detection. Psychometric theory holds that redundant, correlated items provide built-in consistency checks that can reveal careless responding. When multiple items measure the same construct (e.g. an item battery of related questions), attentive respondents should answer them in a consistent manner, yielding a strong shared variance and high internal reliability. By contrast, a careless or random responder will often disrupt this covariance pattern by answering related items inconsistently. Empirically, the presence of an expected correlation structure makes it easier to spot outliers. For example, psychometric synonym or antonym pairs (nearly overlapping items) have been used to check consistency: a respondent who gives divergent answers to two questions that should elicit similar answers is likely not paying attention (Meade and Craig 2012, Goldammer et al. 2020). If each item were unique (measuring entirely distinct constructs), such checks would be far less powerful because there is no expected pattern to violate. Thus, researchers emphasize careful survey design, constructing coherent item batteries with adequate breadth and redundancy, as a means to improve the reliability of the data (Clark and Watson 2019), and (we are arguing) the detection of inattentive responders. 5Table 1. Summary of Datasets 
+
+Dataset Samples Variables Features AFV 
+
+Robinson-Cimpian (2014) 14,765 98 619 6.32 Pennycook et al. (2020) 853 188 708 3.75 Alvarez et al. (2019) 2,725 39 196 5.03 Uhalt (2020) 308 60 337 5.62 O’Grady et al. (2019) 355 72 322 4.47 Buchanan and Scofield (2018) 1,038 23 159 6.91 Moss et al. (2023) 2,277 51 332 6.51 Mastroianni and Dana (2022) 1,036 51 322 6.31 Ivanov et al. (2021) 860 67 310 4.63 
+
+> Every sample consists of a number of variables. Variables can be either questions or demographic records. Every variable consists of features in the way it was explained in Section 4.2. The Average number of Features per Variable (AFV) is also given in the last column.
+
+# 3 Data 
+
+We describe the datasets that we used for our study and give the main points of each dataset, along with how the data were collected and what attention checks were included. In Table 1, we summarize the statistics of all datasets, including the number of samples, the number of variables, the number of features, and the average number of features per variable. We used 
+
+https://datasetsearch.research.google.com/ to find publicly available survey datasets that include attention checks and use mainly structured/categorical responses (as opposed to textual or other forms of unstructured data). We identified nine datasets that differ substantially in topic, respondent population, and quality-control mechanisms to ensure that the evaluation reflects the method’s robustness across diverse contexts. This heterogeneity spans (1) respondent types (such as adolescents (Robinson-Cimpian 2014), MTurk workers (Moss et al. 2023), and nationally represen-tative adult samples (Mastroianni and Dana 2022); (2) survey topics (ranging from political attitudes to misinformation susceptibility); and (3) attention check designs (ranging from none (Robinson-Cimpian 2014) to multiple embedded checks (Pennycook et al. 2020). Beyond diversity, we applied two inclusion criteria: (a) datasets had to contain attention checks (or clear knowledge checks on when someone answers inattentively for the case of Robinson-Cimpian (2014)), and (b) they had to retain participants’ responses who failed these checks. These criteria were highly exclusive be-cause most published works release only “cleaned” datasets with inattentive respondents removed, making large-scale evaluation of inattentiveness detection challenging. 
+
+Robinson-Cimpian (2014) , Mischievous Respondents: This dataset comes from the 2012 Dane County Youth Assessment (DCYA), an anonymous web-based survey of 14,765 U.S. high school students. The study investigated “mischievous responders”, adolescents who intentionally gave extreme or implausible answers (e.g., exaggerated reports of health behaviors) that distort between-group disparity estimates across categories such as sexual orientation, gender identity, and disability. Outcomes examined included suicidal ideation, school belongingness, and substance use. Unlike other datasets in our study, this survey contained no embedded attention checks; inattentive cases were instead identified through domain knowledge and responses to unrelated questions. This makes the dataset distinctive, as it provides a large-scale setting where inattentiveness is inferred 6from patterns of extreme or inconsistent responding rather than explicit screening items. 
+
+Pennycook et al. (2020) , COVID-19 Misinformation: This study examined how attention and cognitive reflection affect the spread of COVID-19 misinformation. A total of 853 U.S. respondents evaluated 30 headlines (15 true, 15 false) presented in a social media format, with ground truth verified by fact-checking sources. The central aim was to test whether misinformation sharing occurs because people fail to consider accuracy rather than because they truly believe false claims. To measure this, the study introduced four experimental conditions that varied both the framing of the question (accuracy vs. sharing intention) and the ordering of response options. Data quality was assessed with multiple attention checks: two multiple-choice instruction items, one embedded Likert-scale item requiring selection of a specific value (“3”), and an additional self-report item asking whether participants had responded randomly. This combination of structured conditions and varied attention checks makes the dataset particularly useful for evaluating inattentiveness detection under different operational definitions. 
+
+Alvarez et al. (2019) , Inattentive: This survey collected 2,725 responses from California adults through Qualtrics’ e-Rewards panel to study how inattentiveness affects political attitude measures. The study examined whether inattentive respondents introduce noise, satisficing, or misreporting, and whether they differ demographically from attentive participants. Data quality was monitored with three trap questions: two multiple-choice items requiring a specific answer and one open-text item requiring the word “government.” Importantly, the full dataset includes both attentive and inattentive respondents, making it a strong benchmark for evaluating detection methods in a domain with coherent, multi-item political constructs. 
+
+Uhalt (2020) , Attention Checks and Response Quality: This Qualtrics survey included 308 participants and focused on self-assessment of personality traits using Likert-scale items. To evaluate response quality, the instrument embedded multiple explicit attention checks that instructed participants to select specific options (e.g., “I see myself selecting ‘Agree Strongly’ if I’m paying attention to the survey”). These checks were distributed throughout the questionnaire to monitor engagement. The dataset provides a useful test case because it combines a structured personality scale, where attentive responses should show internal consistency, with clear ground-truth labels from embedded checks. 
+
+O’Grady et al. (2019) Moral Foundations: This study collected 355 valid responses from U.S. undergraduate business students to examine how moral foundations predict prosocial behavior. Par-ticipants completed the Moral Foundations Questionnaire (MFQ), which measures individualizing foundations (care, fairness) and binding foundations (loyalty, authority, purity). Data quality was monitored with a multiple-choice instructional manipulation check (IMC) embedded in the survey to ensure that respondents read instructions carefully. The dataset offers a structured attitudinal battery with a single attention check for identifying inattentiveness. 
+
+Buchanan and Scofield (2018) , Low-Quality Data: This online Qualtrics survey collected 1,038 valid responses and examined methods for detecting low-quality data in psychological re-search. The study explored inattentive, low-effort, and automated responses (e.g., survey bots) using behavioral and statistical indicators such as response times, click counts, and distributional anomalies. Data quality was also monitored with an embedded attention check, instructing par-ticipants to “Please mark strongly agree for this question.” The dataset is distinctive in combining traditional survey responses with metadata-based quality indicators, making it useful for testing detection methods that rely solely on response patterns. 
+
+Moss et al. (2023) , Ethical Data: Study 1 surveyed 2,277 active U.S.-based MTurk workers to 7examine financial dependence on MTurk, time investment, and perceptions of fairness. The dataset is heterogeneous, covering multiple facets of workers’ experiences. Data quality was monitored with two screens: one required selecting the correct summary of a prior item, while the other directly asked participants to indicate agreement with the statement “I am not reading the questions in this survey.” This combination provides both indirect and self-report measures of inattentiveness. 
+
+Mastroianni and Dana (2022) , Attitude Change: Study 1 collected 1,036 responses from a nationally representative U.S. adult sample via Prolific to examine perceptions of long-term societal attitude change. Participants compared their estimates of historical public opinion trends to actual polling data, with particular interest in whether people systematically overestimate liberalization. Data quality was ensured with an embedded attention check requiring respondents to type the number “1” in both blanks of a survey item. This dataset provides a high-quality, representative benchmark with a single IMC for inattentiveness. 
+
+Ivanov et al. (2021) Racial Resentment: This MTurk survey collected 860 responses in April 2020 to study attitudes toward decarceration during COVID-19. The study examined how informa-tion about prison health risks, racial resentment, and empathy influenced support for release, and whether support varied by crime type, age, or health status of incarcerated individuals. Data quality was monitored with two embedded attention checks. The dataset offers a heterogeneous attitudi-nal instrument with multiple checks, useful for assessing inattentiveness in politically sensitive contexts. 
+
+# 4 Methods 
+
+Our study investigates unsupervised domain-agnostic ML approaches for detecting inattentive survey respondents. We compare three families of methods: (i) non-linear autoencoders enhanced with a targeted percentile loss, (ii) a basic linear autoencoder with zero hidden layers, and (iii) a probabilistic Bayesian Network. All methods are applied to structured categorical variables and categorized numerical variables. 
+
+## 4.1 Data Preprocessing 
+
+For our experiments, we focus exclusively on categorical variables. However, we also take into consideration the numeric variables: if they have fewer than 20 distinct values, we treat them as categorical. Otherwise, we discretize them into predefined categories based on their standardized values. First, we apply standard normalization to each numeric variable 𝑧 = (𝑥 − 𝜇 )/ 𝜎 where x represents the raw value, 𝜇 is the mean, and 𝜎 is the standard deviation of the variable. Afterwards, we categorize the values into six discrete bins, as defined in Table 2. Admittedly, many questions were open-ended and required text as a response. We focus exclusively on structured categorical and categorized numerical variables, thereby excluding open-ended responses from our analysis. We leave the analysis of surveys with open-ended responses as a fruitful direction for future research. 8Table 2. Numeric Variables Categorization 
+
+Category Standardized Value Range 
+
+Bottom-extreme 𝑧 < −1.4Low −1.4 ≤ 𝑧 < −0.7Normal −0.7 ≤ 𝑧 ≤ 0.7High 0.7 < 𝑧 ≤ 1.4Top-extreme 𝑧 > 1.4Missing Data N/A 
+
+> Categorization of numeric variables based on standardized values.
+
+## 4.2 Data Preparation 
+
+The datasets we use in this study are surveys, where each participant provides answers to a series of usually multiple-choice questions. Since the majority of survey items follow a closed-form structure, the data is inherently categorical. All our methods function with numeric data, and thus, we transform the categorical variables into a numerical representation proper for the network. Each survey question (variable) is encoded using one-hot encoding, where each possible response choice is represented as a separate binary feature. Specifically, for a question with k possible answer choices, a vector of length k is created (or k+1 if there exist users who passed the question), where only the selected response is marked as 1 (the remaining elements are set to 0). This transformation results in a feature space where the number of input dimensions is significantly larger than the number of original survey items, as each categorical variable expands into multiple binary features. Each model treats each response as a set of features, learning the underlying distribution of the entire response set. 
+
+## 4.3 Non-Linear Autoencoders 
+
+Autoencoders are a class of neural networks designed to learn compact representations of data in an unsupervised manner by encoding inputs into a lower-dimensional latent space and reconstructing them from this compressed representation. An autoencoder consists of two parts: an encoder, which learns an efficient representation of the data in a lower dimension, and a decoder, which learns how to create the initial data from this low-dimensional representation (Figure 2). 
+
+Encoder: The encoder function, denoted as 𝑓 𝜃 , maps an input response vector x ∈ R𝑑 (where 𝑑 
+
+is the number of features) to a lower-dimensional latent representation z ∈ R𝑚 (with 𝑚 ≪ 𝑑 ): 
+
+z = 𝑓 𝜃 (x) = 𝜎 (𝑊 𝑒 x + b𝑒 )
+
+where 𝑊 𝑒 ∈ R𝑚 ×𝑑 is the weight matrix, b𝑒 ∈ R𝑚 is the bias term, and 𝜎 (·) is a non-linear activation function such as ReLU or sigmoid. 
+
+Decoder: The decoder function, denoted as 𝑔 𝜙 , reconstructs the original response vector from the latent representation: ˆx = 𝑔 𝜙 (z) = 𝜎 (𝑊 𝑑 z + b𝑑 )
+
+9Figure 2: Architecture of a simple Autoencoder. The autoencoder consists of two parts: (a) the Encoder, which encodes the information into latent variables, and (b) the Decoder, which decodes the information to the initial input. Source where 𝑊 𝑑 ∈ R𝑑 ×𝑚 is the decoder weight matrix, b𝑑 ∈ R𝑑 is the bias term, and ˆ x ∈ R𝑑 is the reconstructed response vector. The number of latent variables, 𝑚 , as well as the depth of the encoder and decoder, the number of units per layer, and the choice of activation functions are all hyperparameters that can be tuned for optimal performance. To prevent overfitting and enhance generalization, L2 regularization (also known as weight decay) is applied to the weights of the network Krogh and Hertz (1991). The regularized objective function is given by: 
+
+Lreg = L( x, ˆx) + 𝜆 ∑︁ || 𝑊 || 22
+
+where 𝜆 is a regularization hyperparameter that controls the penalty on large weight values. Additionally, dropout is employed in hidden layers to randomly deactivate neurons during training Srivastava et al. (2014). During training, each unit is dropped with a probability 𝑝 drop :
+
+h(𝑙 ) drop = r ⊙ h(𝑙 ) , 𝑟 𝑖 ∼ Bernoulli (1 − 𝑝 drop )
+
+where h(𝑙 ) is the activation vector in layer 𝑙 , and ⊙ denotes element-wise multiplication with the dropout mask r. 𝑝 drop is also a hyperparameter to be tuned. 
+
+Loss Function. For categorical survey responses, the Binary Cross-Entropy (BCE) loss is used for training the autoencoders: BCE (x, ˆx) = −
+
+> 𝑑
+
+∑︁ 
+
+> 𝑖 =1
+
+h
+
+𝑥 𝑖 log ˆ 𝑥 𝑖 + ( 1 − 𝑥 𝑖 ) log (1 − ˆ𝑥 𝑖 )
+
+i
+
+.
+
+As explained earlier, our datasets consist of variables (questions), each of which expands into multiple binary features after one-hot encoding. To respect this nested structure, we modify the 10 BCE loss to compute the error per variable and normalize by the logarithm of the number of features, so that questions with many response options do not disproportionately dominate the total loss. Formally: 
+
+Lbase = 1
+
+|V | ∑︁ 𝑣 ∈V 
+
+1log |𝐹 𝑣 |∑︁ 𝑓 ∈𝐹 𝑣 
+
+BCE (𝑥 𝑓 , ˆ𝑥 𝑓 ),
+
+where V is the set of survey variables (questions) and 𝐹 𝑣 is the set of features (possible responses) for variable 𝑣 .While this base loss encourages faithful reconstruction of all input patterns, autoencoders are by design optimized to minimize the overall reconstruction error. This can be suboptimal for our goal of inattentive-user detection: we are not primarily interested in reconstructing every response equally well, but rather in modeling the consistent and majority patterns of the data, while letting incoherent patterns stand out with higher error. To this end, we introduce the Percentile Loss (PL) 
+
+(Merrill and Olson (2020)) as an extension of the base formulation. PL was originally proposed in the computer vision domain, where the goal was to model the common background rather than rare anomalies. The rationale behind PL is that it is statistically improbable for the 95th-percentile loss in a batch to correspond to an anomaly, assuming anomalies are rare. Accordingly, PL focuses learning on the lowest-error subset of a batch, thereby discouraging the model from overfitting to anomalous inputs. Let ℓ𝑗 denote the total reconstruction loss of sample 𝑗 under Lbase . For a mini-batch of 𝑁 samples, we sort these losses in ascending order: 
+
+ℓ(1) ≤ ℓ(2) ≤ · · · ≤ ℓ(𝑁 ) .
+
+Given a chosen percentile 𝑝 ∈ ( 0, 100 ], we retain only the lowest-error subset of size 𝑘 =
+
+j 𝑝  
+
+> 100
+
+· 𝑁 
+
+k
+
+,
+
+ignoring the highest-error samples. The Percentile Loss is then defined as 
+
+LPL = 1
+
+𝑘 
+
+> 𝑘
+
+∑︁ 
+
+> 𝑗 =1
+
+ℓ( 𝑗 ) .
+
+In practice, setting 𝑝 < 100 shifts the learning focus towards accurately reconstructing the bulk of the data distribution, while deliberately de-emphasizing atypical responses. This has the desired effect in our context: attentive respondents, who produce consistent patterns, shape the model’s representation, whereas inattentive respondents, who answer carelessly or randomly, yield dispro-portionately higher reconstruction errors and can thus be more easily flagged as anomalies. 
+
+Randomness Detection Protocol: As already explained, autoencoders are suitable models for capturing the internal correlations between features in the dataset and constructing a structured latent representation that preserves these dependencies. Given their ability to learn compact and meaningful representations of valid response patterns, we hypothesize that an autoencoder can effectively differentiate between attentive and inattentive respondents based on reconstruction loss. A critical methodological distinction in anomaly detection is between inductive (detecting new anomalies in future data) and transductive (detecting anomalies within the current dataset) settings. Survey auditing is typically transductive: a researcher collects a batch of 𝑁 responses and aims to clean that specific batch . Therefore, our primary evaluation trains the autoencoder on 11 the full dataset and computes reconstruction errors for the same samples. While this “train-on-test” approach would be invalid for supervised classification, it is standard in unsupervised outlier detection because the autoencoder is regularized (via the bottleneck 𝑚 ≪ 𝑑 and Percentile Loss) to capture the majority manifold . Anomalies, by definition, fail to fit this manifold even when present in the training set (Zhou and Paffenroth 2017, Eduardo et al. 2020). Therefore, we rank the reconstruction errors in descending order, identifying the respondents with the highest losses as potential inattentive participants. Our hypothesis is based on extensive prior research in anomaly and outlier detection, where autoencoders and similar deep learning architectures have been successfully employed to identify data points that deviate from expected patterns; in Computer Vision (An and Cho 2015, Zhou and Paffenroth 2017), time series (Xu et al. 2018), and tabular data (Eduardo et al. 2020). Our approach builds on the assumption that inattentive respondents lack consistent response patterns, producing randomness that the autoencoder cannot reconstruct. By contrast, minority groups with coherent but distinctive perspectives remain reconstructible because their internal con-sistency anchors them within the learned manifold. This distinction mirrors earlier dimensionality reduction techniques such as Principal Component Analysis (PCA) (Abdi and Williams 2010), where structured minority patterns are captured by weaker components, whereas purely random responses cannot be represented. Thus, the autoencoder primarily flags incoherence rather than legitimate minority viewpoints, clarifying an important boundary condition of our method. 
+
+Setup: For each dataset (survey), we separately perform a hyperparameter tuning phase before training the autoencoder. We employ Bayesian Optimization to efficiently explore the hyperpa-rameter space. This optimization is conducted using the KerasTuner package within the Keras framework. Table 3 provides an overview of the hyperparameters explored during tuning, along with their respective search ranges. The optimization process evaluates various configurations over 30 trials, using a validation split of 20% and training each candidate model for up to 300 epochs, with an Early Stopping of 10 epochs. The best-performing configuration is selected based on validation loss minimization. 
+
+## 4.4 Basic Linear Autoencoder 
+
+To establish a simple baseline, we also implement a linear autoencoder , which can be seen as the most basic form of the autoencoder paradigm. The general structure is identical to that of the non-linear autoencoder: an encoder maps the input responses into a compressed latent space, and a decoder reconstructs the original input from this representation. The crucial difference is that we remove all non-linearities and intermediate layers. In practice, this means that both the encoder and decoder are reduced to single linear transformations: 
+
+z = 𝑊 𝑒 x, ˆx = 𝑊 𝑑 z,
+
+where 𝑊 𝑒 ∈ R𝑚 ×𝑑 is the encoder matrix projecting from the input dimension 𝑑 into a latent dimension 𝑚 , and 𝑊 𝑑 ∈ R𝑑 ×𝑚 is the decoder matrix projecting back into the original space. The linear autoencoder is restricted to capturing only linear correlations in the data. This results in a model that is mathematically simpler and computationally lighter, but also less expressive than its non-linear counterpart. Despite this limitation, the linear autoencoder provides a baseline against 12 Table 3. Hyperparameter search space 
+
+Hyperparameter Values Explored 
+
+Learning Rate {0.0001, 0.001, 0.01 }
+
+Encoder Layers {1, 2, 3 }
+
+Encoder Units {64, 96, 128, 160, 192, 224, 256 }
+
+Encoder Activation {ReLU, SeLU, GeLU, Swish }
+
+Encoder Regularization {0.0, 0.001, 0.01 }
+
+Encoder Dropout {0.0, 0.1, 0.2, 0.3, 0.4, 0.5 }
+
+Encoder Batch Normalization {True }
+
+Latent Space Dimensionality {2, 3, ..., 50 }
+
+Latent Activation {ReLU, SeLU, GeLU, Swish }
+
+Decoder Layers {1, 2, 3 }
+
+Decoder Units {64, 96, 128, 160, 192, 224, 256 }
+
+Decoder Activation {ReLU, SeLU, GeLU, Swish }
+
+Decoder Regularization (L2) {0.0, 0.001, 0.01 }
+
+Decoder Dropout {0.0, 0.1, 0.2, 0.3, 0.4, 0.5 }
+
+Decoder Batch Normalization {True }
+
+> Hyperparameter search space in our tuning experiments, using Bayesian Optimization. The Units, Activation, Regularization, Dropout, and Batch Normalization explored values were the same for each layer, regardless of how many layers were chosen each time for both the encoder and decoder.
+
+which the added value of deeper, non-linear architectures can be assessed. Linear autoencoders can be viewed as similar to PCA, where some constraints, such as additional orthogonality, have been omitted. In terms of training, we retain the same reconstruction-based objective as in the non-linear case. The model is optimized using the base loss function described in the previous section, ensuring comparability with more complex autoencoder architectures. 
+
+## 4.5 Bayesian Probabilistic Network 
+
+We model the joint distribution of the categorical survey variables with a tree-structured Bayesian network learned via the Chow–Liu algorithm (Chow and Liu 1968). This family factors the joint as a product of local marginals and pairwise conditionals arranged on a tree, generating a fully-unsupervised scorer of respondent typicality. Inattentive responses, which fail to respect the dominant conditional dependencies among items, receive low likelihood under the learned model and are thus flagged as anomalies. Let X = (𝑋 1, . . . , 𝑋 𝑑 ) be discrete variables, where 𝑋 𝑗 ∈ { 1, . . . , 𝐾 𝑗 } are the categories of question 𝑗 (we treat ”No Answer” as an explicit category). A tree-structured Bayesian network 𝑇 
+
+consists of a root variable 𝑋 𝑟 and directed edges from each parent to children, forming a directed acyclic graph with 𝑑 − 1 edges. The joint factorizes as 
+
+𝑝 𝑇 (x) = 𝑝 (𝑥 𝑟 )
+
+Ö
+
+> 𝑗 ≠𝑟
+
+𝑝  𝑥 𝑗 | 𝑥 𝜋 ( 𝑗 )
+
+,
+
+where 𝜋 ( 𝑗 ) denotes the parent of node 𝑗 in the tree. 13 Given data D = {x(𝑛 ) }𝑁 𝑛 =1, the Chow–Liu algorithm finds the maximum-likelihood tree-structured approximation to the empirical distribution. It proceeds by (i) estimating the pairwise mutual information (MI) between all variable pairs and (ii) selecting the maximum-weight spanning tree under these MI weights. Concretely, for variables 𝑋 𝑖 and 𝑋 𝑗 , we form the smoothed empirical joint 
+
+b𝑝 𝑖 𝑗 (𝑎, 𝑏 ) = 𝑁 𝑖 𝑗 (𝑎, 𝑏 ) + 𝛼 𝑁 + 𝛼𝐾 𝑖 𝐾 𝑗 
+
+,
+
+b𝑝 𝑖 (𝑎 ) =∑︁ 
+
+> 𝑏
+
+b𝑝 𝑖 𝑗 (𝑎, 𝑏 ),
+
+b𝑝 𝑗 (𝑏 ) =∑︁ 
+
+> 𝑎
+
+b𝑝 𝑖 𝑗 (𝑎, 𝑏 ).
+
+with Laplace smoothing 𝛼 > 0 (we use 𝛼 =1). 𝑁 𝑖 𝑗 (𝑎, 𝑏 ) is the number of co-appearances of 
+
+𝑋 𝑖 = 𝑎, 𝑋 𝑗 = 𝑏 . The (natural-log) mutual information is 
+
+b𝐼 (𝑋 𝑖 ; 𝑋 𝑗 ) =
+
+> 𝐾 𝑖
+
+∑︁  
+
+> 𝑎 =1
+> 𝐾 𝑗
+
+∑︁ 
+
+> 𝑏 =1
+
+b𝑝 𝑖 𝑗 (𝑎, 𝑏 ) log b𝑝 𝑖 𝑗 (𝑎, 𝑏 )
+
+b𝑝 𝑖 (𝑎 ) b𝑝 𝑗 (𝑏 ) .
+
+Let 𝐺 be the complete graph on {1, . . . , 𝑑 } with edge weights b𝐼 (𝑋 𝑖 ; 𝑋 𝑗 ). Any maximum-weight spanning tree 𝐸 ★ of 𝐺 defines the undirected structure; orienting its edges from a chosen root 𝑟 
+
+yields the directed tree. In practice we pick 𝑟 as the “MI-central” node (largest sum of MI to others) and the tree is obtained with a standard maximum-spanning-tree algorithm (Prim’s algorithm). Given the directed tree, we estimate the root marginal and each conditional probability table (CPT) with Laplace smoothing. For the root: 
+
+b𝑝 (𝑥 𝑟 =𝑘 ) = 𝑁 𝑟 (𝑘 ) + 𝛼 𝑁 + 𝛼𝐾 𝑟 
+
+(𝑘 = 1, . . . , 𝐾 𝑟 ).
+
+For every child–parent pair (𝑐, 𝑝 ):
+
+b𝑝 (𝑥 𝑐 =𝑘 𝑐 | 𝑥 𝑝 =𝑘 𝑝 ) = 𝑁 𝑝𝑐 (𝑘 𝑝 , 𝑘 𝑐 ) + 𝛼 𝑁 𝑝 (𝑘 𝑝 ) + 𝛼𝐾 𝑐 
+
+,𝑘 𝑝 = 1, . . . , 𝐾 𝑝 , 𝑘 𝑐 = 1, . . . , 𝐾 𝑐 .
+
+Smoothing guards against zero counts, stabilizing both MI estimation and likelihoods in sparse, high-cardinality settings. For a respondent x, the (smoothed) log-likelihood under the learned tree is log b𝑝 𝑇 (x) = log b𝑝 (𝑥 𝑟 ) + ∑︁ 
+
+> 𝑗 ≠𝑟
+
+log b𝑝  𝑥 𝑗 | 𝑥 𝜋 ( 𝑗 )
+
+.
+
+For ranking, we follow a rank-based percentile of typicality computed from the total log-likelihoods. Let 𝑁 be the number of respondents and let 𝑟 (x) ∈ { 1, . . . , 𝑁 } be the rank of x when sorting log b𝑝 𝑇 (x) in descending order (so 𝑟 =1 is most typical, highest log-likelihood). We define pct (x) = 1 − 𝑟 (x) − 1
+
+𝑁 − 1 ∈ [0, 1],
+
+14 so that pct =1 denotes the most typical respondents and pct =0 the least typical. Inattentiveness detection uses this statistic directly by ranking respondents in ascending order of pct. In other words, this ranking criterion is the equivalent of the reconstruction loss ranking in the Autoencoders case. A Chow–Liu tree explicitly encodes dominant pairwise dependencies across items (e.g., within batteries or between logically related questions). Attentive respondents tend to respect these dependencies and thus achieve high likelihood. Inattentive respondents, by contrast, break the learned conditional structure (e.g., incoherent or random choices), driving down their likelihoods. This leverages the same “structured patterns compress, noise does not” intuition as reconstruction-based methods, but from a probabilistic perspective with interpretable local dependencies. A toy example of how this network works is provided in Appendix A. 
+
+# 5 Experimental Results 
+
+## 5.1 Metrics used for the Evaluation 
+
+5.1.1 Reconstruction Evaluation 
+
+We first assess how accurately the model reconstructs the original data. For each variable, the accuracy, i.e., the proportion of correctly reconstructed values, is computed as Accuracy (𝑣 𝑖 ) = 1
+
+𝑁 
+
+> 𝑁
+
+∑︁ 
+
+> 𝑗 =1
+
+I(𝑥 𝑗,𝑖 = ˆ𝑥 𝑗,𝑖 ),
+
+where I(·) is the indicator function, and 𝑥 𝑗,𝑖 and ˆ 𝑥 𝑗,𝑖 denote the true and reconstructed values of variable 𝑣 𝑖 for sample 𝑗 . The mean reconstruction accuracy across all |V | variables is Mean Accuracy = 1
+
+|V | 
+
+> |V |
+
+∑︁ 
+
+> 𝑖 =1
+
+Accuracy (𝑣 𝑖 ).
+
+To benchmark performance, we compare this against a majority-class baseline for each variable: Baseline Accuracy (𝑣 𝑖 ) = max 
+
+> 𝑐 ∈C 𝑖
+
+1
+
+𝑁 
+
+> 𝑁
+
+∑︁ 
+
+> 𝑗 =1
+
+I(𝑥 𝑗,𝑖 = 𝑐 ),
+
+where C𝑖 is the set of unique categorical values. The model’s improvement over the baseline is quantified by the Lift metric: Lift = 1
+
+|V | 
+
+> |V |
+
+∑︁ 
+
+> 𝑖 =1
+
+Accuracy (𝑣 𝑖 )
+
+Baseline Accuracy (𝑣 𝑖 ) ,
+
+where Lift > 1 indicates superior performance relative to majority-class prediction. To complement accuracy, we compute a One-vs-All ROC AUC metric, ORA, capturing how well the model ranks correct responses above incorrect ones. For variable 𝑣 𝑖 with categories C𝑖 ,ORA (𝑣 𝑖 ) = 1
+
+|C 𝑖 |∑︁ 𝑐 ∈C 𝑖 
+
+ROC AUC (𝑐 ),
+
+15 and the overall score is Mean ORA = 1
+
+|V | 
+
+> |V |
+
+∑︁ 
+
+> 𝑖 =1
+
+ORA (𝑣 𝑖 ).
+
+5.1.2 Randomness Detection Evaluation 
+
+We evaluate the model’s ability to detect inattentive respondents, using attention-check outcomes as ground-truth labels. Because some datasets contain multiple checks, metrics are computed separately for each. After computing a reconstruction error (or negative log-likelihood for Chow-Liu) for each respondent, we rank the respondents in descending order. This frames inattentiveness detection as an information-retrieval task: the goal is to place careless respondents at the top of the list. 
+
+Ranking Metrics: We report Recall@h , where ℎ is the true number of inattentive respondents in the dataset. This metric (also known as “Success Rate” in anomaly detection literature) measures the proportion of true anomalies captured if we set the rejection threshold exactly at the true contamination rate: Recall@h = |{ inattentive users in top-ℎ}| 
+
+ℎ .
+
+We also report Precision@k for fixed operational cutoffs ( 𝑘 ∈ { 10 , 50 , 100 }) to simulate a “human-in-the-loop” auditing scenario where a researcher checks the top 𝑘 flagged cases: Precision@k = |{ inattentive users in top-𝑘 }| 
+
+𝑘 .
+
+Note that Precision@ ℎ = Recall@ ℎ.To evaluate how well inattentive respondents appear near the top of the ranking, we compute the normalized discounted cumulative gain: DCG@h =
+
+> ℎ
+
+∑︁ 
+
+> 𝑖 =1
+
+I(inattentive at rank 𝑖 )
+
+log 2 (𝑖 + 1)
+
+NDCG@h = DCG@h IDCG@h ,
+
+where IDCG@h represents the ideal (perfect) ranking. 
+
+Discriminative Metrics: Finally, we assess global separation performance independent of spe-cific thresholds using the ROC curve, with reconstruction error as the decision threshold: TPR = TP TP + FN , FPR = FP FP + TN .
+
+Plotting TPR versus FPR across thresholds yields the ROC curve, and the area under it AUC =
+
+∫ 10
+
+TPR (FPR ) 𝑑 FPR 16 quantifies ranking performance, where higher AUC values indicate stronger separation between attentive and inattentive respondents. To ensure our AUC estimates are robust to the “train-on-test” concern raised in anomaly detection, we confirmed these values against the out-of-sample scores generated by our cross-validation check. The reported AUCs therefore reflect the model’s genuine ability to learn the structural difference between attentive and inattentive behaviors, rather than overfitting to specific respondent noise. 
+
+## 5.2 Results 
+
+5.2.1 Reconstruction Performance 
+
+Table 4 contains the results for the various methods on various models for the task of reconstruction. We include two variations of Non-Linear AE: (a) one with 𝑝 = 100, where it is trained as a standard AE, (b) a PL variation with 𝑝 = 85 that showed the most promising results. Overall, all three unsupervised models achieve strong reconstruction performance across datasets, consistently outperforming the majority-class baseline predictors. Accuracy values typically exceed 80%, and Lift scores are well above 1.3 in nearly all cases, demonstrating that these models successfully capture the regularities of survey response patterns without supervision. Among them, linear autoencoders show the most stable and competitive performance across datasets, often reaching the highest accuracy and Lift values (e.g., Uhalt 2020, Mastroianni and Dana 2022). This suggests that linear mappings can capture much of the covariance structure present in survey data. The non-linear autoencoder performs comparably, and in several cases slightly better (e.g., O’Grady et al. 2019, Alvarez et al. 2019). The Percentile-Loss variant, by design, attains marginally lower reconstruction scores than the other approaches. Because it focuses learning on the lower-error subset of samples, it trades overall reconstruction accuracy for robustness and selective sensitivity, which is an expected and desirable behavior for inattentiveness detection (though detrimental to pure reconstruction metrics). In general, these findings show that simple linear transformations are strong baselines for capturing dominant structure in categorical survey data, while non-linear and percentile-based models become advantageous when robustness or modeling subtle dependencies is required. Finally, we note that the Bayesian Networks are only leveraged for the second task of inattentive participants detection, since they could not be modified to execute the reconstruction task. 
+
+5.2.2 Randomness Detection Performance 
+
+Tables 5, 6, and 7 illustrate the results for the second task of Inattentive Respondents Detection. Across datasets, all models achieve meaningful performance in detecting inattentive respondents, confirming that unsupervised learning can reliably distinguish coherent from incoherent response patterns without supervision (there is a clear baseline of 0.5 for the AUC metric). Overall, Chow–Liu Bayesian network emerges as the most consistently strong performer, frequently obtaining the highest AUC and precision scores across diverse datasets and attention-check configurations. The Chow–Liu network excels in settings where dependencies are more localized and categorical, leveraging pairwise conditional probabilities to detect subtle violations of response consistency. These complementary results indicate that probabilistic formulations are effective in capturing typicality in survey data. The non-linear autoencoder also achieves competitive recall in some 17 Table 4. Reconstruction results across datasets and methods 
+
+Dataset & Method Accuracy Baseline Acc Lift ORA 
+
+Robinson-Cimpian (2014) Non-Linear Autoencoder ( 𝑝 = 100) 81.37 58.27 1.53 0.73 
+
+Non-Linear Autoencoder ( 𝑝 = 85) 80.83 58.27 1.52 0.70 Linear Autoencoder 83.16 58.27 1.58 0.70 Pennycook et al. (2020) Non-Linear Autoencoder ( 𝑝 = 100) 86.84 66.22 1.38 0.83 Non-Linear Autoencoder ( 𝑝 = 85) 86.86 66.22 1.38 0.83 Linear Autoencoder 89.18 66.22 1.44 0.86 
+
+Alvarez et al. (2019) Non-Linear Autoencoder ( 𝑝 = 100) 90.31 52.56 2.05 0.88 
+
+Non-Linear Autoencoder ( 𝑝 = 85) 89.69 52.56 2.02 0.86 Linear Autoencoder 90.07 52.56 2.07 0.85 Uhalt (2020) Non-Linear Autoencoder ( 𝑝 = 100) 85.94 35.66 2.49 0.89 
+
+Non-Linear Autoencoder ( 𝑝 = 85) 81.31 35.66 2.35 0.83 Linear Autoencoder 91.44 35.66 2.64 0.89 
+
+O’Grady et al. (2019) Non-Linear Autoencoder ( 𝑝 = 100) 86.89 58.78 1.70 0.89 
+
+Non-Linear Autoencoder ( 𝑝 = 85) 84.30 58.78 1.64 0.85 Linear Autoencoder 79.80 58.78 1.68 0.86 Buchanan and Scofield (2018) Non-Linear Autoencoder ( 𝑝 = 100) 94.62 50.87 2.18 0.90 
+
+Non-Linear Autoencoder ( 𝑝 = 85) 91.89 50.87 2.12 0.75 Linear Autoencoder 92.80 50.87 2.19 0.84 Moss et al. (2023) Non-Linear Autoencoder ( 𝑝 = 100) 83.46 59.78 1.51 0.76 Non-Linear Autoencoder ( 𝑝 = 85) 82.73 59.78 1.49 0.75 Linear Autoencoder 88.59 59.78 1.66 0.82 
+
+Mastroianni and Dana (2022) Non-Linear Autoencoder ( 𝑝 = 100) 77.77 61.64 1.26 0.68 Non-Linear Autoencoder ( 𝑝 = 85) 77.57 61.64 1.25 0.68 Linear Autoencoder 83.11 61.64 1.34 0.72 
+
+Ivanov et al. (2021) Non-Linear Autoencoder ( 𝑝 = 100) 76.15 45.32 1.86 0.78 Non-Linear Autoencoder ( 𝑝 = 85) 74.69 45.32 1.82 0.76 Linear Autoencoder 80.24 45.32 2.00 0.84 
+
+> Evaluation of model performance across datasets when we try to “predict” an out-of-sample attribute value. Acc refers to the mean accuracy of the model in reconstructing the original data. Baseline Acc (Baseline Accuracy) represents the accuracy if we “guess” the majority class as the value for each attribute. Lift is computed as the ratio of Accuracy to Baseline Acc, indicating the improvement of our model over a naive predictor. ORA denotes the One-Vs-All ROC AUC metric, with 0.5 as the baseline performance.
+
+18 datasets (e.g., Alvarez et al. (2019) and Ivanov et al. (2021)). The PL autoencoder consistently offers balanced results, often improving precision and AUC over the base autoencoder, especially in datasets with noisier attention-check labels or heteroge-neous content. This supports the intuition that down-weighting high-error samples during training yields a model less influenced by outliers and more sensitive to inattentiveness during evaluation. In contrast, the linear autoencoder generally underperforms, particularly in small or highly discrete datasets, highlighting the limits of purely linear mappings for inattentiveness detection even though they remain strong in reconstruction. The broad consistency across methods demonstrates that un-supervised modeling can serve as a powerful, domain-agnostic approach for identifying inattentive respondents in behavioral data. 
+
+# 6 Analysis 
+
+## 6.1 When do Unsupervised Methods work well? 
+
+All unsupervised models demonstrate meaningful ability to detect inattentive respondents, yet their performance varies across datasets and metrics. Understanding the sources of this variability is critical for assessing robustness and for guiding practical deployment in behavioral research. We therefore examine when and why these methods succeed or fail to capture inattentiveness effectively. We begin with a dataset-level analysis that tests whether detection variability relates to dataset characteristics: sample size ( Samples ), number of variables ( Variables ), total number of one-hot features ( Features ), and average features per variable ( AFV ). For the randomness-detection task, each dataset is summarized by the mean AUC across methods. For reconstruction, we use the mean Lift. We compute Pearson 𝑟 and Spearman 𝜌 correlations (two-sided tests; 𝑛 = 9 datasets) to capture linear and monotone associations, respectively. Table 8 shows that dataset size and dimensionality ( Samples , Variables , Features , AFV ) are not reliably associated with detection performance (Pearson |𝑟 | ≤ 0.54; Spearman |𝜌 | ≤ 0.48; all 𝑝> 0.18). In contrast, the mean reconstruction Lift correlates moderately with mean AUC (𝑟 ≈0.69, 𝑝 ≈0.04; 𝜌 ≈0.68), suggesting that when models better capture structured regularities, inattentiveness becomes more separable. 1
+
+At the dataset level, these findings imply that scale and sparsity are not the dominant deter-minants of detection success. Instead, surveys whose dependency structure is well captured (i.e., higher reconstruction Lift) enable clearer differentiation between attentive and inattentive respon-dents. In practice, this means that the informativeness of survey structure, and not its size, governs how well unsupervised models detect inattentiveness. How well unsupervised models distinguish attentive from inattentive respondents depends primarily on two factors: the internal structure of the survey and the quality of its attention-check labels. Datasets such as Uhalt (2020) and Alvarez et al. (2019) represent best-case scenarios; they employ well-structured, multi-item scales in which several questions measure the same latent construct, and their attention checks directly test instruction compliance. This combination provides consistent response patterns that models can easily learn. By contrast, datasets like Mastroianni and Dana (2022) and Buchanan and Scofield (2018) mix attitudinal, behavioral, and metadata-based variables, weakening cross-item regularities. Non linear models can still identify structure, but 
+
+> 1Estimates are based on the nine datasets in Table 1. Method-specific correlations appear in Appendix B.
+
+19 Table 5. Randomness Detection results across datasets and methods (Part I) 
+
+Dataset & Method h R@h P@10 P@50 P@100 NDCG@h AUC 
+
+Robinson-Cimpian (2014) Non-Linear Autoencoder ( 𝑝 = 100) 230 0.07 0.20 0.08 0.09 0.08 0.71 Non-Linear Autoencoder ( 𝑝 = 85) 230 0.10 0.20 0.12 0.09 0.09 0.74 Linear Autoencoder 230 0.03 0.00 0.04 0.03 0.03 0.51 Chow-Liu 230 0.08 0.00 0.08 0.09 0.08 0.75 
+
+Pennycook et al. (2020) Attention 1 Non-Linear Autoencoder ( 𝑝 = 100) 636 0.73 1.00 0.88 0.84 0.75 0.52 Non-Linear Autoencoder ( 𝑝 = 85) 636 0.74 1.00 0.86 0.87 0.76 0.52 Linear Autoencoder 636 0.75 0.70 0.84 0.76 0.75 0.53 
+
+Chow-Liu 636 0.75 1.00 0.94 0.91 0.77 0.53 
+
+Attention 2 Non-Linear Autoencoder ( 𝑝 = 100) 236 0.30 0.50 0.30 0.34 0.32 0.52 Non-Linear Autoencoder ( 𝑝 = 85) 236 0.31 0.60 0.44 0.37 0.35 0.53 
+
+Linear Autoencoder 236 0.31 0.20 0.36 0.33 0.31 0.53 
+
+Chow-Liu 236 0.33 0.50 0.50 0.39 0.36 0.53 
+
+Attention 3 Non-Linear Autoencoder ( 𝑝 = 100) 68 0.25 0.30 0.26 0.21 0.24 0.59 Non-Linear Autoencoder ( 𝑝 = 85) 68 0.25 0.40 0.28 0.22 0.30 0.62 Linear Autoencoder 68 0.08 0.00 0.06 0.09 0.06 0.53 Chow-Liu 68 0.31 0.30 0.32 0.26 0.33 0.67 
+
+Attention 4 Non-Linear Autoencoder ( 𝑝 = 100) 172 0.24 0.40 0.36 0.29 0.27 0.50 Non-Linear Autoencoder ( 𝑝 = 85) 172 0.26 0.70 0.40 0.36 0.32 0.51 Linear Autoencoder 172 0.20 0.40 0.24 0.20 0.21 0.50 Chow-Liu 172 0.28 0.50 0.48 0.38 0.33 0.52 
+
+Union Non-Linear Autoencoder ( 𝑝 = 100) 686 0.79 1.00 0.96 0.91 0.81 0.53 Non-Linear Autoencoder ( 𝑝 = 85) 686 0.80 1.00 0.92 0.91 0.81 0.53 Linear Autoencoder 686 0.81 0.80 0.94 0.86 0.82 0.55 
+
+Chow-Liu 686 0.80 1.00 0.98 0.95 0.82 0.53 Intersection Non-Linear Autoencoder ( 𝑝 = 100) 28 0.14 0.10 0.12 0.07 0.12 0.56 Non-Linear Autoencoder ( 𝑝 = 85) 28 0.14 0.30 0.12 0.11 0.24 0.61 Linear Autoencoder 28 0.04 0.00 0.04 0.03 0.03 0.50 Chow-Liu 28 0.18 0.20 0.12 0.13 0.23 0.64 
+
+Alvarez et al. (2019) Non-Linear Autoencoder ( 𝑝 = 100) 975 0.69 1.00 1.00 1.00 0.73 0.80 
+
+Non-Linear Autoencoder ( 𝑝 = 85) 975 0.68 1.00 1.00 0.99 0.72 0.77 Linear Autoencoder 975 0.43 0.30 0.30 0.39 0.43 0.58 Chow-Liu 975 0.69 1.00 1.00 1.00 0.74 0.80 
+
+> Evaluation of inattentiveness detection across datasets. h represents the number of inattentive users identified as ground truth. R@h denotes Recall@h. At perfect ranking, where all inattentive users have a higher error than all attentive, R@h = 1. P@k denotes Precision@k. A separate evaluation is provided for the datasets where we had more attention checks. Union means we consider a sample as inattentive only when it failed in one of the attention checks. Intersection means we consider a sample as inattentive only when it fails in all attention checks.
+
+20 Table 6. Randomness Detection results across datasets and methods (Part II) 
+
+Dataset & Method h R@h P@10 P@50 P@100 NDCG@h AUC 
+
+Uhalt (2020) Non-Linear Autoencoder ( 𝑝 = 100) 6 0.17 0.10 0.04 0.05 0.15 0.67 Non-Linear Autoencoder ( 𝑝 = 85) 6 0.33 0.30 0.10 0.05 0.34 0.82 Linear Autoencoder 6 0.00 0.00 0.02 0.03 0.00 0.60 Chow-Liu 6 0.50 0.30 0.10 0.05 0.39 0.88 
+
+O’Grady et al. (2019) Non-Linear Autoencoder ( 𝑝 = 100) 20 0.10 0.00 0.04 0.04 0.07 0.55 Non-Linear Autoencoder ( 𝑝 = 85) 20 0.20 0.10 0.08 0.06 0.15 0.55 Linear Autoencoder 20 0.05 0.10 0.08 0.10 0.05 0.63 Chow-Liu 20 0.15 0.10 0.16 0.13 0.14 0.76 
+
+Buchanan and Scofield (2018) Non-Linear Autoencoder ( 𝑝 = 100) 59 0.07 0.10 0.08 0.08 0.08 0.61 Non-Linear Autoencoder ( 𝑝 = 85) 59 0.27 0.80 0.28 0.21 0.34 0.72 
+
+Linear Autoencoder 59 0.08 0.10 0.06 0.07 0.07 0.51 Chow-Liu 59 0.22 0.10 0.20 0.19 0.19 0.65 Moss et al. (2023) Attention 1 Non-Linear Autoencoder ( 𝑝 = 100) 161 0.16 0.10 0.16 0.14 0.15 0.53 Non-Linear Autoencoder ( 𝑝 = 85) 161 0.18 0.20 0.20 0.17 0.20 0.59 
+
+Linear Autoencoder 161 0.11 0.20 0.18 0.11 0.13 0.56 Chow-Liu 161 0.12 0.20 0.22 0.13 0.16 0.58 Attention 2 Non-Linear Autoencoder ( 𝑝 = 100) 140 0.11 0.30 0.20 0.13 0.12 0.54 Non-Linear Autoencoder ( 𝑝 = 85) 140 0.21 0.30 0.24 0.22 0.24 0.60 
+
+Linear Autoencoder 140 0.06 0.20 0.08 0.06 0.08 0.54 Chow-Liu 140 0.11 0.20 0.14 0.12 0.15 0.59 Union Non-Linear Autoencoder ( 𝑝 = 100) 248 0.16 0.30 0.28 0.22 0.17 0.54 Non-Linear Autoencoder ( 𝑝 = 85) 248 0.20 0.30 0.30 0.25 0.23 0.59 
+
+Linear Autoencoder 248 0.16 0.30 0.20 0.13 0.17 0.53 Chow-Liu 248 0.21 0.30 0.28 0.20 0.23 0.57 Intersection Non-Linear Autoencoder ( 𝑝 = 100) 53 0.08 0.00 0.08 0.06 0.07 0.56 Non-Linear Autoencoder ( 𝑝 = 85) 53 0.11 0.20 0.10 0.13 0.13 0.65 
+
+Linear Autoencoder 53 0.06 0.10 0.06 0.04 0.08 0.62 Chow-Liu 53 0.08 0.10 0.08 0.05 0.13 0.61 
+
+> Evaluation of inattentiveness detection across datasets. h represents the number of inattentive users identified as ground truth. R@h denotes Recall@h. At perfect ranking, where all inattentive users have a higher error than all attentive, R@h = 1. P@k denotes Precision@k. A separate evaluation is provided for the datasets where we had more attention checks. Union means we consider a sample as inattentive only when it failed in one of the attention checks. Intersection means we consider a sample as inattentive only when it fails in all attention checks.
+
+21 Table 7. Randomness Detection results across datasets and methods (Part III) 
+
+Dataset & Method h R@h P@10 P@50 P@100 NDCG@h AUC 
+
+Mastroianni and Dana (2022) Non-Linear Autoencoder ( 𝑝 = 100) 60 0.50 1.00 0.56 0.30 0.62 0.66 Non-Linear Autoencoder ( 𝑝 = 85) 60 0.43 1.00 0.52 0.31 0.57 0.68 
+
+Linear Autoencoder 60 0.05 0.00 0.04 0.04 0.04 0.52 Chow-Liu 60 0.45 1.00 0.54 0.28 0.58 0.61 Ivanov et al. (2021) Attention 1 Non-Linear Autoencoder ( 𝑝 = 100) 165 0.32 0.70 0.42 0.37 0.37 0.64 Non-Linear Autoencoder ( 𝑝 = 85) 165 0.39 0.90 0.60 0.49 0.46 0.69 Linear Autoencoder 165 0.22 0.40 0.28 0.26 0.23 0.51 Chow-Liu 165 0.46 0.90 0.58 0.53 0.51 0.73 
+
+Attention 2 Non-Linear Autoencoder ( 𝑝 = 100) 55 0.09 0.20 0.10 0.13 0.15 0.61 Non-Linear Autoencoder ( 𝑝 = 85) 55 0.22 0.30 0.20 0.21 0.20 0.69 Linear Autoencoder 55 0.09 0.30 0.10 0.07 0.13 0.51 Chow-Liu 55 0.18 0.10 0.16 0.23 0.16 0.76 
+
+Union Non-Linear Autoencoder ( 𝑝 = 100) 173 0.35 0.70 0.46 0.41 0.40 0.65 Non-Linear Autoencoder ( 𝑝 = 85) 173 0.42 0.90 0.64 0.53 0.48 0.70 Linear Autoencoder 173 0.22 0.40 0.30 0.27 0.24 0.50 Chow-Liu 173 0.48 0.90 0.62 0.56 0.53 0.74 
+
+Intersection Non-Linear Autoencoder ( 𝑝 = 100) 47 0.06 0.20 0.06 0.09 0.13 0.59 Non-Linear Autoencoder ( 𝑝 = 85) 47 0.15 0.30 0.16 0.17 0.15 0.67 Linear Autoencoder 47 0.09 0.30 0.08 0.06 0.12 0.52 Chow-Liu 47 0.09 0.10 0.12 0.20 0.08 0.76 
+
+> Evaluation of inattentiveness detection across datasets. h represents the number of inattentive users identified as ground truth. R@h denotes Recall@h. At perfect ranking, where all inattentive users have a higher error than all attentive, R@h = 1. P@k denotes Precision@k. A separate evaluation is provided for the datasets where we had more attention checks. Union means we consider a sample as inattentive only when it failed in one of the attention checks. Intersection means we consider a sample as random only when it fails in all attention checks.
+
+22 Table 8. Correlations between dataset characteristics and performance 
+
+Mean AUC Mean Lift Predictor Pearson 𝑟 Spearman 𝜌 Pearson 𝑟 Spearman 𝜌 
+
+Samples 0.20 0.05 −0.24 −0.20 Variables −0.46 −0.16 −0.47 −0.46 Features −0.37 −0.21 −0.54 −0.48 AFV 0.11 0.06 0.10 0.15 
+
+Mean Lift 0.69 ∗ 0.68 ∗   
+
+> Pearson and Spearman correlations (two-sided) across 𝑛 =9 datasets. Mean Lift ↔Mean AUC shows a moderate positive association ( 𝑝 ≈0.04), whereas other predictors show no reliable relationship to both reconstruction and randomness performance.
+
+these patterns are less conceptually coherent, reducing separability between attentive and inattentive respondents. The studies by Pennycook et al. (2020) and Moss et al. (2023) further illustrate how strongly detection performance depends on labeling precision. Both include repeated thematic items that should, in principle, expose clear patterns among attentive respondents, yet their attention checks differ in diagnosticity. Self-reports and comprehension checks yield noisy, heterogeneous labels, whereas strict instruction-following items produce far clearer ground truth. When inattentiveness is defined loosely (e.g., failing any check), model performance appears weaker; when only the most diagnostic or “fail-all” criteria are used, separation improves markedly (e.g., “Attention 3” in Pennycook et al. (2020) achieves AUC = 0.67). Overall, these findings show that coherent survey design provides models with meaningful structure to learn, but precise labeling determines how fully that potential is realized. The challenge of defining inattentiveness, especially when attention checks are themselves imperfect, remains a limitation of our evaluation and, more broadly, of research on response quality. 
+
+## 6.2 Reconstruction–Detection Trade-off 
+
+Standard AE minimize mean reconstruction loss, learning to reproduce all inputs. For inattentive-ness detection, however, the objective is to model the typical manifold while allowing incoherent responses to remain poorly reconstructed. The PL objective achieves this by averaging the lowest-error 𝑝 % of samples in each batch: smaller 𝑝 values down-weight high-loss cases during training, leaving them anomalous at test time. This creates a trade-off: higher 𝑝 improves reconstruction performance, whereas lower 𝑝 enhances anomaly sensitivity. Across datasets, we visualize changes relative to the full-batch objective ( 𝑝 =100) in Figs. 3–4. As 𝑝 increases, ΔLift rises monotonically toward zero (better reconstruction), while ΔAUC follows an inverted-U pattern with gains at 𝑝 =80–90 and attenuation by 𝑝 =95. Paired within-dataset tests confirm this pattern: detection AUC improves most reliably at 𝑝 =85–90 ( Δ≈+ 0.04, 𝑝 ≈0.001), with smaller gains at 𝑝 =80 and none by 𝑝 =95; reconstruction performance, by contrast, steadily increases as 𝑝 →100 (mean Δ≈− 0.07 at 𝑝 =80). Overall, reconstruction improves monotonically with 𝑝 , while detection peaks broadly around 23 80 85 90 95 
+
+> Percentile threshold
+> 0.30
+> 0.25
+> 0.20
+> 0.15
+> 0.10
+> 0.05
+> 0.00
+> Lift  Lift@100
+> Lift vs 100
+
+Figure 3: Percentile Loss trade-off: ΔLift (reconstruction) vs. 𝑝 relative to 𝑝 =100. Medians are negative at 𝑝 =80 /85 /90 and approach 0 at 𝑝 =95, indicating reconstruction improves monotonically as 𝑝 → 100. 
+
+𝑝 ≈85–90. At these values, the model retains enough typical cases to learn the main manifold while keeping high-loss (incoherent) responses distinct. As 𝑝 →100, overfitting to all inputs erodes anomaly contrast; if 𝑝 is too low, the model over-focuses on trivial patterns, reducing generalization. This can be generalized as a reconstruction-randomness detection tradeoff: improving the model’s ability to reconstruct all inputs inevitably reduces its ability to detect atypical ones. 
+
+# 7 Practical Implications: The Economics of Automated Quality Control 
+
+Our findings demonstrate that unsupervised models can reliably detect inattentiveness, particularly in well-structured surveys. However, for survey platforms and researchers, the decision to adopt this framework is not driven solely by detection accuracy (AUC), but by the economic trade-offs between data quality, respondent burden, and operational cost. In this section, we formalize this decision problem and derive the conditions under which unsupervised screening dominates traditional attention checks. 
+
+## 7.1 A Cost-Benefit Model of Screening 
+
+We model the screening process as a cost-minimization problem. Let 𝑁 be the total number of respondents. Traditional quality control relies on embedded attention checks (AC), while our proposed method relies on Unsupervised Modeling (UM). The total cost function 𝐿 for each approach can be decomposed into Burden Cost (the cost imposed on respondents) and Error Cost 
+
+(the cost of retained noise or discarded valid data). 
+
+1. The Cost of Attention Checks ( 𝐿 𝐴𝐶 ). Attention checks impose a cognitive tax and increase 24 80 85 90 95 
+
+> Percentile threshold
+> 0.02
+> 0.01
+> 0.00
+> 0.01
+> 0.02
+> 0.03
+> 0.04
+> 0.05
+> AUC  AUC@100
+> AUC vs 100
+
+Figure 4: Percentile Loss trade-off: ΔAUC (randomness detection) vs. 𝑝 relative to 𝑝 =100. Gains at 𝑝 =80 /85 /90 and attenuation at 𝑝 =95 suggest a broad optimum near 𝑝 ≈ 85–90. survey duration. Let 𝑐 𝑡𝑎𝑥 be the marginal cost per respondent of including checks (monetized time, increased dropout risk, or measurement reactivity). If checks are treated as ”ground truth,” we assume their error rate is negligible, but the burden applies to all 𝑁 respondents: 
+
+𝐿 𝐴𝐶 = 𝑁 · 𝑐 𝑡𝑎𝑥 (1) 
+
+2. The Cost of Unsupervised Modeling ( 𝐿 𝑈 𝑀 ). Our label-free approach has zero respondent burden ( 𝑐 𝑡𝑎𝑥 = 0). However, because it is a probabilistic proxy, it introduces classification errors. Let 𝛼 be the prevalence of inattentive respondents. Let 𝐹 𝑁 𝑅 be the False Negative Rate (inattentive respondents missed) and 𝐹𝑃𝑅 be the False Positive Rate (attentive respondents flagged). Let 𝑐 𝑛𝑜𝑖𝑠𝑒 
+
+be the cost of including an inattentive respondent in the final dataset (reduced statistical power, potential for spurious correlations). Let 𝑐 𝑑𝑖𝑠𝑐𝑎𝑟𝑑 be the cost of falsely excluding a valid respondent (wasted recruitment fees, reduced sample size). The total cost for the unsupervised approach is: 
+
+𝐿 𝑈 𝑀 = 𝐶 𝑐𝑜𝑚 𝑝𝑢𝑡𝑒 + 𝑁 · 𝐶 𝑚𝑜𝑑𝑒𝑙 (2) 
+
+𝐶 𝑚𝑜𝑑𝑒𝑙 = 𝛼 · 𝐹 𝑁 𝑅 · 𝑐 𝑛𝑜𝑖𝑠𝑒 + ( 1 − 𝛼 ) · 𝐹𝑃𝑅 · 𝑐 𝑑𝑖𝑠𝑐𝑎𝑟𝑑 (3) where 𝐶 𝑐𝑜𝑚 𝑝𝑢𝑡𝑒 is the fixed cost of training the model, which is negligible for modern hardware (≈ 0 per respondent). 
+
+3. The Decision Rule. A platform should switch from Attention Checks to Unsupervised Modeling when 𝐿 𝑈 𝑀 < 𝐿 𝐴𝐶 . Assuming 𝐶 𝑐𝑜𝑚 𝑝𝑢𝑡𝑒 ≈ 0, the condition becomes: 
+
+𝛼 · 𝐹 𝑁 𝑅 · 𝑐 𝑛𝑜𝑖𝑠𝑒 + ( 1 − 𝛼 ) · 𝐹𝑃𝑅 · 𝑐 𝑑𝑖𝑠𝑐𝑎𝑟𝑑 < 𝑐 𝑡𝑎𝑥 (4) This inequality reveals the precise value proposition of our framework. In settings where respondent time is expensive (e.g., expert surveys where 𝑐 𝑡𝑎𝑥 is high) or where ”measurement reactivity” threatens validity, the unsupervised approach is economically superior even if it is less accurate than explicit checks , provided the error rates ( 𝐹 𝑁 𝑅, 𝐹𝑃𝑅 ) remain bounded. Conversely, in low-stakes crowdsourcing where 𝑐 𝑡𝑎𝑥 is low but data integrity ( 𝑐 𝑛𝑜𝑖𝑠𝑒 ) is paramount, a hybrid approach may be optimal. 25 7.2 Operationalizing the Threshold 
+
+A critical managerial decision is setting the sensitivity of the detector. Our analysis of the Percentile Loss (PL) hyperparameter 𝑝 (Section 6.2) provides a direct lever for this trade-off. 
+
+• Minimizing Noise ( 𝑐 𝑛𝑜𝑖𝑠𝑒 ≫ 𝑐 𝑑𝑖𝑠𝑐𝑎𝑟𝑑 ): If the cost of bad data is high (e.g., medical or policy research), practitioners should target the “robust region” we identified ( 𝑝 ∈ [ 85 , 90 ]). As shown in Figure 4, this range maximizes the separation between the typical manifold and anomalies, effectively lowering 𝐹 𝑁 𝑅 at the expense of slightly higher reconstruction error. 
+
+• Minimizing Discard ( 𝑐 𝑑𝑖𝑠𝑐𝑎𝑟𝑑 ≫ 𝑐 𝑛𝑜𝑖𝑠𝑒 ): If recruitment is difficult (e.g., rare populations), researchers should adopt a conservative exclusion strategy. Rather than applying a fixed threshold, we recommend ranking respondents by reconstruction error and inspecting the ”elbow” of the error distribution. 
+
+## 7.3 Design as Governance 
+
+Perhaps our most actionable finding for Information Systems is that detection is endogenous to design. We showed that surveys with coherent, overlapping item batteries (high AFV or Mean Lift) facilitate significantly better separation. This implies that survey design is a governance mechanism. Platforms seeking to automate quality control need not rely solely on better algorithms; they can instead enforce design guidelines—specifically, requiring valid scale construction with redundant indicators. This increases the ”signal-to-noise” ratio of the response data, effectively driving down both 𝐹 𝑁 𝑅 and 𝐹𝑃𝑅 in Equation (3) without adding explicit check items. 
+
+## 7.4 Ethical Deployment: Human-in-the-Loop 
+
+Finally, we caution against fully automated exclusion based solely on unsupervised scores. As noted in Section 4.3, autoencoders flag ”incoherence,” which can sometimes overlap with legitimate but minority perspectives. To mitigate fairness risks ( 𝑐 𝑑𝑖𝑠𝑐𝑎𝑟𝑑 ), we recommend a two-stage governance process: 1. Automated Flagging: Use the reconstruction error score to rank the top 𝑞 % of respondents as ”High Risk.” 2. Human Review: Present these high-risk profiles to a human auditor. The visualized recon-struction errors (as in Figure 1) serve as an explainable interface, highlighting exactly which 
+
+items deviated from the expected pattern. This ”Augmented Intelligence” approach balances the scalability of unsupervised learning with the nuance of human judgment, ensuring that data quality efforts do not inadvertently enforce homogeneity. 
+
+# 8 Conclusion 
+
+This paper advances a label–free, survey–agnostic framework for inattentiveness detection that combines complementary modeling views: geometric reconstruction (AE) and probabilistic de-pendency modeling (Chow–Liu). Across nine heterogeneous, real–world datasets, we show that 26 modeling cross–item regularities suffices to surface incoherent respondents without supervision, yielding a practical two–stage workflow; unsupervised modeling followed by respondent ranking via reconstruction error or (negative) likelihood. Methodologically, we adapt autoencoders to categorical survey data with variable–level loss weighting and introduce Percentile Loss, docu-menting a clear reconstruction–detection trade–off with a robust operating region at 𝑝 ∈ [ 85 , 90 ]
+
+for inattentiveness detection. Substantively, we show that instruments with coherent, overlapping item batteries produce stable covariance and dependency patterns that our models leverage to sep-arate attentive from inattentive respondents more effectively, linking psychometric design choices directly to unsupervised anomaly detection performance. Together, these results convert inatten-tiveness screening from ad hoc rules and reactive checks into a scalable, transparent diagnostic that generalize across surveys, languages, and populations. 
+
+# 9 Limitations and Future Research 
+
+Evaluation labels. Our detection performance is evaluated against attention–check outcomes that are known proxies of inattentiveness and may be noisy. While our findings are robust across multiple datasets and checks, future work should incorporate alternative ground truths (e.g. eye-tracking inattentiveness labels) to quantify sensitivity to label noise more precisely. 
+
+Text restrictions and modality coverage. We focus exclusively on structured categorical vari-ables and discretized numeric responses, intentionally excluding open–ended text fields to maintain comparability across datasets. This design choice limits generalization to instruments with sub-stantial free–text content. A natural extension is to integrate text embeddings (e.g., sentence–level representations) into our reconstruction and likelihood pipelines, enabling unified multimodal screening of mixed–type survey data. 
+
+Modeling scope. We evaluate linear/nonlinear autoencoders (with PL), and a Chow–Liu Bayesian network. Other probabilistic families (e.g., mixture–IRT with response times, factor–mixture models) and modern tabular generative models (e.g., flows, diffusion on categorical spaces) may further improve typicality scoring. 
+
+Downstream impact on scientific conclusions. Ultimately, we care whether the removal of inattentive users affects the conclusions of the study that uses the results of the survey. To analyse whether detecting inattentive users is useful, we need to replicate the results of all nine studies and examine how the results of each paper vary with different degrees of inattentiveness removal. This process would be similar to (Cimpian et al. 2018), which explores how the estimates from census data change when we remove mischievous responders. We note, though, that such an analysis, which requires replicating work from nine papers, is a very serious undertaking, and we leave this as part of future work. 27 References 
+
+Herv´ e Abdi and Lynne J Williams. Principal component analysis. Wiley interdisciplinary reviews: compu-tational statistics , 2(4):433–459, 2010. Andreas Alfons and Max Welz. Open science perspectives on machine learning for the identification of careless responding: A new hope or phantom menace? Social and Personality Psychology Compass ,18(2):e12941, 2024. R Michael Alvarez, Lonna Rae Atkeson, Ines Levin, and Yimeng Li. Paying attention to inattentive survey respondents. Political Analysis , 27(2):145–162, 2019. Jinwon An and Sungzoon Cho. Variational autoencoder based anomaly detection using reconstruction probability. Special lecture on IE , 2(1):1–18, 2015. Adam J Berinsky, Michele F Margolis, and Michael W Sances. Separating the shirkers from the workers? making sure respondents pay attention on self-administered surveys. American journal of political science , 58(3):739–753, 2014. Erin M Buchanan and John E Scofield. Methods to detect low quality data and its implication for psychological research. Behavior research methods , 50(6):2586–2596, 2018. CKCN Chow and Cong Liu. Approximating discrete probability distributions with dependence trees. IEEE transactions on Information Theory , 14(3):462–467, 1968. Joseph R Cimpian, Jennifer D Timmer, Michelle A Birkett, Rachel L Marro, Blair C Turner, and Gregory L Phillips. Bias from potentially mischievous responders on large-scale estimates of lesbian, gay, bisexual, or questioning (lgbq)–heterosexual youth health disparities. American journal of public health , 108 (S4):S258–S265, 2018. Lee Anna Clark and David Watson. Constructing validity: Basic issues in objective scale development. 
+
+Psychological Assessment , 7(3):309–319, 1995. doi: 10.1037/1040-3590.7.3.309. Lee Anna Clark and David Watson. Constructing validity: New developments in creating objective measuring instruments. Psychological assessment , 31(12):1412, 2019. Lee J Cronbach. Coefficient alpha and the internal structure of tests. psychometrika , 16(3):297–334, 1951. Paul G Curran. Methods for the detection of carelessly invalid responses in survey data. Journal of Experimental Social Psychology , 66:4–19, 2016. Alexander Philip Dawid and Allan M Skene. Maximum likelihood estimation of observer error-rates using the em algorithm. Journal of the Royal Statistical Society: Series C (Applied Statistics) , 28(1):20–28, 1979. Thomas F Donlon and Frederic E Fischer. An index of an individual’s agreement with group-determined item difficulties. Educational and Psychological Measurement , 28(1):105–113, 1968. Fritz Drasgow, Michael V Levine, and Esther A Williams. Appropriateness measurement with polychoto-mous item response models and standardized indices. British Journal of Mathematical and statistical psychology , 38(1):67–86, 1985. Simao Eduardo, Alfredo Nazabal, Christopher K. I. Williams, and Charles Sutton. Robust variational autoencoders for outlier detection and repair of mixed-type data. In Silvia Chiappa and Roberto Calandra, editors, Proceedings of the Twenty Third International Conference on Artificial Intelligence and Statistics , volume 108 of Proceedings of Machine Learning Research , pages 4056–4066. PMLR, 26–28 Aug 2020. URL https://proceedings.mlr.press/v108/eduardo20a.html .Philippe Goldammer, Hubert Annen, Peter Lucas St¨ ockli, and Klaus Jonas. Careless responding in ques-tionnaire measures: Detection, impact, and remedies. The Leadership Quarterly , 31(4):101384, 2020. 
+
+28 Adam Goodge, Bryan Hooi, See Kiong Ng, and Wee Siong Ng. Robustness of autoencoders for anomaly detection under adversarial impact. In Proceedings of the twenty-ninth international conference on international joint conferences on artificial intelligence , pages 1244–1250, 2021. Joseph K Goodman, Cynthia E Cryder, and Amar Cheema. Data collection in a flat world: The strengths and weaknesses of mechanical turk samples. Journal of Behavioral Decision Making , 26(3):213–224, 2013. Simon Hawkins, Hongxing He, Graham Williams, and Rohan Baxter. Outlier detection using replicator neural networks. In International conference on data warehousing and knowledge discovery , pages 170–180. Springer, 2002. Maxwell Hong, Jeffrey T Steedle, and Ying Cheng. Methods of detecting insufficient effort responding: Comparisons and practical recommendations. Educational and Psychological Measurement , 80(2): 312–345, 2020. Stefan Ivanov, Meghan A Novisky, and Matt Vogel. Racial resentment, empathy, and support for release during covid-19: Results from a survey experiment. Socius , 7:23780231211005222, 2021. Yujin Kim, Jennifer Dykema, John Stevenson, Penny Black, and D Paul Moberg. Straightlining: Overview of measurement, comparison of indicators, and effects in mail–web mixed-mode surveys. Social Science Computer Review , 37(2):214–233, 2019. Diederik P Kingma and Max Welling. Auto-encoding variational bayes. arXiv preprint arXiv:1312.6114 ,2013. Anders Krogh and John Hertz. A simple weight decay can improve generalization. Advances in neural information processing systems , 4, 1991. Mads Lindskou, Torben Tvedebrink, Poul Svante Eriksen, and Niels Morling. Detecting outliers in high-dimensional data with mixed variable types using conditional gaussian regression models. arXiv preprint arXiv:2103.02366 , 2021. Adam M Mastroianni and Jason Dana. Widespread misperceptions of long-term attitude change. Proceedings of the National Academy of Sciences , 119(11):e2107260119, 2022. Adam W Meade and S Bartholomew Craig. Identifying careless responses in survey data. Psychological methods , 17(3):437, 2012. Nicholas Merrill and Colin C Olson. A new autoencoder training paradigm for unsupervised hyperspec-tral anomaly detection. In IGARSS 2020-2020 IEEE International Geoscience and Remote Sensing Symposium , pages 3967–3970. IEEE, 2020. Aaron J Moss, Cheskie Rosenzweig, Jonathan Robinson, Shalom N Jaffe, and Leib Litman. Is it ethical to use mechanical turk for behavioral research? relevant data from a representative survey of mturk participants and wages. Behavior Research Methods , 55(8):4048–4067, 2023. David S Nichols, Roger L Greene, and Peter Schmolck. Criteria for assessing inconsistent patterns of item endorsement on the mmpi: Rationale, development, and empirical trials. Journal of Clinical Psychology , 45(2):239–250, 1989. Trevor O’Grady, Donald Vandegrift, Michael Wolek, and Gregory Burr. On the determinants of other-regarding behavior: Field tests of the moral foundations questionnaire. Journal of Research in Person-ality , 81:224–237, 2019. Koken Ozaki. Detecting inattentive respondents by machine learning: A generic technique that substitutes for the directed questions scale and compensates for its shortcomings. Behavior Research Methods , 56 (7):7059–7078, 2024. Eyal Peer, David Rothschild, Andrew Gordon, Zak Evernden, and Ekaterina Damer. Data quality of platforms and panels for online behavioral research. Behavior research methods , 54(4):1643–1662, 2022. 
+
+29 Gordon Pennycook, Jonathon McPhetres, Yunhao Zhang, Jackson G Lu, and David G Rand. Fighting covid-19 misinformation on social media: Experimental evidence for a scalable accuracy-nudge intervention. 
+
+Psychological science , 31(7):770–780, 2020. Joseph P Robinson-Cimpian. Inaccurate estimation of disparities due to mischievous responders: Several suggestions to assess conclusions. Educational Researcher , 43(4):171–185, 2014. Zachary Joseph Roman, Holger Brandt, and Jason Michael Miller. Automated bot detection using bayesian latent class models in online surveys. Frontiers in Psychology , 13:789223, 2022. Jeniffer Rubio, Paolo Barucca, Gerardo Gage, John Arroyo, and Ra´ ul Morales-Resendiz. Classifying payment patterns with artificial neural networks: An autoencoder approach. Latin American Journal of Central Banking , 1(1-4):100013, 2020. Ulrich Schroeders, Christoph Schmidt, and Timo Gnambs. Detecting careless responding in survey data using stochastic gradient boosting. Educational and psychological measurement , 82(1):29–56, 2022. Tom AB Snijders. Asymptotic null distribution of person fit statistics with estimated person parameter. 
+
+Psychometrika , 66(3):331–342, 2001. Nitish Srivastava, Geoffrey Hinton, Alex Krizhevsky, Ilya Sutskever, and Ruslan Salakhutdinov. Dropout: a simple way to prevent neural networks from overfitting. The journal of machine learning research , 15 (1):1929–1958, 2014. J. Uhalt. Attention checks and response quality survey data. OSF, 2020. URL https://osf.io/uz872/ .[Dataset]. Esther Ulitzsch, Steffen Nestler, Oliver L¨ udtke, and Gabriel Nagy. A screen-time-based mixture model for identifying and monitoring careless and insufficient effort responding in ecological momentary assessment data. Psychological Methods , 2024. Pascal Vincent, Hugo Larochelle, Isabelle Lajoie, Yoshua Bengio, Pierre-Antoine Manzagol, and L´ eon Bottou. Stacked denoising autoencoders: Learning useful representations in a deep network with a local denoising criterion. Journal of machine learning research , 11(12), 2010. Ray Weaver and Drazen Prelec. Creating truth-telling incentives with the bayesian truth serum. Journal of Marketing Research , 50(3):289–302, 2013. Max Welz and Andreas Alfons. When respondents don’t care anymore: Identifying the onset of careless responding. arXiv preprint arXiv:2303.07167 , 2023. Haowen Xu, Wenxiao Chen, Nengwen Zhao, Zeyan Li, Jiahao Bu, Zhihan Li, Ying Liu, Youjian Zhao, Dan Pei, Yang Feng, et al. Unsupervised anomaly detection via variational auto-encoder for seasonal kpis in web applications. In Proceedings of the 2018 world wide web conference , pages 187–196, 2018. Xiaoxin Yin, Jiawei Han, and Philip S Yu. Truth discovery with multiple conflicting information providers on the web. In Proceedings of the 13th ACM SIGKDD international conference on Knowledge discovery and data mining , pages 1048–1052, 2007. Chong Zhou and Randy C Paffenroth. Anomaly detection with robust deep autoencoders. In Proceedings of the 23rd ACM SIGKDD international conference on knowledge discovery and data mining , pages 665–674, 2017. 
+
+30 A Bayesian Networks: An Example 
+
+Suppose we have a dataset that consists of 5 variables: age, sex, grade, height, and weight. We discretize each variable into a few intuitive categories: 
+
+• age ∈ { 𝐴 1 = 12–14 , 𝐴 2 = 15–17 }
+
+• sex ∈ { 𝑀, 𝐹 }
+
+• grade ∈ { 𝐺 1 = middle , 𝐺 2 = high }
+
+• height ∈ { 𝐻 1 = short , 𝐻 2 = avg , 𝐻 3 = tall }
+
+• weight ∈ { 𝑊 1 = light , 𝑊 2 = avg , 𝑊 3 = heavy }
+
+Intuitive real-world dependencies we wish to capture: height ↔ weight (strong), age → grade 
+
+(strong; older students are likelier in high school), height ↔ age (moderate; older tend to be taller), height ↔ sex (moderate; males are slightly taller on average). We assume a tiny dataset ( 𝑁 =10) whose sufficient statistics reflect the above: Root (height): #(𝐻 1, 𝐻 2, 𝐻 3) = (2, 5, 3).
+
+Weight | height : #(𝑊 1, 𝑊 2, 𝑊 3 | 𝐻 1) = (2, 0, 0),
+
+#(𝑊 1, 𝑊 2, 𝑊 3 | 𝐻 2) = (1, 3, 1),
+
+#(𝑊 1, 𝑊 2, 𝑊 3 | 𝐻 3) = (0, 1, 2).
+
+Sex | height : #(𝑀, 𝐹 | 𝐻 1) = (0, 2),
+
+#(𝑀, 𝐹 | 𝐻 2) = (3, 2),
+
+#(𝑀, 𝐹 | 𝐻 3) = (2, 1).
+
+Age | height : #( 𝐴 1, 𝐴 2 | 𝐻 1) = (2, 0),
+
+#( 𝐴 1, 𝐴 2 | 𝐻 2) = (2, 3),
+
+#( 𝐴 1, 𝐴 2 | 𝐻 3) = (0, 3).
+
+Grade | age : #(𝐺 1, 𝐺 2 | 𝐴 1) = (4, 0),
+
+#(𝐺 1, 𝐺 2 | 𝐴 2) = (1, 5).
+
+We use Laplace smoothing 𝛼 = 1 in all estimates. Computing pairwise MI on the empirical (smoothed) joints, the largest weights arise on (height , weight ) and (age , grade ). As the maximum spanning tree must connect all variables, a natural ML tree selects height as a root (high MI centrality), and adds edges height → weight , height → sex , height → age , and finally age → grade .With 𝛼 =1 and category sizes 𝐾 𝐻 =3, 𝐾 𝑊 =3, 𝐾 𝑆 =2, 𝐾 𝐴 =2, 𝐾 𝐺 =2: 
+
+b𝑝 (𝐻 ) = #(𝐻 ) + 𝛼 𝑁 + 𝛼𝐾 𝐻 
+
+=
+
+ 313 , 613 , 413 
+
+
+
+= (𝐻 1, 𝐻 2, 𝐻 3).
+
+31 height 
+
+weight sex 
+
+age grade 
+
+strong moderate 
+
+moderate strong 
+
+Figure 5: Toy Chow–Liu tree: height as root; edges reflect strongest mutual information. Conditionals (row-normalized with Laplace): 
+
+b𝑝 (𝑊 | 𝐻 1) =   35 , 15 , 15
+
+ b𝑝 (𝑊 | 𝐻 2) =   28 , 48 , 28
+
+b𝑝 (𝑊 | 𝐻 3) =   16 , 26 , 36
+
+b𝑝 (𝑆 | 𝐻 1) =   14 , 34
+
+ b𝑝 (𝑆 | 𝐻 2) =   47 , 37
+
+b𝑝 (𝑆 | 𝐻 3) =   35 , 25
+
+b𝑝 ( 𝐴 | 𝐻 1) =   34 , 14
+
+ b𝑝 ( 𝐴 | 𝐻 2) =   37 , 47
+
+b𝑝 ( 𝐴 | 𝐻 3) =   15 , 45
+
+b𝑝 (𝐺 | 𝐴 1) =   56 , 16
+
+ b𝑝 (𝐺 | 𝐴 2) =   14 , 34
+
+
+
+How the tree would be created: 1. Compute smoothed pairwise joints b𝑝 𝑖 𝑗 and MIs b𝐼 (𝑋 𝑖 ; 𝑋 𝑗 ).2. Build the complete graph with weights b𝐼 and extract the maximum spanning tree (we use Prim’s algorithm). 3. Choose a root (we pick height , high MI centrality), orient edges away from it, and estimate smoothed parameters for the root marginal and each CPT. We can now compute full probabilities under the learned model: 
+
+b𝑝 𝑇 (𝑥 ) = b𝑝 (ℎ) b𝑝 (𝑤 | ℎ) b𝑝 (𝑠 | ℎ) b𝑝 (𝑎 | ℎ) b𝑝 (𝑔 | 𝑎 ).
+
+Let’s consider a very typical response: 
+
+𝑥 good = { 𝐻 3 = tall , 𝑊 3 = heavy , 𝑆 = 𝑀, 𝐴 2 = 15–17 , 𝐺 2 = high }.
+
+Using the tables above: 
+
+b𝑝 𝑇 (𝑥 good ) = 413 · 12 · 35 · 45 · 34 ≈ 0.055 .
+
+32 Thus log b𝑝 𝑇 (𝑥 good ) ≈ − 2.90. But a very atypical case: 
+
+𝑥 bad = { 𝐻 1 = short , 𝑊 3 = heavy , 𝑆 = 𝐹, 𝐴 1 = 12–14 , 𝐺 2 = high }.
+
+would give: 
+
+b𝑝 𝑇 (𝑥 bad ) = 313 · 15 · 34 · 34 · 16 ≈ 0.0043 ,
+
+so log b𝑝 𝑇 (𝑥 bad ) ≈ − 5.44, markedly lower than the typical case. This concretely shows how violating learned dependencies drives down likelihood. 
+
+# B Statistical Analysis 
+
+In Table 9, we report the detailed correlation results computed separately for each method. Each cell lists the Pearson correlation coefficient ( 𝑟 ) and the Spearman rank correlation ( 𝜌 ) between the performance metric (AUC or Lift) and the dataset characteristics (number of samples, variables, total features, and average number of features per variable, AFV). The last column in the AUC block additionally reports the correlation between each method’s AUC and its corresponding recon-struction Lift across datasets, indicating whether reconstruction quality aligns with inattentiveness detection ability. As shown, most correlations are small and not statistically significant. Neverthe-less, the Percentile-Loss variant exhibits a significant positive AUC–Lift association, suggesting that models trained with Percentile Loss better align reconstruction fidelity with anomaly sensi-tivity—consistent with our main trade-off discussion in Section 6.2. Chow–Liu, as a probabilistic model, has no reconstruction component and thus is excluded from the Lift analysis. In Fig. 6, we illustrate the average AUC performance across different methods for each dataset. Taken together, the correlations and scatter plots reinforce our main conclusion: (1) dataset size, dimensionality, and feature granularity have negligible impact on inattentiveness detection perfor-mance, and (2) datasets where reconstruction models achieve larger relative improvements (higher Lift) tend to yield stronger separability of inattentive respondents. These findings support the view that underlying survey structure, not sample count or feature density, is the primary determinant of unsupervised detection success. 
+
+Table 9. Method-specific correlations with dataset characteristics                                                                    
+
+> AUC Lift Method Samples Variables Features AFV Lift (AUC ↔Lift) Samples Variables Features AFV
+> Non-Linear AE ( 𝑝 =100) 0.38; 0 .38 −0.39; −0.27 −0.28; −0.23 0.18; 0 .20 0.36; 0 .40 −0.24; −0.17 −0.47; −0.39 −0.54; −0.45 0.10; 0 .13 Non-Linear AE ( 𝑝 =80) 0.25; 0 .25 −0.53; −0.41 −0.39; −0.25 0.42; 0 .38 0.69 ∗;0.72 ∗−0.23; −0.17 −0.47; −0.39 −0.55; −0.45 0.10; 0 .13 Linear AE −0.34; −0.48 0.04; 0 .10 −0.11; 0 .22 −0.45; −0.44 0.27; 0 .18 −0.26; −0.20 −0.46; −0.46 −0.52; −0.49 0.11; 0 .15 Chow–Liu Tree 0.13; −0.13 −0.38; −0.11 −0.32; −0.22 −0.06; −0.10 —(no reconstruction metric)
+
+Each cell shows Pearson 𝑟 ; Spearman 𝜌 computed across 𝑛 =9 datasets (two-sided tests). Asterisks mark statistical significance at 𝑝 < . 05. Chow–Liu provides detection AUC but no reconstruction Lift. 
+
+# C Trade-Off Plots 
+
+This appendix complements Sec. 6.2 by visualizing how the Percentile Loss threshold 𝑝 trades off reconstruction fidelity and inattentiveness detection. Each figure plots the change in a met-ric relative to the full-batch objective ( 𝑝 =100), i.e., Δ𝑀 ( 𝑝 ) ≡ 𝑀 ( 𝑝 ) − 𝑀 (100 ), pooled across 33 datasets/conditions. Consistent with the main text, reconstruction metrics (Accuracy, Lift, ORA) improve monotonically as 𝑝 → 100, while detection metrics (AUC, NDCG@h, P@10/50/100, R@h) are maximized around 𝑝 ∈ [ 85 , 90 ] and taper off near 𝑝 =95–100. Figure 7a shows ΔAccuracy vs. 𝑝 ; medians are negative at 𝑝 =80 /85 /90 and approach 0 by 𝑝 =95. Figure 3 shows ΔLift with the same monotone pattern toward 𝑝 =100. Figure 7c displays ΔORA, again trending upward as 𝑝 increases. Together, these confirm that PL sacrifices reconstruction at lower 𝑝 and recovers it when 𝑝 approaches 100. See also Sec. 6.2 for paired tests that quantify these shifts. Figure 4 visualizes ΔAUC. Gains are largest at 𝑝 =85 (and robust at 𝑝 =90), shrink at 𝑝 =95, and vanish or reverse at 𝑝 =100. Figures 7e–7i show similar patterns for NDCG@h, P@10/50/100, and R@h: detection is typically strongest for 𝑝 ∈ [ 85 , 90 ], consistent with the sign-tests reported in the main text. 34 Figure 6: Scatter plots of mean AUC versus dataset characteristics. Each point corresponds to one dataset. The solid line indicates the least-squares regression fit. From top to bottom and left to right: AUC vs. Samples, Variables, Features, AFV, and Mean Lift. No strong monotonic trend is evident, confirming that detection performance is largely independent of dataset scale or sparsity, and more strongly driven by latent structural coherence. 35 80 85 90 95 
+
+Percentile threshold 
+
+10 
+
+8
+
+6
+
+4
+
+2
+
+0
+
+> Accuracy  Accuracy@100
+
+Accuracy vs 100 (a) ΔAccuracy 80 85 90 95 
+
+Percentile threshold 
+
+0.30 
+
+0.25 
+
+0.20 
+
+0.15 
+
+0.10 
+
+0.05 
+
+0.00 
+
+> Lift  Lift@100
+
+Lift vs 100 (b) ΔLift 80 85 90 95 
+
+Percentile threshold 
+
+0.150 
+
+0.125 
+
+0.100 
+
+0.075 
+
+0.050 
+
+0.025 
+
+0.000 
+
+0.025 
+
+> ORA  ORA@100
+
+ORA vs 100 (c) ΔORA 80 85 90 95 
+
+Percentile threshold 
+
+0.02 
+
+0.01 
+
+0.00 
+
+0.01 
+
+0.02 
+
+0.03 
+
+0.04 
+
+0.05 
+
+> AUC  AUC@100
+
+AUC vs 100 
+
+(d) ΔAUC 80 85 90 95 
+
+Percentile threshold 
+
+0.00 
+
+0.02 
+
+0.04 
+
+0.06 
+
+0.08 
+
+0.10 
+
+0.12 
+
+> NDCG@h  NDCG@h@100
+
+NDCG@h vs 100 (e) ΔNDCG@h 80 85 90 95 
+
+Percentile threshold 
+
+0.10 
+
+0.05 
+
+0.00 
+
+0.05 
+
+0.10 
+
+0.15 
+
+0.20 
+
+0.25 
+
+0.30 
+
+> P@10  P@10@100
+
+P@10 vs 100 (f) ΔP@10 80 85 90 95 
+
+Percentile threshold 
+
+0.05 
+
+0.00 
+
+0.05 
+
+0.10 
+
+0.15 
+
+> P@50  P@50@100
+
+P@50 vs 100 
+
+(g) ΔP@50 80 85 90 95 
+
+Percentile threshold 
+
+0.04 
+
+0.02 
+
+0.00 
+
+0.02 
+
+0.04 
+
+0.06 
+
+> P@100  P@100@100
+
+P@100 vs 100 (h) ΔP@100 80 85 90 95 
+
+Percentile threshold 
+
+0.04 
+
+0.03 
+
+0.02 
+
+0.01 
+
+0.00 
+
+0.01 
+
+0.02 
+
+0.03 
+
+> R@h  R@h@100
+
+R@h vs 100 (i) ΔR@h 
+
+Figure 7: Reconstruction and Detection trade-offs relative to 𝑝 =100. (a) Medians are negative at 𝑝 =80 /85 /90 and approach 0 at 𝑝 =95. (b) Reconstruction improves as 𝑝 increases. (c) Higher 𝑝 yields better ranking calibration for reconstruction. (d) Broad optimum around 𝑝 ≈85–90. (e) Ranking gains mirror AUC, peaking at 𝑝 =85–90. (f) Precision at short lists benefits most from 𝑝 =85–90. (g) Improvements persist but are smaller than at P@10. (h) Gains are modest, consistent with the broader cut. (i) Recall improvements peak around 
+
+𝑝 =85–90. 
+
+36

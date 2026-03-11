@@ -1,0 +1,2906 @@
+Title: Doubly Robust Estimation of Treatment Effects in Staggered Difference-in-Differences with Time-Varying Covariates
+
+URL Source: https://arxiv.org/pdf/2603.04080v1
+
+Published Time: Thu, 05 Mar 2026 02:05:26 GMT
+
+Number of Pages: 47
+
+Markdown Content:
+# Doubly Robust Estimation of Treatment Effects in Staggered Difference-in-Differences with Time-Varying Covariates 
+
+Yuhao Deng 1 and Le Kang 2,3,∗
+
+1 Fred Hutchinson Cancer Center, 1100 Fairview Ave N, Seattle, Washington 98109, USA 2 Nanjing University, 163 Xianlin Ave, Qixia District, Nanjing, Jiangsu 210093, China 3 Peking University, 5 Yiheyuan Rd, Haidian District, Beijing, Beijing 100871, China 
+
+Abstract 
+
+The difference-in-differences (DiD) design is a quasi-experimental method for es-timating treatment effects. In staggered DiD with multiple treatment groups and periods, estimation based on the two-way fixed effects model yields negative weights when averaging heterogeneous group-period treatment effects into an overall effect. To address this issue, we first define group-period average treatment effects on the treated (ATT), and then define groupwise, periodwise, dynamic, and overall ATTs nonpara-metrically, so that the estimands are model-free. We propose doubly robust estimators for these types of ATTs in the form of augmented inverse variance weighting (AIVW). The proposed framework allows time-varying covariates that partially explain the time trends in outcomes. Even if part of the working models is misspecified, the proposed estimators still consistently estimate the parameter of interest. The asymptotic vari-ance can be explicitly computed from influence functions. Under a homoskedastic working model, the AIVW estimator is simplified to an augmented inverse probability 
+
+1
+
+> arXiv:2603.04080v1 [stat.ME] 4 Mar 2026 weighting (AIPW) estimator. We demonstrate the desirable properties of the proposed estimators through simulation and an application that compares the effects of a par-allel admission mechanism with immediate admission on the China National College Entrance Examination.
+> Keywords : Inverse probability weighting, Inverse variance weighting, Parallel trend, Event study, College admission.
+
+# 1 Introduction 
+
+Difference-in-differences (DiD) is a fundamental econometric technique that estimates the causal effect by comparing changes in outcomes over time between treated and control groups. The classical two-group and two-period setup has been extensively studied in the past decades (Dimick and Ryan, 2014; Roth et al., 2023; Wang et al., 2024). By assuming parallel trends for the counterfactual outcomes under control, the mean potential outcomes are imputed for treated units. The average treatment effect on the treated (ATT) is then identified by re-stricting the target population to the treated group. Regression and weighting methods can be used to estimate the ATT. To increase model flexibility, researchers proposed semipara-metric models (Abadie, 2005; Athey and Imbens, 2006; Wooldridge, 2010). Doubly robust and locally efficient estimators are also proposed based on the semiparametric theory, which provide protection for estimation consistency against model misspecification (Sant’Anna and Zhao, 2020; Deng et al., 2025). In studies with multiple periods, treatment can be initiated in different periods, referred to as a staggered design (Athey and Imbens, 2006; Goodman-Bacon, 2021; Athey and Im-bens, 2022). The two-way fixed effects (TWFE) model provides the most straightforward estimator and is therefore most commonly used in empirical studies (De Chaisemartin and d’Haultfoeuille, 2020; Imai and Kim, 2021). The coefficient associated with the treatment indicator is interpreted as the average treatment effect under the correct model specifica-tion. When the treatment effect is heterogeneous across groups and periods, the coefficient 2estimated from the TWFE model is a weighted average of group-period treatment effects, possibly involving negative weights (Goodman-Bacon, 2021). As a result, the interpretation of ATT has sparked extensive discussion. To relax model restrictions, various estimators have been proposed in staggered difference-in-differences, including event studies (Sun and Abraham, 2021; De Chaisemartin and d’Haultfoeuille, 2023; Roth and Sant’Anna, 2023; Borusyak et al., 2024). The consistency of estimators relies on correct model specification. De Chaisemartin and d’Haultfoeuille (2020) also observed that modeling the change in out-comes between adjacent periods may improve robustness. However, model-based methods conflate science and tools. In fact, the treatment effect is a quantity defined by counterfac-tuals, while models are merely tools for learning science (Holland, 1986). To avoid model-dependent estimands, a principled approach is to define the treatment effect at the group-period level. The group-period treatment effects can then be aggregated in various ways, yielding groupwise, periodwise, dynamic, and overall average treatment effects (Callaway and Sant’Anna, 2021; Athey and Imbens, 2022). These aggregated effects evaluate the treatment effect from multiple dimensions. These aggregated effects are linear combinations of group-period treatment effects. Therefore, accurately estimating group-period treatment effects is a central objective in such analyses. However, existing ATT estimators either lack efficiency or cannot incorporate time-varying covariates. In staggered adoption settings, all groups that have not yet been treated can serve as control groups to identify parallel trends. Since the proportions of these not-yet-treated groups vary over time, the information available for assessing parallel trends is time-dependent, leading to heterogeneity in estimation precision across periods. Existing doubly robust methods use a “generalized propensity score” to weight the time-invariant control group relative to the treated group, thereby incurring information loss about the time-varying not-yet-treated groups (Callaway and Sant’Anna, 2021). Although efficient es-timators have been found in staggered designs, they cannot incorporate time-varying covari-ates (Chen et al., 2025). Time-varying covariates partially explain the increase in outcomes 3in each period; therefore, the parallel trends of potential outcomes under control should be conditional on these time-varying covariates. However, time-varying covariates may depend on the observed outcome history, so their distributions differ across groups and time periods. Since ATT is defined on treated group-period cells, the distributional shift in time-varying covariates should be accounted for in identification and estimation. Current attempts to account for time-varying covariates mainly focus on two-way fixed effect models, which may suffer from bad control groups (Caetano et al., 2022; Caetano and Callaway, 2024). Double robustness can be achieved via augmented inverse probability weighting (AIPW), but, as with Callaway and Sant’Anna (2021), these estimators lose information about time-varying, not-yet-treated groups. Motivated by the inverse variance weighting (IVW) technique commonly used in meta-analysis (Lee et al., 2016), we propose an augmented inverse variance weighting (AIVW) estimator for treatment effects. Our estimator accommodates time-varying covariates and efficiently pools information across groups, offering increased efficiency over existing meth-ods and benefiting from double robustness. In the homoskedastic case, the AIVW estimator reduces to an augmented inverse probability weighting (AIPW) estimator, which is more statistically efficient than the doubly robust estimator proposed by Callaway and Sant’Anna (2021). This AIPW estimator for the overall ATT can be readily computed as a weighted av-erage of the residuals from the outcome regression model for treated units. The finite-sample efficiency of our estimator over existing methods is demonstrated through Monte Carlo sim-ulations. As an empirical application, we investigate the impact of the parallel admission mechanism relative to immediate admission in the China National College Entrance Exam-ination (NCEE). In our dataset, different provinces transitioned from immediate admission to parallel admission at different times, resulting in a staggered adoption design. For the outcome of interest, we use justified envy as a measure of fairness. The proposed estimator detects a significant improvement in fairness among students following the adoption of the parallel admission mechanism. 4The remainder of this article is organized as follows. In Section 2, we define the group-period ATTs within the potential outcomes framework and aggregate these cell ATTs into summary ATTs. Next, we present assumptions for identifying the treatment effects. In Section 3, we propose doubly-robust estimators in the forms of augmented inverse variance weighting and augmented inverse probability weighting, accompanied by inference methods. We also illustrate how to implement the proposed estimators using standard working models. In Section 4, we conduct simulation studies to compare the proposed estimators with existing methods and find that they can be more robust and efficient. In Section 5, we study the effect of parallel admission reform on admission fairness in the National College Entrance Examinations of China. Finally, we discuss possible extensions in Section 6. 
+
+# 2 Causal difference-in-differences 
+
+2.1 Average treatment effects on the treated 
+
+In the setting of staggered difference-in-differences, suppose that there are T + 1 periods. In the pre-treatment period ( t = 0), none of the units is treated. A unit may initiate treatment in any period t ∈ { 1, . . . , T } after the pre-treatment period or never receive treatment throughout the experiment. Let Dt be the treatment received in period t. We denote G = g
+
+if the unit initiates treatment in period g, i.e., D0 = · · · = Dg−1 = 0 and Dg = 1. Once the unit is exposed to treatment, we assume it will remain treated. If a unit never receives treatment, we denote either G = T + 1 or G = ∞. Therefore, we can write Dt = I(G ≥ t). Both the group assignment G and the vector ¯D = ( D0, . . . , D T ) can describe the entire treatment path. For each individual, let Yt(g) be the potential outcome in period t if it were to initiate treatment in period g. We denote the potential outcome of never being treated as 
+
+Yt(∞). The individual treatment effect in period t if the individual were assigned to group 
+
+g is Yt(g) − Yt(∞). As a fundamental problem of causal inference, we cannot observe Yt(g) and Yt(∞) simul-5taneously for any g ≤ T on a single individual. We aim to utilize available information across the entire population to identify the average treatment effect in a specific subpopulation. A common approach to identifying the treatment effect is to envision a counterfactual outcome under control for the treated units. Although the units can exhibit different responses to the exposure, it is natural to assume that there is a common trend in the outcomes if left untreated. In this way, the target estimand is the average treatment effect on the treated (ATT). We define the ATT in group g and period t as 
+
+τg,t = E{Yt(g) − Yt(∞) | G = g}.
+
+Note that group-period ATTs are only defined in a triangular array. To aggregate the group-period ATT, we define the ATT in group g as 
+
+τ grp  
+
+> g
+
+= 1
+
+T − g + 1 
+
+> T
+
+X
+
+> t=g
+
+τg,t ,
+
+the ATT in period t as 
+
+τ prd  
+
+> t
+
+= 1
+
+Ptg=1 P (G = g)
+
+> t
+
+X
+
+> g=1
+
+P (G = g)τg,t ,
+
+the dynamic ATT of duration s as 
+
+τ dyn  
+
+> s
+
+= 1
+
+PT −s+1  
+
+> g=1
+
+P (G = g) 
+
+> T−s+1
+
+X
+
+> g=1
+
+P (G = g)τg,g +s−1,
+
+and the overall ATT as 
+
+τ = 1
+
+PTg=1 (T − g + 1) P (G = g)
+
+> T
+
+X
+
+> g=1
+> T
+
+X
+
+> t=g
+
+P (G = g)τg,t .
+
+Figure 1 illustrates how these ATTs are aggregated and weighted by the proportion of 6G = 1                                                
+
+> G= 2
+> t= 0 t= 1 t= 2 t= 3
+> G= 3
+> G=Ѽ
+> G= 1
+> G= 2
+> t= 0 t= 1 t= 2 t= 3
+> G= 3
+> G=Ѽ
+> G= 1
+> G= 2
+> t= 0 t= 1 t= 2 t= 3
+> G= 3
+> G=Ѽ
+> G= 1
+> G= 2
+> t= 0 t= 1 t= 2 t= 3
+> G= 3
+> G=Ѽ
+
+Groupwise ATT Periodwise ATT Dynamic ATT Overall ATT Figure 1: Groupwise ATT, periodwise ATT, dynamic ATT, and overall ATT aggregated from group-cell ATTs. individuals in each group-period cell of the target population. Suppose there are four periods (t = 0 , . . . , 3) and four groups ( G = 1 , . . . , 4). The target population in the groupwise ATT 
+
+τ grp 2 is {G = 2 }, the target population in the periodwise ATT τ prd 2 is {G ≤ 2}, and the target population in the dynamic ATT τ dyn 1 is {G ≤ 3}. From a super-population perspective, the treated group on which the overall ATT is defined consists of all unit-period pairs under treatment, {Dt = 1 : t = 1 , . . . , T }.Let Xt be the time-varying covariates in period t, which may include baseline covariates. The observed data in the sample {Oi = ( Gi, X 0i, Y 0i, . . . , X T i , Y T i ) : i = 1 , . . . , n } consist of n
+
+independent and identically distributed units with observation O = ( G, X 0, Y 0, . . . , X T , Y T ). 
+
+2.2 Identification 
+
+We define the increase in potential outcomes in period t as ∆ Yt(g) = Yt(g) − Yt−1(g). We as-sume conditional no anticipation, saying that the conditional mean of the potential outcome under control does not depend on the time of future treatment imitation. 
+
+Assumption 1 (No anticipation) . Yt(g) = Yt(∞) for t < g .
+
+7No anticipation is similar to the stable unit treatment value assumption (STUVA) in causal inference, which states that there is only one version of control. In a staggered design, no anticipation means that the increase in potential outcomes under control does not depend on when treatment will be received in the future. Due to unmeasured confounding between the treatment assignment and potential out-comes, the distribution of Yt(g) may differ across groups G, even conditional on observed covariates. We assume parallel trends for the potential outcomes under control. 
+
+Assumption 2 (Parallel trends) . E{∆Yt(∞) | Xt, G = g} = E{∆Yt(∞) | Xt, G = ∞} for any g ∈ { 1, . . . , ∞} .
+
+The parallel trends assumption is implied by sequential randomization, in which the potential outcome Yt(g) is independent of the treatment assignments G conditional on baseline covariates. If Xt ≡ X is time-invariant, then the parallel trends imply that 
+
+E{Yt(∞) − Ys(∞) | X, G } does not depend on G, for any s, t ∈ { 0, . . . , T }. Compared with the parallel trends assumption in the literature, our assumption allows time-varying covariates. The time-varying covariates Xt in period t can either include only measurements of covariates in period t or aggregate historical information from the baseline to period t.They may partially explain the time trends in outcomes beyond an earlier period; therefore, parallel trends are applied to adjacent periods. For example, suppose that Z is a base-line covariate and Zt is a time-varying covariate (Caetano and Callaway, 2024). Consider a structural causal model 
+
+Yt(∞) = ft(Z, Z t) + U + εt,
+
+where U is a time-invariant unmeasured confounder and εt is a completely exogenous random error. Then the change in potential outcomes under control ∆Yt(∞) = ft(Z, Z t) − ft−1(Z, Z t−1) + εt − εt−1
+
+does not depend on the unmeasured confounder U . This implies that E{∆Yt(∞) | Z, Z t, Z t−1, G }
+
+8does not depend on G. The set of time-invariant and time-varying covariates Xt = ( Z, Z t, Z t−1)adjusts the parallel time trends. 
+
+Assumption 3 (Positivity) . There exists a positive constant η > 0 such that P (G = g |
+
+Xt) > η for every g ∈ { 1, . . . , T, ∞} with probability 1. 
+
+Assumption 4 (Consistency) . Yt = Yt(G).
+
+Positivity states that there is a positive probability that each unit is assigned to each group. The support for time-varying covariates is identical across groups, so the information on time trends can be borrowed from untreated groups to treated groups, conditional on Xt.Consistency says that we can observe the potential outcome Yt(g) if the unit is in group g.The no anticipation and parallel trends assumptions provide an opportunity to impute the mean potential outcome under control for the units receiving treatment. If Xt ≡ X is time-invariant, it is well known that the group-period ATT is identifiable under the assumptions above, 
+
+τg,t = E(Yt − Y0 | G = g) − E{E(Yt − Y0 | X, G = ∞) | G = g}.
+
+The first term is the mean of the observed increase in outcomes in group g, reflecting the joint effect of exposure and time trends. The second term captures the pure effect of time trends, identified from the control group after covariate adjustment. Note that the inner expectation gives the time trends conditional on covariates, and the outer expectation is the average time trends for units in group g. Since the group-period cells before exposure share the same parallel trends, τg,t is also identical to 
+
+τg,t = E(Yt − Yg−1 | G = g) − E{E(Yt − Yg−1 | X, G = ∞) | G = g}.
+
+In the presence of time-varying covariates, to identify the time trends in group g with a profile of time-varying covariates ( X0, . . . , X t), the distribution of time-varying covariates should be shifted from control groups to group g for each period. We present the identifiability in the following theorem. 9Theorem 1. Under Assumptions 1–4, the group-period ATT is identifiable for evert 1 ≤
+
+g ≤ t ≤ T ,
+
+τg,t = E(Yt − Yg−1 | G = g) −
+
+> t
+
+X
+
+> k=g
+
+E{E(Yk − Yk−1 | Xk, G = ∞) | G = g}. (1) The proof is given in Supplementary Material A. 
+
+# 3 Estimation 
+
+3.1 Regression and weighted estimators 
+
+Let P denote the measure of the true data generating process P(h) = R h(o)f (o)do , where 
+
+f (o) is the density function of the observed data o. Let Pn denote the empirical measure in the sample Pn(h) = n−1 Pni=1 h(Oi). Let πg(Xt) = P (G = g | Xt) be the propensity score as a function of time-varying covariates. Let μg,t (Xt) = E(Yt | Xt, G = g) be the mean outcome in group g and period t with covariates Xt. Let δg,t (Xt) = E(∆ Yt | Xt, G = g) be the mean increase in ∆ Yt = Yt − Yt−1 outcomes between adjacent periods. It is standard to use parametric or semiparametric models to fit the unknown models. For instance, we may estimate the propensity score using a proportional odds or ordinal probit model and estimate mean outcomes using linear regression. Suppose that the propen-sity score πg(Xt), mean outcome μg,t (Xt), mean change in outcomes δg,t (Xt) by bπg(Xt), 
+
+bμg,t (Xt), and bδg,t (Xt), respectively. Motivated by the identification formula, a regression-based (imputation-based) estimator is 
+
+eτ reg  
+
+> g,t
+
+= 1
+
+Pn{I(G = g)}Pn
+
+
+
+I(G = g)
+
+> t
+
+X
+
+> k=g
+
+bδG,k (Xk) − bδ∞,k (Xk)
+
+
+
+,
+
+Under the parallel trends assumption, the counterfactual change in mean outcomes under control δ∞,k (Xk) is identical across groups. Obviously, using the never-treated group G = ∞
+
+10 to estimate δ∞,k (Xk) is inefficient because it does not fully exploit the information to assess parallel trends. Therefore, we can use all not-yet-treated data to estimate δ∞,k (Xk). Note that E{δG,k (Xk) | Xk, G = g} = E{δ∞,k (Xk) | Xk, G = g} for k < g , so the regression-based estimator can also be written as 
+
+eτ reg  
+
+> g,t
+
+= 1
+
+Pn{I(G = g)}Pn
+
+
+
+I(G = g)
+
+> t
+
+X
+
+> k=s+1
+
+bδG,k (Xk) − bδ∞,k (Xk)
+
+
+
+,
+
+where s is an arbitrary period 0 ≤ s < g .In addition to regression-based estimators, we can also construct weighted estimators by appropriately accounting for the covariates’ shift from control groups to treated groups, 
+
+bτ wt,nt  
+
+> g,t
+
+= 1
+
+Pn{I(G = g)}Pn
+
+
+
+I(G = g)( Yt − Ys) −
+
+> t
+
+X
+
+> k=s+1
+
+πg(Xk)
+
+π∞(Xk)I(G = ∞)∆ Yk
+
+
+
+,
+
+where s is an arbitrary period 0 ≤ s < g . Still, using the never-treated group as the reference is inefficient. In earlier periods, more groups had not yet been treated, so information from these groups can be used to identify parallel trends. The not-yet-treated groups G > k in each period k can be considered as a whole. By using not-yet-treated groups instead of the never-treated group, another weighted estimator is given by 
+
+bτ wt,ny  
+
+> g,t
+
+= 1
+
+Pn{I(G = g)}Pn
+
+
+
+I(G = g)( Yt − Ys) −
+
+> t
+
+X
+
+> k=s+1
+
+πg(Xk)
+
+P 
+
+> l>k
+
+πl(Xk)I(G > k )∆ Yk
+
+
+
+.
+
+3.2 Proposed semiparametric estimator 
+
+Despite using all available untreated groups to identify parallel trends, the regression and weighted estimators mentioned above remain inefficient. This is because the parallel trends assumption only imposes a first-order moment condition on the mean outcomes. Suppose one of the not-yet-treated groups has a smaller variance in outcomes. In that case, it is more accurate to identify parallel trends using this group compared to other groups with larger 11 variances. In meta-analysis, inverse variance weighting (IVW) was proposed to combine summary statistics from multiple sources, as it yields an efficient estimator when the source-specific estimators are obtained via maximum likelihood estimation, due to the additivity of information matrices. Another issue with the regression and weighted estimators is how to make inferences. Since the estimators involve fitted models, the uncertainty in fitted models may induce additional variation in the resulting estimators, which is hard to quantify. Let σ2
+
+> g,t
+
+(Xt) = var(∆ Yt | Xt, G = g) be the variance of the increased outcomes in group 
+
+g and period t conditional on time-varying covariates. Inspired by IVW, we define weights 
+
+Wl,k (Xk) = 
+
+"X
+
+> s>k
+
+πs(Xk)
+
+σ2
+
+> s,k
+
+(Xk)
+
+#−1
+
+πl(Xk)
+
+σ2
+
+> l,k
+
+(Xk).
+
+Let cWl,k (Xk) be an estimate of Wl,k (Xk) by plugging in the estimated π·(Xk) and σ2
+
+> ·,k
+
+(Xk). We propose an augmented inverse variance weighting (AIVW) estimator of τg,t as 
+
+bτg,t = 1
+
+Pn{I(G = g)}Pn
+
+
+
+I(G = g)
+
+> t
+
+X
+
+> k=g
+
+∆Yk − bδ∞,k (Xk)
+
+−
+
+> t
+
+X
+
+> k=g
+
+I(G > k ) bπg(Xk)
+
+bπG(Xk) cWG,k (Xk)∆Yk − bδ∞,k (Xk)
+
+
+
+.
+
+(2) By aggregating bτg,t according to groups, periods, or durations of treatment, we estimate the aggregated ATTs as 
+
+bτ grp  
+
+> g
+
+= 1
+
+T − g + 1 
+
+> T
+
+X
+
+> t=g
+
+bτg,t ,
+
+bτ prd  
+
+> t
+
+= 1
+
+Pn{I(G ≤ t)}
+
+> t
+
+X
+
+> g=1
+
+Pn{I(G = g)}bτg,t ,
+
+bτ dyn  
+
+> s
+
+= 1
+
+PT −s+1  
+
+> g=1
+
+Pn{I(G = g)} 
+
+> T−s+1
+
+X
+
+> g=1
+
+Pn{I(G = g)}bτg,t ,
+
+bτ = 1
+
+PTg=1 (T − g + 1) Pn{I(G = g)}
+
+> T
+
+X
+
+> g=1
+> T
+
+X
+
+> t=g
+
+Pn{I(G = g)}bτg,t .
+
+12 In practice, we can use a pooled model to estimate the outcome and variance models. A possible simplification of the estimator is to pretend a constant variance across groups and periods, σ2
+
+> l,k
+
+(Xk) = σ2 for all l and k. Under this homoskedastic working model, the estimator is reduced to an augmented inverse probability weighting (AIPW) estimator 
+
+bτg,t = 1
+
+Pn{I(G = g)}Pn
+
+
+
+I(G = g)
+
+> t
+
+X
+
+> k=g
+
+∆Yk − bδ∞,k (Xk)
+
+−
+
+> t
+
+X
+
+> k=g
+
+I(G > k ) bπg(Xk)
+
+P 
+
+> l>k
+
+bπl(Xk)
+
+∆Yk − bδ∞,k (Xk)
+
+
+
+.
+
+(3) It is common that the models {bδ·,·(·), bπ·(·), bσ2
+
+> ·,·
+
+(·)} are not too complex. Without loss of generality, we assume Yt and Xt have bounded total variation. Then it is natural to expect that {bδ·,·(·), bπ·(·), bσ2
+
+> ·,·
+
+(·)} are bounded. To establish consistency of the estimators, a condition is that 
+
+I(G = g)
+
+> t
+
+X
+
+> k=g
+
+∆Yk − bδ∞,k (Xk) −
+
+> t
+
+X
+
+> k=g
+
+I(G > k ) bπg(Xk)
+
+bπG(Xk) cWG,k (Xk)∆Yk − bδ∞,k (Xk) ,
+
+which appears in the expression of bτg,t , belongs to a Glivenko–Cantelli class, so that the law of large numbers can be applied (van der vaart and Wellner, 2013). Since this function is Lipschitz continuous with respect to {bδ·,·(·), bπ·(·), bσ2
+
+> ·,·
+
+(·)}, it suffices to make sure these models are Glivenko–Cantelli. Trivially, parametric models are Glivenko–Cantelli. A wide range of models, such as generalized linear models, transformation models, kernel regression, and splines can make the Glivenko–Cantelli condition, and even the stronger Donsker condition, hold (Lu et al., 2007; Athey et al., 2019; Kuchibhotla and Patra, 2020; Martinez Taboada et al., 2023). A notable property of the proposed AIVW estimator (and also the AIPW estimator) is its double robustness. 
+
+Theorem 2. Suppose that either the estimated conditional expected change model {bδ·,·(·)}
+
+or the estimated propensity score model {bπ·(·)} is L1-consistent. In addition, suppose the 
+
+13 models belong to a Glivenko–Cantelli class. Then bτg,t is consistent for τg,t , bτ grp  
+
+> g
+
+is consistent for τ grp  
+
+> g
+
+, bτ prd  
+
+> t
+
+is consistent for τ prd  
+
+> t
+
+, bτ dyn  
+
+> s
+
+is consistent for τ dyn  
+
+> s
+
+, and bτ is consistent for τ .
+
+The consistency of estimators does not require the correct specification of σ2
+
+> ·,·
+
+(·). Let 
+
+ϕg,t = 1
+
+P (G = g)
+
+
+
+I(G = g)
+
+> t
+
+X
+
+> k=g
+
+∆Yk − δ∞,k (Xk)
+
+−
+
+> t
+
+X
+
+> k=g
+
+I(G > k ) πg(Xk)
+
+πG(Xk)WG,k (Xk)∆Yk − δ∞,k (Xk)
+
+
+
+.
+
+The influence function of bτg,t , bτ grp  
+
+> g
+
+, bτ prd  
+
+> t
+
+, bτ dyn  
+
+> s
+
+, and bτ are 
+
+φg,t = ϕg,t − I(G = g)
+
+P (G = g)τg,t ,φgrp  
+
+> g
+
+= 1
+
+T − g + 1 
+
+> T
+
+X
+
+> t=g
+
+
+
+ϕg,t − I(G = g)
+
+P (G = g)τ grp 
+
+> t
+
+
+
+,φprd  
+
+> t
+
+= 1
+
+Ptg=1 P (G = g)
+
+> t
+
+X
+
+> g=1
+
+{P (G = g)ϕg,t − I(G = g)τ prd  
+
+> t
+
+},φdyn  
+
+> s
+
+= 1
+
+PT −s+1  
+
+> g=1
+
+P (G = g) 
+
+> T−s+1
+
+X
+
+> g=1
+
+{P (G = g)ϕg,g +s−1 − I(G = g)τ dyn  
+
+> s
+
+},φ = 1
+
+PTg=1 (T − g + 1) P (G = g)
+
+> T
+
+X
+
+> g=1
+> T
+
+X
+
+> t=g
+
+{P (G = g)ϕg,t − I(G = g)τ },
+
+respectively. The asymptotic distribution of the proposed estimator is given in the following theorem. 
+
+Theorem 3. Suppose that the estimated models {bδ·,·(·), bπ·(·), bσ2
+
+> ·,·
+
+(·)} converge to the true value at a rate of op(n−1/4) in L2-norm. In addition, suppose the models belong to a Donsker class. Then √n(bτg,t − τg,t ) d
+
+−→ N (0 , Pφ2
+
+> g,t
+
+), √n(bτ grp  
+
+> g
+
+− τ grp  
+
+> g
+
+) d
+
+−→ N (0 , Pφgrp  
+
+> g2
+
+), √n(bτ prd  
+
+> t
+
+− τ prd  
+
+> t
+
+) d
+
+−→
+
+N (0 , Pφprd 
+
+> t
+> 2
+
+), √n(bτ dyn  
+
+> s
+
+− τ dyn  
+
+> s
+
+) d
+
+−→ N (0 , Pφdyn 
+
+> s
+> 2
+
+), and √n(bτ − τ ) d
+
+−→ N (0 , Pφ2).
+
+As a regularity condition, the Donsker condition requires that the working models are not too complex. Typical parametric, semiparametric, and nonparametric models (such as 14 kernel regression and splines) can satisfy this condition. If machine learning approaches are employed, the Donsker condition can be replaced with sample splitting (Chernozhukov et al., 2018, 2022). The proofs of Theorems 2 and 3 are given in Supplementary Material A. Let bφg,t , bφgrp  
+
+> g
+
+, bφprd  
+
+> t
+
+, bφdyn  
+
+> s
+
+, and bφ be the fitted influence functions. To make an inference, we estimate the variances of these estimators by the sample variance of the fitted influ-ence functions divided by the sample size, cvar( bτg,t ) = n−1Pn bφ2
+
+> g,t
+
+, cvar( bτ grp  
+
+> g
+
+) = n−1Pn bφgrp2  
+
+> g
+
+,
+
+cvar( bτ prd  
+
+> t
+
+) = n−1Pn bφprd2  
+
+> t
+
+, cvar( bτ dyn  
+
+> s
+
+) = n−1Pn bφdyn2  
+
+> s
+
+, and cvar( bτ ) = n−1Pn bφ2.
+
+Remark 1. The history Ht = ( X, X 0, Y 0, . . . , X t−1, Y t−1, X t) right before the measurement of Yt may serve as time-varying covariates. We rewrite the parallel trends assumption as 
+
+E{∆Yt(∞) | Ht, G } = E{∆Yt(∞) | Ht, G = ∞} . The models δg,t (Ht), σ2
+
+> s,t
+
+(Ht), and πg(Ht)
+
+are fitted as functions of Ht. The cell-group ATT can be estimated by AIVW, 
+
+bτg,t = 1
+
+Pn{I(G = g)}Pn
+
+
+
+I(G = g)
+
+> t
+
+X
+
+> k=g
+
+∆Yk − bδ∞,k (Hk)
+
+−
+
+> t
+
+X
+
+> k=g
+
+I(G > k ) bπg(Hk)
+
+bπG(Hk) cWG,k (Hk)∆Yk − bδ∞,k (Hk)
+
+
+
+.
+
+(4) 
+
+In this case, the likelihood of observed data O = ( G, H T , Y T ) can be decomposed as 
+
+f (G, H T , Y T ) = f (G, H 0)f (Y0 | G, H 0)
+
+> T
+
+Y
+
+> t=1
+
+f (Ht | G, H t−1, Y t−1)f (Yt | G, H t).
+
+The function φg,t by replacing Xk with Hk is the efficient influence function (EIF) of τg,t 
+
+in the fully nonparametric space spanned by the terms in the likelihood, so the asymptotic variance of bτg,t attains the semiparametric efficiency bound. Similarly, bτ grp  
+
+> g
+
+, bτ prd  
+
+> t
+
+, bτ dyn  
+
+> s
+
+and bτ
+
+are semiparametrically efficient. Details are provided in Supplementary Material A. 
+
+Remark 2. It is of interest to know how efficient the AIVW estimator is if the history Ht
+
+is not a condition in the parallel trends assumption. To answer this question, we need to investigate the data-generating mechanism. Unfortunately, the parallel trends assumption 
+
+15 does not directly restrict the data-generating mechanism, so it is very challenging to derive the efficient influence function for τg,t (Chen et al., 2025). Under a special case where ∆Yt
+
+is generated independently in each group, which allows for a decomposition of the likelihood 
+
+f (G, H T , Y T ) = f (G, X 0)f (Y0 | G, X 0)
+
+> T
+
+Y
+
+> t=1
+
+f (Xt | G, H t−1, Y t−1)f (∆ Yt | G, X t).
+
+With variationally independent terms, the function φg,t is the EIF of τg,t in the fully nonpara-metric space spanned by the terms in the likelihood, so the asymptotic variance of bτg,t attains the semiparametric efficiency bound. Similarly, bτ grp  
+
+> g
+
+, bτ prd  
+
+> t
+
+, bτ dyn  
+
+> s
+
+and bτ are semiparametrically efficient. In general cases, these estimators are not necessarily the most efficient. 
+
+3.3 Connection with linear outcome regression models 
+
+The AIVW estimator can be obtained by weighting the residuals from the outcome regression. For the group-period ATT, we define 
+
+Hg,r G,t = I(G = g){I(t = r) − I(t = g − 1) }−
+
+> r
+
+X
+
+> k=g
+
+I(G > k ) πg(Xk)
+
+πG(Xk)WG,k (Xk){I(t = k) − I(t = k − 1) }.
+
+Then the influence function of τg,r can be written as 
+
+φg,r = 1
+
+P (G = g)
+
+> T
+
+X
+
+> t=0
+
+Hg,r G,t {Yt − μ0
+
+> G,t
+
+(Xt) − I(G = g, t = r)τg,r }. (5) To make the outcome regression more flexible, the treatment indicator term in the two-way fixed effect model can be split into several dummy variables representing the length of exposure, thereby capturing heterogeneous effects across exposure lengths (Sun and Abra-ham, 2021). Furthermore, we add the interaction terms between covariates and treatment 16 as well as between covariates and periods, so the working model for outcome regression is 
+
+Yt = αD t +
+
+> T
+
+X
+
+> k=1
+
+αkI(t − G = k) + λt + γG + βT 
+
+> 1
+
+Xt + βT 
+
+> 2
+
+XtDt + β3Xtt + εt.
+
+Note that interactions between groups and periods should not be included in the model to respect parallel trends in observed outcomes for untreated units. The coefficient α is no longer the treatment effect. Under this working model, the conditional mean outcome in group g and period t is 
+
+μg,t (Xt) =  
+
+> T−1
+
+X
+
+> k=0
+
+αkI(t − g = k) + λt + γg + βT 
+
+> 1
+
+Xt + βT 
+
+> 2
+
+XtI(g ≤ t) + βT 
+
+> 3
+
+Xtt, 
+
+and the counterfactual mean outcome under control is 
+
+μ0
+
+> g,t
+
+(Xt) = λt + γg + βT 
+
+> 1
+
+Xt + βT 
+
+> 3
+
+Xtt. 
+
+We approximate the conditional mean increase in outcomes δ∞,k (Xk) that appears in the influence functions by μ0
+
+> g,k
+
+(Xk) − μ0
+
+> g,k −1
+
+(Xk−1), which does not rely on g, in line with the parallel trends assumption. If there is no missingness, the sample for outcome regression includes n(T + 1) observations indexed by {(i, t ) : i = 1 , . . . , n, t = 0 , . . . , T }, which we pretend to be independent when fitting the model. Let bμ0
+
+> g,t
+
+(Xt) be the fitted counterfactual mean outcome under control in group g and period t.Let bεt be the residual of the outcome regression model. To calculate the weights, we further fit a regression for residuals, log {(bεt − bεt−1)2} = λ∗ 
+
+> t
+
++ γ∗ 
+
+> G
+
++ β∗TXt + ϵt
+
+based on the sample {(i, t ) : Dti = 0 , t > 0}. Then we estimate the variance of increased out-comes by bσ2
+
+> g,t
+
+(Xt) = exp( bλ∗ 
+
+> t
+
++ bγ∗ 
+
+> g
+
++ bβ∗TXt). The bσ2
+
+> g,t
+
+(Xt) is involved in estimating the weights 17 WG,t (Xt) in the AIVW estimator. However, it is computationally intensive because we need to calculate bσ2
+
+> g,t
+
+(Xt) for every g and t subject to 0 < t < g ≤ T . To improve computational efficiency, we can assume independent and homoskedastic error terms, εt ∼ N (0 , σ 2 
+
+> ε
+
+), with an unknown σ2 
+
+> ε
+
+. Therefore, the working variance of increased outcomes σ2
+
+> g,t
+
+(Xt) = 2 σ2 
+
+> ε
+
+is a constant, and the AIVW estimator is reduced to the AIPW estimator. Additionally, we fit the time-varying propensity score πg(Xt) by ordinal logistic regression, 
+
+P (G ≤ k | Xt)
+
+P (G > k | Xt) =
+
+P 
+
+> s≤k
+
+πs(Xt)
+
+P 
+
+> s>k
+
+πs(Xt) = exp( ζkt 0 + ζT
+
+> kt
+
+Xt),
+
+denoted by bπg(Xt). The fitted models bπg(Xt) and bσ2
+
+> g,t
+
+(Xt) are parametric, so the fitted influence function 
+
+φg,r belongs to a Donsker class. Under correct model specification, these fitted models converge at a rate of Op(n1/2). By plugging in fitted models bπg(Xt) and bσ2
+
+> g,t
+
+(Xt) into Hg,r G,t ,the estimator bτg,r is obtained by solving the empirical estimating equation Pn bφg,r = 0, which is the empirical average of bHg,r G,t {Yt − bμ0
+
+> G,t
+
+(Xt)} in the sample {(i, t ) : Gi = g, t = r}. The asymptotic variance of bτg,r is estimated by the sample variance of bφg,r in all units. For the overall ATT, we define 
+
+HG,t =
+
+> T
+
+X
+
+> r=1
+> r
+
+X
+
+> g=1
+
+Hg,r G,t .
+
+In particular, if AIPW is used, 
+
+HG,t = Dt − (T − G + 1) I(t = G − 1) 
+
+−
+
+P 
+
+> s≤t
+
+πs(Xt)
+
+P 
+
+> s>t
+
+πs(Xt)(T − t + 1)(1 − Dt) + 
+
+P 
+
+> s≤t+1
+
+πs(Xt+1 )
+
+P 
+
+> s>t +1
+
+πs(Xt+1 )(T − t)(1 − Dt+1 ).
+
+The function HG,t involves the propensity score through the time-varying odds ratio. Then 18 the influence function of τ can be written as 
+
+φ = 1(T + 1) P (Dt = 1) 
+
+> T
+
+X
+
+> t=0
+
+HG,t {Yt − μ0
+
+> G,t
+
+(Xt) − Dtτ }. (6) Here P (Dt = 1) = PTg=1 (T − g + 1) P (G = g)/(T + 1) is the probability of being treated for all ( i, t ) pairs. By plugging in fitted models, the estimator bτ is obtained by solving the empirical estimating equation Pn bφ = 0, which is the empirical average of bHG,t {Yt − bμ0
+
+> G,t
+
+(Xt)}
+
+in the sample {(i, t ) : Dti = 1 }. The asymptotic variance of bτ is estimated by the sample variance of bφ in all units. 
+
+# 4 Simulation Studies 
+
+In this section, we conduct simulation studies to demonstrate the finite-sample performance of the proposed AIPW and AIVW estimators. We consider three competing methods: (1) the TWFE model, (2) the doubly robust estimator that uses never-treated units as the control group (DRnt), and (3) the doubly robust estimator that uses not-yet-treated units as the control group. The latter two estimators were proposed in Callaway and Sant’Anna (2021), where the overall ATT is the simple aggregation of group-period ATTs. Suppose that there are five periods, t = 0 , . . . , 4. We generate two independent time-invariant covariates, Z1 and Z2, following the standard normal distribution. In addition, we generate an exogenous time-varying covariate Z3,t following a normal distribution N (0 , (1 + 0.1t)2), which is independent across periods and units. We denote Xt = ( Z1, Z 2, Z 3,t , Z 3,t −1)with complementarily defining Z3,−1 = 0.The period to initiate treatment is determined at baseline, with the propensity score generated from an ordinal logistic model, 
+
+P (G > k | X0) = 1 / exp( ζk + 0 .3Z1 + 0 .4Z2),
+
+where ( ζ1, ζ 2, ζ 3, ζ 4) = ( −1.5, −0.5, 0, 1). The probability of never-treated is π∞(X0) = 19 P( G > 4 | X0). The distribution of ( Z1, Z 2) is different across groups, while the distri-bution of ( Z3,t , Z 3,t −1) is identical across groups. We consider two scenarios for generating the potential outcomes. The first scenario is the homogeneous case, where the treatment effect does not depend on group or time, 
+
+Yt(g) = 0 .5(1 + t)Z1 + Z2 + 0 .2t + 0 .1G + (1 + Z3,t )I(g ≤ t) + ξ + ut,
+
+where ξ ∼ N (0 , 1) is an individual random effect and ut ∼ N (0 , 1) is an error term inde-pendent across periods and units. The potential outcome Yt(g) is not independent of the treatment assignment G, but the parallel trends assumption holds, as the conditional change in potential outcomes under control {Yt(∞) − Yt−1(∞) | Xt, G } = 0 .5Z1 + 0 .2 does not de-pend on G. The true ATT is 1, the coefficient of I(g ≤ t). The second scenario is the heterogeneous case, where the treatment effect depends on group and time, 
+
+Yt(g) = 0 .5(1 + t)Z1 + Z2 + 0 .2t + 0 .1G
+
++ (1 + Z3,t )I(g ≤ t) + (0 .5 + 0 .2Z3,t )( t − g)I(g ≤ t) + ξ + ut,
+
+where ξ ∼ N (0 , 1) is an individual random effect and ut ∼ N (0 , 1) is an error term inde-pendent across periods and units. The parallel trends assumption holds, as the conditional change in potential outcomes under control E{Yt(∞) − Yt−1(∞) | Xt, G } = 0 .5Z1 + 0 .2does not depend on G. The treatment effect is larger for a longer exposure. Noting that 
+
+E(Z3,t | G) = 0, the true ATT is P4 
+
+> g=1
+
+πg
+
+P4
+
+> t=g
+
+(1 + 0 .5( t − g)) / P4
+
+> g=1
+
+(5 − g)πg, in which the proportion of each group πg = R +∞−∞ πg(x) exp( −2x2)/pπ/ 2dx can be numerically calculated. Let the sample size n ∈ { 100 , 500 , 2000 }. We replicate the data-generating process 1000 times and estimate the overall ATT by five methods in each replicate. Panel (A) of Table 1 shows the average bias, standard deviation (SD), average standard error (SE), and the empirical coverage percentage (CP) of the nominal 95% confidence interval. The standard deviation of the estimator from the TWFE model is small because the model is oversimplified. 20 However, TWFE is biased due to model misspecification. In line with the theory, AIPW and AIVW are both asymptotically unbiased. The coverage percentages of the confidence intervals associated with AIPW and AIVW are close to the nominal level. Since the AIVW estimator involves more models, the fitted models in AIVW exhibit greater finite-sample variation than those in AIPW. The standard deviations of AIPW and AIVW are smaller than those of DRnt and DRny. Although DRnt and DRny can incorporate time-varying covariates in outcome regression, these methods do not provide a theoretical guarantee for consistent estimation. When treatment effects are heterogeneous, DRnt and DRny introduce substantial bias. To further compare the estimators, we consider four alternative data-generating mecha-nisms. In Scenarios 3 and 4, we generate the error term ut ∼ N (0 , exp(0 .2Z2 + 0 .3t − 0.3G)), while the mean outcomes remain the same as in Scenarios 1 and 2. The bias, standard deviation, average standard error, and empirical coverage percentage are shown in Panel (B) of Table 1. Consistent estimation of ATT does not require modeling the outcome variance for the proposed methods, so AIPW and AIVW are both asymptotically unbiased. The out-comes in the never-treated group have a smaller variance than those in the not-yet-treated groups. DRny uses the never-treated group as the reference, which entails observations with greater variability and therefore reduces efficiency compared with DRnt. Since AIPW es-timates time trends period-by-period, the larger variation in earlier periods will not lead to substantial variability in the estimation of time trends in later periods. Beyond AIPW, AIVW weights observations according to their variability, allowing observations with lower variability to contribute more to the estimation of time trends. In Scenarios 5 and 6, we generate the error term ut = Ptk=0 u∗
+
+> k
+
+, where the u∗
+
+> k
+
+’s are independent with u∗ 
+
+> k
+
+∼ N (0 , exp(0 .2Z2 + 0 .3t − 0.3G)). The mean outcomes remain the same as in the previous scenarios. The bias, standard deviation, average standard error, and empirical coverage percentage are shown in Panel (C) of Table 1. The proposed AIPW and AIVW are asymptotically unbiased and exhibit smaller variance than DRnt and DRny. The 21 Table 1: Bias, standard deviation (SD), average standard error (SE), and empirical coverage percentage (CP) of 95% confidence intervals in simulation studies 
+
+(A) Scenario 1: Homogeneous effects Scenario 2: Heterogeneous effects Homoskedastic error terms Homoskedastic error terms 
+
+n TWFE DRnt DRny AIPW AIVW TWFE DRnt DRny AIPW AIVW 100 Bias 0.187 0.005 0.007 0.005 0.006 -0.265 -0.186 -0.185 -0.006 -0.003 SD 0.229 0.303 0.290 0.256 0.259 0.237 0.314 0.300 0.264 0.268 SE 0.269 0.291 0.279 0.253 0.255 0.284 0.301 0.290 0.263 0.265 CP 0.930 0.939 0.935 0.944 0.942 0.889 0.881 0.887 0.942 0.937 500 Bias 0.181 0.004 0.004 0.001 0.001 -0.241 -0.154 -0.154 0.021 0.021 SD 0.105 0.123 0.122 0.110 0.110 0.109 0.128 0.127 0.114 0.115 SE 0.121 0.125 0.123 0.111 0.111 0.127 0.131 0.128 0.116 0.116 CP 0.702 0.952 0.946 0.964 0.961 0.516 0.782 0.783 0.952 0.953 2000 Bias 0.184 0.004 0.004 0.004 0.004 -0.274 -0.189 -0.189 -0.011 -0.010 SD 0.055 0.062 0.062 0.056 0.056 0.057 0.065 0.064 0.057 0.057 SE 0.060 0.062 0.061 0.056 0.056 0.063 0.065 0.064 0.058 0.058 CP 0.121 0.948 0.946 0.946 0.949 0.006 0.171 0.161 0.942 0.945 (B) Scenario 3: Homogeneous effects Scenario 4: Heterogeneous effects Heteroskedastic error terms Heteroskedastic error terms 
+
+n TWFE DRnt DRny AIPW AIVW TWFE DRnt DRny AIPW AIVW 100 Bias 0.184 -0.001 0.000 -0.001 -0.000 -0.268 -0.192 -0.191 -0.011 -0.010 SD 0.221 0.253 0.257 0.237 0.227 0.230 0.265 0.269 0.245 0.236 SE 0.277 0.242 0.245 0.235 0.223 0.291 0.254 0.258 0.245 0.234 CP 0.952 0.931 0.933 0.939 0.939 0.908 0.855 0.860 0.939 0.943 500 Bias 0.181 0.003 0.003 -0.001 -0.001 -0.241 -0.156 -0.155 0.019 0.019 SD 0.101 0.110 0.112 0.103 0.097 0.105 0.116 0.118 0.108 0.102 SE 0.124 0.110 0.112 0.104 0.099 0.130 0.115 0.117 0.109 0.104 CP 0.721 0.946 0.940 0.955 0.953 0.553 0.732 0.737 0.951 0.952 2000 Bias 0.184 0.003 0.003 0.003 0.003 -0.274 -0.190 -0.190 -0.012 -0.012 SD 0.053 0.055 0.057 0.052 0.049 0.055 0.058 0.060 0.053 0.051 SE 0.062 0.055 0.056 0.052 0.049 0.065 0.058 0.059 0.054 0.052 CP 0.126 0.956 0.953 0.951 0.946 0.003 0.096 0.107 0.950 0.958 (C) Scenario 5: Homogeneous effects Scenario 6: Heterogeneous effects Cumulative error terms Cumulative error terms 
+
+n TWFE DRnt DRny AIPW AIVW TWFE DRnt DRny AIPW AIVW 100 Bias 0.183 -0.018 -0.018 -0.011 -0.010 -0.269 -0.210 -0.210 -0.021 -0.020 SD 0.241 0.316 0.305 0.286 0.284 0.249 0.327 0.316 0.293 0.292 SE 0.321 0.282 0.277 0.278 0.275 0.333 0.293 0.288 0.287 0.284 CP 0.962 0.908 0.915 0.936 0.939 0.942 0.840 0.842 0.943 0.936 500 Bias 0.180 -0.001 -0.001 -0.001 -0.002 -0.243 -0.160 -0.160 0.018 0.018 SD 0.107 0.130 0.127 0.122 0.120 0.110 0.135 0.132 0.125 0.124 SE 0.145 0.131 0.128 0.125 0.124 0.150 0.135 0.133 0.129 0.128 CP 0.833 0.946 0.946 0.958 0.957 0.687 0.770 0.777 0.953 0.953 2000 Bias 0.183 0.003 0.003 0.003 0.003 -0.275 -0.191 -0.191 -0.012 -0.012 SD 0.055 0.067 0.065 0.062 0.062 0.056 0.070 0.068 0.064 0.063 SE 0.073 0.065 0.064 0.063 0.062 0.075 0.068 0.066 0.065 0.064 CP 0.234 0.945 0.944 0.951 0.955 0.017 0.206 0.175 0.950 0.949 
+
+22 data in these two scenarios are generated according to the mechanism described in Remark 2, so AIVW is the most efficient. The confidence intervals of AIPW and AIVW have coverage percentages close to the nominal level. However, AIVW requires more computational time than AIPW because an additional variance model must be fitted. To illustrate the inference for cell ATTs, we set the sample size n = 500 in Scenario 4. We plot the average estimate, standard deviation (SD), and average standard error (SE) for the group-period ATTs in the first row of Figure 2. Note that the true τg,t = 1 + 0 .5( t − g)for g ≥ t. In addition, we plot the groupwise ATTs, periodwise ATTs, and dynamic ATTs over time. Groupwise ATT in group g averages the group-period ATTs for t = g, . . . , T .Periodwise ATT in period t averages the group-period ATTs for g = 1 , . . . , t according to group proportions πg. Dynamic ATT after r periods of exposure averages the group-period ATTs for G − t = r. The true values are plotted in black points. The vertical lines represent the mean estimate ± 1.96 SD or SE. The average estimate, standard deviation, and average standard error for ATTs based on AIPW and AIVW are very close. We find that the bias is close to zero, and the average standard error is close to the standard deviation, indicating that the inference is accurate. 
+
+# 5 Application to NCEE (Gaokao) data 
+
+Education plays a pivotal role in shaping individual labor market outcomes and promoting social mobility. Around the world, many countries employ centralized matching mechanisms to assign students to schools and universities. One of the most well-known of these is the Immediate Acceptance (IA) mechanism, also known as the Boston Mechanism, in which students apply to schools in order of their preferences (Abdulkadiro˘ glu and S¨ onmez, 2003). In each round, schools immediately and irrevocably accept their highest-priority applicants (based on factors like exam scores) until all available spots are filled. In recent decades, China has transitioned from using IA to a parallel mechanism, a variant of the Deferred 23 123443210.99 1 1.51 1 1.51 2.01 1 1.51 1.99 2.48 
+
+ATT by group−period 
+
+(AIPW) 0 2 4Value 
+
+Color Key 
+
+> 1234
+
+43210.2 0.25 0.31 0.19 0.25 0.32 0.19 0.24 0.29 0.38 
+
+SD by group−period 
+
+(AIPW) 0 2 4Value 
+
+Color Key 
+
+> 1234
+
+43210.19 0.24 0.31 0.19 0.24 0.31 0.19 0.23 0.3 0.39 
+
+SE by group−period 
+
+(AIPW) 0 2 4Value 
+
+Color Key    
+
+> 012341234
+
+Group ATT  Value SD SE ATT across groups (AIPW) 012341 2 3 4Period ATT  Value SD SE ATT across periods (AIPW) 012341 2 3 4Length after exposure ATT  Value SD SE Dynamic ATT over time (AIPW) 123443210.99 1 1.51 1 1.51 2.01 1 1.51 1.99 2.48 
+
+ATT by group−period 
+
+(AIVW) 0 2 4Value 
+
+Color Key 
+
+> 1234
+
+43210.2 0.25 0.31 0.19 0.25 0.32 0.19 0.23 0.29 0.38 
+
+SD by group−period 
+
+(AIVW) 0 2 4Value 
+
+Color Key 
+
+> 1234
+
+43210.19 0.24 0.31 0.19 0.24 0.31 0.18 0.23 0.29 0.38 
+
+SE by group−period 
+
+(AIVW) 0 2 4Value 
+
+Color Key    
+
+> 012341234
+
+Group ATT  Value SD SE ATT across groups (AIVW) 012341 2 3 4Period ATT  Value SD SE ATT across periods (AIVW) 012341 2 3 4Length after exposure ATT  Value SD SE Dynamic ATT over time (AIVW) Figure 2: Average estimate, standard deviation (SD), and average standard error (SE) for the group-period ATTs, groupwise ATTs, periodwise ATTs, and dynamic ATTs over time based on AIPW and AIVW. The x-axis is the time label, and the y-axis is the group label. 24 Acceptance (DA) mechanism (Chen et al., 2020; Ha et al., 2020). Students list several universities within each choice band. Within a choice band, the parallel mechanism allows temporary assignments. Previous research suggests that the parallel mechanism improves stability and reduces manipulability (Kang et al., 2020). However, existing studies rely on two-way fixed effects models or event studies, which limit their statistical efficiency and robustness. The staggered adoption of the parallel mechanism across different provinces provides a unique natural experiment for evaluating its effects relative to the implementation of IA. Leveraging administrative data on the National College Entrance Examination (NCEE, also known as Gaokao ) in China from 2007 to 2011, we aim to analyze the impact of these staggered provincial reforms on admission fairness. We retain 27 provinces in our sample after excluding those that neither used IA nor parallel admission. In 2007, all provinces used IA. The number of provinces reforming to a parallel admission mechanism was 3, 10, 6, and 2 in 2008, 2009, 2010, and 2011, respectively. Additionally, six provinces had not been reformed by 2011. We split the stem tracks (stem or non-stem) in each province, resulting in a sample size of n = 54. We call each province-track in each year a game. We use the justified envy (JE) as the outcome to quantify fairness. JE is a standard mea-sure of fairness in the school choice literature (Balinski and S¨ onmez, 1999; Abdulkadiro˘ glu and S¨ onmez, 2003; Kamada and Kojima, 2024). We say that student i justifiably envies student j for school s if i would rather be assigned to school s, where some student j, who has a lower priority (i.e., lower score) than i, is assigned. In this case, student i is a blocking student; student i and school s are a blocking pair; student i, j, and school s are a blocking triplet. We consider four numerical outcomes for justified ency: (1) BS, the total number of blocking students in a game; (2) BP, the total number of blocking pairs in a game; (3) TE, the total tridimensional envy of blocking triplets in a game, where the tridimensional envy is defined as the diagonal distance of student quantiles and university tiers in a blocking triplet; (4) BT, the total number of blocking triplets in a game. Formal definitions of these 25 measures can be found in Kang et al. (2020). In the analysis, we controlled province-level log GDP per capita and population as base-line covariates in the propensity score model. For the outcome regression model, we include province-level log GDP per capita, population, and game-level track (stem or non-stem). Time-varying covariates include a dummy variable indicating whether to submit the prefer-ence after taking the exam, a dummy variable indicating whether to submit the preference after knowing the scores, and the number of students in a game. We check the parallel trends assumption in Supplementary Material B by plotting the residuals. We do not find evidence against parallel trends. Table 2 presents the estimated overall ATTs for these four measures of justified envy. Although the estimated effects are significant under TWFE, they are unreliable due to poten-tial model misspecification. The doubly robust methods (DRnt and DRny) are potentially biased, as indicated by the simulation. The proposed AIVW yields significant estimated ATTs for BS, BP, TE, and BT at the 0.05 significance level, indicating that the parallel mechanism effectively reduces justified envy relative to IA. The absolute point estimates from AIPW are slightly smaller than those from AIVW. Based on AIPW, the treatment effects on BP, TE, and BT are significant at the 0.05 significance level. Despite the slight difference between AIPW and AIVW, the substantial conclusion remains the same. The estimated overall ATTs by the proposed methods indicate that the extent of justi-fied envy decreases after the implementation of the parallel mechanism. Figure 3 shows the periodwise ATTs since 2007 based on AIPW and AIVW. The point estimates and confidence intervals by AIPW and AIVW are similar. In the first year of introducing the parallel mech-anism in NCEE, the total number of blocking students and blocking triplets increased, but the magnitudes are insignificant. After the parallel mechanism is implemented, parents and students can learn from the experience of other provinces. They become more familiar with the process and perform better on college applications year by year. The treatment effects on justified envy become larger after two years of implementing the parallel mechanism, re-26 Table 2: Estimated overall ATT by different methods for justified envy in the NCEE dataset Outcome BS ( ×1000) BP ( ×1000) ATT (SE) P ATT (SE) P
+
+TWFE -0.739 (0.276) 0.008** -2.460 (0.833) 0.003** DRnt -1.512 (0.542) 0.005** -0.651 (0.728) 0.371 DRny -1.313 (0.545) 0.016* -1.542 (0.698) 0.027* AIPW -0.578 (0.321) 0.072 -2.580 (0.829) 0.002** AIVW -0.649 (0.322) 0.044* -2.769 (0.882) 0.002** Outcome TE ( ×1000) BT ( ×1000) ATT (SE) P ATT (SE) P
+
+TWFE -3.513 (1.101) 0.002** -4.510 (1.158) 0.000*** DRnt -1.580 (0.941) 0.093 -8.826 (2.510) 0.000*** DRny -2.511 (0.908) 0.006** -7.170 (2.041) 0.000*** AIPW -3.617 (1.096) 0.001** -4.422 (1.474) 0.003** AIVW -3.847 (1.175) 0.001** -4.458 (1.497) 0.003** flecting learning from other provinces’ experience. In Supplementary Material B, we present groupwise and dynamic ATTs. We do not find obvious patterns for groupwise and dynamic ATTs. In Supplementary Material B, we also consider standardized justified envy, defined as the observed justified envy divided by the maximum possible justified envy in each game. All methods indicate that the treatment has significant effects on all groupwise, periodwise, dynamic, and overall ATTs. 
+
+# 6 Discussion 
+
+Time-varying covariates are common in observational studies, while existing studies mainly focus on identifying and estimating treatment effects with baseline covariates. In this arti-cle, we propose an augmented inverse variance estimator (AIVW) for the ATT in staggered difference-in-differences with time-varying covariates. Compared to existing estimators, the proposed estimator can be more efficient because it leverages information from multiple not-yet-treated groups to determine parallel trends on a period-by-period basis. Under ho-moskedasticity, the AIVW estimator reduces to the augmented inverse probability weighting 27 −1    
+
+> 0
+> 11234
+
+Years since 2007 ATT  Value AIPW AIVW 
+
+ATT across years: BS (x1000)    
+
+> −4 −2
+> 0
+> 1234
+
+Years since 2007 ATT  Value AIPW AIVW 
+
+ATT across years: BP (x1000)    
+
+> −6 −4 −2
+> 0
+> 1234
+
+Years since 2007 ATT  Value AIPW AIVW 
+
+ATT across years: TE (x1000) −10 −5    
+
+> 0
+> 1234
+
+Years since 2007 ATT  Value AIPW AIVW 
+
+ATT across years: BT (x1000) Figure 3: Estimated periodwise ATTs for justified envy based on AIPW and AIVW in the NCEE dataset. 28 (AIPW) estimator. Based on group-period ATTs, we aggregate the cell treatment effects into periodwise, groupwise, and dynamic effects. For AIPW and AIVW, the influence functions of these aggregated ATTs are weighted sums of the influence functions of the cell influence functions. Statistical inference is straightforward using influence functions. The AIPW estimator is computationally efficient because it requires only fitting an out-come regression model and a propensity score model. The overall ATT can be easily cal-culated as a weighted average of the fitted model residuals across treated unit-period pairs, as shown in Equation (6). The finite sample of treated unit-period pairs corresponds to the treated portion of group-period cells in the super-population. Simulation studies indicate that the AIPW estimator performs comparably to the AIVW estimator. In small sample sizes, AIPW suffers less from finite-sample variation compared to AIVW because AIPW avoids additional uncertainty in fitted models. Other studies have observed that simpler models can outperform estimators based on efficient influence functions in terms of standard deviation when data are limited (Wang et al., 2023). Given the computational efficiency and finite-sample performance of the AIPW estimator, we recommend using the linear model with equal variances for the error terms as the working model. Depending on the data-generating mechanism, the AIVW or AIPW estimator is not nec-essarily the most efficient. One may be interested in finding the best estimator for estimating the ATT. However, this is not a simple task because the parallel trends assumption imposes restrictions on observed data. The model for observed data is semiparametric rather than nonparametric. Since the parallel trends assumption does not directly restrict the data-generating mechanism but instead imposes a moment condition, the efficient influence func-tion for ATT is challenging to derive. A possible approach is to limit the semiparametric model space by only considering a subset of estimators, such as linear predictors. Another possible approach is to refine the parallel trends assumption on the data-generating mech-anism, for example, by assuming conditional parallel trends given all history, so that the parallel trends directly restrict the likelihood. 29 Data Availability Statement 
+
+The data that supports the findings of this work is available from the corresponding author upon request. 
+
+# Supplementary Material 
+
+The online supplementary material includes technical details and additional data analysis results. 
+
+# References 
+
+Abadie, A. (2005). Semiparametric difference-in-differences estimators. The Review of Eco-nomic Studies , 72(1):1–19. Abdulkadiro˘ glu, A. and S¨ onmez, T. (2003). School choice: A mechanism design approach. 
+
+American Economic Review , 93(3):729–747. Athey, S. and Imbens, G. W. (2006). Identification and inference in nonlinear difference-in-differences models. Econometrica , 74(2):431–497. Athey, S. and Imbens, G. W. (2022). Design-based analysis in difference-in-differences set-tings with staggered adoption. Journal of Econometrics , 226(1):62–79. Athey, S., Tibshirani, J., and Wager, S. (2019). Generalized random forests. The Annals of Statistics , 47(2):1148–1178. Balinski, M. and S¨ onmez, T. (1999). A tale of two mechanisms: student placement. Journal of Economic Theory , 84(1):73–94. Borusyak, K., Jaravel, X., and Spiess, J. (2024). Revisiting event-study designs: robust and efficient estimation. Review of Economic Studies , 91(6):3253–3285. 30 Caetano, C. and Callaway, B. (2024). Difference-in-differences with time-varying covariates in the parallel trends assumption. arXiv preprint arXiv:2406.15288 .Caetano, C., Callaway, B., Payne, S., and Rodrigues, H. S. (2022). Difference in differences with time-varying covariates. arXiv preprint arXiv:2202.02903 .Callaway, B. and Sant’Anna, P. H. (2021). Difference-in-differences with multiple time peri-ods. Journal of Econometrics , 225(2):200–230. Chen, X., Sant’Anna, P. H., and Xie, H. (2025). Efficient difference-in-differences and event study estimators. arXiv preprint arXiv:2506.17729 .Chen, Y., Jiang, M., and Kesten, O. (2020). An empirical evaluation of chinese college admissions reforms through a natural experiment. Proceedings of the National Academy of Sciences , 117(50):31696–31705. Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., and Robins, J. (2018). Double/debiased machine learning for treatment and structural param-eters. Chernozhukov, V., Escanciano, J. C., Ichimura, H., Newey, W. K., and Robins, J. M. (2022). Locally robust semiparametric estimation. Econometrica , 90(4):1501–1535. De Chaisemartin, C. and d’Haultfoeuille, X. (2020). Two-way fixed effects estimators with heterogeneous treatment effects. American Economic Review , 110(9):2964–2996. De Chaisemartin, C. and d’Haultfoeuille, X. (2023). Two-way fixed effects and differences-in-differences with heterogeneous treatment effects: A survey. The Econometrics Journal ,26(3):C1–C30. Deng, Y., Zhang, T., Peng, X., and Liu, Q. (2025). Improved two-period difference-in-differences by targeted estimation. Economics Letters , page 112600. 31 Dimick, J. B. and Ryan, A. M. (2014). Methods for evaluating changes in health care policy: the difference-in-differences approach. JAMA , 312(22):2401–2402. Goodman-Bacon, A. (2021). Difference-in-differences with variation in treatment timing. 
+
+Journal of Econometrics , 225(2):254–277. Ha, W., Kang, L., and Song, Y. (2020). College matching mechanisms and matching sta-bility: Evidence from a natural experiment in china. Journal of Economic Behavior & Organization , 175:206–226. Holland, P. W. (1986). Statistics and causal inference. Journal of the American Statistical Association , 81(396):945–960. Imai, K. and Kim, I. S. (2021). On the use of two-way fixed effects regression models for causal inference with panel data. Political Analysis , 29(3):405–415. Kamada, Y. and Kojima, F. (2024). Fair matching under constraints: Theory and applica-tions. Review of Economic Studies , 91(2):1162–1199. Kang, L., Ha, W., Song, Y., and Zhou, S. (2020). Matching mechanisms, justified envy, and college admissions outcomes. Justified Envy, and College Admissions Outcomes (July 22, 2020) .Kuchibhotla, A. K. and Patra, R. K. (2020). Efficient estimation in single index models through smoothing splines. Bernoulli , 26(2):1587–1618. Lee, C. H., Cook, S., Lee, J. S., and Han, B. (2016). Comparison of two meta-analysis methods: inverse-variance-weighted average and weighted sum of z-scores. Genomics & Informatics , 14(4):173. Lu, M., Zhang, Y., and Huang, J. (2007). Estimation of the mean function with panel count data using monotone polynomial splines. Biometrika , 94(3):705–718. 32 Martinez Taboada, D., Ramdas, A., and Kennedy, E. (2023). An efficient doubly-robust test for the kernel treatment effect. Advances in Neural Information Processing Systems ,36:59924–59952. Roth, J. and Sant’Anna, P. H. (2023). Efficient estimation for staggered rollout designs. 
+
+Journal of Political Economy Microeconomics , 1(4):669–709. Roth, J., Sant’Anna, P. H., Bilinski, A., and Poe, J. (2023). What’s trending in difference-in-differences? a synthesis of the recent econometrics literature. Journal of Econometrics ,235(2):2218–2244. Sant’Anna, P. H. and Zhao, J. (2020). Doubly robust difference-in-differences estimators. 
+
+Journal of Econometrics , 219(1):101–122. Sun, L. and Abraham, S. (2021). Estimating dynamic treatment effects in event studies with heterogeneous treatment effects. Journal of Econometrics , 225(2):175–199. van der vaart, A. W. and Wellner, J. (2013). Weak Convergence and Empirical Processes: With Applications to Statistics . Springer Series in Statistics. Springer New York. Wang, B., Susukida, R., Mojtabai, R., Amin-Esmaeili, M., and Rosenblum, M. (2023). Model-robust inference for clinical trials that improve precision by stratified randomization and covariate adjustment. Journal of the American Statistical Association , 118(542):1152– 1163. Wang, G., Hamad, R., and White, J. S. (2024). Advances in difference-in-differences methods for policy evaluation research. Epidemiology , 35(5):628–637. Wooldridge, J. M. (2010). Econometric analysis of cross section and panel data . MIT Press. 33 Supplementary Material for “Doubly Robust Estimation of Treatment Effects in Staggered Difference-in-Differences with Time-Varying Covariates” 
+
+# A Technical Details 
+
+A.1 Proof of Theorem 1 
+
+We prove the identifiability for the group-period ATT τg,t . For any 0 ≤ s < g ,
+
+τg,t = E{Yt(g) − Yt(∞) | G = g}
+
+= E{Yt(g) − Ys(∞) | G = g} − E{Yt(∞) − Ys(∞) | G = g}
+
+= E{Yt(g) − Ys(g) | G = g} − E{Yt(∞) − Ys(∞) | G = g}
+
+=
+
+> t
+
+∑
+
+> k=s+1
+
+E[E{Yk(g) − Yk−1(g) | Xk, G = g} | G = g]
+
+−
+
+> t
+
+∑
+
+> k=s+1
+
+E[E{Yk(∞) − Yk−1(∞) | Xk, G = g} | G = g]=
+
+> t
+
+∑
+
+> k=s+1
+
+E[E{Yk(g) − Yk−1(g) | Xk, G = g} | G = g]
+
+−
+
+> t
+
+∑
+
+> k=s+1
+
+E[E{Yk(∞) − Yk−1(∞) | Xk, G = ∞} | G = g]1=
+
+> t
+
+∑
+
+> k=s+1
+
+E[E{Yk − Yk−1 | Xk, G = g} | G = g]
+
+−
+
+> t
+
+∑
+
+> k=s+1
+
+E[E{Yk − Yk−1 | Xk, G = ∞} | G = g]= E(Yt − Ys | G = g) −
+
+> t
+
+∑
+
+> k=s+1
+
+E[E{Yk − Yk−1 | Xk, G = ∞} | G = g].
+
+The first equation is by definition; the second equation is obtained by subtracting a common term Ys(∞); the third equation is by no anticipation; the fourth equation is by iterated expectation; the fifth equation is by parallel trends; the sixth equation is by consistency. The conditional expectations are well defined because of positivity. Note that under parallel trends, no anticipation and consistency, for every l > k ,
+
+E{Yk(∞) − Yk−1(∞) | Xk, G = ∞} 
+
+= E{Yk(∞) − Yk−1(∞) | Xk, G = l}
+
+= E{Yk(l) − Yk−1(l) | Xk, G = l}
+
+= E{Yk − Yk−1 | Xk, G = l},
+
+so 
+
+E{Yk(∞) − Yk−1(∞) | Xk, G = ∞} = E{Yk − Yk−1 | Xk, G > k }.
+
+Therefore, τg,t can also be written as 
+
+τg,t = E(Yt − Ys | G = g) −
+
+> t
+
+∑
+
+> k=s+1
+
+E[E{Yk − Yk−1 | Xk, G > k } | G = g].
+
+The identification of periodwise, groupwise, dynamic, and overall ATTs is straightforward according to the definition. 2A.2 Proof of Theorem 2 
+
+Recall that the AIVW estimator ̂
+
+τg,t = 1
+
+Pn{I(G = g)}Pn
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk −̂ δ∞,k (Xk)}
+
+−
+
+> t
+
+∑
+
+> k=g
+
+I(G > k )̂ πg(Xk)̂
+
+πG(Xk)̂ WG,k (Xk){∆Yk −̂ δ∞,k (Xk)}]
+
+.
+
+It is trivial that the indicator function I(G = g) is Glivenko–Cantelli, so that Pn{I(G =
+
+g)} p
+
+−→ P (G = g). To establish consistency, we also require that 
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk −̂ δ∞,k (Xk)} −
+
+> t
+
+∑
+
+> k=g
+
+̂
+
+πg(Xk)I(G > k )̂
+
+πG(Xk)̂ WG,k (Xk){∆Yk −̂ δ∞,k (Xk)}
+
+belongs to a Glivenko–Cantelli class, so that ̂
+
+τg,t p
+
+−→ 1
+
+P (G = g)P
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk −̂ δ∞,k (Xk)}
+
+−
+
+> t
+
+∑
+
+> k=g
+
+I(G > k )̂ πg(Xk)̂
+
+πG(Xk)̂ WG,k (Xk){∆Yk −̂ δ∞,k (Xk)}]
+
+.
+
+On the one hand, we assume that {δ·,·(·)} is correctly specified, in that ̂ δ·,·(·) → δ·,·(·) in 
+
+L1(P)-norm. Suppose that ̂ π·(·) → π∗· (·), we have that for every Xk,̂
+
+Wl,k (Xk) = 
+
+[∑
+
+> s>k
+
+̂
+
+πs(Xk)̂
+
+σ2
+
+> s,k
+
+(Xk)
+
+]−1̂ πl(Xk)̂
+
+σ2
+
+> l,k
+
+(Xk) →
+
+[∑
+
+> s>k
+
+π∗ 
+
+> s
+
+(Xk)
+
+σ∗2
+
+> s,k
+
+(Xk)
+
+]−1
+
+π∗ 
+
+> l
+
+(Xk)
+
+σ∗2
+
+> l,k
+
+(Xk) = W ∗
+
+> l,k
+
+(Xk).
+
+Then ̂
+
+τg,t p
+
+−→ 1
+
+P (G = g)P
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk − δ∞,k (Xk)}
+
+−
+
+> t
+
+∑
+
+> k=g
+
+I(G > k ) π∗ 
+
+> g
+
+(Xk)
+
+π∗
+
+> G
+
+(Xk)W ∗
+
+> G,k
+
+(Xk){∆Yk − δ∞,k (Xk)}]
+
+3= 1
+
+P (G = g)P
+
+[ t∑
+
+> k=g
+
+πg(Xk){δg,k (Xk) − δ∞,k (Xk)}
+
+−
+
+> t
+
+∑
+
+> k=g
+
+∑
+
+> l>k
+
+πl(Xk)π∗ 
+
+> g
+
+(Xk)
+
+π∗ 
+
+> l
+
+(Xk)W ∗
+
+> l,k
+
+(Xk){δl,k (Xk) − δ∞,k (Xk)}]
+
+= 1
+
+P (G = g)P
+
+[ t∑
+
+> k=g
+
+πg(Xk){δg,k (Xk) − δ∞,k (Xk)}
+
+−
+
+> t
+
+∑
+
+> k=g
+
+∑
+
+> l>k
+
+πl(Xk)π∗ 
+
+> g
+
+(Xk)
+
+π∗ 
+
+> l
+
+(Xk)W ∗
+
+> l,k
+
+(Xk){δ∞,k (Xk) − δ∞,k (Xk)}]
+
+= 1
+
+P (G = g)P
+
+[ t∑
+
+> k=g
+
+πg(Xk){δg,k (Xk) − δ∞,k (Xk)}]
+
+=
+
+> t
+
+∑
+
+> k=g
+
+E [δg,k (Xk) − δ∞,k (Xk) | G = g] = τg,t .
+
+On the other hand, we assume {π·(·)} is correctly specified, in that ̂ π·(·) → π·(·) in 
+
+L1(P)-norm. Suppose that ̂ δ·,·(·) → δ·,·(·), we have that for every Xk,̂
+
+Wl,k (Xk) = 
+
+[∑
+
+> s>k
+
+̂
+
+πs(Xk)̂
+
+σ2
+
+> s,k
+
+(Xk)
+
+]−1̂ πl(Xk)̂
+
+σ2
+
+> l,k
+
+(Xk) →
+
+[∑
+
+> s>k
+
+πs(Xk)
+
+σ∗2
+
+> s,k
+
+(Xk)
+
+]−1
+
+πl(Xk)
+
+σ∗2
+
+> l,k
+
+(Xk) = W ∗
+
+> l,k
+
+(Xk).
+
+Then ̂
+
+τg,t p
+
+−→ 1
+
+P (G = g)P
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk − δ∗∞,k (Xk)}
+
+−
+
+> t
+
+∑
+
+> k=g
+
+I(G > k ) πg(Xk)
+
+πG(Xk)W ∗
+
+> G,k
+
+(Xk){∆Yk − δ∗∞,k (Xk)}]
+
+= 1
+
+P (G = g)P
+
+[ t∑
+
+> k=g
+
+πg(Xk){δg,k (Xk) − δ∗∞,k (Xk)}
+
+−
+
+> t
+
+∑
+
+> k=g
+
+∑
+
+> l>k
+
+πl(Xk)πg(Xk)
+
+πl(Xk) W ∗
+
+> l,k
+
+(Xk){δl,k (Xk) − δ∗∞,k (Xk)}]
+
+= 1
+
+P (G = g)P
+
+[ t∑
+
+> k=g
+
+πg(Xk){δg,k (Xk) − δ∞,k (Xk)} +
+
+> t
+
+∑
+
+> k=g
+
+πg(Xk){δ∞,k (Xk) − δ∗∞,k (Xk)}
+
+4−
+
+> t
+
+∑
+
+> k=g
+
+πg(Xk) ∑
+
+> l>k
+
+W ∗
+
+> l,k
+
+(Xk){δ∞,k (Xk) − δ∗∞,k (Xk)}]
+
+= 1
+
+P (G = g)P
+
+[ t∑
+
+> k=g
+
+πg(Xk){δg,k (Xk) − δ∞,k (Xk)} + πg(Xk)
+
+> t
+
+∑
+
+> k=g
+
+{δ∞,k (Xk) − δ∗∞,k (Xk)}
+
+−
+
+> t
+
+∑
+
+> k=g
+
+πg(Xk){δ∞,k (Xk) − δ∗∞,k (Xk)}]
+
+= 1
+
+P (G = g)P
+
+[ t∑
+
+> k=g
+
+πg(Xk){δg,k (Xk) − δ∞,k (Xk)}]
+
+=
+
+> t
+
+∑
+
+> k=g
+
+E [δg,k (Xk) − δ∞,k (Xk) | G = g] = τg,t .
+
+Since ̂ τ grp  
+
+> g
+
+,̂ τ prd  
+
+> t
+
+,̂ τ dyn  
+
+> s
+
+, and ̂ τ are linear combinations of {̂ τg,t : g ≤ t} and the weights do not involve fitted models (sample means can always be consistently estimated), they also have double robustness. 
+
+A.3 Proof Theorem 3 
+
+Let ̂
+
+ϕg,t = 1
+
+Pn{I(G = g)}
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk −̂ δ∞,k (Xk)} − I(G = g)τg,t 
+
+−
+
+> t
+
+∑
+
+> k=g
+
+̂
+
+πg(Xk)I(G > k )̂
+
+πG(Xk)̂ WG,k (Xk){∆Yk −̂ δ∞,k (Xk)}]
+
+.
+
+Then 
+
+√n(̂ τg,t − τg,t ) = √nPn(̂ ϕg,t )= √nPn(φg,t ) + √n(Pn − P)( ̂ϕg,t − φg,t ) + √nP(̂ ϕg,t ).
+
+The first term converges to a normal distribution N (0 , Pφ2
+
+> g,t
+
+) by the central limit theorem. The second term is op(1) because ∥̂ϕg,t − φg,t ∥L2(P) = op(1) along with the Donsker condition. 5For the third term, by noting that P{I(G = l)g(Xk)} = P{πl(Xk)g(Xk)} for any function 
+
+g(Xk), 
+
+√nP(̂ ϕg,t ) = 
+
+√n
+
+Pn{I(G = g)}P
+
+[ t∑
+
+> k=g
+
+πg(Xk){δG,k (Xk) −̂ δ∞,k (Xk)}−
+
+> t
+
+∑
+
+> k=g
+
+πg(Xk){δG,k (Xk) − δ∞,k (Xk)}−
+
+> t
+
+∑
+
+> k=g
+
+̂
+
+πg(Xk) ∑
+
+> l>k
+
+πl(Xk)̂
+
+πl(Xk)̂ Wl,k (Xk){δ∞,k (Xk) −̂ δ∞,k (Xk)}
+
+]
+
+=
+
+√n
+
+Pn{I(G = g)}
+
+> t
+
+∑
+
+> k=g
+
+P
+
+[
+
+πg(Xk){δ∞,k (Xk) −̂ δ∞,k (Xk)}−̂ πg(Xk)
+
+∑ 
+
+> l>k
+
+πl(Xk)̂σ−2 
+
+> l,k
+
+(Xk)
+
+∑
+
+> l>k
+
+̂ πl(Xk)̂σ−2 
+
+> l,k
+
+(Xk){δ∞,k (Xk) −̂ δ∞,k (Xk)}
+
+=
+
+√n
+
+Pn{I(G = g)}
+
+> t
+
+∑
+
+> k=g
+
+P
+
+[{ 
+
+πg(Xk) −̂ πg(Xk)
+
+∑ 
+
+> l>k
+
+πl(Xk)̂σ−2 
+
+> l,k
+
+(Xk)
+
+∑
+
+> l>k
+
+̂ πl(Xk)̂σ−2 
+
+> l,k
+
+(Xk)
+
+}
+
+· { δ∞,k (Xk) −̂ δ∞,k (Xk)}
+
+]
+
+≤√nη −1
+
+Pn{I(G = g)}
+
+> t
+
+∑
+
+> k=g
+
+∥∥∥∥∥1 −̂ πg(Xk)
+
+πg(Xk)
+
+∑ 
+
+> l>k
+
+πl(Xk)̂ σ−2 
+
+> l,k
+
+(Xk)
+
+∑
+
+> l>k
+
+̂ πl(Xk)̂ σ−2 
+
+> l,k
+
+(Xk)
+
+∥∥∥∥∥ ·
+
+∥∥∥δ∞,k (Xk) −̂ δ∞,k (Xk)
+
+∥∥∥
+
+= op(1) because the L2(P)-norms are all op(n−1/4). Therefore, 
+
+√n(̂τg,t − τg,t ) = √nPn(φg,t ) + op(1) d
+
+−→ N (0 , Pφ2
+
+> g,t
+
+).
+
+This also implies that φg,t is an influence function for τg,t .Similarly, we define ̂
+
+ϕgrp  
+
+> g
+
+= 1
+
+T − g + 1 
+
+> T
+
+∑
+
+> t=g
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk −̂ δ∞,k (Xk)} − I(G = g)τ grp 
+
+> g
+
+6−
+
+> t
+
+∑
+
+> k=g
+
+̂
+
+πg(Xk)I(G > k )̂
+
+πG(Xk)̂ WG,k (Xk){∆Yk −̂ δ∞,k (Xk)}]
+
+,̂
+
+ϕprd  
+
+> t
+
+= 1
+
+∑tg=1 Pn{I(G = g)}
+
+> t
+
+∑
+
+> g=1
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk −̂ δ∞,k (Xk)} − I(G = g)τ prd 
+
+> t
+
+−
+
+> t
+
+∑
+
+> k=g
+
+̂
+
+πg(Xk)I(G > k )̂
+
+πG(Xk)̂ WG,k (Xk){∆Yk −̂ δ∞,k (Xk)}]
+
+,̂
+
+ϕdyn  
+
+> s
+
+= 1
+
+∑T −s+1  
+
+> g=1
+
+Pn{I(G = g)} 
+
+> T−s+1
+
+∑
+
+> g=1
+
+[
+
+I(G = g)
+
+> g+s−1
+
+∑
+
+> k=g
+
+{∆Yk −̂ δ∞,k (Xk)} − I(G = g)τ dyn 
+
+> s
+
+−
+
+> g+s−1
+
+∑
+
+> k=g
+
+̂
+
+πg(Xk)I(G > k )̂
+
+πG(Xk)̂ WG,k (Xk){∆Yk −̂ δ∞,k (Xk)}]
+
+,̂
+
+ϕ = 1
+
+∑Tg=1 (T − g + 1) Pn{I(G = g)}
+
+> T
+
+∑
+
+> g=1
+> T
+
+∑
+
+> t=g
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk −̂ δ∞,k (Xk)}
+
+− I(G = g)τ −
+
+> t
+
+∑
+
+> k=g
+
+̂
+
+πg(Xk)I(G > k )̂
+
+πG(Xk)̂ WG,k (Xk){∆Yk −̂ δ∞,k (Xk)}]
+
+.
+
+We can show that P(̂ϕgrp  
+
+> g
+
+), P(̂ϕprd  
+
+> t
+
+), P(̂ ϕdyn  
+
+> s
+
+), and P(̂ ϕ) can be bounded by linear combinations of 
+
+√n
+
+∥∥∥∥∥1 −̂ πg(Xk)
+
+πg(Xk)
+
+∑ 
+
+> l>k
+
+πl(Xk)̂ σ−2 
+
+> l,k
+
+(Xk)
+
+∑
+
+> l>k
+
+̂ πl(Xk)̂ σ−2 
+
+> l,k
+
+(Xk)
+
+∥∥∥∥∥ ·
+
+∥∥∥δ∞,k (Xk) −̂ δ∞,k (Xk)
+
+∥∥∥
+
+over k and g, which is op(1). Therefore, 
+
+√n(̂τ grp  
+
+> g
+
+− τ grp  
+
+> g
+
+) = √nPn(φgrp  
+
+> g
+
+) + op(1) d
+
+−→ N (0 , Pφgrp 
+
+> g
+> 2
+
+),
+
+√n(̂τ prd  
+
+> t
+
+− τ prd  
+
+> t
+
+) = √nPn(φprd  
+
+> t
+
+) + op(1) d
+
+−→ N (0 , Pφprd 
+
+> t
+> 2
+
+),
+
+√n(̂τ dyn  
+
+> s
+
+− τ dyn  
+
+> s
+
+) = √nPn(φdyn  
+
+> s
+
+) + op(1) d
+
+−→ N (0 , Pφdyn 
+
+> s
+> 2
+
+),
+
+√n(̂ τ − τ ) = √nPn(φ) + op(1) d
+
+−→ N (0 , Pφ2).
+
+7A.4 Efficiency of the AIVW estimator 
+
+Suppose that the likelihood can be decomposed as 
+
+f (G, H T , Y T ) = f (G, X 0)f (Y0 | G, X 0)
+
+> T
+
+∏
+
+> t=1
+
+f (Ht | G, H t−1, Y t−1)f (∆ Yt | G, H t),
+
+where the terms in the likelihood are variationally independent and fully nonparametric. The parallel trends assumption imposes a restriction on f (∆ Yt | G, X ) given G ≤ t, without restricting other terms. The tangent space is ˙T = ˙T00 ⊕ ˙T01 ⊕ ˙T0 ⊕ ˙T1,
+
+where ˙T00 = {h(G, X 0, Y 0) ∈ L2(P) : E[h(G, X 0, Y 0)] = 0 },
+
+˙T01 =
+
+> T
+
+⊕
+
+> t=1
+
+{h(G, H t) ∈ L2(P) : E[h(G, H t) | G, H t−1, Y t−1] = 0 ,
+
+˙T0 =
+
+> T
+
+⊕
+
+> t=1
+
+{h(G, H t, ∆Yt)I(G > t ) ∈ L2(P) : E[h(G, H t, ∆Yt)I(G > t ) | G, H t] = 0 ,E[∆ Yth(G, H t, ∆Yt)I(G > t ) | G, H t] = h∗ 
+
+> t
+
+(Ht)},
+
+˙T1 =
+
+> T
+
+⊕
+
+> t=1
+
+{h(G, H t, ∆Yt)I(G ≤ t) ∈ L2(P) : E[h(G, H t, ∆Yt)I(G ≤ t) | G, H t] = 0 }.
+
+The parallel trends assumption is reflected in ˙T1. To verify that ˙T is the tangent space, we consider a submodel 
+
+fν00 (G, X 0, Y 0) = f (G, X 0, Y 0){1 + ν00 h00 (G, X 0, Y 0)},fν0t (G, H t) = f (G, H t){1 + ν0th01 (G, H t)},fνt (∆ Yt | G, H t) = f (∆ Yt | G, H t){1 + νtht(G, H t, ∆Yt)}.
+
+8Since fν00 (G, X 0, Y 0) is a density function, we have E[h00 (G, X 0, Y 0)] = 0. Since fν0t (G, H t)is a conditional density function, we have E[h0t(G, H t) | G, X t−1, Y t−1] = 0. Since fνt (∆ Yt |
+
+G, H t) is a conditional density function, we have E[ht(G, H t, ∆Yt) | G, H t] = 0. Restricted by parallel trends, E[∆ YtI(G > t ) | G, H t] is irrelevant to G, so E[∆ Ytht(G, H t, ∆Yt)I(G > t) | G, H t] is irrelevant to G, which we denote as h∗ 
+
+> t
+
+(Ht). This implies that the influence function of the semiparametric model (and consequently the tangent space) must be in ˙T .Conversely, if a function h(O) is in ˙T , then we can write 
+
+h(O) = f00 (G, X 0, Y 0) + 
+
+> T
+
+∑
+
+> t=1
+
+h0t(G, H t) + 
+
+> G−1
+
+∑
+
+> t=1
+
+ht(G, H t, ∆Yt) + 
+
+> T
+
+∑
+
+> t=G
+
+ht(G, H t, ∆Yt)with E[h00 (G, X 0, Y 0)] = 0, E[h0t(G, H t) | G, H t−1, Y t−1] = 0, E[ht(G, X t, ∆Yt)I(G > t ) |
+
+G, H t] = 0, E[ht(G, H t, ∆Yt)I(G ≤ t) | G, H t] = 0, and E[∆ Ytht(G, H t, ∆Yt)I(G > t ) |
+
+G, H t] = h∗ 
+
+> t
+
+(Ht). We construct 
+
+fν (O) = fν00 (G, X 0, Y 0)
+
+> T
+
+∏
+
+> t=1
+
+fν0t (G, H t)
+
+> G−1
+
+∏
+
+> t=1
+
+fνt (G, H t, ∆Yt)
+
+> T
+
+∏
+
+> t=G
+
+fνt (G, H t, ∆Yt)with 
+
+fν00 (G, X 0, Y 0) = f (G, X 0, Y 0){1 + ν00 h00 (G, X 0, Y 0)},fν0t (G, H t) = f (G, H t){1 + ν0th0t(G, H t)},fνt (∆ Yt | G, H t) = f (∆ Yt | G, H t){1 + νtht(G, H t, ∆Yt)}.
+
+For small enough νt, fν (O) is a density function, and 
+
+∫
+
+∆Ytfνt (G, H t, ∆Yt)I(G ≥ t)d∆Yt = E(∆ Yt | G, H t) + h∗ 
+
+> t
+
+(Ht) = δ∞,t (Ht) + h∗ 
+
+> t
+
+(Ht)is irrelevant to G, indicating that the parallel trends hold. This implies that fν is in the semiparametric model, so ˙T must belong to the tangent space. Therefore, ˙T is the tangent 9space. Recall the influence function of τg,t for g ≤ t,
+
+φg,t = 1
+
+P (G = g)
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk − δ∞,k (Hk)} − I(G = g)τg,t 
+
+−
+
+> t
+
+∑
+
+> k=g
+
+I(G > k ) πg(Hk)
+
+πG(Hk)WG,k (Hk){∆Yk − δ∞,k (Hk)}]
+
+= 1
+
+P (G = g)
+
+[
+
+I(G = g)
+
+> t
+
+∑
+
+> k=g
+
+{∆Yk − δG,k (Hk)}
+
++
+
+> t
+
+∑
+
+> k=g
+
+I(G = g){δG,k (Hk) − δ∞,k (Hk) − τg,t }−
+
+> t
+
+∑
+
+> k=g
+
+I(G > k ) πg(Hk)
+
+πG(Hk)WG,k (Hk){∆Yk − δ∞,k (Hk)}]
+
+.
+
+The first row is in ˙T1, the second row is in ˙T00 ⊕ ˙T01 , and the third row is in ˙T0 with 
+
+h∗ 
+
+> t
+
+(Ht) = πg(Ht)
+
+P (G = g)
+
+[∑
+
+> s>t
+
+πs(Ht)
+
+σ2
+
+> s,t
+
+(Ht)
+
+]−1
+
+.
+
+Since φg,t is a valid influence function by Theorem 2 and it is in the tangent space, we conclude that φg,t is the efficient influence function. Therefore, the asymptotic variance of ̂
+
+τg,t attains the semiparametric efficiency bound. It is consequently straightforward that φg,
+
+φt, φs, and φ are also in the tangent space, so they are efficient influence functions of τ grp  
+
+> g
+
+,
+
+τt, τ dyn  
+
+> s
+
+, and τ , respectively. 
+
+# B Additional Data Analysis Results 
+
+B.1 Check of parallel trends 
+
+Figure S1 plots the residuals of the outcome regression model in not-yet-treated groups. We also display the 10% and 90% quantiles of residuals. The red points are residuals in group 10 2007 2008 2009 2010          
+
+> −10  −5  0 5 10
+> Residual Plot: BS
+> Year Residuals 2007 2008 2009 2010
+> −10  −5  0 5 10
+> Residual Plot: BP
+> Year Residuals 2007 2008 2009 2010
+> −10  −5  0 5 10
+> Residual Plot: TE
+> Year Residuals 2007 2008 2009 2010
+> −10  −5  0 5 10
+> Residual Plot: BT
+> Year Residuals
+
+Figure S1: Residual plots in not-yet-treated groups. 
+
+G = 2, the green points are residuals in group G = 3, the blue points are residuals in group 
+
+G = 4, and the cyan points are residuals in group G = ∞. If the parallel trends assumption holds, we expect no time trend in the residuals. We find that the residuals are distributed around zero. There is no evidence against the parallel trends assumption. 
+
+B.2 Estimated ATTs for justified envy 
+
+Figure S2 shows the estimated periodwise, groupwise, and dynamic ATTs for four measures of justified envy based on AIPW and AIVW. 
+
+B.3 Standardized outcomes 
+
+Considering the variable number of students in each game, we define standardized justified envy. In each game, the worst matching mechanism would assign the highest-priority student 11 −1 
+
+0
+
+11 2 3 4Years since 2007 ATT  Value AIPW AIVW 
+
+ATT across years: BS (x1000) 
+
+−4 −2 
+
+0
+
+1 2 3 4Years since 2007 ATT  Value AIPW AIVW 
+
+ATT across years: BP (x1000) 
+
+−6 −4 −2 
+
+0
+
+1 2 3 4Years since 2007 ATT  Value AIPW AIVW 
+
+ATT across years: TE (x1000) 
+
+−10 −5 
+
+0
+
+1 2 3 4Years since 2007 ATT  Value AIPW AIVW 
+
+ATT across years: BT (x1000) 
+
+−15 −10 −5 
+
+0
+
+1 2 3 4Group ATT  Value AIPW AIVW 
+
+ATT across groups: BT (x1000) 
+
+−4 −2 
+
+0
+
+1 2 3 4Group ATT  Value AIPW AIVW 
+
+ATT across groups: BS (x1000) 
+
+−10.0 −7.5 −5.0 −2.5 0.0 2.5 1 2 3 4Group ATT  Value AIPW AIVW 
+
+ATT across groups: BP (x1000) 
+
+−10 −5 
+
+0
+
+1 2 3 4Group ATT  Value AIPW AIVW 
+
+ATT across groups: TE (x1000) 
+
+−2 −1 
+
+0
+
+1
+
+2
+
+1 2 3 4Length after exposure ATT  Value AIPW AIVW 
+
+Dynamic ATT over time: BS (x1000) 
+
+−8 −4 
+
+0
+
+1 2 3 4Length after exposure ATT  Value AIPW AIVW 
+
+Dynamic ATT over time: BP (x1000) 
+
+−15 −10 −5 
+
+0
+
+1 2 3 4Length after exposure ATT  Value AIPW AIVW 
+
+Dynamic ATT over time: TE (x1000) 
+
+−10 −5 
+
+0
+
+51 2 3 4Length after exposure ATT  Value AIPW AIVW 
+
+Dynamic ATT over time: BT (x1000) Figure S2: Estimated periodwise, groupwise, and dynamic ATTs for four measures of justified envy based on AIPW and AIVW. 12 Table 1: Estimated overall ATT by different methods for standardized justified envy in the NCEE dataset Outcome Standardized BS Standardized BP ATT (SE) P ATT (SE) P
+
+TWFE -0.094 (0.020) 0.000*** -0.049 (0.004) 0.000*** DRnt -0.113 (0.023) 0.000*** -0.055 (0.005) 0.000*** DRny -0.114 (0.017) 0.000*** -0.054 (0.005) 0.000*** AIPW -0.116 (0.020) 0.000*** -0.058 (0.006) 0.000*** AIVW -0.122 (0.022) 0.000*** -0.058 (0.005) 0.000*** Outcome Standardized TE Standardized BT ATT (SE) P ATT (SE) P
+
+TWFE -0.033 (0.003) 0.000*** -0.203 (0.034) 0.000*** DRnt -0.037 (0.003) 0.000*** -0.268 (0.046) 0.000*** DRny -0.036 (0.003) 0.000*** -0.260 (0.034) 0.000*** AIPW -0.038 (0.004) 0.000*** -0.254 (0.038) 0.000*** AIVW -0.038 (0.004) 0.000*** -0.262 (0.036) 0.000*** to the worst university and assign the lowest-priority student to the best university, resulting in the greatest justified envy. We divide the observed justified envy by the greatest justified envy for each measure in each game. Table 1 shows the estimated overall ATTs for each standardized measure of justified envy. All methods give significant results. Figure S3 shows the estimated periodwise, groupwise, and dynamic ATTs for four mea-sures of standardized justified envy based on AIPW and AIVW. All ATTs are significant. There is an increasing effect across years since the parallel admission mechanism was imple-mented. 13 −0.20 −0.15 −0.10 −0.05 0.00 1 2 3 4
+
+Years since 2007 
+
+> ATT
+
+Value AIPW AIVW ATT across years: BS (std) 
+
+−0.06 −0.04 −0.02 0.00 1 2 3 4
+
+Years since 2007 
+
+> ATT
+
+Value AIPW AIVW ATT across years: BP (std) 
+
+−0.05 −0.04 −0.03 −0.02 −0.01 0.00 1 2 3 4
+
+Years since 2007 
+
+> ATT
+
+Value AIPW AIVW ATT across years: TE (std) 
+
+−0.4 −0.3 −0.2 −0.1 0.0 1 2 3 4
+
+Years since 2007 
+
+> ATT
+
+Value AIPW AIVW ATT across years: BT (std) 
+
+−0.5 −0.4 −0.3 −0.2 −0.1 0.0 1 2 3 4Group ATT  Value AIPW AIVW ATT across groups: BT (std) 
+
+−0.3 −0.2 −0.1 0.0 1 2 3 4Group ATT  Value AIPW AIVW ATT across groups: BS (std) 
+
+−0.075 −0.050 −0.025 0.000 1 2 3 4Group ATT  Value AIPW AIVW ATT across groups: BP (std) 
+
+−0.06 −0.04 −0.02 0.00 1 2 3 4Group ATT  Value AIPW AIVW ATT across groups: TE (std) 
+
+−0.20 −0.15 −0.10 −0.05 0.00 1 2 3 4Length after exposure ATT  Value AIPW AIVW Dynamic ATT over time: BS (std) 
+
+−0.075 −0.050 −0.025 0.000 1 2 3 4Length after exposure ATT  Value AIPW AIVW Dynamic ATT over time: BP (std) 
+
+−0.06 −0.04 −0.02 0.00 1 2 3 4Length after exposure ATT  Value AIPW AIVW Dynamic ATT over time: TE (std) 
+
+−0.4 −0.3 −0.2 −0.1 0.0 1 2 3 4Length after exposure ATT  Value AIPW AIVW Dynamic ATT over time: BT (std) Figure S3: Estimated periodwise, groupwise, and dynamic ATTs for four measures of stan-dardized justified envy based on AIPW and AIVW. 14

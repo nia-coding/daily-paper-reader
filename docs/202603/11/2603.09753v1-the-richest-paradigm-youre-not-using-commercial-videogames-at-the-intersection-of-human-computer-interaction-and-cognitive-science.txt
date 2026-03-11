@@ -1,0 +1,1306 @@
+Title: 2603.09753v1.pdf
+
+URL Source: https://arxiv.org/pdf/2603.09753v1
+
+Published Time: Wed, 11 Mar 2026 01:12:21 GMT
+
+Number of Pages: 22
+
+Markdown Content:
+The Richest Paradigm You're Not Using: Commercial Videogames at the Intersection of Human -
+
+Computer Interaction and Cognitive Science 
+
+Jaap Munneke 1, Jennifer E. Corbett 2,3 
+
+# Affiliations 
+
+# 1.  Institute for Cognitive and Brain Health, Northeastern University 
+
+# 2.  Institute for Medical Engineering & Science, Massachusetts Institute of Technology 
+
+# 3.  Computer Science and Artificial Intelligence Lab, Massachusetts Institute of Technology Abstract 
+
+Synthesizing from Corbett and Munneke (2025), who demonstrated that questions originating in human -
+
+computer interaction (HCI) and game design can be answered through the theoretical toolkit of cognitive 
+
+science, this perspective argues that commercial vide ogames represent a largely underutilized research 
+
+environment at the intersection of these two fields. Cognitive science has long relied on carefully controlled 
+
+laboratory paradigms to study perception, attention, and executive functioning, raising persist ent questions 
+
+about ecological validity. HCI, by contrast, has spent decades developing methods for studying behavior in 
+
+rich, complex, interactive environments, but has been less concerned with what that behavior reveals about 
+
+underlying cognitive mechani sms. Commercial videogames sit precisely at this intersection. They are 
+
+cognitively demanding by design, motivating by nature, and consistent enough across players to support 
+
+systematic behavioral comparison. The affordance structure of a game does the wor k that experimental 
+
+manipulations typically require of the researcher, instantiating cognitive demands that are genuine, 
+
+sustained, and meaningful to the player. We argue that perception, attention, and executive functioning can 
+
+be meaningfully studied wit hin commercial games using a minimal observational toolkit of screen 
+
+recording, eye tracking, and behavioral timing. We propose an affordance -cognition mapping framework 
+
+as a systematic basis for game selection and research design and offer practical metho dological 
+
+recommendations for researchers wishing to work in this space. Commercial Videogames as a Testing Ground 
+
+Every year, cognitive scientists publish thousands of studies on perception, attention, memory, and 
+
+executive functioning in various academ ic journals. The vast majority of these studies share a common 
+
+methodological approach . A participant sits in front of a screen and responds to stimuli that have been 
+
+carefully stripped of real -world complexity , such as a flanker task (Eriksen & Eriksen, 1974) , a spatial 
+
+cueing paradigm (Posner et al., 1980) or an N -back sequence (Kirchner, 1958) . The logic is the same 
+
+independent of the used paradigm . B y reducing the complex world to its essential , barebones variables, it 
+
+is possible to isolate cognitive mechanisms with high precision. However, this reductioni st approach raises 
+
+a question of whether we are studying cognition as it actually operates in the real worl d, or are we studying 
+
+a poor simulation of it ? This question is not novel. Nearly 50 years ago, Neisser (1976) asked whether 
+
+laboratory psychology was producing findings that could ever speak to cognition as it unfolds in the real 
+
+world. Th is problem is not simply philosophical in nat ure as converging evidence shows that performance 
+
+on certain cognitive tasks fails to predict real -world functioning that relies on the studied cognitive 
+
+mechanism (Burgess et al., 2006; Cha ytor et al., 2006; Chaytor & Schmitter -Edgecombe, 2003; Rosenholtz, 
+
+2025) . Attention, memory, and executive control as measured in the laboratory may not fully capture how 
+
+these mechanisms operate when motivation is high, environmental demands are rich, and the consequences 
+
+of performance are meaningful. Th is ecological validity question, long present in methodological 
+
+discussions, points toward a push for expanding the experimental toolkit rather than replacing what already 
+
+works. Commercial videogames represent a promising, if perhaps unexpected, candidate for bridging this 
+
+gap. 
+
+On any given day, millions of hours of gameplay are logged across the world (Bavelier et al., 2010; 
+
+Przybylski & Weinstein, 2019) . Players navigate three -dimensional environments under time pressure, 
+
+track multiple moving object s simultaneously, switch rapidly between tasks, form and update spatial 
+
+representations of vast virtual worlds, and make sequential decisions whose consequences play out across 
+
+hundreds of subsequent events. Crucially, each of these demands is a direct ref lection of deliberate game 
+
+design choices . From the perspective of a cognitive scientist, this is extraordinary . I n a single session of a 
+
+modern action game such as Call of Duty or Elden Ring , a player may exercise selective attention, sustained 
+
+vigilance, working memory, inhibitory control, and prospective planning . This all happens within a context 
+
+that is genuinely engaging to the person gaming . The motivational problem that plagues laboratory research 
+
+virtually disappears. Participants do not need to be externally motivated into sustained effort. They are, in 
+
+the most literal sense, playing. 
+
+The present perspective argues that commercial videogames, designed purely for entertainment, 
+
+represent a largely underutilized research environment at the intersection of cognitive science and human -
+
+computer interaction (HCI) . Specifically, we argue that three foundational cognitive constructs , namely perception, attention, and executive functioning (including working memory) , can be meaningfully studied 
+
+within commercial games using a minimal observational toolkit: screen recording, eye tracking, and 
+
+beha vioral timing (derived from existing in -game metrics or based on precise measurements of screen 
+
+recordings). This is by no means an argument for abandoning controlled laboratory paradigms, which 
+
+remain indispensable for mechanistic inquiry. Rather, it is a n argument for complementing them with a 
+
+class of experimental environments in which genuine cognitive demand arises from the structure of the 
+
+game itself in a context that is inherently motivating, sustained, and meaningful . These are conditions that 
+
+are at best difficult to replicate in classical laboratory settings 
+
+This perspective should be distinguished from a related but separate line of work. A growing and 
+
+productive research tradition has pursued the gamification of cognitive paradigms (Lumsden et al., 2016) .
+
+Gamified tasks purposefully redesign experimental tasks to incorporate game -like elements such as points, 
+
+levels, narratives, and reward structures. This approach has yielded numerous important insights. For 
+
+example, Seitz and colleagues have demonstrated that embedding perceptual l earning within game -like 
+
+training environments can substantially enhance learning rates and transfer, in part by leveraging the 
+
+motivational and arousal -related benefits that game mechanics elicit (Deveau et al., 2014; Seitz, 2017) . The 
+
+current paper does share some of the gamification principles in that motivation, engagement, and sustained 
+
+effort are not noise variables to be controlled away, but meaningful modulators of cognitive performance. 
+
+However, our focus is different. R ather than designing tasks around cogn itive targets, we ask what can be 
+
+learned from tasks that were never designed with cognitive science in mind at all , but whose design 
+
+nonetheless structures cognitive demand in ways that can be systematically mapped . This is also where HCI 
+
+becomes relevant , as researchers have long studied how people behave within complex interactive systems. 
+
+HCI has spent decades developing practical tools for studying exactly this kind of behavior . However, 
+
+historically HCI has been less concerned with what that behavior reveals about underlying cognitive 
+
+architecture. Cognitive science, in turn, has the theoretical tools to make sense of that behavior, but has 
+
+been slower to incorporate the kind of rich, real -world environments and observational HCI methods. 
+
+Commercial vi deogames sit right at this intersection, which is the position this paper takes .
+
+Two complementary approaches: HCI and Cognitive Science 
+
+HCI is concerned with how people behave when engaging with digital systems in terms of how they 
+
+navigate interfaces, allocate attention across multiple, competing information sources, make decisions 
+
+under time pressure, and adapt to novel interaction demands, each of which reflects a deliberate design 
+
+choice about what the system requires of its user (Carroll, 1997) . As a discipline, HCI has developed a 
+
+robust methodological toolkit for studying exactly these behaviors: interaction logging, behavioral 
+
+obs ervation, eye tracking, think -aloud protocols, and task performance analys es. Crucially, HCI does not require access to the internal architecture of the systems it studies. Instead, i t observes, records, and 
+
+interprets behavior at the interface. 
+
+Cognitive science, by contrast, is concerned with the mechanisms that underlie behavio r as 
+
+representational and computational processes which give rise to constructs such as perception, attention, 
+
+working memory, and executive functioning . Cognitive science is known for its emphasis on experimental 
+
+control . I solating variables, manipulating conditions, and measuring responses with precision has produced 
+
+an extraordinarily detailed understanding of the human cognitive system , but often at the cost of the very 
+
+complexi ty that characterizes cognition in the real world. As noted, the tasks and environments cognitive 
+
+scientists use to study cognition are , by design, sparse and impoverished relative to the environments in 
+
+which humans normally operate. 
+
+The re is a clear asymmetry between the two fields. HCI has the methods to study behavior in rich, 
+
+complex, naturalistic interactive environments but has historically been less inve sted in asking what that 
+
+behavior reveals about underlying cognitive mechanisms (Carroll, 1997) . Cognitive science has the 
+
+theoretical frameworks to interpret behavior in mechanistically meaningful terms but has mostly held on to 
+
+the experimental cont rol that its method ology depend s on. Commercial videogames represent an 
+
+environment where this asymmetry can be resolved. Games are interactive systems of considerable 
+
+complexity (think of a game like StarCraft or Horizon Zero Dawn ) but they also place sus tained, 
+
+simultaneous demands on perception, attention, memory, and executive functioning in ways that map 
+
+directly onto cognitive constructs . We argue that this mapping can be made explicit and systematic .
+
+Importantly, t he se constructs can be studied with the tools provided by the field of HCI and interpreted 
+
+with in the theoretical framework cognitive scientists have developed over the last deca des . Yet, n either 
+
+field alone has fully exploited this combination. Our r ecent work provides an excellent starting point. We 
+
+(Corbett & Munneke, 2025) used experienced console gamers as participan ts to investigate why some 
+
+players invert the y -axis on their controllers . This exemplifies a question that originated in HCI and game 
+
+design, but whose answer turned out to hinge on individual differences in mental rotation speed and 
+
+stimulus -response com patibility, two constructs studied within cognitive science. This study required 
+
+synthesizing literature across HCI, human factors, ergonomics, and cognitive psychology, and serves as a 
+
+concrete illustration of how questions that originate in one field can be answered by drawing on the 
+
+theoretical toolkit of another .
+
+It is worth being explicit about what this framing implies . We are not arguing that HCI and 
+
+cognitive science should merge, nor that game research should replace either field's existing agenda . We 
+
+are arguing that commercial videogames offer a shared research environment in which the methods of one 
+
+field and the theory of the other can be put to work together and that doing so stands to benefit both. The use of commercial videogames in resear ch 
+
+The argument that commercial videogames can be a productive research environment rests on several 
+
+converging properties that are difficult to find in any other single context (Sobczyk et al., 2015) . Below we 
+
+outline five properties that we argue reflect a genuine alignment between the structure of gameplay and the 
+
+demands o f cognitive and HCI research. 
+
+The first property is ecological validity . Most c ommercial games are not designed to be easy or 
+
+cognitively undemanding. They are designed to be engaging, which in practic al terms means that they 
+
+impose sustained, varied, and often intense cognitive demands on the player. A player navigating a fast -
+
+paced first -person shooter such as Counter Strike must continuously parse a cluttered visual scene, suppress 
+
+irrelevant distractors, track multiple moving targets, and respond with s peed and accuracy , all at the same 
+
+time . A player managing an empire or a large military in a real -time strategy game (e.g. , Age of Empires) 
+
+must maintain and update multiple representations in working memory, plan several moves ahead, and 
+
+switch flexibly between competing task demands. These are by no means approximations of cognitive 
+
+constructs . T hey are instantiations of them, embedded in a context that is richer and more dynamic than any 
+
+laboratory task could reasonably replicate (Green & Bavelier, 2012) .
+
+The second property is reproducibility . A n often -heard objection to naturalistic research is that 
+
+environments vary too much across participants to allow meaningful comparison (Boot et al., 2011) .
+
+Commercial games largely sidestep this problem. A given level or map presents the same stimuli, the same 
+
+demands, the same constraints and the same affordance structure to every player who encounters it. In this 
+
+respect, a commercial game functions as a standardized environment . This environment is far more complex 
+
+than a laboratory paradigm, but no t less consistent across participants. This consistency makes systematic 
+
+behavioral comparison possible .
+
+The third and perhaps most relevant property for our present argument builds dir ectly on this 
+
+consistency. The concept of affordances, introduced by Gibson (1979) and developed within H CI by 
+
+Norman (2013) , refers to the action possibilities that an environment offers its user. Game environments 
+
+are designed to invite specific interactions, and it is this affordance structure that makes them theoretically 
+
+tractable as research environments. Environments and e lements within them draw the player's eye to 
+
+particular locations, reward particular response patterns, and impose particular sequences of decisions. 
+
+These affordances emerge from deliberate design choices about what the game demands of its player 
+
+(Corbett & Munneke, 2025) . Crucially, these demands can be mapped onto cognitive constructs without 
+
+requiring access to the game's underlying code. For example, a researcher does not need to know how the 
+
+game engine calculates enemy behavior to observe that a play er of a fast -paced action game like Overwatch 
+
+must rapidly detect and respond to threats appearing in the visual periphery . This is a naturalistic example of stimulus -driven exogenous attentional behavior (Posner et al., 1980) . The affordance structure of the 
+
+game does the work of the experimental manipulation. 
+
+A fourth and related property is that commercial games are uncontaminated by experimental intent .
+
+Their demands emerge from the logic of play and from the affordance structure of the game environment, 
+
+but not from a researcher's hypothesis. This is in sharp contrast to gamified paradigms, which are designed 
+
+backward from a cognitive target. For instance, a game like StarCraft was not designed to mea sure cognitive 
+
+flexibility , but this real -time strategy game imposes exactly the kind of sustained, rapid switching between 
+
+multiple information sources that cognitive flexibility tasks are designed to capture (Glass et al., 2013). 
+
+Similarly, a game like The Sims was not designed to study social cognition, yet it places demands on 
+
+planning, prospective memory, and goal management that map directly onto executive functioning 
+
+constructs. We argue that the absence of design intent is not a limitation but an asset . I t means that any 
+
+cognitive signal extracted from gameplay reflects something genuine about how the construct operates 
+
+under naturalistic conditions versus conditions engineered to elicit it. 
+
+Finally, commercial games offer a rich and ecological ly grounded source of individual differences 
+
+in game related data. Players vary in expertise, strategy, and cognitive /play style . These differences are 
+
+expressed continuously throughout gameplay rather than in a single response to a probe stimulus. This 
+
+va riance is not ‘noise ’ to be averaged away . I t is signal to be interpreted. Individual differences in gameplay 
+
+behavior can serve as sensitive indices of the cognitive constructs under investigation. 
+
+Taken together, these properties make a strong argument for commercial videogames a s a potent 
+
+research environment that is ecologically valid, reproducible, theoretically interpretable, and rich in 
+
+individual differences data. It is clear that these enviro nments can be used for cognitive and HCI research ,
+
+but it is not yet understood how to extract valid measures from them or precisely what constructs can be 
+
+targeted by these metrics . The remainder of this paper addresses both questions .
+
+What Can Be Measured: An HCI -Informed Observational Toolkit 
+
+Studying cognition inside a commercial videogame presents an immediate practical challeng e. T he 
+
+researcher has no access to the game's internal architecture (Sobczyk et al., 2015) . There are no event files, 
+
+no millisecond -precise stimulus logs, no parameter controls. However, the researcher does have everything 
+
+visible and measurable from the outside inclu ding the screen, the player's eyes, and the timing of observable 
+
+behavior. The question is whether this is enough for research purposes aimed at understanding people’s 
+
+behavior and their interactions with the environment. We argue that it is, and that HCI provides both the 
+
+methodological precedent and the practical tools to do so. 
+
+HCI has never required access to a system's internal architecture to study how people interact with 
+
+it. Usability research, player experience evaluation, and interaction analysis have all been conducted productively on commercial software using purely observational methods. The tools HCI has developed 
+
+for this purpose are directly applicable to the study of cognition in gameplay contexts .
+
+Screen recording is the most accessible and perhaps most underutilized tool in this context. A
+
+continuous recording of the game display captures the full behavioral output of the player over time, 
+
+including every decision, every movement, and every error . With careful post -hoc event coding, screen 
+
+recordings yield a rich reconstruction of decision timing, response latencies, error patterns, strategy 
+
+switches, and spatial navigation choices shaped by the game's affordance structure . In HCI, screen recording 
+
+and interaction logging have long be en used to evaluate how users navigate complex interfaces and where 
+
+breakdowns in performance occur (Carroll, 1997) . In a cognitive science context, the same data stream can 
+
+be used to index constructs such as inhibitory control (fail ures to suppress a prepotent response in a game 
+
+like Overwatch ; see Burgess et al., 2006) , cognit ive flexibility (shifts in strategy following negative 
+
+feedback in StarCraft II), and prospective memory (whether a player returns to a location or objective after 
+
+an interruption in an open -world game like The Elder Scrolls or Red Dead Redemption) . Import antly, 
+
+behavioral timing can be extracted from screen recordings with considerable precision through frame -by -
+
+frame analysis, going some way toward compensating for the absence of engine -level event logging .
+
+Behavioral timing can be derived from frame -by -frame analysis of screen recordings. Many 
+
+gameplay events present natural choice -reaction opportunities arising from the game's affordance structure, 
+
+such as a threat appearing in the visual field, a decision point in a navigation task, or a target emerging from 
+
+behind cover. Response latencies to these events can be extracted through frame analysis, providing 
+
+ecologically valid reaction time measures without requiring any modification of the game or any awareness 
+
+on the part of the player that timing is bei ng recorded. In addition to latency, the outcome s of action s can 
+
+often be scored directly from recording s, such as w hether a player successfully responds to a threat, cho ose s
+
+the correct path, or misses a target entirely. This combination of speed and accuracy measures is used in 
+
+standard laboratory paradigms but can also be captured in a context that the player experiences as entirely 
+
+natural. The unobtrusiveness of this approach is methodologically usefu l, as it avoids the demand 
+
+characteristics that can accompany explicit timing instructions in laboratory settings (Iarygina et al., 2025) .
+
+Eye tracking is well established in both HCI and cognitive science and is a promising tool for 
+
+studying cognition during gameplay. In HCI, eye tracking has been used extensively to evaluate interface 
+
+design, including identifying which elements attract fixations, whether players notice critical information 
+
+displayed on screen, and whether attentional guidance works as designers intended (Montolio -Vila et al., 
+
+2024) . In cognitive science, eye tracking provides a continuous, high -resolution window into attentional 
+
+allocation, scene parsing strategies, and cognitive load. The combination of these two frameworks is 
+
+particularly powerful in a gameplay context. Where a player looks during gameplay reflects both their 
+
+attentional priorities and the degre e to which the interface successfully guides behavior in terms of whether they fixate on a critical threat, an objective marker, or a peripheral distractor and whether they fixate on the 
+
+elements the designer intended. Scan path analysis can distinguish to p-down, goal -directed gaze patterns 
+
+from bottom -up, stimulus -driven capture . For example, in studies comparing expert and novice players of 
+
+StarCraft and League of Legends, experts showed wider gaze distributions and faster saccade velocities 
+
+than lower -sk illed players (Jeong et al., 2022, 2024) . Saccade metrics index the speed and efficiency of 
+
+visual processing under cognitive load and pupil diameter dilates reliably with increasing cognitive demand 
+
+providi ng a continuous, unobtrusive proxy for cognitive load that requires no behavioral response from the 
+
+player and no modification of the game environment (Beatty, 1982; Kahneman & Beatty, 1966; van der 
+
+Wel & van Steenbergen, 2018) . These measures are particularly useful in a commercial game context where 
+
+cognitive load fluctuates continuously and canno t be experimentally manipulated in the conventional sense. 
+
+Used together, these three tools can be extremely informative. Screen recording captures what the 
+
+player does and when , b ehavioral timing tells us how fast and how accurately the player respond s, a nd eye 
+
+tracking reveals where attention is directed before and during those actions. Crucially, all three can be 
+
+collected simultaneously during a single gameplay session, meaning the same moment in the game can be 
+
+examined from multiple angles at once (Jeong et al., 2022) . This is something that is difficult to achieve in 
+
+standard laboratory settings, where measurements tend to be collected one at a time. 
+
+# Cognitive Constructs in Gameplay 
+
+# The following three sections examine what this toolkit can reveal about three foundational 
+
+# cognitive constructs within commercial game environments : perception, attention, and executive 
+
+# functioning. For each construct , we consider both what HCI and cognitive science stand to gain, 
+
+# and what the existing empirical literature already demonstrates .
+
+Perception : Perception is the process by which sensory information is selected, organized, and 
+
+interpreted to form a representation of the environment. For both HCI and cognitive science, commercial 
+
+videogames can be used as powerful tools to understand how people per ceive complex dynamic displays. 
+
+Games present players with rich, rapidly changing visual scenes that demand continuous perceptual 
+
+processing under time pressure (Bavelier et al., 2010) .
+
+From an HCI perspective, perception in games is inseparable from interface design. Game 
+
+designers make deliberate choices about what should be visible, and where and when this information 
+
+should be presented. T hese are affordance decisions with direct cognitive consequences. For example, 
+
+enemy silhouettes can be contrast ed with backgrounds, health bars can be positioned in peripheral vision, 
+
+and threat indicators can pulse or flash to capture atte ntion. Whether these design -choices succeed in 
+
+directing perception as intended is an empirical question that eye tracking is well suited to answer. Studies examining gaze behavior during gameplay have shown that players do not always look where designers 
+
+assume they will, and that perceptual strategies vary considerably across individuals and expertise levels 
+
+(Mohan et al., 2023) . For instance, expert StarCraft players have been shown to distribute their gaze more 
+
+widely and execute faster saccades than lower -skilled players, covering more of the screen in less time 
+
+(Jeong et al., 2022) . Similar expertise -related differences in fixation duration and gaze distribution have 
+
+been documented in Le ague of Legends (Jeong et al., 2024) . A broader systematic review of eye tracking 
+
+studies in action video games confirms that gaze behavior during gameplay is sensitive to both task demands 
+
+and player expertise, though transfer to naturalistic tasks outside the game remains limited (Montolio -Vila 
+
+et al., 2024) . This gap between design intentions and actual perceptual behavior is a central question 
+
+addressed in HCI research and it has direct implications for cognitive science . I f we want to understand 
+
+how perceptio n operates in dynamic environments, we need to know what players are actually perceiving 
+
+versus what they are assumed to be perceiving. 
+
+From a cognitive science perspective, games have proven to be a productive environment for 
+
+studying perceptual learning and perceptual capacity. Foundational work by Green and Bavelier (2003) 
+
+demonstrated that habitual players of action video games outperformed non -players on a range of visual 
+
+attention tasks. These included the attentional blink paradigm, in which two targ ets appear in rapid 
+
+succession and the task is to detect the second target which can be presented before the visual system has 
+
+finished processing the first, multiple object tracking where the observer must keep track of several 
+
+independently moving target s among identical distractors, and measures of the spatial distribution of 
+
+attention that characterize how broadly and accurately a person can monitor information across the visual 
+
+field. Action game players showed advantages on all three types of tasks , s uggesting that their gaming 
+
+experience had shaped the way they allocate visual attention at a fundamental level. Crucially, a training 
+
+experiment established causality such that non -players trained on Medal of Honor (a fast -paced first -person 
+
+shooter presenting cluttered and rapidly changing visual environments ) showed marked improvements on 
+
+these tasks, while those trained on Tetris (a visually simple puzzle game ) did not. This landmark finding 
+
+not only demonstrated perceptual learning from co mmercial gameplay but showed that this learning 
+
+transferred broadly to untrained task . These findings run counter to the typical specificity of perceptual 
+
+learning observed in laboratory training paradigms (Green & Bavelier, 2012) . Rather than gameplay 
+
+experience in general , t he fast -paced, visually demanding affordance structure of the action game appears 
+
+to be the active ingredient. Subsequent work by Green and colleagues (2010) extended these findings to 
+
+lower -level perceptual capacities, showing that action game players exhibit enhanced visual acuity and 
+
+contrast sensitivity relative to non -players. Spence and Feng (2010) reviewed a broader body of evidence 
+
+showing that game -induced perceptual benefits extend to spatial cognition more generally, including mental 
+
+rotation and the spatial distribution of visual attention. Bediou and colleagues (2023) confirmed in a large -scale meta -analysis that perception is among the cognitive domains most reliably enhanced by action game 
+
+experience, with cross -sectional effect sizes in the moderate to large range. 
+
+What our observational toolkit adds to this picture is the ability to study perceptual behavior as it 
+
+unfolds during actual gameplay rather than inferring it from performance on separate laboratory tasks 
+
+administered before and after a training period. Eye tracking during gameplay allows researchers to observe 
+
+directly how players scan a complex scene, where they allocate fixations under varying levels of threat and 
+
+cognitive load, and how perceptual strategies develop with increasing expertise. This is qualitatively 
+
+different from measuring perceptual capacity in isolation. A play er who detects a peripheral threat that the 
+
+game's design places deliberately in the periphery is not simply demonstrating broad attentional field. 
+
+Instead, they are doing so while simultaneously managing working memory load, executing motor 
+
+responses, and monitoring multiple dynamic objects. Eye tracking captures this perceptual behavior in its 
+
+full cognitive context, something a laboratory attention task by definition cannot do. Screen recording 
+
+complements this by allowing the researcher to reconstruct e xactly what was on screen at the moment of 
+
+each fixation, providing the stimulus context that a standalone eye tracking dataset would lack. 
+
+Taken together, the HCI and cognitive science perspectives on perception converge on the shared 
+
+conclusion that game s are not just environments in which perception happens to be exercised. They are 
+
+environments in which perception is continuously demanded, shaped by deliberate design choices, and 
+
+measurable with the tools both fields have already developed. The remainin g question is not whether games 
+
+can tell us something about perception, but how much more we stand to learn once their potential as a 
+
+research environment is more widely recognized. 
+
+# Attention : Attention is a cognitive construct naturally associated with videogame research. Games 
+
+place continuous and often extreme demands on attentional resources, requiring players to select relevant 
+
+information from cluttered environments, sustain attentional focus over extended periods, suppress 
+
+irrelevant information, a nd divide attention across multiple sources of information and task demands that 
+
+arise directly from the game's affordance structure (Sampalo et al., 2023) . Both HCI and cognitive science 
+
+ha ve strong interest in understanding how attention operates in complex interactive environments, and 
+
+games offer a particularly productive environment for doing so. 
+
+From an HCI perspective, attention in games is fundamentally a design issue. Every element o f a 
+
+game interface competes for the player's limited attentional resources, and effective game design depends 
+
+on understanding how this competition is resolved in practice. Game designers use a range of techniques 
+
+to guide attention. Motion and animation a utomatically trigger bottom -up (exogenous) capture, spatial 
+
+layout and color contrast establish visual priority, and narrative context supports top -down goal -directed 
+
+search. Whether these techniques work as intended, and under what conditions they break d own, are 
+
+questions that HCI has the tools to answer. Eye tracking studies have shown that attentional capture by interface elements does not always align with designer intent . For example, El -Nasr and Yan (2006) 
+
+recorded gaze during play across two commercial game genres and found that visual attention patterns were 
+
+strongly shaped by genre -specific level design, with players in action -adventure games exploring the scene 
+
+more broadly while first -person shooter players anchored their gaze to the center of the screen . Desig ners 
+
+had implicitly structured these patterns t hrough the layout of the environment rather than through explicit 
+
+attentional cues. High cognitive load conditions can further disrupt attentional guidance in ways that have 
+
+direct implications for interface d esign. For instance, t he placement of heads -up display elements has been 
+
+shown to affect how quickly players detect critical information, with consequences not just for user 
+
+experience but for the cognitive demands the interface imposes (Caroux & Isbister, 2016) .
+
+From a cognitive science perspective , the attention literature on commercial games is one of the 
+
+mo re developed in the field. Green and Bavelier (2003) established that action game players show superior 
+
+performance across multiple attentional paradigms, including reduced attentional blink, broader spatial 
+
+distribution of attention, and enha nced multiple -object tracking capacity. Importantly, t raining non -players 
+
+on an action game produced measurable attentional improvements, while training on a non -action control 
+
+game did not. In successive meta -analyses, Bediou and colleagues (2018, 2023) confirmed that top -down 
+
+attention is the cognitive domain most robustly and reliably enhanced by action game experience, with 
+
+effect sizes among the largest observed in the cognitive training literature. Glass and colleagues (2013) 
+
+extended this to execut ive aspects of attention, demonstrating that training on the real -time strategy game 
+
+StarCraft selectively enhanced cognitive flexibility, the ability to rapidly switch between and coordinate 
+
+multiple information sources, while leaving perceptual speed lar gely unchanged. This dissociation is 
+
+theoretically important. It suggests that different game genres utilize different attentional control 
+
+components , and that genre is a meaningful variable in research design. Sustained attention has received 
+
+comparativel y less systematic study in commercial game contexts, but long gaming sessions constitute a 
+
+naturalistic vigilance paradigm where participants are genuinely motivated to maintain alertness over 
+
+extended periods that is virtually impossible to construct in a laboratory. 
+
+Our observational toolkit adds the ability to study attentional behavior continuously and in context, 
+
+rather than through isolated probe tasks. Eye tracking during gameplay captures moment -to -moment 
+
+attentional allocation across the visual sce ne, distinguishing between periods of focused, goal -directed 
+
+search and episodes of bottom -up capture by salient events. Pupil dilation provides a continuous index of 
+
+attentional load that fluctuates naturally with the demands of the game, allowing researc hers to identify 
+
+which game situations impose the greatest cognitive burden without requiring any interruption to gameplay. 
+
+Screen recording allows post -hoc identification of the specific game events that precede attentional failures, 
+
+such as a missed thre at, an overlooked objective, or an unnoticed interface element, providing an 
+
+ecologically grounded account of when and why attention breaks down. Behavioral timing can be used to measure the speed of attentional orienting to game events, yielding reaction time distributions that are 
+
+directly comparable to those obtained in standard laboratory attention paradigms but embedded in a far 
+
+richer behavioral context. 
+
+The HCI and cognitive science perspectives on attention complement each other in a particularly 
+
+pr oductive way in this domain. HCI asks whether the interface guides attention effectively and cognitive 
+
+science asks how much attention the player has available and how efficiently it is deployed. These are 
+
+different questions that can be answered by the sa me data, collected with the same tools, during the same 
+
+gameplay session. This convergence is a clear illustration of what the intersection of these two fields can 
+
+offer .
+
+Executive Functioning and Working Memory : Exec utive functioning refers to a set of higher -order 
+
+cognitive processes that manage, control, and coordinate goal -directed behavior. Its core components of 
+
+working memory, cognitive flexibility, and inhibitory control have been studied extensively within 
+
+cognitive science . This three -component model proposed by Miyake and colleagues (Miyake et al., 2000) 
+
+remains the dominant framework for understanding how these capacities relate to one another. For HCI, 
+
+executive functioning is equally important . N avigating a complex interface, managing multiple task -
+
+demands simultaneously, and making rapid decisions under time pressure and uncertainty all draw on the 
+
+same underlying capacities. Commercial videogames (particularly those that require strategic thinking and 
+
+real -time resource management ) place continuous and severe demands on all three components, making 
+
+them a particularly productive environment for studying this meta -construct. Basak and colleagues (2008) 
+
+trained older adults on the real -time strategy game Rise of Nations and found improvements across multiple 
+
+executive functioning measures including task switching and working memory, while Kühn and co lleagues 
+
+(Kühn et al., 2014) found that training on Super Mario 64 produced structural changes in brain regions 
+
+as sociated with spatial navigation, working memory, and strategic planning. Both findings illustrate how 
+
+the executive demands built into these games, as affordances of the game environment rather than 
+
+experimentally imposed constraints, can drive meaningful cognitive change. 
+
+From a cognitive science perspective, the evidence linking commercial game play to executive 
+
+functioning is substantial but more nuanced than the evidence for perception and attention. Working 
+
+memory is perhaps the most well -studied comp onent in this context. Oei and Patterson (2013) demonstrated 
+
+in a training study using multiple commercial mobile games that spatial working memory specifically 
+
+improved following training on a spatial memory game, while different genres produced different patterns 
+
+of transfer consistent with the cognitive demands of each game. Blacker and colleagues (2014) trained 
+
+participants on Call of Duty: Black Ops and found improvements in visual working memory capacity, 
+
+pointing to the component -specific nature of game -related executive benefits, with gains tied to the specific 
+
+attentional affordances the game places on the player rather than reflecting a general executive boost. Glass and colleagues (2013) further demonstrated that training on StarCraft selectively enh anced cognitive 
+
+flexibility as measured by a broad battery of non -game tasks, while leaving perceptual speed unchanged. 
+
+This dissociation is important because it maps onto the distinction between fast thinking and fast perception 
+
+and suggests that the cogn itive profile of a game can be characterized with some precision from its design 
+
+features alone. Dale and Green (2017) reinforced this point in a meta -analysis showing that specific game 
+
+features like the requirement to manage multiple simultaneous objects and switch between information 
+
+sources are better predictors of executive function transfer than genre labels alone . This is precisely what 
+
+an affordance -cognition framework would predict. Inhibitory control has rec eived less systematic attention 
+
+in commercial game research than working memory and flexibility, but the available evidence is suggestive. 
+
+By requiring players to suppress responses to irrelevant stimuli while prioritizing targets, action games 
+
+constitute a naturalistic stop -signal paradigm of sorts. Jakubowska and colleagues (2021) found that actions 
+
+per minute during StarCraft II play were negatively associated with improvement on a stop -signal task, 
+
+sugges ting that the relationship between game -derived behavioral metrics and inhibitory control is 
+
+detectable but complex .
+
+Our observational toolkit adds considerably to this picture. Working memory load during gameplay 
+
+is not directly observable, but it leaves behavioral traces that are. The frequency and pattern of task -
+
+switching, the latency between perceiving a game event and responding to it, and the rate of strategic errors 
+
+are all measurable from screen recordings and behavioral timing, and all reflect th e efficiency of executive 
+
+control in a way that a standalone laboratory task cannot capture in context. For example, i n a game like 
+
+StarCraft II, these traces are continuously generated across an entire match, providing a far richer behavioral 
+
+record than any single probe task could yield. Eye tracking adds a further layer . P upil dilation fluctuates 
+
+with working memory load in real time (Beatty, 1982) , and scan path analysis can reveal whether a player 
+
+is systematically monitoring the information sources that their strategy requires, or whether executive 
+
+control has broken down in ways that a re visible in the gaze record before they are visible in behavior 
+
+(Hayhoe & Ballard, 2005) . Together, these measures allow the researcher to study executive functioning 
+
+not as an isolated capacity assessed in a single probe task, but as a dynamic process unfolding across 
+
+hundreds of decisions structured by the game environment itself in a setting where the stakes actually matter 
+
+to the player. 
+
+The convergence of HCI and cognitive science in this domain suggests that both fields are circling 
+
+around the same questions but have not found a shared language to ask them yet. HCI wants to know how 
+
+to design interfaces that support rather than overload executive functioning. Cognitive science wants to 
+
+know how working memory, flexibility, and inhibition operate under genuine cognitive pressure. An 
+
+affordance -cognition framework offers precisely this shared language where the executive demands built 
+
+into a game environment are understood as structural properties t hat are relevant to both the designer and the cognitive scientist . S tudied with the tools both fields have developed, commercial videogame s offer a 
+
+context in which both questions can be addressed simultaneously, and where the answers to one are likely 
+
+to inform the other. 
+
+Towards an Integrated Framework 
+
+In the current perspective we have argued that commercial videogames can be a productive research 
+
+environment for both HCI and cognitive science . What remains is to develop a clearer understanding of 
+
+what a genuinely integrated research program would look like. The main difficulty of such a framework is 
+
+the mapping problem . G iven a commercial game, how does a researcher determine what cognitive 
+
+co nstructs it is equipped to study and what HCI questions it is able to answer? At present, such a 
+
+determination is made largely on an ad hoc basis. Researchers select games that seem intuitively relevant 
+
+to their construct of interest or that have been used in prior work without a clear theoretical rationale for 
+
+why that game taps the construct of interest. This is by no means a trivial problem. Dale and Green (2017) 
+
+demonstrated in their meta -analysis that genre labels are poor predictors of cognitive transfer. Instead, they 
+
+found that what matters is the specific design features of the game. A first -person shooter and a real -time 
+
+strategy game may both be classified as action games, yet they place fundamentally different demands on 
+
+perception, working memory, and executive control. 
+
+What is needed is an affordance -cognition mapping: a systematic account of how game design 
+
+features translate into cognitive demands. In a game context, affordances are the interactions the game 
+
+invites, the decisions it requires of the player, the information it presents, and the responses it rewards or 
+
+punishes. Mapping these affordances onto cognitive constructs would allow a researcher to approach a 
+
+commercial game not as a black box, but as a structured cognitive environment with demands that can be 
+
+characterized in advance of data collection. A game that requires simultaneous tracking of multiple 
+
+independent agents affords the study of divided attention and working memory capacity. A game that 
+
+penalizes impulsive responses and rewards delayed action affords the study of inhibitory control. A game 
+
+that presents the player with a novel environment to be navigated without a map affords the study of spatial 
+
+memory and cognitive mapping. We (Corbett & Munneke, 2025) have provided the first concrete 
+
+illustration of this logic by demonstrating that the stimulus -response -effect compatibility structure of 3 rd 
+
+person games can be mapped to cogniti ve constructs like mental rotation and response selection, yielding 
+
+measurable predictions about individual difference in players’ behavior. These mappings are not perfect as 
+
+games are complex and their demands sometimes interact and overlap. However, game s are principled, and 
+
+they provide a basis for pre -registered research designs that specify in advance which constructs a given 
+
+game is expected to illuminate and through which observational measures. Difficulty scaling deserves special mention as a method ological asset that commercial games 
+
+inherently provide. Most commercial games include adaptive difficulty systems, or at minimum offer 
+
+discrete difficulty levels that modulate cognitive load in principled way s. From a research perspective, this 
+
+is equival ent to task demand manipulation that the researcher does not have to engineer. A player 
+
+progressing through increasingly difficult levels of a game is experiencing a structured increase in cognitive 
+
+load that can be tracked continuously with our observatio nal toolkit. Pupil dilation will increase, scan paths 
+
+will change, response latencies will lengthen, and error rates will rise in ways that reflect the cognitive cost 
+
+of each increment in difficulty. This natural variation in demand is an experimental vari able that laboratory 
+
+paradigms typically have to laboriously construct but that commercial games provide as a design feature. 
+
+Individual differences that are often treated as a source of variance to be controlled in laboratory 
+
+research now become a researc h asset within this framework. Players vary enormously in expertise, age, 
+
+cognitive style, and gaming history, and these differences ar e signals, not nois e. A player with high working 
+
+memory capacity will manage a complex RTS environment differently from o ne with lower capacity, and 
+
+those differences will be visible in their gaze patterns, action sequences, and decision latencies. Expertise 
+
+gradients are particularly valuable . C omparing novice and expert players on the same game and the same 
+
+observational m easures provides a within -game analogue of cross -sectional designs that have been 
+
+productive in the cognitive training literature , but without requiring a training intervention. The same logic 
+
+extends to clinical populations. Games that tax specific cognit ive systems can in principle serve as 
+
+ecologically valid assessment environments for populations in whom those systems are compromised, such 
+
+as patients with frontal lobe damage, individuals with ADHD, or older adults experiencing age -related 
+
+cognitive dec line. The ecological validity and motivational properties of commercial games make them 
+
+particularly well suited to populations where standard laboratory tasks are poorly tolerated or insufficiently 
+
+motivating. 
+
+It is also important to be clear about what our framework cannot do. Without engine -level access, 
+
+certain mechanistic questions remain out of reach. The precise timing of stimulus onset, the exact 
+
+parameters of cognitive load manipulation, and the internal state of the game at any given moment are no t
+
+directly accessible to the external observer. These constraints mean that the approach described here is 
+
+better suited to ecological questions like, “H ow does cognition operate in rich, naturalistic environments ?” 
+
+versus mechanistic ones like, “W hat are the precise computational processes that underlie a given cognitive 
+
+operation ?” Mechanistic questions are best answered in the laboratory , whereas ecological questions are 
+
+best answered in our framework . A mature research program can use both, choosing the appropriate 
+
+environment for the question being asked. 
+
+Finally, the development of a n integrated research framework between HCI and cognitive science 
+
+will require methodological standardization. Pre -registration of hypotheses and analysis plans, standardized protocols for screen recording and eye tracking in game contexts, agreed conventions for behavioral cod ing, 
+
+and open data sharing could all contribute to a cumulative literature that is currently fragmented across 
+
+disciplines, methodologies, and game genres. The call for such standardization is not new in either field, 
+
+but it takes on particular urgency at an intersection where the risk of incompatible methods and 
+
+incommensurable findings is especially high. Commercial videogames are a shared research environment 
+
+deserving of a shared methodological infrastructure. 
+
+Methodological Recommendations 
+
+The argume nt developed in this paper is only as useful as the research it enables. This section offers a set 
+
+of practical recommendations for researchers wishing to use commercial videogames as a research 
+
+environment. 
+
+1. Game selection should be driven by the affordanc e-cognition mapping described in the 
+
+previous section. The cognitive construct or HCI question of interest should determine the 
+
+game, not the other way around. This selection should be explicitly justified in any resulting 
+
+publication, with reference to th e specific game features that make it appropriate for the 
+
+question being asked. Genre labels alone are insufficient justification. The observational setup 
+
+should be standardized within and across studies wherever possible. This includes fixed 
+
+viewing dista nce, controlled lighting conditions, consistent eye tracker placement and 
+
+calibration procedures, and screen recording at a frame rate sufficient for behavioral timing 
+
+extraction. These are not absolute requirements, but their absence makes cross -study 
+
+com parison difficult and limits the accumulation of a coherent literature. 
+
+2. Within -subject designs are strongly preferable to between -subject designs given the substantial 
+
+individual variability in gaming experience and cognitive baseline. Where between -subjec t
+
+comparisons are necessary, gaming history should be assessed and reported in detail, as prior 
+
+experience with a specific game or genre is a meaningful covariate that is routinely 
+
+underreported in the existing literature. 
+
+3. Behavioral coding of screen recordings should follow pre -specified schemes that are developed 
+
+and piloted before data collection begins. Coders should be blind to participant group or 
+
+condition, and inter -rater reliability should be standardly reported. Th e coding scheme itself 
+
+should be made publicly available to facilitate replication. 
+
+4. Pre -registration of hypotheses, game selection rationale, and analysis plans is strongly 
+
+encouraged. The commercial game literature has historically been vulnerable to flex ible 
+
+analysis and selective reporting . P re -registration is the most practical safeguard against these problems. Open data sharing, where recordings and eye tracking data can be made available 
+
+without compromising participant privacy, would further strength en the cumulative literature. 
+
+5. Finally, researchers should be mindful of the ethical and practical considerations that 
+
+commercial software raises. Institutional licensing, participant consent for recording during 
+
+gameplay, and the potential for deidentifica tion of behavioral data all require consideration at 
+
+the design stage rather than as afterthoughts. 
+
+Conclusion 
+
+Commercial videogames are among the most cognitively demanding environments that people 
+
+voluntarily inhabit. They tax perception, attention, wor king memory, and executive functioning 
+
+simultaneously in a context that is motivating, reproducible, and accessible. Nonetheless , they remain 
+
+largely underutilized as research environments , treated as objects of study rather than tools for studying the 
+
+min d. 
+
+We have argued for a productive path forward that lies at the intersection of HCI and cognitive 
+
+science. HCI brings a mature observational methodology and a long history of studying behavior in 
+
+complex interactive systems without requiring access to the ir internal architecture. Cognitive science brings 
+
+the theoretical frameworks to interpret that behavior in terms of the constructs that matter most for 
+
+understanding human cognition. Neither field alone has fully realized what commercial games have to off er. 
+
+Together, they are well positioned to do so. 
+
+Our observational toolkit using screen recording, eye tracking, and behavioral timing is modest in 
+
+its technical demands but considerable in its reach. It allows the researcher to study perception, attention ,
+
+memory, and executive functioning as they operate in a genuinely naturalistic context, without sacrificing 
+
+the systematic rigor that scientific inquiry requires. The constraints imposed by proprietary software are 
+
+real, but they are clarifying rather tha n prohibitive. They redirect the researcher toward ecological questions 
+
+that are, in many respects, more important than the mechanistic ones they preclude. 
+
+The games people play at home contain more cognitive science than has yet been extracted from 
+
+them. This is something we can certainly change w ith the right questions, the right tools, and a willingness 
+
+to work across disciplinary boundaries. References 
+
+Basak, C., Boot, W. R., Voss, M. W., & Kramer, A. F. (2008). Can training in a rea l-time strategy video 
+
+game attenuate cognitive decline in older adults? Psychology and Aging , 23 (4), 765 –777. 
+
+https://doi.org/10.1037/a0013494 
+
+Bavelier, D., Green, C. S., & Dye, M. W. G. (2010). Children, Wired: For Better and for Worse. Neuron ,
+
+67 (5), 692 –701. https://doi.org/10.1016/j.neuron.2010.08.035 
+
+Beatty, J. (1982). Task -evoked pupillary responses, processing load, and the structure of processing 
+
+resources. Psychological Bulletin , 91 (2), 276 –292. https://doi.org/10.1037/0033 -2909.91.2.276 
+
+Bediou, B. , Adams, D. M., Mayer, R. E., Tipton, E., Green, C. S., & Bavelier, D. (2018). Meta -analysis of 
+
+action video game impact on perceptual, attentional, and cognitive skills. Psychological Bulletin ,
+
+144 (1), 77 –110. https://doi.org/10.1037/bul0000130 
+
+Bediou, B. , Rodgers, M. A., Tipton, E., Mayer, R. E., Green, C. S., & Bavelier, D. (2023). Effects of 
+
+action video game play on cognitive skills: A meta -analysis. Technology, Mind, and Behavior ,
+
+4(1), 28 –48. https://doi.org/10.1037/tmb0000102 
+
+Blacker, K. J., Curby, K. M., Klobusicky, E., & Chein, J. M. (2014). Effects of action video game training 
+
+on visual working memory. Journal of Experimental Psychology: Human Perception and 
+
+Performance , 40 (5), 1992 –2004. https://doi.org/10.1037/a0037556 
+
+Bo ot, W. R., Blakely, D. P., & Simons, D. J. (2011). Do Action Video Games Improve Perception and 
+
+Cognition? Frontiers in Psychology , 2. https://doi.org/10.3389/fpsyg.2011.00226 
+
+Burgess, P. W., Alderman, N., Forbes, C., Costello, A., M -A.coates, L., Dawson, D. R., Anderson, N. D., 
+
+Gilbert, S. J., Dumontheil, I., & Channon, S. (2006). The case for the development and use of 
+
+“ecologically valid” measures of executive function in experimental and clinical 
+
+neuropsychology. Journal of the International Neuropsycho logical Society , 12 (2), 194 –209. 
+
+https://doi.org/10.1017/S1355617706060310 
+
+Caroux, L., & Isbister, K. (2016). Influence of head -up displays’ characteristics on user experience in 
+
+video games. International Journal of Human -Computer Studies , 87 , 65 –79. 
+
+http s://doi.org/10.1016/j.ijhcs.2015.11.001 
+
+Carroll, J. M. (1997). Human –computer interaction: Psychology as a science of design. International 
+
+Journal of Human -Computer Studies , 46 (4), 501 –522. https://doi.org/10.1006/ijhc.1996.0101 
+
+Chaytor, N., & Schmitter -Edgecombe, M. (2003). The Ecological Validity of Neuropsychological Tests: A 
+
+Review of the Literature on Everyday Cognitive Skills. Neuropsychology Review , 13 (4), 181 –
+
+197. https://doi.org/10.1023/B:NERV.0000009483.91468.fb 
+
+Chaytor, N., Schmitter -Edgecombe, M., & Burr, R. (2006). Improving the ecological validity of executive 
+
+functioning assessment. Archives of Clinical Neuropsychology , 21 (3), 217 –227. 
+
+https://doi.org/10.1016/j.acn.2005.12.002 
+
+Corbett, J. E., & Munneke, J. (2025). Why axis inversion? Optimizi ng interactions between users, 
+
+interfaces, and visual displays in 3D environments. Cognitive Research: Principles and 
+
+Implications , 10 , 33. https://doi.org/10.1186/s41235 -025 -00626 -5Dale, G., & Shawn Green, C. (2017). The Changing Face of Video Games and Video Gamers: Future 
+
+Directions in the Scientific Study of Video Game Play and Cognitive Performance. Journal of 
+
+Cognitive Enhancement , 1(3), 280 –294. https://doi.org/10.1007/s41465 -017 -0015 -6
+
+Deveau, J., Lovcik, G., & Seitz, A. R. (2014). Broad -based visu al benefits from training with an 
+
+integrated perceptual -learning video game. Vision Research, Perceptual Learning – Recent 
+
+Advances , 99 , 134 –140. https://doi.org/10.1016/j.visres.2013.12.015 
+
+El -Nasr, M. S., & Yan, S. (2006). Visual attention in 3D video ga mes. Proceedings of the 2006 ACM 
+
+SIGCHI International Conference on Advances in Computer Entertainment Technology, ACE ’06 ,
+
+22 -es. https://doi.org/10.1145/1178823.1178849 
+
+Eriksen, B. A., & Eriksen, C. W. (1974). Effects of noise letters upon the identifica tion of a target letter in 
+
+a nonsearch task. Perception & Psychophysics , 16 (1), 143 –149. 
+
+https://doi.org/10.3758/BF03203267 
+
+Gibson, J. J. (1979). The Ecological Approach to Visual Perception: Classic Edition . Houghton Mifflin. 
+
+Glass, B. D., Maddox, W. T., & Love, B. C. (2013). Real -Time Strategy Game Training: Emergence of a 
+
+Cognitive Flexibility Trait. PLOS ONE , 8(8), e70350. 
+
+https://doi.org/10.1371/journal.pone.0070350 
+
+Green, C. S., & Bavelier, D. (2012). Learning, Attentional Control, and Action Video Ga mes. Current 
+
+Biology , 22 (6), R197 –R206. https://doi.org/10.1016/j.cub.2012.02.012 
+
+Green, C. S., Li, R., & Bavelier, D. (2010). Perceptual Learning During Action Video Game Playing. 
+
+Topics in Cognitive Science , 2(2), 202 –216. https://doi.org/10.1111/j.1756 -8765.2009.01054.x 
+
+Hayhoe, M., & Ballard, D. (2005). Eye movements in natural behavior. Trends in Cognitive Sciences ,
+
+9(4), 188 –194. https://doi.org/10.1016/j.tics.2005.02.009 
+
+Iarygina, O., Hornbæk, K., & Mottelson, A. (2025). Demand characteristics in huma n–computer 
+
+experiments. International Journal of Human -Computer Studies , 193 , 103379. 
+
+https://doi.org/10.1016/j.ijhcs.2024.103379 
+
+Jakubowska, N., Dobrowolski, P., Binkowska, A. A., Arslan, I. V., Myśliwiec, M., & Brzezicka, A. 
+
+(2021). Psychophysiological, but Not Behavioral, Indicator of Working Memory Capacity 
+
+Predicts Video Game Proficiency. Frontiers in Human Neuroscience , 15 .
+
+https://doi.org/10.3389/fnhum.2021.763821 
+
+Jeong, I., Kudo, K., Kaneko, N., & Nakazawa, K. (2024). Esports experts have a wide gaz e distribution 
+
+and short gaze fixation duration: A focus on League of Legends players. PLOS ONE , 19 (1), 
+
+e0288770. https://doi.org/10.1371/journal.pone.0288770 
+
+Jeong, I., Nakagawa, K., Osu, R., & Kanosue, K. (2022). Difference in gaze control ability betwee n low 
+
+and high skill players of a real -time strategy game in esports. PLOS ONE , 17 (3), e0265526. 
+
+https://doi.org/10.1371/journal.pone.0265526 
+
+Kahneman, D., & Beatty, J. (1966). Pupil Diameter and Load on Memory. Science , 154 (3756), 1583 –
+
+1585. https://doi.o rg/10.1126/science.154.3756.1583 
+
+Kirchner, W. K. (1958). Age differences in short -term retention of rapidly changing information. Journal 
+
+of Experimental Psychology , 55 (4), 352 –358. https://doi.org/10.1037/h0043688 Kühn, S., Gleich, T., Lorenz, R. C., Lindenberger, U., & Gallinat, J. (2014). Playing Super Mario induces 
+
+structural brain plasticity: Gray matter changes resulting from training with a commercial video 
+
+game. Molecular Psychiatry , 19 (2), 265 –271. https://d oi.org/10.1038/mp.2013.120 
+
+Lumsden, J., Edwards, E. A., Lawrence, N. S., Coyle, D., & Munafò, M. R. (2016). Gamification of 
+
+Cognitive Assessment and Cognitive Training: A Systematic Review of Applications and 
+
+Efficacy. JMIR Serious Games , 4(2), e5888. http s://doi.org/10.2196/games.5888 
+
+Miyake, A., Friedman, N. P., Emerson, M. J., Witzki, A. H., Howerter, A., & Wager, T. D. (2000). The 
+
+Unity and Diversity of Executive Functions and Their Contributions to Complex “Frontal Lobe” 
+
+Tasks: A Latent Variable Analys is. Cognitive Psychology , 41 (1), 49 –100. 
+
+https://doi.org/10.1006/cogp.1999.0734 
+
+Mohan, N., Simmons, T., Khedkar, A., Yang, D., & Chukoskie, L. (2023). Measuring gaze behavior to 
+
+characterize spatial awareness skill in Rocket League. 2023 IEEE Conference on Games (CoG) ,
+
+1–8. https://doi.org/10.1109/CoG57401.2023.10333185 
+
+Montolio -Vila, A., Argilés, M., Sunyer -Grau, B., Quevedo, L., & Erickson, G. (2024). Effect of Action 
+
+Video Games in Eye Movement Behavior: A Systematic Review. Journal of Eye Movement 
+
+Resea rch , 17 (3), 1 –22. https://doi.org/10.16910/jemr.17.3.6 
+
+Neisser, U. (1976). Cognition and reality: Principles and implications of cognitive psychology. W.H. 
+
+Freeman. 
+
+Norman, D. (2013). The design of everyday things . Basic Books. 
+
+http://thuvienso.bvu.edu.vn/handle/TVDHBRVT/19318 
+
+Oei, A. C., & Patterson, M. D. (2013). Enhancing Cognition with Video Games: A Multiple Game 
+
+Training Study. PLOS ONE , 8(3), e58546. https://doi.org/10.1371/journal.pone.0058546 
+
+Posner, M. I., Snyder, C. R. , & Davidson, B. J. (1980). Attention and the detection of signals. Journal of 
+
+Experimental Psychology , 109 (2), 160 –174. 
+
+Przybylski, A. K., & Weinstein, N. (2019). Violent video game engagement is not associated with 
+
+adolescents’ aggressive behaviour: Evid ence from a registered report. Royal Society Open 
+
+Science , 6(2), 171474. https://doi.org/10.1098/rsos.171474 
+
+Rosenholtz, R. (2025). Visual Attention in Crisis. Behavioral and Brain Sciences , 48 , e130. 
+
+https://doi.org/10.1017/S0140525X24000323 
+
+Sampalo, M., Lázaro, E., & Luna, P. -M. (2023). Action Video Gaming and Attention in Young Adults: A 
+
+Systematic Review. Journal of Attention Disorders , 27 (5), 530 –538. 
+
+https://doi.org/10.1177/10870547231153878 
+
+Seitz, A. R. (2017). Perceptual learning. Current Biology , 27(13), R631 –R636. 
+
+https://doi.org/10.1016/j.cub.2017.05.053 
+
+Sobczyk, B., Dobrowolski, P., Skorko, M., Michalak, J., & Brzezicka, A. (2015). Issues and advances in 
+
+research methods on video games and cognitive abilities. Frontiers in Psychology , 6.
+
+https:// doi.org/10.3389/fpsyg.2015.01451 
+
+Spence, I., & Feng, J. (2010). Video Games and Spatial Cognition. Review of General Psychology , 14 (2), 
+
+92 –104. https://doi.org/10.1037/a0019491 van der Wel, P., & van Steenbergen, H. (2018). Pupil dilation as an index of ef fort in cognitive control 
+
+tasks: A review. Psychonomic Bulletin & Review , 25 (6), 2005 –2015. 
+
+https://doi.org/10.3758/s13423 -018 -1432 -y

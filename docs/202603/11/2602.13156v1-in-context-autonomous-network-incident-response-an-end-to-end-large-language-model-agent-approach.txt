@@ -1,0 +1,560 @@
+Title: In-Context Autonomous Network Incident Response: An End-to-End Large Language Model Agent Approach
+
+URL Source: https://arxiv.org/pdf/2602.13156v1
+
+Published Time: Mon, 16 Feb 2026 02:14:02 GMT
+
+Number of Pages: 8
+
+Markdown Content:
+# In-Context Autonomous Network Incident Response: An End-to-End Large Language Model Agent Approach 
+
+## Yiran Gao 1, Kim Hammar 2, Tao Li 1,† 
+
+> 1
+
+Department of Systems Engineering, City University of Hong Kong, Hong Kong SAR, China 
+
+> 2
+
+Department of Electrical and Computer Engineering, University of Melbourne, Australia gaoyiran525@gmail.com, kim.hammar@unimelb.edu.au, †li.tao@cityu.edu.hk (Correspondence) 
+
+Abstract 
+
+Rapidly evolving cyberattacks demand incident response sys-tems that can autonomously learn and adapt to changing threats. Prior work has extensively explored the reinforce-ment learning approach, which involves learning response strategies through extensive simulation of the incident. While this approach can be effective, it requires handcrafted model-ing of the simulator and suppresses useful semantics from raw system logs and alerts. To address these limitations, we pro-pose to leverage large language models’ ( LLM ) pre-trained se-curity knowledge and in-context learning to create an end-to-end agentic solution for incident response planning. Specif-ically, our agent integrates four functionalities, perception, reasoning, planning, and action, into one lightweight LLM 
+
+(14b model). Through fine-tuning and chain-of-thought rea-soning, our LLM agent is capable of processing system logs and inferring the underlying network state (perception), up-dating its conjecture of attack models (reasoning), simulating consequences under different response strategies (planning), and generating an effective response (action). By comparing 
+
+> LLM
+
+-simulated outcomes with actual observations, the LLM 
+
+agent repeatedly refines its attack model and corresponding response, thereby demonstrating in-context adaptation. Our agentic approach is free of modeling and can run on com-modity hardware. When evaluated on incident logs reported in the literature, our agent achieves recovery up to 23% faster than those of frontier LLM s. 
+
+Code — https://github.com/TaoLi-NYU/llmagent4incidense-response-aaai26summer 
+
+## Introduction 
+
+Network incident response is a decision-making process in the post-attack stage aimed at containing, mitigating, and re-covering from cyberattacks. Today’s response practice relies heavily on manual operations, which can be slow and labor-intensive and fall short in the face of a continuously evolv-ing security landscape. A recent study reports that more than 60% of surveyed organizations take more than 100 days to recover from incidents (IBM Security 2025). To address the limitations of manual responses, substan-tial research efforts have been dedicated to automated re-sponses, in which response planning and execution are del-egated to an artificial intelligence ( AI ) agent with minimal 
+
+Copyright © 2026, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. 
+
+human intervention (Li and Zhu 2025a). Prior work has ex-tensively explored reinforcement learning ( RL ) approaches, where the incident response is formulated as a Markov de-cision process ( MDP ) or a game between the attack and the defense (Li, Zhao, and Zhu 2022). While RL agents have demonstrated success in simulations (Lohn et al. 2023), their practical implementations are hindered by the stringent re-quirement for structured network environment modeling, which compresses semantics in system logs and security alerts into succinct numeric data. Such a practice still re-quires manual labor and suppresses useful semantics. Motivated by the emerging abilities of large language models ( LLM s), the idea of LLM agent for autonomous de-fense has gained increasing momentum (Zhang et al. 2025; Li et al. 2025). While this emerging direction largely falls within academic research at the moment, industry stake-holders have attempted to commercialize it, as exemplified by IBM ’s LLM -based incident investigation service (Hussey 2025). Compared with RL agents, LLM agents excel at han-dling textual data from system logs and alerts and at lever-aging their built-in security knowledge when planning re-sponse actions (Mohammadi et al. 2025; Castro et al. 2025), thereby sparing the manual labor of structured modeling. However, unlike RL agents that are specifically tailored to long-horizon incident response tasks, most LLM -based methods proposed in the literature rely on prompt engineer-ing of general-purpose LLM s. Consequently, the LLM agents are plagued by 1) hallucinations : generating response ac-tions that appear plausible but are inappropriate, and 2) con-text loss in long-term planning: LLM s losing track of prior context as new findings overload history information, lead-ing to incoherent response strategies (Lin et al. 2025). This work aims to mitigate the above shortcomings by distilling RL -based planning principles in partially observed  
+
+> MDP
+
+(POMDP ) into the LLM agentic workflows, facilitat-ing an end-to-end incident response that directly maps logs and alerts to sequences of response actions. Our proposed agentic approach integrates four functionalities into a sin-gle lightweight LLM with 14 billion parameters, deployable on commodity hardware. Inspired by the online lookahead rollout methods in POMDP (Li, Lei, and Zhu 2023; Li et al. 2024), the four functionalities include 1) perception : pro-cessing the log and security alert data and inferring the un-derlying network recovery state; 2) reasoning : combining               
+
+> arXiv:2602.13156v1 [cs.CR] 13 Feb 2026 Large Language Model  Φ
+> Recovery trajectory
+> Logs
+> System architecture
+> Dataset Step 1 Step 2 Step 3 Response
+> Ground truth
+> Chain-of-thoughts
+> Loss L
+> Gradient ∇wL
+> Large Language Model  Φ ba1
+> t
+> ba2
+> t
+> ba3
+> t
+> Selected action
+> bst+1 ,bot+1
+> Rollout
+> Networked system
+> In-context adaptation
+> ot+1
+> Q(bst,ba2
+> t) = 5
+> Q(bst,ba1
+> t) = 4
+> Q(bst,ba3
+> t) = 4
+> a) Offline fine-tuning b) Online response planning
+> Prompt
+
+Figure 1: Overview of the two stages of our approach. In the first stage [cf. a)], an LLM is fine-tuned offline using a dataset of incident logs, each paired with corresponding response plans and chain-of-thought reasoning traces. In the second stage [cf. b)], the fine-tuned LLM processes system logs and threat intelligence online to generate N candidate response actions. A planning agent then evaluates these candidates through rollout and in-context adaptation, after which it selects the most effective action. the built-in security knowledge and conjecture of attack tac-tics to forecast future alerts and recovery state, which corre-sponds to a “world model” of the network environment; 3) 
+
+planning : carrying out a lookahead tree-search by simulat-ing different action sequences; and 4) action : translating the high-level response strategies to security commands. Our core contribution lies in the interplay between the agent’s offline fine-tuned reasoning capability and online planning to address the hallucinations and context loss, as illustrated in Fig. 1. The internal world model’s simulated re-covery trajectories will be scrutinized in the planning stage, where hallucinated actions are filtered out. Meanwhile, the planned responses will be terminated if the world model’s predicted alerts deviate from the actual observations and re-planned after the LLM calibrates the world model through in-context learning, ensuring self-consistency in long-horizon response planning. We evaluate our agent on real-world in-cidence log data and, our agent generates effective response plan 23% faster than the frontier LLM s and prior works. 
+
+## Related Work 
+
+Towards automating security response and more broadly, autonomous cyber defense, prior and contemporary efforts have been focusing on decision/game-theoretic (Hammar and Stadler 2024b; Manshaei et al. 2013; Li, Pan, and Zhu 2024), RL -based (Lohn et al. 2023; Ge, Li, and Zhu 2023), and most recently, LLM -based approaches (Zhang et al. 2025; Li et al. 2025). Compared with the other two, 
+
+> LLM
+
+s can directly generate response strategies by taking in log data without mathematical modeling or extensive pre-training in simulations, thanks to their text processing, se-mantic understanding, and pre-trained knowledge base. Recent efforts on the LLM -based methods can be catego-rized into two major classes: prompt-based LLM orchestra-tion and LLM -RL hybrid agentic approaches. The first class breaks down the entire incident response into several sub-tasks and develops detailed prompts for LLM s or indepen-dent LLM sessions when tackling each task (Mohammadi et al. 2025; Lin et al. 2025; Li and Zhu 2025b). Featuring end-to-end operations, such an approach requires substan-tial effort in designing complex prompts to reduce halluci-nations and maintain prior context, preserving coherence in lengthy interactions (Lin et al. 2025). The hybrid approach alleviates these limitations by com-bining RL and LLM agents, where RL agents supervise the 
+
+> LLM
+
+’s generation (Yan, Zhang, and Huang 2024), LLM 
+
+agents augment RL agents through knowledge sharing and human interactions (Loevenich et al. 2024), and two agents communicate with each other (Castro et al. 2025). Despite the different nature of agentic interactions, these works re-quire additional RL training in simulated environments. Our work aims to develop an RL -inspired prompting for creating LLM agents capable of handling the entire response cycle, which is less explored in the literature (Hammar, Alp-can, and Lupu 2026; Ren et al. 2025). Combining the ad-vantages of RL and LLM , our proposed LLM agent adopts an 
+
+> RL
+
+-type lookahead (rollout) planning procedure (Bertsekas 2024) to address hallucinations and context loss based on the predictive analytics from LLM ’s processing of raw log and alert data. 
+
+## Incident Response Planning as Partially Observable Markov Decision Process 
+
+Incident response involves restoring a network system to a secure, operational state after cyberattacks. Response plan-ning involves analyzing attack patterns, securing forensic evidence, containing the attacker, restoring critical services, and hardening the system to prevent recurrence. Incident response, as a post-attack security mechanism, focuses on restoring service quality in a minimal response and recov-ery time , during which response actions are planned and de-ployed. A key challenge in achieving a timely and effective response is the defender’s incomplete information about the attack’s scope, pattern, and severity due to limited and par-tial indicators of compromise, such as log files and alerts. To facilitate our later discussion, we present a partially observ-s0                                                   
+
+> s1, s 2
+> s3s′
+> 3
+> s4
+> s5
+> s6
+> sτ
+> ISOLATE
+> INITIATE
+> ASSESS
+> PRESERVE
+> EVICT
+> HARDEN
+> RESTORE
+> scsaspseshsr
+> (1 ,0,0,0,0,0)
+> (0 ,0,0,0,0,0)
+> (1 ,1,0,0,0,0)
+> (1 ,1,1,0,0,0)
+> (1 ,1,1,1,0,0)
+> (1 ,1,1,1,1,0)
+> (1 ,1,1,1,1,1)
+> logs indicates anomalous activity on a host
+> a0:segment network to isolate host
+> a1:malware scan (failed)
+> a2:analyze logs (found malicious process) a′
+> 2:analyze processes (found malicious process)
+> a3:memory dump
+> a4:stop process
+> a5:upgrade affected software
+> a′
+> 5:live-patch vulnerability
+> a6:restart service
+
+Figure 2: Two example evolutions of the recovery state 
+
+st. The first recovery trajectory involves the actions 
+
+a0, a 1, a 2, a 3, a 4, a 5, a 6 and the second trajectory involves the actions a0, a 1, a ′
+
+> 2
+
+, a 3, a 4, a ′
+
+> 5
+
+.able Markov decision process ( POMDP ) to capture the na-ture of incomplete information in incident response; Fig. 2 presents a visualization of response processes. 
+
+Recovery State. Throughout the discussion, we adopt a discrete time index t ∈ N, with t = 0 the start of re-sponse phase. We first introduce the recovery state st =(sc 
+
+> t
+
+, s a 
+
+> t
+
+, s p 
+
+> t
+
+, s e 
+
+> t
+
+, s h 
+
+> t
+
+, s r
+
+> t
+
+) defined as a six-dimensional Boolean vector with each entry representing the progress in a specific stage of the response: 1) Containment : sc 
+
+> t
+
+indicates whether the attack has been isolated and prevented from spreading. 2) Assessment : sa 
+
+> t
+
+indicates if the scope and severity of the attack have been identified. 3) Preservation : sp 
+
+> t
+
+indicates if the forensic evidence re-lated to the incidence has been preserved. 4) Eviction : se 
+
+> t
+
+indicates whether the attacker’s access has been revoked and malicious processes terminated. 5) Hardening : sh 
+
+> t
+
+indicates if the system has been hardened to prevent future recurrence. 6) Restoration : sr 
+
+> t
+
+indicates whether services and user ac-cess have been restored 
+
+Partial Observation. Due to the network’s complex na-ture and advanced attack methods, the defender is uncertain about the actual recovery state, e.g., if the attack’s scope is correctly identified, properly contained, and successfully re-moved. It relies on system logs and security alerts from an intrusion detection device to infer the Boolean vector. We denote by ot these textual data related to the defender’s par-tial information, see Fig. 5 for an example alert. 
+
+State Transition. Based on its understanding to the network environment, the defense agent plans a sequence of recov-ery actions at, a t+1 ,... to be executed, and each action at
+
+will influence the next recovery sate st+1 , which is captured by the transition kernel Pθ (st+1 |st, a t), where θ encapsulate the attack’s influence on the future recovery state. In prac-tice, θ usually corresponds to attack tactics, techniques, and procedures ( TTP ) as recorded in the MITER ATT &CK knowl-edge base (Strom et al. 2018). Since the partial observation also depends on the attack TTP , following the convention in  
+
+> POMDP
+
+studies, we incorporate the observation kernel into the state transition: (st+1 , o t+1 ) ∼ Pθ (·| st, a t).
+
+Recovery Time. Since the timely response is the primary concern of our study, we associate each pair of state and recovery action with a time cost c(st, a t), representing the required time (in minutes) to execute the action in a cer-tain state. For instance, the time to isolate a compromised host may be a few seconds, whereas the time to perform a system scan and configuration updates of affected sys-tems can be around half an hour. The total recovery time 
+
+J is given by the cumulative time to reach the terminal state sT = (1 , 1, 1, 1, 1, 1) , i.e., J(s0) ≜ Pτ −1 
+
+> t=0
+
+c(st, a t),
+
+sT ∼ Pθ (·| sτ −1, a τ −1) with probability 1. In summary, we aim to find a response policy generated by the LLM agent, denoted by Φ( ·), such that the total recov-ery time is minimized: 
+
+min J(s0) =  
+
+> τ−1
+
+X
+
+> t=0
+
+c(st, a t) (1) s.t. at = Φ( o0: t−1, a 0: t−1); ( st, o t) ∼ Pθ (·| st−1, a t−1).
+
+LLM Agent for In-Context Adaptive Response 
+
+Perception. The LLM agent maintains an estimate of the un-derlying recovery state, denoted by ˆst, based on past obser-vations and actions: ˆst ∼ Φ( o0: t−1, a 0: t−1). For simplicity, we denote by ht−1 ≜ {o0: t−1, a 0: t−1} the history informa-tion. To steer the LLM agent toward effective estimation, we fine-tune it using supervised learning on a dataset of 50 , 000 
+
+instruction-answer pairs D = {(xi, yi)}Ki=1 , where each in-struction xi consists of information related to an incident and an instruction to assess the current recovery state. The associated answer yi describes the ground-truth, which is tokenized into yi = ( yi
+
+> 1
+
+, . . . , y iℓi ), following the world-level tokenization with ℓi being the token length. We pair each data point with a sequence of chain-of-thought ( COT ) rea-soning steps to explain the answers (Wei et al. 2022). Given the training dataset D, the fine-tuning proceeds by iteratively sampling a batch of instruction-answer pairs 
+
+(x1, y1), . . . , (xB , yB ) and updating the LLM ’s parameters via gradient descent on the cross-entropy loss 
+
+L(w) = − 1
+
+B
+
+> B
+
+X
+
+> i=1
+> ℓi
+
+X
+
+> k=1
+
+log Φ w(yik|xi, y i
+
+> 1: k−1
+
+), (2) where w denotes the trainable parameters in Low-Rank Adaptation (LoRA), a widely used parameter-efficient fine-tuning technique (Hu et al. 2022). 
+
+Reasoning. We aim to enable the LLM agent to predict fu-ture observations based on its understanding of the underly-ing state and attack assessment, which are continuously cal-ibrated as new observations emerge. Specifically, the LLM 
+
+agent first generates observation (alert) prediction ˆot based on past observations oo:t−1 and state estimate ˆst, ˆot ∼Φ( ht−1, ˆst). By combining the state estimate and future ob-servation prediction, the agent essentially creates an internal “world model” of the network environment and the attack, which helps simulate the possible consequences of different response actions. Given a sequence of actions to be evalu-ated through simulation starting from time t: {at, a t+1 , . . . },the LLM agent can simulate a recovery trajectory as below. For τ = t, t + 1 , . . . ,
+
+ˆsτ +1 ∼ Φ( ht, ˆot:τ , a t:τ ), ˆoτ +1 ∼ Φ( ht, ˆot:τ , a t:τ , ˆsτ +1 ),
+
+which essentially creates a world model PΦ(ˆ st+1 |ˆst, a t).The fine-tuning of the observation (alert) generation follows the same practice as in the perception part, where the an-swers become the alert classification and priority as shown in Fig. 6. Note that the attack tactic is required in the fine-tuning when predicting alerts. As discussed in the following paragraph, the agent needs to consider possible tactics dur-ing the planning stage. 
+
+Planning. Utilizing the LLM -based cyber world model, we propose an online conjectural lookahead planning method, inspired by an RL paradigm: Monte-Carlo tree search under misspecification in POMDP (Hammar et al. 2025; Hammar and Li 2025). The intuition behind such an RL algorithm is to first predict future consequences under diverse actions us-ing the world model, which may be inaccurate (mispecified with respect to the true model), and then execute the best-performing one (under misspecification). The gap between newly emerged alerts and the predicted outcomes from the world model will provide a context to LLM to reflect its early conjecture and refine the action generation. Specifically, the LLM agent starts by conjecturing attack tactics by screening system logs and incident information, then selecting a tactic from a set of plausible tactics, de-noted by ˆθ ∈ Θ. At each time of the response, we prompt the agent to 1) infer the underlying recovery state ˆst; 2) gen-erate N candidate actions At = {ˆa1 
+
+> t
+
+, ˆa2 
+
+> t
+
+, . . . , ˆaNt }, and 3) for each action, predict the next recovery state and alert, 
+
+(ˆ st+1 , ˆot+1 ) ∼ Φ( ht, ˆakt ), k =∈ { 1, . . . , N } ≜ [N ], lever-aging perception and reasoning functionalities. Given the generated, tentative actions, the agent needs to identify the best performer by 4) simulating M recov-ery trajectories starting from (ˆ st+1 , ˆakt+1 ), which is de-fined as a sequence of state-action pair generated by the  
+
+> LLM
+
+until the terminal sate ˆsT = (1 , 1, 1, 1, 1, 1) : qi ≜
+
+{(ˆ st+1 , ˆakt+1 ), (ˆ sit+2 , ˆak,i t+1 ), . . . , ˆsT }, i ∈ {1, . . . , M } ≜
+
+[M ]. 5) The estimated cumulated cost associated with ˆakt+1 
+
+is given by the sample average, denoted by the Q function, based on which the agent selects the cost minimizer: 
+
+Q(ˆ st+1 , ˆakt+1 ) = 1
+
+M
+
+X 
+
+> i∈[M]
+
+X
+
+> (ˆ s, ˆa)∈qi
+
+c(ˆ s, ˆa), (3a) 
+
+at+1 ∈ arg min 
+
+> a∈A t
+
+Q(ˆ st+1 , a ). (3b) The executed action incurs actual alerts ot+1 ∼
+
+Pθ (st+1 , a t+1 ), which enables the agent to 6) compare the actual and predicted alerts and calibrate the conjectured attack tactics if there exists a significant discrepancy be-tween the two. We rely on a frontier LLM , GPT -5.2, to di-gest the newly emerged alert information and recommend a more likely alternative: ˆθt+1 ← GPT (ˆ ot+1 , o t+1 , a t+1 ).Note that such a calibration only requires API of the frontier models without local deployment, which is still commodity hardware-friendly. Moreover, such a calibration can also be performed by the proposed LLM agent itself after proper in-formation retrieval from external threat intelligence, which is one of the future extensions. Finally, the agent repeats the same planning procedure under the calibrated conjecture from t + 1 . Algo. 1 summarizes the entire planning cycle. Algorithm 1: Online Conjectural Lookahead Planning with In-Context Adaptation  
+
+> 1:
+
+Input: LLM Φ, system logs, action batch N , sample tra-jectory batch M . 
+
+> 2:
+
+Output: Response actions π = {a1, . . . , a T }. 
+
+> 3:
+
+Initialization ˆs0 ← (0 , 0, 0, 0, 0, 0) , ˆθ0, π ← {} , t ← 0. 
+
+> 4:
+
+while ˆst̸ = (1 , 1, 1, 1, 1, 1) do  
+
+> 5:
+
+Sample {ˆa1 
+
+> t
+
+, ˆa2 
+
+> t
+
+, . . . , ˆaNt } = At from Φ( ·| ht). 
+
+> 6:
+
+for i ∈ [M ] do  
+
+> 7:
+
+Q(ˆ st, ˆait) = 1
+
+> M
+
+PMk=1 RECOVERY -TO -GO (ˆ st, ˆait) 
+
+> 8:
+
+end for  
+
+> 9:
+
+Execute at = arg min a∈A t Q(ˆ st, ˆait). 
+
+> 10:
+
+Simulate (ˆ st+1 , ˆot+1 ) ∼ Φ( ht, a t), and receive the alert ot+1 . 
+
+> 11:
+
+Context adaptation ˆθt+1 ← GPT (ˆ ot+1 , o t+1 , a t+1 ). 
+
+> 12:
+
+ht+1 ← ht ∪ { ot+1 , a t}, t ← t + 1 . 
+
+> 13:
+
+end while  
+
+> 14:
+
+procedure RECOVERY -TO -GO (s,a)  
+
+> 15:
+
+Simulate s′ ∼ Φ( s, a ). 
+
+> 16:
+
+if s′ = (1 , 1, 1, 1, 1, 1) then  
+
+> 17:
+
+return c(s,a)  
+
+> 18:
+
+end if  
+
+> 19:
+
+Sample a′ ∼ Φ( ·| s′). 
+
+> 20:
+
+return c(s, a ) + RECOVERY -TO -GO (s′, a ′). 
+
+> 21:
+
+end procedure Action. During the planning stage, the LLM agent needs to generate candidate actions based on its perception of current recovery status. Towards this end, we fine-tune the LLM to generate effective response actions with reduced hallucina-tions and consistent with previous actions. Similar to state-and alert-generation fine-tuning, we present the LLM with pairs of instructions and answers, adding the previous es-timated recovery state, previous recovery actions, and con-jectured attack tactics to the instruction. Fig. 5 presents the prompt template. For actions that lead to longer recovery paths and for predicted alerts that are inconsistent with ac-tual ones, we regard them as likely instances of hallucina-tions and context-rot generation and will filter them out. 
+
+## Experiment 
+
+Perception & Reasoning: LoRA Fine-Tuning 
+
+Experiment setup. We fine-tune a DeepSeek-14B (Qwen-compatible) language model using LoRA-based su-pervised fine-tuning on CSLE-IncidentResponse-V1 
+
+(states_examples.json ) (Hammar and Stadler 2024a). We take the first 50 , 000 instruction–answer Tactics (% over all data points) F1      
+
+> Normal Activity (15.59%) 0.5711 Initial Access, Execution, Collection, Exfiltration (6.92%) 0.8579 Access, Execution, Credential Access, Exfiltration (1.71%) 0.8599 Impact (1.55%) 0.8758 Access, Execution, Command and Control, Exfiltration (1.52%) 0.7424
+
+Table 1: Label distribution (support) and F1 scores for se-lected labels. caa csa sc sa sp se sh sr        
+
+> F1 0.9902 0.9822 0.9975 0.9964 0.9970 0.9952 0.9541 0.9533
+
+Table 2: A summary of F1 scores under class-agnostic aver-age and class-specific average. pairs from the dataset and train LoRA adapters with the hyperparameters detailed in Table 4. 
+
+Evaluation Setup and Metrics. The evaluation data are ran-domly sampled, excluding the training data, and we collect a total of 17 , 600 pairs for the testing dataset. We use two met-rics to measure the prediction performance. 1) Exact-match accuracy: we treat both the prediction and the ground-truth label as JSON text and count a prediction as correct only if it matches the label exactly on all entries. This metric is intentionally strict and captures whether the model can pro-duce a fully correct structured output in one shot. The exact accuracy is 0.98 . 2) Multi-label F1: since recovery-state pre-diction consists of multiple Boolean entries, it is naturally a multi-label binary classification problem. We therefore re-port two averaged F1 scores: (i) class-agnostic average F1 (caa-F1), which aggregates True Positive (TP)/ False Posi-tive (FP)/ False Negative (FN) across all entries before com-puting F1, and (ii) class-specific average F1 (csa-F1), which computes F1 per Boolean entry and then averages across en-tries. In addition, we report Per-entry F1 to diagnose which entries are harder to predict or exhibit systematic bias. Ta-ble 2 summarizes the F1 scores, which suggests that our model can accurately estimate the underlying state. 
+
+Alert prediction evaluation. We further evaluate the model’s ability to predict intrusion-detection system ( IDS )alert fields ( classification & priority ) using the prompt shown in Fig. 6. We adopt a unique-pair preci-sion/recall metric detailed below. Given one evaluation sample with instruction prompt 
+
+x, we obtain the model’s prediction ˆy ∼ Φ( ·| x) to be compared with the ground-truth y. Since ˆy contains the full prompt followed by the generated continuation, we remove the prompt prefix to keep only the gener-ated part. We then extract all alert tuples of the form 
+
+[Classification: . . . ] [ Priority: . . . ] from both 
+
+ˆy and y using a regular expression, and remove duplicates to obtain the unique prediction set bP and label set P. For each sample, we compute the overlap | bP ∩ P| and define 
+
+Precision ≜ | bP ∩ P| /| bP| , Recall ≜ | bP ∩ P| /|P| .We report the F1 score for alert generation in Table 1 across the top 5 most frequent tactics, from which we find that our model is better suited to handle generation under at-tacks rather than the normal activity, since the corresponding alerts are false alarms and do not display any pattern.             
+
+> 0
+> 10
+> 20
+> 10 .313 .46
+> 16 .21 17 .28 17 .09
+> 333.34.21 4.48
+> OUR AGENT (Hammar, Alpcan, and Lupu 2026) GEMINI 2.5
+> OPENAI O 3DEEPSEEK -R1Recovery time % Failed recoveries
+
+Figure 3: Evaluation results ( ↓ better): comparison between our method and frontier LLM s. Bar colors relate to different methods; bar groups indicate performance metrics; numbers and error bars indicate the mean and the standard deviation from 5 evaluations with different random seeds. 
+
+Online Lookahead Planning & Action Generation 
+
+Calibration. When a set of candidate tactics Θ is pro-vided externally (e.g., from a frontier model such as GPT -5.2), we first inspect these tactics to ensure they are con-sistent with the logs. For each tactic ˆθ ∈ Θ, we prompt the LLM to produce a set of unique [Classification ]–
+
+[Priority ] pairs and compare them against the labeled log text. We compute a unique-pair precision (and recall) score and require the precision to exceed a threshold τAP 
+
+(e.g., τAP = 0 .6) to proceed with multi-step planning. If no tactic’s generation passes the threshold, we trigger the 
+
+calibration procedure rather than running a full multi-step lookahead. Table 4 presents the configuration of the action generation batch N and trajectory batch M .
+
+Evaluation and Baselines 
+
+Our experiment aggregates four evaluation datasets summa-rized in Table 3, which include a variety of attacks, alert logs, and system configurations. The recovery actions in these evaluation datasets are utilized to assess the effective-ness of our generated actions. We rely on GPT -5.2 for such assessment, and measure the recovery time in discrete time units, assigning a time cost of 1 to all actions, and for those superfluous, less effective steps assessed by GPT -5.2, an ad-ditional cost of 1 is assigned as a kind of penalty. For those generated actions that do not lead to a recovery terminal state, the time cost is elevated to 20. We compare our LLM agent with three frontier models: 
+
+> DEEPSEEK
+
+-R1 (Guo et. al. 2025), GEMINI 2.5 PRO (Co-manici et. al. 2025), and OPENAI O 3 (OpenAI et. al. 2024). We remind the reader that our model, with 14b parameters, is significantly lightweight and of the same size as the base-line from (Hammar, Alpcan, and Lupu 2026). Figure 3 summarizes the major evaluation results. While they all share similar failure rates, our model leads to the shortest recovery time than others, as shown in Fig. 3, whereas those frontier models, even though equipped with the latest security knowledge base, do not create an effective response plan, as they are not tailored to the security task. To further evaluate the importance of each functionality, we conduct ablation studies removing the fine-tuning (i.e., Perception & Reasoning functions), planning, and the in-context adaptation mechanism. Fig. 4 compares the response Dataset Systems Attacks logs CTU-Malware-2014 WINDOWS XP SP 2 Malwares and ransomwares SNORT alerts CIC-IDS-2017 WINDOWS , LINUX Denial-of-Service, web attacks, SQL injections, and etc. SNORT alerts AIT-IDS-V2-2022 WINDOWS , LINUX Multi-stage attacks from reconnaissance to escalation WAZUH alerts CSLE-IDS-2024 LINUX Software exploits, e.g., CVE -2015-1427 SNORT alerts Table 3: The four evaluation datasets, from (García et al. 2014), (Sharafaldin, Habibi Lashkari, and Ghorbani 2018), (Landauer, Skopik, and Wurzenberger 2024), and (Hammar and Stadler 2024b), respectively, include diverse attacks, logs, and systems.    
+
+> 0
+> 10
+> 20
+> 10 .3
+> 20 .87
+> 10 .3
+> 16 .2
+> 10 .312 .62
+> Recovery time Fine-tuning Planning Context adaptation
+
+Figure 4: Ablation-study results for the recovery time metric (↓ better). Bar groups relate to a specific step of our method; filled bars show the performance with each step and dotted bars show the performance with the step removed; numbers and error bars indicate the mean and the standard deviation from 5 evaluations with different random seeds. performance before and after removing these key functional-ities, which demonstrates that fine-tuning and planning play a significant role in the entire workflow, whereas the con-text adaptation, while still improving the performance, is not as instrumental as the other two. We speculate that the modest improvement is due to the fact that the testing data points are mostly short sequences of recovery actions, typ-ically of five actions. Another extension is to evaluate our model on longer response processes, where the challenging longer-context situation can highlight the impact of our in-context adaptation scheme. We finally remark on the scalability of the proposed LLM 
+
+agent, which is the main limitation of our approach. The major computation expense is due to the Monte-Carlo tree search and grows in O(M N ) complexity. All our imple-mentations are operated on Google Cloud with one A100 
+
+> GPU
+
+. We observe that processing one incidence takes on av-erage 20 minutes to generate a five-action response plan. When deploying our agent on more complex network sys-tems against more sophisticated tactics, the agent needs larger search trees that soon renders the generation time dis-appointing. One of the most pressing extension is to develop cost-efficient simulation or parallel computing methods for prompt incident response. 
+
+## Conclusion 
+
+We present an in-context adaptive response planning method based on an LLM agent, which leads to an end-to-end inci-dence response workflow without structured modeling and simplification as in prior work on RL -based incident re-sponse. We model the response planning as a partially ob-served Markov decision process, and we integrate Percep-tion, Reasoning, Planning and Action functionalities into one lightweight LLM model, inspired by the Monte-Carlo tree search method. We evaluate our LLM agent on diverse incidence dataset against frontier LLM models, and our LLM 
+
+agent achieves 23% shorter recovery time than baselines. The most pressing extension is to address the scalabil-ity issue in our LLM -based simulation, which can be time-consuming when deploying the agent to complex network environments. Another extension is to improve the current evaluation procedures by introducing more realistic time cost, comprehensive response action assessment, and long action sequences in the log data. 
+
+## References 
+
+Bertsekas, D. P. 2024. Model Predictive Control and Rein-forcement Learning: A Unified Framework Based on Dy-namic Programming. IFAC-PapersOnLine , 58(18): 363– 383. 8th IFAC Conference on Nonlinear Model Predictive Control NMPC 2024. Castro, S. R.; Campbell, R.; Lau, N.; Villalobos, O.; Duan, J.; and Cardenas, A. A. 2025. Large Language Models are Autonomous Cyber Defenders. In IEEE Conference on Ar-tifical Intelligence Workshop on Adaptive Cyber Defense .Comanici et. al. 2025. Gemini 2.5: Pushing the Frontier with Advanced Reasoning, Multimodality, Long Context, and Next Generation Agentic Capabilities. arXiv:2507.06261 .García, S.; Grill, M.; Stiborek, J.; and Zunino, A. 2014. An empirical comparison of botnet detection methods. Comput-ers & Security , 45: 100–123. Ge, Y.; Li, T.; and Zhu, Q. 2023. Scenario-Agnostic Zero-Trust Defense with Explainable Threshold Policy: A Meta-Learning Approach. In IEEE Conference on Computer Communications , 1–6. Guo et. al. 2025. DeepSeek-R1 incentivizes reasoning in LLMs through reinforcement learning. Nature , 645(8081): 633–638. Hammar, K.; Alpcan, T.; and Lupu, E. C. 2026. Incident Response Planning Using a Lightweight Large Language Model with Reduced Hallucination. In 33rd Annual Network and Distributed System Security Symposium, NDSS 2026, San Diego, California, USA, February 23-27, 2026 .Hammar, K.; and Li, T. 2025. Online incident response plan-ning under model misspecification through Bayesian learn-ing and belief quantization. In Proceedings of the 18th ACM Workshop on Artificial Intelligence and Security , 40–51. Hammar, K.; Li, T.; Stadler, R.; Zhu, Q.; and Hammar, K. 2025. Adaptive Security Response Strategies Through Con-jectural Online Learning. IEEE Transactions on Information Forensics and Security , 20: 4055–4070. Hammar, K.; and Stadler, R. 2024a. The CSLE-IDS-2024 dataset. [Online] Avaiable at https://doi.org/10.5281/ zenodo.10706475. Hammar, K.; and Stadler, R. 2024b. Intrusion Tolerance for Networked Systems through Two-Level Feedback Control. In 2024 54th Annual IEEE/IFIP International Conference on Dependable Systems and Networks (DSN) , 338–352. Hu, E. J.; yelong shen; Wallis, P.; Allen-Zhu, Z.; Li, Y.; Wang, S.; Wang, L.; and Chen, W. 2022. LoRA: Low-Rank Adaptation of Large Language Models. In International Conference on Learning Representations .Hussey, S. 2025. Resolve incidents faster with IBM In-stana Intelligent Incident Investigation powered by agentic AI. [Online] Available at https://www.ibm.com/new/ announcements/resolve-incidents-faster-with-ibm-instana-intelligent-incident-investigation-powered-by-agentic-ai. IBM Security. 2025. Cost of a Data Breach Report 2025. Technical report, IBM and Ponemon Institute. Landauer, M.; Skopik, F.; and Wurzenberger, M. 2024. In-troducing a New Alert Data Set for Multi-Step Attack Anal-ysis. In Proceedings of the 17th Cyber Security Experimen-tation and Test Workshop , 41–53. Li, T.; Hammar, K.; Stadler, R.; and Zhu, Q. 2024. Con-jectural Online Learning with First-order Beliefs in Asym-metric Information Stochastic Games. In 2024 IEEE 63rd Conference on Decision and Control (CDC) , 6780–6785. Li, T.; Lei, H.; and Zhu, Q. 2023. Self-Adaptive Driving in Nonstationary Environments through Conjectural Online Lookahead Adaptation. 2023 IEEE International Confer-ence on Robotics and Automation (ICRA) , 7205–7211. Li, T.; Pan, Y.; and Zhu, Q. 2024. Decision-Dominant Strate-gic Defense Against Lateral Movement for 5G Zero-Trust Multi-Domain Networks. In Network Security Empowered by Artificial Intelligence , 25–76. Cham: Springer Nature. Li, T.; Yang, Y.-T.; Pan, Y.; and Zhu, Q. 2025. From Texts to Shields: Convergence of Large Language Models and Cy-bersecurity. arXiv:2505.00841 .Li, T.; Zhao, Y.; and Zhu, Q. 2022. The role of information structures in game-theoretic multi-agent learning. Annual Reviews in Control , 53: 296–314. Li, T.; and Zhu, Q. 2025a. Agentic AI for Cyber Resilience: A New Security Paradigm and Its System-Theoretic Foun-dations. arXiv:2512.22883 .Li, T.; and Zhu, Q. 2025b. Symbiotic Game and Founda-tion Models for Cyber Deception Operations in Strategic Cyber Warfare. In Foundations of Cyber Deception , 25–62. Springer Cham. Lin, X.; Zhang, J.; Deng, G.; Liu, T.; Zhang, T.; Chen, R.; and Guo, Q. 2025. IRCOPILOT: Automated Incident Re-sponse with Large Language Models. arXiv:2505.20945 .Loevenich, J. F.; Adler, E.; Mercier, R.; Velazquez, A.; and Lopes, R. R. F. 2024. Design of an Autonomous Cyber Defence Agent using Hybrid AI models. 2024 Interna-tional Conference on Military Communication and Informa-tion Systems (ICMCIS) , 00: 1–10. Lohn, A.; Knack, A.; Burke, A.; and Jackson, K. 2023. Au-tonomous Cyber Defense. Technical report, Center for Se-curity and Emerging Technology. Manshaei, M. H.; Zhu, Q.; Alpcan, T.; Bac¸ sar, T.; and Hubaux, J.-P. 2013. Game theory meets network security and privacy. ACM Comput. Surv. , 45(3). Mohammadi, H.; Davis, J. J.; Kiely, M.; and Mohammadi, H. 2025. Leveraging Large Language Models for Au-tonomous Cyber Defense: Insights from CAGE-2 Simula-tions. IEEE Intelligent Systems , 40(4): 29–36. OpenAI et. al. 2024. GPT-4 Technical Report. 
+
+arXiv:2303.08774 .Ren, Y.; Wang, J.; Zhao, Z.; Wen, H.; Li, H.; and Zhu, H. 2025. Automated tactics planning for cyber attack and de-fense based on large language model agents. Neural Net-works , 191: 107842. Sharafaldin, I.; Habibi Lashkari, A.; and Ghorbani, A. A. 2018. Toward Generating a New Intrusion Detection Dataset and Intrusion Traffic Characterization. In Proceedings of the 4th International Conference on Information Systems Secu-rity and Privacy - ICISSP , 108–116. Strom, B. E.; Applebaum, A.; Miller, D. P.; Nickels, K. C.; Pennington, A. G.; and Thomas, C. B. 2018. MITRE ATT&CK: Design and philosophy. Technical report, The MITRE Corporation. Wei, J.; Wang, X.; Schuurmans, D.; Bosma, M.; Ichter, B.; Xia, F.; Chi, E.; Le, Q. V.; and Zhou, D. 2022. Chain-of-Thought Prompting Elicits Reasoning in Large Language Models. In Advances in Neural Information Processing Sys-tems , volume 35, 24824–24837. Yan, Y.; Zhang, Y.; and Huang, K. 2024. Depending on your-self when you should: Mentoring LLM with RL agents to become the master in cybersecurity games. arXiv .Zhang, J.; Bu, H.; Wen, H.; Liu, Y.; Fei, H.; Xi, R.; Li, L.; Yang, Y.; Zhu, H.; and Meng, D. 2025. When LLMs meet cybersecurity: a systematic literature review. Cybersecurity ,8(1): 55. 
+
+## A Additional Experiment Setup 
+
+Table. 4 summarizes hyperparameters in our experiments.         
+
+> Parameter(s) Value(s) LoRA rank, scaling, dropout 64,128,0.05 learning rate 0.00095 per_device_batch_size 2gradient_accumulation_steps 16 temperature 0.6 action generation batch 3recovery trajectory batch 3
+
+Table 4: A summary of hyperparameters Incident Example from CTU-Malware-2014 
+
+System description : Two subnetworks (A and B) are con-nected via a switch that is also connected to the Internet. All servers run WINDOWS XP SP 2. Their IPs are... 
+
+Snort alert logs :
+
+[120:3:2](http_inspect) NO CONTENT-LENGTH.. [1:31033:6]MALWARE Win.Trojan.Cryptodefence [Classification:A Network Trojan Detected] [Priority 1] {TCP}147.32.84.165:1057->222.88.205.195:443 
+
+Incident description : Server 147.32.84.165 is infected with the WIN .TROJAN .CRYPTODEFENSE ransomware. Alerts show the server is making outbound command and control ( C2) con-nections to 222.88.205.195. ... 
+
+Response actions :1. Disconnect the Ethernet cable of the infected server at 147.32.84.165 to sever its network connection. Concurrently, configure a rule on the main switch/firewall to block all out-bound traffic to the C2 server 222.88.205.195. 2. Analyze the central switch to scan all network traffic from both subnetworks A and B for any other hosts attempting to make connections to the malicious IP 222.88.205.195. 3. Before altering the infected server, create a complete bit-for-bit forensic image of its hard drive. 4. Wipe the hard drive of 147.32.84.165. If other infected ma-chines were discovered, they must also be taken offline and wiped. 5. Upgrade all servers from WINDOWS XP SP 2 to a modern operating system that receives security patches. 6. Restore the server’s data from a trusted backup. Once the server is rebuilt with a modern operating system, reconnect it to the network and closely monitor for any anomalous activity. 
+
+Action Generation Prompt Template 
+
+### MITER ATT &CK tactics being used : Initial Access, Exe-cution, Persistence. 
+
+### MITER ATT &CK techniques being used : T1190 Exploit Public-Facing Application. 
+
+### Previous State :... 
+
+###Previous recovery actions :Action: Acquire full disk and memory images of REDIS01, collect Redis RDB/AOF files, NAT/firewall logs. Explanation: Preserves evidence and provides the data needed for thorough eradication. 
+
+###Instruction : You are a security operator ... (same as the state generation prompt). The goal when selecting the recovery action is to change the state so that one of the state-properties that is currently ’false’ becomes ’true’. The ideal recovery ac-tion sequence is: 1. contain the attack 2. gather information 3. preserve evidence 4. eradicate the attacker 5. harden the system 6. recover operational services. When selecting the recovery action, make sure that it is concrete and actionable and mini-mizes unnecessary service disruptions. Vague or unnecessary actions will not change the state and should be avoided. Re-turn a JSON object with two properties: ’Action’ and ’Expla-nation’, both of which should be strings. The property ’Action’ should be a string that concisely describes the concrete recov-ery action. The property ’Explanation’ should be a string that concisely explains why you selected the recovery action and motivates why the action is needed. 
+
+### Response : <think> 
+
+Figure 5: An incidence example from (García et al. 2014) (top) and the prompt for action generation (bottom). State Generation Prompt Template 
+
+### System description : ... 
+
+###logs : ... 
+
+###Incident description :... 
+
+### MITER ATT &CK tactics being used : Initial Access, Exe-cution, Persistence. 
+
+### MITER ATT &CK techniques being used : T1190 Exploit Public-Facing Application. 
+
+### Previous State : “is_attack_contained” : true; “is_knowledge_sufficient”: false, “are_forensics_preserved”: false, “is_eradicated”: false, “is_hardened”: false, “is_recovered”: false. 
+
+###Previous recovery actions :Action: Acquire full disk and memory images of REDIS01, collect Redis RDB/AOF files, NAT/firewall logs, and export system logs to write-protected storage. Explanation: Preserves evidence and provides the data needed for thorough eradication. 
+
+###Instruction : You are a security operator with advanced knowledge in cybersecurity and IT systems. You have been given information about a security incident, the state of recovery from the incident, and a recovery action. Your task is to predict what the next state of the recovery will be after ap-plying the recovery action. For example, if the given recovery action effectively contains the attack and ’is_attack_contained’ is ’false’ in the current state, then the next state should have ’is_attack_contained’ set to ’true’. Similarly, if ’is_recovered’ is ’false’ in the current state and the given recovery action effectively recovers operational services of the system, then the next state should have ’is_recovered’ set to ’true’, etc. It is also possible that multiple state properties change values from false to true. It is also possible that the state remains the same, i.e., no property changes. It is important that the state only changes if the action is effective in achieving one of the recovery goals: containment, information gathering, preserving evidence, eradication, hardening, or recovery. A state variable can only change from ’false’ to ’true’, it cannot be changed from ’true’ to ’false’. Return a JSON object that defines the next state and contains the Boolean fields ’is_attack_contained’, ’is_knowledge_sufficient’, ’are_forensics_preserved’, ’is_eradicated’, ’is_hardened’, ’is_recovered’. 
+
+### Response : <think> 
+
+Alert Generation Prompt Template 
+
+### System description : ... 
+
+### Instruction : Generate fields produced by an intrusion de-tection system (e.g., Snort) during a cyberattack by an attacker following this MITRE ATT &CK tactic: Impact. Frame your an-swers as “[Classification: alert type] [Priority: level].” 
+
+### Response : <think> 
+
+Figure 6: Prompt for generating recovery states and alerts.

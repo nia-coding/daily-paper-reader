@@ -1,0 +1,150 @@
+Title: More Than 1v1: Human-AI Alignment in Early Developmental Communities with Multimodal LLMs
+
+URL Source: https://arxiv.org/pdf/2603.07134v1
+
+Published Time: Tue, 10 Mar 2026 00:38:56 GMT
+
+Number of Pages: 5
+
+Markdown Content:
+# More Than 1v1: Human-AI Alignment in Early Developmental Communities with Multimodal LLMs 
+
+# Weiyan Shi 
+
+weiyanshi6@gmail.com Singapore University of Technology and Design Singapore, Singapore 
+
+# Kenny Tsu Wei Choo 
+
+kennytwchoo@gmail.com Singapore University of Technology and Design Singapore, Singapore 
+
+## Abstract 
+
+In early developmental contexts, particularly in parent–child inter-action analysis, alignment involves families and professionals—such as speech-language pathologists (SLPs)—who interpret children’s everyday interactions from different roles. When multimodal large language models (MLLMs) are introduced to support this process, alignment becomes a question of how authority, responsibility, and emotional risk are distributed across stakeholders. Through a three-part study with five families and three SLPs, we trace how MLLM-generated outputs move from expert-facing analysis to parent-facing feedback. We propose layered community alignment: ground-ing representations in expert-aligned structures, mediating trans-lation through professional guardrails, and enabling family-level adaptation within those boundaries. We argue that alignment in developmental settings should be treated as a community-governed process rather than an individual optimisation problem. 
+
+## CCS Concepts 
+
+• Human-centered computing → Human computer inter-action (HCI) ; Empirical studies in collaborative and social computing ; • Applied computing → Health informatics .
+
+## Keywords 
+
+Parent-child interaction, Multimodal Large language model, Human-AI alignment, Speech language pathologist, Early development com-munity 
+
+ACM Reference Format: 
+
+Weiyan Shi and Kenny Tsu Wei Choo. 2026. More Than 1v1: Human-AI Alignment in Early Developmental Communities with Multimodal LLMs. In Proceedings of CHI 2026 BiAlign Workshop. ACM, New York, NY, USA, 5 pages. https://doi.org/10.1145/nnnnnnn.nnnnnnn 
+
+## 1 Introduction 
+
+Human–AI alignment [ 6] is often framed as a problem of matching model outputs to the preferences, values, or opinions of individual users [ 5] or specific stakeholder groups [ 7 ]. While such approaches have advanced techniques for persona modelling, value representa-tion, and demographic mirroring, they largely assume that align-ment is a model-to-user optimisation problem: the system should produce outputs that best correspond to the expectations of a target audience.  
+
+> This work is licensed under a Creative Commons Attribution 4.0 International License.
+> CHI 2026 BiAlign Workshop, Barcelona, Spain
+> ©2026 Copyright held by the owner/author(s). ACM ISBN 978-x-xxxx-xxxx-x/YYYY/MM https://doi.org/10.1145/nnnnnnn.nnnnnnn
+
+However, in many real-world domains, alignment is not negoti-ated between a model and a single user. It unfolds within commu-nities where multiple stakeholders interpret the same underlying material under asymmetric roles and responsibilities. In early de-velopmental contexts, for example, parent–child interaction videos recorded at home may be reviewed by both families and speech-language pathologists (SLPs) [ 10 ]. These actors share a develop-mental goal, yet operate under distinct epistemic norms, emotional sensitivities, and professional accountabilities. When multimodal large language models (MLLMs) are intro-duced to analyse such shared data, a fundamental tension emerges. Should the system optimise for clinical accuracy, emotional safety, parental empowerment, or professional authority? Directly align-ing model outputs to parents may risk bypassing expert judgement; aligning solely to expert language may render outputs psychologi-cally inappropriate for families. In such settings, alignment is not merely about “sounding right” to a demographic group—it becomes a safety and governance challenge concerning who mediates inter-pretation, how responsibility is distributed, and how authority is preserved. Existing work on alignment as opinion mirroring [ 1 , 2]provides useful techniques for modelling population-level perspec-tives, but offers limited guidance for scenarios where stakeholders are structurally asymmetric and co-interpret the same artefact. From an HCI perspective, this raises a broader concern: alignment in community settings cannot be reduced to preference match-ing. It must instead account for layered interpretation, mediated translation, and context-sensitive adaptation. In this paper, we argue that alignment in early developmen-tal domains should be organised as a layered community process rather than treated as a single optimisation objective. Specifically, we propose that responsible deployment of MLLMs in parent–child interaction contexts requires three structurally distinct layers: (1) expert-aligned behavioural representation, (2) expert-mediated re-framing for caregiver use, and (3) family-level contextual personal-isation within professional guardrails. We refer to this as layered community alignment .To ground this position, we draw on a three-part study involving families (N = 5) and SLPs (N = 3) using naturalistic home-recorded parent–child interaction videos. We use the study as an empirical lens to surface tensions in how expert-facing analyses are translated, constrained, and adapted for family use. Through this lens, we examine the following question: 
+
+RQ: How should MLLMs be aligned in community settings where multiple stakeholders with asymmetric roles interpret the same child’s everyday interactions? 
+
+In this workshop paper, we advance a reframing of human–AI alignment in early developmental communities:  
+
+> arXiv:2603.07134v1 [cs.HC] 7 Mar 2026 CHI 2026 BiAlign Workshop, April 13–17, 2026, Barcelona, Spain Weiyan Shi and Kenny Tsu Wei Choo
+
+First, we propose layered community alignment , showing that human-AI alignment in early developmental contexts unfolds across three layers: expert-facing representation, expert-mediated translation, and family-level adaptation. Second, we identify three recurring alignment tensions across these layers—between representational alignment and professional authority, clinical precision and emotional safeguarding, and stan-dardisation and contextual adaptation—framing alignment as a negotiated, multi-stakeholder process. 
+
+## 2 Empirical Lens: Probing Alignment Tensions 
+
+To ground our position in real-world practice, we conducted a three-part exploratory study examining how MLLM-generated analyses of parent–child interaction are interpreted, mediated, and adapted across stakeholder roles. Rather than serving as a formal validation of system performance, this study functioned as an empirical probe to surface structural tensions in community-based alignment. 
+
+## 2.1 Design Overview 
+
+The study unfolded in three parts (Figure 1): (1) Part I: Family Data Grounding (N = 5 Families). We recruited parents with children under three years old and se-lected five families (F1–F5) to contribute self-recorded, natu-ralistic parent–child interaction videos captured in everyday home environments. These videos provided real-world inter-action material for subsequent expert review and alignment analysis. (2) Part II: SLP Evaluation and Steering Design (N = 3 SLPs). 
+
+We recruited three certified SLPs (7–9 years of paediatric experience) to evaluate MLLM-generated SLP-facing anal-yses of the family videos. Using an SLP-facing prototype (Figure 2a), SLPs reviewed structured segment-level outputs produced by an existing expert-aligned two-stage prompt-ing pipeline [ 7, 8]. Stage 1 generated behavioural obser-vations (action, vocalisation, gaze), and Stage 2 produced role-specific interaction judgements with brief explanations. Data collection included a pre-interview on practice related to parent–child interaction, think-aloud prototype use, a post-task questionnaire assessing human-centred AI dimen-sions (alignment, accuracy, relevance, safety, transparency, collaboration) [ 9], and a post-interview focusing on steer-ing guidelines for translating expert-facing analyses into parent-facing outputs and on collaboration potential with families. (3) Part III: Parent-Facing Evaluation (N = 5 Families). 
+
+Based on SLP steering guidance, we developed a parent-facing prototype (Figure 2b) presenting supportive sum-maries and suggestions derived from the SLP-facing outputs. Parent-facing analyses were generated using a retrieval-augmented generation pipeline grounded in practitioner-authored parent-coaching texts ( It Takes Two to Talk [3], More Than Words [12 ], The Floortime Manual [13 ], and Strategies for Building Language and Communication [11 ]), guided by SLP-informed steering prompts. 
+
+## 2.2 Analytic Approach 
+
+All sessions were audio-recorded and transcribed. Our analysis focused on identifying recurring points of friction, negotiation, and reinterpretation across stakeholder roles. For SLP data, we examined how experts interpreted the strengths and limits of MLLM-generated analyses, how they articulated bound-aries for translating clinical representations into parent-facing out-puts, and how they positioned the system within existing profes-sional–family collaboration workflows. For parent data, we examined how caregivers interpreted the adequacy and relevance of MLLM-generated feedback in relation to lived interaction experiences, and how they envisioned the system’s role in ongoing collaboration with professionals. 
+
+Figure 1: Overview of the three-part study. Part I collected naturalistic parent–child interaction videos and generated expert-aligned SLP-facing analyses. Part II involved SLP eval-uation and steering of expert outputs. Part III evaluated a parent-facing prototype grounded in practitioner-informed guidance. 
+
+## 3 Tracing Alignment Tensions Across Layers 
+
+Our analysis reveals how alignment shifts across three structurally distinct layers: expert-facing representation, expert-mediated trans-lation, and family-level adaptation. Each layer exposes a different boundary in how MLLM outputs travel across stakeholder roles in parent–child interaction contexts. 
+
+## 3.1 Layer 1: Expert-Readable Representation — Alignment as Structured Visibility 
+
+At the foundational layer, MLLM outputs were structured to mirror expert observational logic. The system separated behavioural evi-dence (action, vocalisation, gaze) from interaction-level interpreta-tion, reflecting professional reasoning patterns in speech-language pathology [ 4]. SLPs recognised this structure as legible and famil-iar. The analytic categories aligned with how they document joint attention and parent support in practice. However, experts con-sistently distinguished between representational alignment and clinical judgement. While the model could externalise observable cues in expert-readable form, it could not situate these cues within longitudinal developmental trajectories, case history, or therapeutic reasoning. Human-MLLM Alignment in Early Developmental Communities CHI 2026 BiAlign Workshop, April 13–17, 2026, Barcelona, Spain 
+
+Figure 2: System Overview. Both interfaces are grounded in the same segment-level MLLM analysis of parent–child interaction (parent–child interaction) videos. SLPView (left) provides structured expert-oriented behavioural assessment with quality labels and aligned timelines. ParentView (right) reframes this analysis into descriptive summaries and supportive suggestions, removing evaluative framing while preserving segment-level continuity. 
+
+This layer surfaces a first tension: alignment at the level of struc-ture does not confer professional authority. The model can repro-duce the language of expertise, yet responsibility and interpretive accountability remain human. 
+
+## 3.2 Layer 2: Expert-Mediated Translation — Alignment as Emotional Safeguarding 
+
+When outputs moved from expert-facing analysis to parent-facing reflection, a different boundary became visible. SLPs expressed concern that directly exposing diagnostic-style labels or categori-cal judgements (e.g., “Poor”) could be psychologically harmful or misinterpreted without clinical framing. Three SLPs articulated con-straints for reframing outputs: softening evaluative tone, filtering categorical labels, and translating therapeutic goals into everyday interaction suggestions. This layer exposes a second tension: clinical precision and emo-tional safety are distinct alignment objectives. What is informative and appropriate for professionals may not be suitable for caregivers. Alignment therefore requires mediation that redistributes interpre-tive authority rather than simply rephrasing model outputs. Here, expert steering operates as ethical infrastructure, defining boundaries for what should be surfaced, softened, or withheld. 
+
+## 3.3 Layer 3: Family-Level Adaptation — Alignment as Contextual Negotiation 
+
+Even after expert-mediated reframing addressed safety concerns, parents identified another boundary: contextual fit. Caregivers de-scribed some outputs as accurate yet “textbook-like,” requesting adaptation to temperament, developmental stage, mood, and daily routines. This demand did not reject expert-defined guardrails. In-stead, it highlighted that alignment does not conclude at profes-sional mediation. Families sought flexibility within boundaries, not outside them. This layer surfaces a third tension: standardisation versus con-textualisation. While expert guardrails ensure safety and coher-ence, rigid framing risks overlooking lived variability. Alignment in community settings therefore extends beyond representation and translation—it involves negotiated adaptation within professional constraints. 
+
+## 4 Conclusion and Discussion 
+
+This work positions alignment in early developmental contexts not as a single modelling objective, but as a community-governed process that unfolds across representation, mediation, and contex-tual negotiation. By tracing how MLLM outputs move between SLPs and families, we surface structural tensions that extend be-yond parent–child interaction and raise broader questions about how multimodal AI systems should participate in professional–lay ecosystems. In sensitive developmental domains, AI systems do not merely generate text; they intervene in interpretive relationships between experts and caregivers. Alignment therefore becomes not only a technical problem, but a governance question concerning authority, responsibility, and emotional consequence. 
+
+## 4.1 Alignment and Professional Authority 
+
+At the expert-facing layer, structured behavioural representation enhances analytic visibility. By separating gaze, vocalisation, and action into segment-level breakdowns, the system mirrors profes-sional documentation practices. This can increase efficiency and make implicit observation more explicit. However, structured visibility also introduces a subtle risk: the appearance of expertise without accountability. When a model adopts the structure and vocabulary of clinical reasoning, it may be perceived as possessing interpretive authority. Yet it lacks access to longitudinal history, therapeutic rapport, and developmental nuance. This raises a foundational governance question: When AI systems reproduce expert reasoning structures, how do we prevent them from being perceived as clinical decision-makers? 
+
+If structured outputs are treated as quasi-diagnostic artefacts, the boundary between support tool and authoritative evaluator may blur. In developmental contexts, where labels carry long-term CHI 2026 BiAlign Workshop, April 13–17, 2026, Barcelona, Spain Weiyan Shi and Kenny Tsu Wei Choo 
+
+psychological implications, this distinction is critical. Alignment at the representational level must therefore be explicitly framed as assistance, not judgement. 
+
+## 4.2 Alignment and Emotional Risk 
+
+The transition from expert-facing outputs to parent-facing feedback revealed a second tension: the divergence between clinical precision and emotional safety. Diagnostic-style categories, colour-coded signals, or evaluative labels may be clinically meaningful but emotionally destabilising. Parents may internalise such signals as judgements of their care-giving competence. Conversely, excessive softening may obscure important developmental concerns, delaying intervention. This tension is not merely linguistic; it concerns the ethical distribution of interpretive power. 
+
+Who decides what level of transparency is appropriate? How do we balance the caregiver’s right to know with the responsibility to prevent harm? 
+
+Expert-mediated steering in our study functioned as an ethical filter. However, this introduces another risk: paternalism. If experts systematically mediate or withhold interpretive signals, families may be shielded from information they deem relevant. Designing alignment in such contexts requires making these filtering logics visible and contestable rather than invisible defaults embedded in prompts. 
+
+## 4.3 Alignment, Personalisation, and Epistemic Drift 
+
+At the family level, contextual adaptation becomes central. Parents sought outputs that reflected temperament, mood, fatigue, and daily routines. This highlights the importance of situational grounding in real-world caregiving. Yet personalisation also introduces epistemic drift. If outputs become overly tailored to family preferences, they may gradually deviate from professional standards. This raises a structural question: How can systems support con-textual flexibility without eroding clinical coherence? 
+
+Layered alignment suggests that personalisation should operate within expert-defined guardrails. However, scaling such guardrails across diverse families, cultures, and developmental conditions remains an open challenge. Automation bias further complicates this dynamic. Parents may over-trust structured feedback, particularly when presented with timelines, scores, or systematic breakdowns. Even when outputs are framed as supportive suggestions, their structured appearance may implicitly signal authority. 
+
+## 4.4 Alignment as Distributed Responsibility 
+
+Across these layers, alignment emerges as a redistribution of respon-sibility rather than a refinement of prompts. The model structures visibility. Experts define mediation boundaries. Families negotiate contextual adaptation. This distribution prompts further workshop questions: 
+
+• Should MLLMs in developmental domains ever operate with-out professional mediation? 
+
+• How should liability be handled if AI-generated interpreta-tions influence caregiver decisions? 
+
+• What mechanisms can make expert guardrails transparent rather than opaque? 
+
+• How can layered alignment scale without concentrating interpretive power in either models or experts? Although our empirical lens focuses on parent–child interaction, similar asymmetries exist in mental health support, special educa-tion, rehabilitation, and elder care. In these domains, AI systems interact with vulnerable populations and established professional hierarchies. Alignment must therefore account not only for output quality, but for how authority and accountability are structured. We propose layered community alignment not as a completed framework, but as a conceptual scaffold for rethinking how multi-modal AI systems participate in expert–family ecosystems. Future research must move beyond optimising model responses and in-stead design infrastructures that clarify interpretive roles, safeguard emotional well-being, and maintain professional coherence while allowing contextual flexibility. 
+
+## 4.5 From Community Alignment to Societal Infrastructure 
+
+While our analysis centres on SLP–family ecosystems, layered align-ment also has implications beyond immediate community bound-aries. In practice, MLLM-based systems for developmental analysis are unlikely to remain confined to small clinical settings. They may be integrated into telehealth platforms, parenting applications, insurance-supported interventions, or large-scale educational in-frastructures. At this broader scale, alignment becomes not only a matter of expert mediation, but of institutional design. Several societal-level questions emerge: 
+
+• Who is authorised to deploy AI-generated developmental analyses at scale? 
+
+• Should expert mediation be mandatory, optional, or context-dependent? 
+
+• How should transparency be structured so that families un-derstand when outputs are AI-generated, expert-filtered, or directly model-produced? 
+
+• What regulatory safeguards are necessary to prevent misin-terpretation, over-reliance, or inappropriate substitution of professional care? If layered alignment is treated merely as a design choice, it may be bypassed in commercial deployments prioritising accessibility or scalability. However, in sensitive developmental domains, bypassing expert mediation could amplify emotional harm, misinformation, or inequitable access to care. This suggests that layered alignment may need to be formalised not only as an interaction pattern, but as infrastructural policy. Mechanisms such as professional certification layers, audit trails of AI-generated interpretations, and explicit disclosure of mediation processes could help maintain accountability at scale. In this sense, community alignment scales into societal gover-nance. Designing multimodal AI for early development requires Human-MLLM Alignment in Early Developmental Communities CHI 2026 BiAlign Workshop, April 13–17, 2026, Barcelona, Spain 
+
+attention not only to how outputs are framed, but to how inter-pretive authority is distributed across platforms, institutions, and regulatory systems. 
+
+## References 
+
+[1] Xuan Long Do, Kenji Kawaguchi, Min-Yen Kan, and Nancy Chen. 2025. Aligning large language models with human opinions through persona selection and value–belief–norm reasoning. In Proceedings of the 31st International Conference on Computational Linguistics . 2526–2547. [2] Yang Liu, Masahiro Kaneko, and Chenhui Chu. 2025. On the Alignment of Large Language Models with Global Human Opinion. arXiv preprint arXiv:2509.01418 
+
+(2025). [3] Jan Pepper and Elaine Weitzman. 2004. It Takes Two to Talk: A Practical Guide for Parents of Children with Language Delays . Hanen Centre. Shows parents how to help their child communicate and learn language during everyday activities.. [4] Vivek Podder, Valerie Lew, and Sassan Ghassemzadeh. 2023. SOAP Notes. In Stat-Pearls . StatPearls Publishing. https://www.ncbi.nlm.nih.gov/books/NBK482263/ [5] Shreya Shankar, JD Zamfirescu-Pereira, Björn Hartmann, Aditya Parameswaran, and Ian Arawjo. 2024. Who validates the validators? aligning llm-assisted evalu-ation of llm outputs with human preferences. In Proceedings of the 37th Annual ACM Symposium on User Interface Software and Technology . 1–14. [6] Hua Shen, Tiffany Knearem, Reshmi Ghosh, Yu-Ju Yang, Tanushree Mitra, and Yun Huang. 2024. Valuecompass: A framework of fundamental values for human-ai alignment. arXiv preprint arXiv:2409.09586 (2024). [7] Weiyan Shi and Kenny Tsu Wei Choo. 2025. Towards Aligning Multimodal LLMs with Human Experts: A Focus on Parent-Child Interaction. arXiv preprint arXiv:2511.04366 (2025). [8] Weiyan Shi, Hai Viet Le, and Kenny Tsu Wei Choo. 2025. Towards multimodal large-language models for parent-child interaction: A focus on joint attention. In 
+
+Proceedings of the Extended Abstracts of the CHI Conference on Human Factors in Computing Systems . 1–6. [9] Ben Shneiderman. 2020. Bridging the gap between ethics and practice: guidelines for reliable, safe, and trustworthy human-centered AI systems. ACM Transactions on Interactive Intelligent Systems (TiiS) 10, 4 (2020), 1–31. [10] Melinda R Snodgrass, Moon Y Chung, Maysoon F Biller, Katie E Appel, Hedda Meadan, and James W Halle. 2017. Telepractice in speech–language therapy: The use of online technologies for parent training and coaching. Communication Disorders Quarterly 38, 4 (2017), 242–254. [11] Speech and Language Pathology Department, Cerebral Palsy Alliance Singapore. 2020. Strategies for Building Language and Communication Skills in Children .Cerebral Palsy Alliance Singapore. https://cpas.org.sg/wp-content/uploads/ 2020/11/SLPbook_60ppA5_SPREAD_FALr.pdf Parent handbook on language and communication development strategies. [12] Fern Sussman. 1999. More Than Words: A Guide to Helping Parents Promote Communication and Social Skills in Children with Autism Spectrum Disorder .Hanen Centre. Step by step guide for parents of preschool children with autism spectrum disorder and other social communication difficulties.. [13] The Interdisciplinary Council on Development and Learning. 2025. DIR Floortime .https://www.icdl.com/dir/floortime

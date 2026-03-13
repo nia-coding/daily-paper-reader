@@ -1,0 +1,399 @@
+Title: Revolutionizing Long-Term Memory in AI: New Horizons with High-Capacity and High-Speed Storage
+
+URL Source: https://arxiv.org/pdf/2602.16192v1
+
+Published Time: Thu, 19 Feb 2026 01:26:33 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# REVOLUTIONIZING LONG -T ERM MEMORY IN AI: N EW 
+
+# HORIZONS WITH HIGH -C APACITY AND HIGH -S PEED STORAGE 
+
+Hiroaki Yamanaka, Daisuke Miyashita, Takashi Toi, Asuka Maki, Taiga Ikeda, Jun Deguchi 
+
+AI & System Research Center, Kioxia Corporation, Yokohama, Japan 
+
+# ABSTRACT 
+
+Driven by our mission of “uplifting the world with memory,” this paper explores the design concept of “memory” that is essential for achieving artificial superintelligence (ASI). Rather than proposing novel methods, we focus on several alternative approaches whose potential benefits are widely imaginable, yet have remained largely unexplored. The currently dominant paradigm, which can be termed “extract then store,” involves extracting information judged to be useful from experiences and saving only the extracted content. However, this approach inherently risks the loss of information, as some valuable knowledge particularly for different tasks may be discarded in the extraction process. In contrast, we emphasize the “store then on-demand extract” approach, which seeks to retain raw experiences and flexibly apply them to various tasks as needed, thus avoiding such information loss. In addition, we highlight two further approaches: discovering deeper insights from large collections of probabilistic experiences, and improving experience collection efficiency by sharing stored experiences. While these approaches seem intuitively effective, our simple experiments demonstrate that this is indeed the case. Finally, we discuss major challenges that have limited investigation into these promising directions and propose research topics to address them. 
+
+# 1 Introduction 
+
+Memory is the process of storing and retrieving information, and is foundation for humans for growth and effective interaction with the world. Also for AI agents, memory plays a crucial role toward artificial general intelligence (AGI) that autonomously explores and learns from the real world. While parametric memory of original large language models (LLMs) is static, incorporating LLMs with external memory is a common way to enhance self-evolving capability of AI agents [ 1, 2, 3 ]. External memory retains the agent’s experiences, including any received information. Retrieval from the memory allows agents to recall useful information beyond parametric memory and a current task context, and to make more accurate and intelligent decisions. One of primary applications of self-evolving AI agent memory is personalization that adjusts behaviors and responses of agents to elevate user experiences. Past conversation history including a profile and preference of the user is retrieved from memory and the retrieved information is provided to prompts to be considered in reasoning by LLM. For instance, ChatGPT Memory [ 4 ] stores conversation history with a user to provide personalized answers. SecondMe [ 5 ] stores user’s personal information to create an LLM-powered faithful avatar. Another prominent application of self-evolving AI agent memory is improving the ability to adapt to specific en-vironments and tasks, as well as the ability to generalize across a wide range of environments and tasks over time. Explored domains range from general-purpose domains, particularly versatile digital assistants, to specialized domains such as coding, graphical user interfaces, finance, medicine, and education [ 3 ]. Among numerous examples, we provide only three specific cases. ExpeL [ 6 ] is a text-based general-purpose agent that extracts common rules from trajectories representing interactions between the agent and the task environment and uses them to improve performance in future tasks. MIRIX [ 7] proposes a comprehensive memory architecture to manage experience memory in six useful memory types such as episodic memory, semantic memory, while supporting visual and multimodal experiences. RoboMemory [ 8] extends human-inspired memory mechanisms for physical AI through a hierarchical and parallel memory architecture that supports long-horizon planning and interactive environmental learning. A common feature across these domains is learning from experiences. 
+
+> arXiv:2602.16192v1 [cs.AI] 18 Feb 2026
+
+Revolutionizing Long-Term Memory in AI Preprint Storing   
+
+> raw experience
+> On-demand experience
+> retrieval and deep insight
+> discovering
+> AI agent
+> AI agent
+> AI agent
+> Experience
+> Insight
+> Experience Insight
+> STONE-based memory platform
+> Experience
+> Insight
+> AI agent
+> Experience Insight
+
+Figure 1: STONE-based memory platform. In addition, we emphasize another common design concept shared by most existing methods: the “extract then store” approach, in which useful information is extracted from experiences and retained as memory. Typically, usefulness is evaluated with respect to the task being addressed when the experiences are acquired. Consequently, information not deemed useful is inevitably discarded and not stored as memory. Biological brains, such as those of humans, exhibit the ability known as latent learning. For example, in a study of rats exploring mazes [ 9 ], rats can acquire the locations of food and water while wandering the maze without specific motivation to find them. Later, when hungry or thirsty, they are able to recall these locations. This capability is unattainable under the “extract then store” paradigm. Extracting and storing everything that might be useful from each experience leads to unnecessary redundancy. A natural alternative is to retain raw experiences as memory and extract relevant information on demand according to the current task. We refer to this approach as “Store Then ON-demand Extract: STONE” paradigm. While it is intuitive that storing raw experiences via STONE minimizes information loss, most prior methods do not adopt this paradigm. This is largely due to significant challenges, such as increased memory requirements, difficulty in retrieving relevant information, a long response time for user’s requests, etc. Furthermore, commonly used AI benchmarks rarely require leveraging past experiences in contexts different from those in which they were acquired, reducing the incentive to use such experiences later. As a brief aside, even though humans possess latent learning capabilities, they may also employ an “extract then store” strategy, speculatively selecting which information to retain and accepting potential loss of useful details. It may appear somewhat ironic, but imitating this approach can be advantageous for efficiency and may be appropriate when aiming for human-like AI with similarly uncertain memory. However, technological advances such as increased computational speed and energy efficiency enable AI to overcome such limitations; thus, pursuing strategies distinct from those of humans may be essential for achieving artificial superintelligence (ASI). Providing LLMs with information extracted from relevant experiences (e.g., task episodes) can be effective, but only when the information is consistent. In a stochastic environment, however, performing the same action in the same state may lead to different outcomes. In such cases, the information extracted from experiences lacks consistency. Such probabilistic settings are common in real-world applications, yet most benchmarks for LLM-based agents assume deterministic environments (e.g., [ 6]). When relevant information is inconsistent, inter-context conflict [ 10 ] may arise, leading to unpredictable LLM outputs and reducing the effectiveness of experience utilization. For instance, if the LLM receives conflicting information A and B as context, it may base its output on A, B, or neither. We argue that it is not appropriate to reflect a single piece of information extracted from experiences in an agent’s behavior with an effective learning rate close to 1 (as in in-context learning, ICL [ 11 ]). Instead, the information provided to the LLM should be extracted through a statistical process from multiple relevant experiences. We refer to this process as “deeper insight discovery.” 2Revolutionizing Long-Term Memory in AI Preprint 
+
+The more experiences are collected, the more useful insights are obtained. Thus, a large amount of experiences needs to be collected. However, experience collection significantly depends on individual agents’ trial and error while collected experiences are siloed within an individual agent. The agents are put under burden of trial and error, i.e., many task executions are required to obtain effective insights. We advocate that sharing experiences of multiple agents reduces per agent cost of trial and error. In this paper, we highlight (i) Store Then ON-demand Extract: STONE , (ii) deeper insight discovery , and (iii) 
+
+experience memory sharing whose potential benefits are widely imaginable, yet have remained largely unexplored. These design concepts are summarized in Figure 1. The remainder of the paper is organized as follows. Section 2 reviews related work on these three approaches. Section 3 formalizes the highlighted approaches. Section 4 presents simple experiments demonstrating their effectiveness. Section 5 discusses the challenges hindering wider adoption and suggests research topics required to address them. Finally, Section 6 concludes the paper. 
+
+# 2 Related works 
+
+2.1 Prerequisites 
+
+In advance to describing closely related work in the following Sections 2.2–2.4, this subsection clarifies our focused dimensions of AI memory technology: non-parametric memory and inter-inference memory use. 
+
+2.1.1 Non-parametric (vs. parametric) memory 
+
+One of major memory types of AI agents is parametric memory in LLMs, whereas our focus is non-parametric memory. Although parametric memory can be updated by fine-tuning (e.g., LoRA [ 12 ]) and provide substantial inference performance gains, parametric memory is unsuitable for learning from experience. If we aim to enable agents to learn continuously and on the fly, frequent and prompt parameter updates would be required, which would demand impractical computational cost and speed. In addition, on-the-fly learning from experience is also impractical because parameter updating requires a significant amount of time. Besides, some studies [ 13 , 14 , 15 ] report that flexible use of parametric memory is limited because information embedded in parameters depends on the task and format used during learning. For example, reversing a relation in the embedded information (e.g., answering the question “Who was Aristotle’s teacher?” when the embedded information is “Plato taught Aristotle.”) is difficult. We focus on non-parametric memory, in which obtained information is stored in external storage. When the memory is used, necessary information in the external storage is injected into prompts as context . RAG (retrieval-augmented generation) [ 16 ], one of major applications of non-parametric memory, injects information related to the task from external knowledge base, to improve accuracy of LLM outputs. ICL [ 11 ] represents another common use case: instructional prompts, typically consisting of few-shot examples or demonstrations such as input-output pairs or reasoning traces, are inserted into the context to enable the LLM to adapt its parametric knowledge to the format of the target task. 
+
+2.1.2 Inter-inference (vs. Intra-inference) memory use 
+
+Another featured dimension of our approach is inter-inference memory use rather than intra-inference memory use. Intra-inference memory use mainly aims to understand long context within a single inference. As human brain organizes vast amount of episodic experiences in memory and efficiently retrieves relevant information across time, EM-LLM [ 17 ]organizes input tokens into episodic events identified Bayesian surprise and retrieves relevant information from the event memory in the following inference process. Titans [ 18 ] proposes neural long-term memory module that is updated during an inference according to surprise metric of input information defined by a loss function. In addition, the architecture supports forgetting mechanism. The architecture efficiently handles super long-context. Our approach falls into inter-inference memory use because aiming to use the same experience memory across various tasks and environments, i.e., multiple inferences. The main objective of inter-inference memory use is to learn from past experience to do tasks well in the future. Most state-of-the-art techniques of this approach (e.g., ExpeL [ 6], MIRIX [ 7], RoboMemory [ 8], and ACE [ 19 ]) distill knowledge and support retrieval mechanisms of experience memory, to encourage taking the same action in successful experience or avoiding the same action in failed experience. In the techniques, relevant information (i.e., non-parametric memory) is retrieved from experience memory and injected into prompts during inferences. 3Revolutionizing Long-Term Memory in AI Preprint 
+
+2.2 Cross-task and multifaceted use of experiences 
+
+The objective of STONE is to preserve experiences as complete memories, thereby minimizing information loss and enabling flexible and multifaceted utilization of knowledge across tasks. Some prior works explicitly address such cross-task memory usage. For example, ExpeL [ 6] mentions the “extraction/abstraction of cross-task knowledge from these experiences” and stores both success trajectories (raw experiences) and insights as memory. However, in their design, success trajectories are used primarily as in-context few-shot examples to help LLMs interpret tasks, while only insights extracted based on the current task are leveraged for transferrable knowledge. Consequently, information from experiences that is not explicitly related to the original task cannot be utilized in other tasks, even if it is potentially useful. Similarly, FLEX [ 20 ] emphasizes retaining cross-task experiences for future use in an experience library by aggregating acquired experiences. However, the library-updating algorithm is highly dependent on the task during which the experiences were obtained. Since the experiences themselves are not preserved and only the experience library is stored, FLEX cannot exhaustively utilize all the information embedded in the original experiences. Although these methods aim to enable the use of experiences across tasks, they deliberately adopt an “extract then store” approach—which risks losing information that could be useful for other tasks—rather than the STONE paradigm. This choice likely arises not from a lack of awareness about the STONE-like approach. Rather, it seems to stem from a deliberate avoidance, which implicitly suggests the inherent challenges associated with implementing the STONE paradigm. On the other hand, GAM [ 21 ] is conceptually similar to STONE. GAM regards memorization as a form of data compression, necessarily resulting in information loss. Its method involves dividing LLM input into pages without any compression, storing them, and retrieving relevant pages during inference. Information necessary for the current task is extracted via Just-in-Time Compilation, and answers are generated based on this extracted information. However, their empirical evaluation relies on benchmarks such as LoCoMo [ 22 ], which are designed for intra-inference memory use, and their prompt design appears aligned with this setting. The paper also omits any discussion of the scalability needed for inter-inference memory use, highlighting the broader lack of benchmarks suited to this scenario. 
+
+2.3 Insight extraction 
+
+ExpeL [ 6], AWM [ 23 ], and CER [ 24 ] enable learning from experience by extracting common patterns such as insights, skills, and dynamics from raw task trajectories and providing them to the LLM as context, while model parameters remain fixed. Furthermore, they include mechanisms to refine the database of common patterns through repeated trial and error. However, in these works, the common patterns extracted from experience remain at a surface level, assuming only deterministic environments, and are insufficient for capturing the probability distributions of responses in stochastic environments. By capturing the probability distributions and reflecting them in the agent’s behavior, the usefulness of experience utilization is expected to increase; however, research in this area remains largely underexplored. 
+
+2.4 Experience collection and sharing 
+
+While most conventional methods for self-evolving AI agents collect experiences solely by individual agents, some methods enable sharing memory among multiple agents. In multi-agent collaboration scenarios, agents do subtasks of global tasks. For instance, RoboOS-Next [ 25 ] proposes shared memory for robots collaborating for global tasks. Spatio Temporal Embodiment Memory (STEM) including spatial scene geometry, temporal event history, and embodiment profiles of each agent is stored in the shared memory. A centralized brain agent coordinates the robots using information in the STEM to process global tasks. In non-collaborating agent scenarios, agents share their experiences while doing individual tasks. MemOS [ 26 ], which is a comprehensive agent memory management architecture, supports MemStore to exchange modularized knowledge among institutions and industrywide networks on a publish-subscribe mechanism. The exchanged knowledge is distilled from agents’ experience for specific domains/tasks. These memory sharing methods efficiently collect experience while assuming that memory-sharing agents do the same, similar, or cooperative tasks. Multifaceted use of shared memory (i.e., obtaining information from experiences of other agents performing completely different tasks) is not supported. The memory sharing (MS) framework [ 27 ] proposes to share experience on a single experience pool to support cross-task knowledge exchange. Agent experience, which is a question and answer pair, is scored according to pre-defined criteria and the pair with the score greater than the threshold is stored in the pool. Although the MS framework aims to provide globally useful experience pool, the generalization ability of shared memory is limited due to the experience scoring by the global criteria. Experience needs to be evaluated by task-specific criteria to be useful for the task. 4Revolutionizing Long-Term Memory in AI Preprint 
+
+# 3 Formalization of the Paradigms 
+
+In this section, we formally and succinctly characterize the paradigms (i) Store Then ON-demand Extract: STONE ,(ii) deeper insight discovery , and (iii) experience memory sharing , highlighting how each differs from conventional, widely adopted paradigms. 
+
+3.1 STONE vs. extract then store 
+
+Both paradigms determine how experience acquired during a task is transformed into persistent memory used to support future tasks. Consider an agent performing a sequence of tasks T1, T2, · · · . When the agent executes task T , it obtains an experience 
+
+E (for example, inputs, outputs, trajectories, and observations). Let S denote the memory storage, which contains a growing set of stored memory entries. Over time, S becomes S = {M 1, M2, · · ·} , where each Mi is a stored memory derived from past experiences through task Ti.
+
+In the extract-then-store paradigm , when experience E is acquired during task T , the agent extracts only information deemed useful for T . Let fT (E) be the extraction function for task T , and this is typically executed by an LLM. The stored memory entry is 
+
+M = fT (E), (1) and the memory storage is updated as 
+
+S ← S ∪ M. (2) During a later task T ′, the agent retrieves the entries relevant to T ′ from S and uses them for inference. 
+
+In the STONE paradigm , the agent stores the full experience without task-specific filtering. That is, 
+
+M = E, (3) and 
+
+S ← S ∪ M (= S ∪ E ). (4) When a new task T ′ is encountered, relevant stored experiences are retrieved from S, and the extraction function fT ′ is applied at retrieval time to obtain the task-useful information. Again, fT ′ is typically executed by an LLM. The key limitation of extract-then-store paradigm arises because fT (E) preserves only information useful for the current task T . If E contains information x that is not useful for T but is useful for a future task T ′, then x is lost whenever x
+
+is not included in fT (E). In contrast, STONE stores the entire experience E regardless of its immediate utility, thereby eliminating the risk of discarding information that may become valuable for future tasks. Besides, under the requirement that no information potentially useful for any future task may be lost, the STONE paradigm achieves the smaller possible memory size than the extract-then-store paradigm. The proof of this statement is in appendix A. 
+
+3.2 Deeper insight discovery vs. simple experience replay 
+
+Given a task T , the agent retrieves information from S and generates an action. 
+
+Simple experience replay 
+
+The baseline approach retrieves a single memory entry most relevant to T :
+
+M∗ = arg max  
+
+> M∈S
+
+Rel( M, T ), (5) where Rel( ·) is a relevance scoring function. The agent then extracts useful information I for task T from M∗:
+
+I = fT (M∗). (6) Then, the agent generates an action for task T using I. Because only one experience is used, the behavior may reflect noisy or atypical past events. 5Revolutionizing Long-Term Memory in AI Preprint 
+
+Deeper insight discovery 
+
+The deeper insight method retrieves all memory entries with relevance above a threshold: 
+
+MT = { M ∈ S | | fT (M)| > 0 }, (7) where |fT (M)| > 0 means M has some useful information for task T , and aggregates information across them: 
+
+I = Discover T
+
+ {fT (M) | M ∈ M T }, (8) where Discover( ·) distills useful information for T by aggregating information in MT . By leveraging multiple related experiences, this method captures underlying statistical structure and supports more reliable decision-making in probabilistic settings. 
+
+3.3 Memory sharing vs. self-collection 
+
+We consider two settings for constructing the memory storage S containing experiences. 
+
+In the self-collection setting , a single agent A accumulates its own experiences. Let MA denote the set of experiences collected by agent A. The memory storage is defined as 
+
+S = MA. (9) Thus, the diversity and volume of stored memory entries are limited by the trajectory of a single agent. 
+
+In the memory-sharing setting , multiple agents {A1, . . . , A K } contribute to a shared memory storage. Let Mi denote the experiences collected by agent Ai. The shared memory storage is given by 
+
+S =
+
+> K
+
+[
+
+> i=1
+
+Mi. (10) Because experience acquisition is distributed across K agents, this setting provides a significantly higher rate of memory accumulation and greater experiential diversity. 
+
+# 4 Simple Experiments Demonstrating the Superiority of the Highlighted Approaches 
+
+4.1 STONE 
+
+Conventional approaches employing the “Extract Then Store” paradigm only retain information deemed relevant to the task at the time of experience acquisition. Consequently, information potentially useful for future tasks is often discarded, limiting the system’s capability for flexible knowledge reuse. In contrast, we highlight the advantage of the “Store Then On-demand Extract” (STONE) paradigm, in which the agent preserves the raw experience (e.g., an entire document) and extracts task-relevant information as needed during task execution. This approach prevents information loss and facilitates more versatile utilization of previously acquired knowledge. To empirically demonstrate the benefits of STONE, we conducted a question answering task concerning internal company regulations. Multiple documents detailing company policies are provided. For each document, we generated several questions and corresponding correct answers using a gpt-oss-120b , ensuring that each question could be accurately answered by referencing its respective document. The agent is requested to solve these questions in random order. In this scenario, accessing the external database of internal regulations to retrieve a document is considered an “experience.” The agent’s retrieval budget is limited to 100 experiences. 
+
+Extract Then Store : For each question, the agent first searches its memory. If sufficient information is unavailable, it retrieves the relevant document from the external database, at the cost of one experience. However, it only stores information that is directly necessary to answer the current question; all other information is discarded. As a result, if subsequent questions require other information from the same document, the agent must retrieve it again, rapidly depleting its retrieval budget. 
+
+STONE : Whenever the agent accesses an external document, it stores the entire document as-is. This allows the agent to answer later questions using previously retrieved documents, thereby reducing redundant retrievals and conserving its budget. The detailed experiment setting is illustrated in Figure 2. The top plot of Figure 3 shows the agent’s cumulative correct answers against the number of questions, while the bottom of Figure 3 shows the rate at which the retrieval budget is 6Revolutionizing Long-Term Memory in AI Preprint 
+
+Algorithm 1 STONE 
+
+budget ← 100 , CORRECT ← 0, M ← ∅ 
+
+for q ∈ Questions do while TRUE do 
+
+Eq ← sS (q) # search 
+
+Mq ← fq (Eq ) # extract 
+
+if budget < 0 or sufficient information ∈ M q
+
+then 
+
+answer ← g(q|M q ) # generate answer 
+
+break 
+
+else 
+
+budget ← budget − 1
+
+Eq ← retrieve ext (q)
+
+S ← S ∪ E q # store 
+
+end if end while if answer is correct then 
+
+CORRECT ← CORRECT + 1 
+
+end if end for Algorithm 2 Extract then store 
+
+budget ← 100 , CORRECT ← 0, M ← ∅ 
+
+for q ∈ Questions do while TRUE do 
+
+Mq ← sS (q) # search 
+
+if budget < 0 or sufficient information ∈ M q
+
+then 
+
+answer ← g(q|M q ) # generate answer 
+
+break 
+
+else 
+
+budget ← budget − 1
+
+Eq ← retrieve ext (q)
+
+Mq ← fq (Eq ) # extract 
+
+S ← S ∪ M q # store 
+
+end if end while if answer is correct then 
+
+CORRECT ← CORRECT + 1 
+
+end if end for 
+
+Figure 2: Pseudo-algorithms for the simplified experiment. sS (q) retrieves the memory entry relevant to q from storage S. fq (·) extracts information relevant to q. g(q|· ) generates an answer to q by referring to given information. 
+
+retrieve ext (q) retrieves documents relevant to q from the external database in the simplified experiment setting. More generally, this process corresponds to acquiring new experience. # Correct 
+
+## 0
+
+## 20 
+
+## 40 
+
+## 60 
+
+## 80 
+
+## 100 
+
+## 0
+
+## 20 
+
+## 40 
+
+## 60 
+
+## 80 
+
+## 100 
+
+## 0 50 100 150 200 
+
+> Budget
+
+# # Questions 
+
+# STONE 
+
+# Extract then store 
+
+# STONE 
+
+# Extract then store 
+
+Figure 3: STONE (store then on-demand extract) vs. extract then store. 7Revolutionizing Long-Term Memory in AI Preprint A B C
+
+# $100 
+
+# (30%) 
+
+# $20 
+
+# (90%) 
+
+# $1000 
+
+# (10%) 
+
+# Multi-armed bandit problem       
+
+> (a) Settings. 0
+> 10
+> 20
+> 30
+> 40
+> 50
+> 60
+> 70
+> 80
+> 0200 400 600 800 1000
+> averaged w/ 10 trials
+> steps
+> Averaged  reward  [$]  Deep insight discovering
+> Simple experience replay (b) Rewards for each step.
+
+Figure 4: Deeper insight discovery vs. simple experience replay. consumed. “Extract Then Store” methods exhaust the retrieval budget more quickly. Once depleted, the agent must rely exclusively on its limited memory, which significantly impairs performance on subsequent tasks. In contrast, STONE enables more efficient budget usage and prolonged learning, allowing the agent to continue answering questions either using stored documents or by retrieving new ones as necessary. These results demonstrate that STONE enables multifaceted and flexible use of stored experiences. 
+
+4.2 Deeper insight discovery 
+
+To demonstrate the superiority of “deeper insight discovery” over simple experience replay, we designed a straightfor-ward experiment using the multi-armed bandit problem—a commonly used benchmark in reinforcement learning. In this task, as illustrated in Figure 4(a), three arms are assigned different probabilities of success and rewards, with the objective to maximize cumulative reward. When applying simple experience replay to this setting, an agent may select the same arm again after a success, and switch arms following a failure. However, as noted in standard reinforcement learning literature, many approaches outperform such naive strategies. Here, we adopted the ε-greedy policy, which can be easily applied in the context of experience utilization. The agent estimates the expected value of each arm based on observed outcomes, selecting the arm with the highest estimated value with probability 1 − ε, and otherwise selecting randomly among the remaining arms. Figure 4 presents the average reward over ten trials, clearly showing that the ε-greedy policy achieves substantially higher rewards compared to simple experience replay. While this result may appear trivial, it strongly suggests that statistical processing and leveraging a broader range of experiences—as embodied by deeper insight discovery —offers significant potential for performance improvement over conventional approaches focused solely on repeating successful experiences or avoiding failed ones. 
+
+4.3 Experience memory sharing 
+
+In the memory-sharing platform, a large volume of experience data can be collected efficiently because multiple AI agents can simultaneously store their experiences. We demonstrate the efficiency of memory sharing by expanding the ExpeL [ 6] agent’s functionality to share its trajectories and extracted rules. We conducted an experiment in which an agent processed HotpotQA questions while its success rate was measured after each question. The success rate is defined as the number of succeeded questions divided by the total number of previously answered questions. Figure 5(a) and Figure 5(b) show the number of finished questions plotted against the success rates on 1–50 questions (an enlargement of Figure 5(b)) and 1–500 questions, respectively. For “Memory-sharing ExpeL”, ten agents processed 50 questions in the individually shuffled orders while sharing success trajectories of similar questions and rules extracted from trajectories of the agents. At each round, the ten agents processed one question in a shuffled order, and this was repeated for 50 rounds. The success rate of the last agent at each round is plotted, with the last agent having access to the memory of all previous experiences as well as all other agents in the current round. This is a fair setting to “ExpeL” experiments because an ExpeL agent can always access all the memory of previous experiences. For “ExpeL”, one agent processed 500 questions in the interleaved order of the ten shuffles used in the “Memory-sharing ExpeL” experiment. 8Revolutionizing Long-Term Memory in AI Preprint 0                   
+
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 0510 15 20 25 30 35 40 45
+> Success rate
+> Finished questions per agent
+> Memory-sharing ExpeL
+> ExpeL
+> Max. of Memory-sharing (0.62)
+> 50
+> (a) Success rate on 1–50 questions. 0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> 0.5
+> 0.6
+> 0.7
+> 050 100 150 200 250 300 350 400 450
+> Success rate
+> Finished questions per agent
+> Memory-sharing ExpeL
+> ExpeL
+> Max. of Memory-sharing (0.62)
+> 500 (b) Success rate on 1–500 questions.
+
+Figure 5: With memory-sharing vs. without memory-sharing. For “Memory-sharing ExpeL” and “ExpeL”, the average values over eight times of the same experiments are shown in Figure 5. The success rate of the memory-sharing agents reached 0.62 when they processed 50 questions per agent (Figure 5(a)). On the other hand, the ExpeL agent required processing all the 500 questions to reach the success rate 0.62 (Figure 5(b)). The ratio of required 500 questions to 50 questions was the same as that of ten memory-sharing agents to the one ExpeL agent. This result indicates that memory-sharing capability reduces the burden of trial-and-error per agent while trajectories are efficiently collected. 
+
+# 5 Challenges 
+
+In this section, we discuss several challenges that may have hindered the adoption of Store Then ON-demand Extract: STONE , deeper insight discovery , and experience memory sharing despite their potential usefulness, and that may help explain why they have remained underexplored. 
+
+5.1 Storage capacity 
+
+In STONE, experiences are stored in raw form, as shown in Eq. (4). Under the requirement that no information potentially useful for any future task may be lost, this strategy minimizes memory usage (appendix A); nevertheless, compared with methods that store only information fragments relevant to the current task, it results in substantially larger storage demands. A promising direction is the lossless compression of experiences and the elimination of redundancies with previously stored memory. However, what we emphasize most is increasing the density and capacity of the storage devices themselves. In this direction, for example, 3D-flash memory with a bit density of 37 .6 Gb /mm 2 [28 ], and SSDs with capacities of 245.76 TB in both a standard 2.5-inch and EFSFF E3.L form factors [ 29 ] have been demonstrated. Note that memory sharing schemes also help reduce the overall storage demand by avoiding redundant storage for experiences that can be leveraged by multiple AIs. 
+
+5.2 Inference performance 
+
+In STONE, a major concern is a significant runtime overhead, as useful information must be extracted from raw experiences during task execution. This extraction is typically performed by prompting an LLM with the raw experience, the current task description, and an instruction to extract task-relevant information. Because the computational cost of LLM inference generally scales quadratically with the context length, longer inputs lead to substantially higher latency. Storing raw experiences as memory entries therefore results in very large contexts, further exacerbating this cost. A possible approach to accelerate insight extraction is utilizing KV (key value)-cache enabling LLMs to avoid long experience data processing at runtime. KV-cache is a store of key-value expressions of tokens processed by an LLM [ 30 ]. Reuse of KV-cache of long experience data allows the LLM to start from states of being aware of the long experience without reprocessing the experience. Different from summarization and abstraction that are suitable to human memory, KV-cache retains all information in processed tokens, and we argue that KV-cache is the optimal memory form for AI. While current primary target of KV-cache utilization is long session and multi-turn conversations for chat service [ 31 ], we need to research and develop algorithms and software on this technology optimized for STONE paradigm. For both 9Revolutionizing Long-Term Memory in AI Preprint 
+
+of them, the development of ultra-high IOPS SSD [ 32 ] is expected to significantly broaden its scope of application and enhance its effectiveness. 
+
+5.3 Comprehensive recall 
+
+For deep insight discovery, it is required to reliably recall all relevant experiences that have useful information for the current task (Eq. 7). Similarity search using dense vectors (approximate nearest neighbor search: ANNS) is popularly used by AI agents (e.g., agentic RAG [ 33 ]) to find useful experiences in the database. However, ANNS is not appropriate for this comprehensive recall [34], because ANNS is designed to retrieve the most similar items. Semantic logical search techniques using sparse vector format can be a fundamental technology of comprehensive recall because of its higher interpretability of data [ 35 , 36 ]. Furthermore, software or devices suitable for large-scale logical search using sparse vector representations need to be developed. While research and development on software and hardware for dense vector search has been highly active (e.g., [ 37 , 38 ]), we hope to see similar progress for logical search based on sparse vector formats. 
+
+5.4 Machine learning to discover deeper insight 
+
+As described in Section 3.2, a discovery function ( Discover( ·)) is required to capture the statistical structure in large amounts of experience in stochastic environments and obtain useful deeper insights. This is most reasonably achieved through machine learning. Specifically, a Q-function that derives the return G from the current state s (and the past history h, if necessary) and the subsequent action a becomes the deeper insight. However, for LLM-based agents, the open-ended language action space makes the probability of revisiting exactly the same action extremely low; as a result, the reward variance for each action becomes large, leading to unstable learning [ 39 ]. Additionally, as a pre-processing step, experiences must be vectorized using a pretrained embedding model, but there is also concern that the performance of the embedding model may become a bottleneck for the overall process. Furthermore, even if the Q-function can be estimated accurately, a mechanism is required to ensure that the LLM agent reliably takes actions that follow the Q-function. These challenges must be addressed in order to enable machine learning-based deeper insight discovery. 
+
+5.5 Infrastructures for memory sharing platform 
+
+For effective memory sharing and transfer, Cheng et al. [ 40 ] proposed the concept of Knowledge Delivery Networks (KDN), which deploy distributed KV-cache storage across the Internet, drawing an analogy to Content Delivery Networks (CDN). Such an approach highlights the need for scalable and globally accessible infrastructures to sup-port large-scale memory platforms, enabling efficient retrieval, low-latency access, and seamless sharing of learned knowledge across multiple agents and systems. In addition to globally accessible infrastructures such as KDN, local infrastructures (i.e., edge computing) supporting memory platforms are also necessary for experience sharing in limited space. 
+
+5.6 Security and privacy 
+
+Memory sharing inherently raises concerns regarding privacy and security. Experience may contain personal or sensitive information whose disclosure should be strictly limited. The shared memory pool may be contaminated by the introduction of misinformation or harmful data, including by malicious users. Compliance with relevant regulations, such as the General Data Protection Regulation (GDPR), must be carefully considered for practical deployment. Research on memory sharing that addresses security and privacy concerns is beginning to emerge [ 41 ]. But as with this paper, most studies on memory sharing tend to treat security and privacy as future work or limitations. However, moving forward, it will be essential to develop memory-sharing approaches that thoroughly address security and privacy concerns. 
+
+# 6 Conclusion 
+
+In this paper, we have identified three under-explored yet highly promising directions for advancing self-evolving AI agents equipped with external memory. Furthermore, we showed the effectiveness of the directions using simple experiments. (i) Store-Then-ON-demand-Extract (STONE): By persisting raw experiences instead of pre-selected extracts, STONE preserves latent information that can be leveraged flexibly across heterogeneous future tasks, thus overcoming the inherent lossiness of “extract-then-store” pipelines. (ii) Deeper insight discovery: We introduced a process to extract or learn useful information from many experiences, rather than from a single experience. This mitigates inter-context conflicts in non-deterministic settings and guides the agent toward more reliable decision-making. 10 Revolutionizing Long-Term Memory in AI Preprint 
+
+(iii) Experience Memory Sharing: We demonstrated that pooled experience repositories enable agents to amortize collection costs. We also identify key technical challenges, including storage capacity, comprehensive recall, security, etc. We anticipate that continued research along these lines will pave the way for AI agents that continuously and adaptively improve themselves, broadening the scope of intelligent behavior in complex, dynamic environments. 
+
+# References 
+
+[1] Zeyu Zhang, Quanyu Dai, Xiaohe Bo, Chen Ma, Rui Li, Xu Chen, Jieming Zhu, Zhenhua Dong, and Ji-Rong Wen. A Survey on the Memory Mechanism of Large Language Model based Agents. ACM Trans. Inf. Syst., 43(6), September 2025. [2] Yaxiong Wu, Sheng Liang, Chen Zhang, Yichao Wang, Yongyue Zhang, Huifeng Guo, Ruiming Tang, and Yong Liu. From Human Memory to AI Memory: A Survey on Memory Mechanisms in the Era of LLMs, April 2025. arXiv:2504.15965 [cs]. [3] Huan-ang Gao, Jiayi Geng, Wenyue Hua, Mengkang Hu, Xinzhe Juan, Hongzhang Liu, Shilong Liu, Jiahao Qiu, Xuan Qi, Yiran Wu, Hongru Wang, Han Xiao, Yuhang Zhou, Shaokun Zhang, Jiayi Zhang, Jinyu Xiang, Yixiong Fang, Qiwen Zhao, Dongrui Liu, Qihan Ren, Cheng Qian, Zhenhailong Wang, Minda Hu, Huazheng Wang, Qingyun Wu, Heng Ji, and Mengdi Wang. A Survey of Self-Evolving Agents: On Path to Artificial Super Intelligence, August 2025. arXiv:2507.21046 [cs]. [4] OpenAI. Memory and new controls for ChatGPT, February 2024. [5] Jiale Wei, Xiang Ying, Tao Gao, Fangyi Bao, Felix Tao, and Jingbo Shang. AI-native Memory 2.0: Second Me, March 2025. arXiv:2503.08102 [cs]. [6] Andrew Zhao, Daniel Huang, Quentin Xu, Matthieu Lin, Yong-Jin Liu, and Gao Huang. ExpeL: LLM Agents Are Experiential Learners. In Proceedings of the 38th AAAI Conference on Artificial Intelligence (AAAI-24), volume 38, pages 19632–19642, March 2024. Issue: 17. [7] Yu Wang and Xi Chen. MIRIX: Multi-Agent Memory System for LLM-Based Agents, July 2025. arXiv:2507.07957 [cs]. [8] Mingcong Lei, Honghao Cai, Zezhou Cui, Liangchen Tan, Junkun Hong, Gehan Hu, Shuangyu Zhu, Yimou Wu, Shaohan Jiang, Ge Wang, Yuyuan Yang, Junyuan Tan, Zhenglin Wan, Zhen Li, Shuguang Cui, Yiming Zhao, and Yatong Han. RoboMemory: A Brain-inspired Multi-memory Agentic Framework for Interactive Environmental Learning in Physical Embodied Systems, October 2025. arXiv:2508.01415 [cs]. [9] Edward C. Tolman. Cognitive maps in rats and men. Psychological Review, 55(4):189–208, 1948. [10] Rongwu Xu, Zehan Qi, Zhijiang Guo, Cunxiang Wang, Hongru Wang, Yue Zhang, and Wei Xu. Knowledge conflicts for LLMs: A survey. In Yaser Al-Onaizan, Mohit Bansal, and Yun-Nung Chen, editors, Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing , pages 8541–8565, Miami, Florida, USA, November 2024. Association for Computational Linguistics. [11] Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Nee-lakantan, Pranav Shyam, Girish Sastry, Amanda Askell, Sandhini Agarwal, Ariel Herbert-Voss, Gretchen Krueger, Tom Henighan, Rewon Child, Aditya Ramesh, Daniel Ziegler, Jeffrey Wu, Clemens Winter, Chris Hesse, Mark Chen, Eric Sigler, Mateusz Litwin, Scott Gray, Benjamin Chess, Jack Clark, Christopher Berner, Sam McCandlish, Alec Radford, Ilya Sutskever, and Dario Amodei. Language Models are Few-Shot Learners. In Advances in Neural Information Processing Systems, pages 1877–1901, 2020. [12] Edward J. Hu, yelong shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. LoRA: Low-Rank Adaptation of Large Language Models. In International Conference on Learning Representations (ICLR), 2022. [13] Lukas Berglund, Meg Tong, Maximilian Kaufmann, Mikita Balesni, Asa Stickland, Tomek Korbak, and Owain Evans. The reversal curse: Llms trained on “a is b”fail to learn “b is a”. In B. Kim, Y. Yue, S. Chaudhuri, K. Fragkiadaki, M. Khan, and Y. Sun, editors, International Conference on Learning Representations, volume 2024, pages 18623–18642, 2024. [14] Andrew Kyle Lampinen, Arslan Chaudhry, Stephanie C.Y. Chan, Cody Wild, Diane Wan, Alexander Ku, Jörg Bornschein, Razvan Pascanu, Murray Shanahan, and James Lloyd McClelland. On the generalization of language models from in-context learning and finetuning: a controlled study. In First Workshop on Foundations of Reasoning in Language Models, 2025. 11 Revolutionizing Long-Term Memory in AI Preprint 
+
+[15] Andrew Kyle Lampinen, Martin Engelcke, Yuxuan Li, Arslan Chaudhry, and James L. McClelland. Latent learning: episodic memory complements parametric learning by enabling flexible reuse of experiences, September 2025. arXiv:2509.16189 [cs]. [16] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin, Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel, Sebastian Riedel, and Douwe Kiela. Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks. In H. Larochelle, M. Ranzato, R. Hadsell, M.F. Balcan, and H. Lin, editors, Advances in Neural Information Processing Systems, volume 33, pages 9459–9474. Curran Associates, Inc., 2020. [17] Zafeirios Fountas, Martin Benfeghoul, Adnan Oomerjee, Fenia Christopoulou, Gerasimos Lampouras, Haitham Bou Ammar, and Jun Wang. Human-inspired Episodic Memory for Infinite Context LLMs. In The Thirteenth International Conference on Learning Representations, 2025. [18] Ali Behrouz, Peilin Zhong, and Vahab Mirrokni. Titans: Learning to Memorize at Test Time. In The Thirty-ninth Annual Conference on Neural Information Processing Systems, 2025. [19] Qizheng Zhang, Changran Hu, Shubhangi Upasani, Boyuan Ma, Fenglu Hong, Vamsidhar Kamanuru, Jay Rainton, Chen Wu, Mengmeng Ji, Hanchen Li, Urmish Thakker, James Zou, and Kunle Olukotun. Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models, October 2025. arXiv:2510.04618 [cs]. [20] Zhicheng Cai, Xinyuan Guo, Yu Pei, JiangTao Feng, Jiangjie Chen, Ya-Qin Zhang, Wei-Ying Ma, Mingxuan Wang, and Hao Zhou. FLEX: Continuous Agent Evolution via Forward Learning from Experience, November 2025. arXiv:2511.06449v1 [cs.LG]. [21] B. Y. Yan, Chaofan Li, Hongjin Qian, Shuqi Lu, and Zheng Liu. General Agentic Memory Via Deep Research, November 2025. arXiv:2511.18423 [cs]. [22] Adyasha Maharana, Dong-Ho Lee, Sergey Tulyakov, Mohit Bansal, Francesco Barbieri, and Yuwei Fang. Evaluat-ing very long-term conversational memory of LLM agents. In Lun-Wei Ku, Andre Martins, and Vivek Srikumar, editors, Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 13851–13870, Bangkok, Thailand, August 2024. Association for Computational Linguistics. [23] Zora Zhiruo Wang, Jiayuan Mao, Daniel Fried, and Graham Neubig. Agent workflow memory. In Forty-second International Conference on Machine Learning, 2025. [24] Yitao Liu, Chenglei Si, Karthik R Narasimhan, and Shunyu Yao. Contextual Experience Replay for Self-Improvement of Language Agents. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 14179–14198, Vienna, Austria, 2025. Association for Computational Linguistics. [25] Huajie Tan, Cheng Chi, Xiansheng Chen, Yuheng Ji, Zhongxia Zhao, Xiaoshuai Hao, Yaoxu Lyu, Mingyu Cao, Junkai Zhao, Huaihai Lyu, Enshen Zhou, Ning Chen, Yankai Fu, Cheng Peng, Wei Guo, Dong Liang, Zhuo Chen, Mengsi Lyu, Chenrui He, Yulong Ao, Yonghua Lin, Pengwei Wang, Zhongyuan Wang, and Shanghang Zhang. RoboOS-NeXT: A Unified Memory-based Framework for Lifelong, Scalable, and Robust Multi-Robot Collaboration, October 2025. arXiv:2510.26536 [cs]. [26] Zhiyu Li, Shichao Song, Chenyang Xi, Hanyu Wang, Chen Tang, Simin Niu, Ding Chen, Jiawei Yang, Chunyu Li, Qingchen Yu, Jihao Zhao, Yezhaohui Wang, Peng Liu, Zehao Lin, Pengyuan Wang, Jiahao Huo, Tianyi Chen, Kai Chen, Kehang Li, Zhen Tao, Junpeng Ren, Huayi Lai, Hao Wu, Bo Tang, Zhenren Wang, Zhaoxin Fan, Ningyu Zhang, Linfeng Zhang, Junchi Yan, Mingchuan Yang, Tong Xu, Wei Xu, Huajun Chen, Haofeng Wang, Hongkang Yang, Wentao Zhang, Zhi-Qin John Xu, Siheng Chen, and Feiyu Xiong. MemOS: A Memory OS for AI System, July 2025. arXiv:2507.03724 [cs]. [27] Hang Gao and Yongfeng Zhang. Memory Sharing for Large Language Model based Agents, July 2024. arXiv:2404.09982 [cs]. [28] J. M. Thimmaiah, R. Yamashita, I-S. Yoon, J. Li, C. Hsu, T. Ariki, N. Ookuma, Y. Kato, K. Hayashi, K. Yamauchi, I. K V, M. Kano, S. Bhamidipati, S. Bhatia, S. Malhotra, N. Ojima, Z. Yang E. Wu, F. W. Tsai, M. Bayle, N. Minami, Y. Fujihara, K. Kitamura, T. Kitani, T. Kodama, T. Handa, N. Kanagawa, Y. Ishizaki, S. Fujimura, Y. Suzuki, M. Sako, Y. Higashi, Y. Watanabe, T. Kouchi, A. V, C-Y. Chen, X. Yang, G. Liang, and J. Wang. A 2Tb 4b/Cell 6-Plane 3D-Flash Memory with 37 .6Gb /mm 2 Bit Density and > 85MB /s Write Throughput. In 2026 IEEE International Solid-State Circuits Conference Digest of Technical Papers, 2026. [29] KIOXIA. KIOXIA LC9 Series 245.76 TB Enterprise SSD with Innovative 32-die Stack Memory Named ’Best of Show’ at FMS: the Future of Memory and Storage 2025, 2025. [30] Shi Luohe, Hongyi Zhang, Yao Yao, Zuchao Li, and hai zhao. Keep the Cost Down: A Review on Methods to Optimize LLM’s KV-Cache Consumption. In First Conference on Language Modeling, 2024. 12 Revolutionizing Long-Term Memory in AI Preprint 
+
+[31] Nvidia. Motivation behind KVBM - NVIDIA Dynamo Documentation, 2025. [32] KIOXIA. KIOXIA Demonstrates Ultra-High IOPS SSD Emulation for GPU-Storage Direct Connected AI Applications, 2025. [33] Aditi Singh, Abul Ehtesham, Saket Kumar, and Tala Talaei Khoei. Agentic Retrieval-Augmented Generation: A Survey on Agentic RAG, February 2025. arXiv:2501.09136 [cs]. [34] Orion Weller, Michael Boratko, Iftekhar Naim, and Jinhyuk Lee. On the Theoretical Limitations of Embedding-Based Retrieval, August 2025. arXiv:2508.21038 [cs]. [35] Luís Borges, Bruno Martins, and Jamie Callan. KALE: Using a K-Sparse Projector for Lexical Expansion. In Proceedings of the 2023 ACM SIGIR International Conference on Theory of Information Retrieval , pages 13–22, Taipei Taiwan, August 2023. ACM. [36] Seongwan Park, Taeklim Kim, and Youngjoong Ko. Decoding Dense Embeddings: Sparse Autoencoders for Interpreting and Discretizing Dense Retrieval. In Christos Christodoulopoulos, Tanmoy Chakraborty, Carolyn Rose, and Violet Peng, editors, Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing, pages 26468–26485, Suzhou, China, November 2025. Association for Computational Linguistics. [37] Kento Tatsuno, Daisuke Miyashita, Taiga Ikeda, Kiyoshi Ishiyama, Kazunari Sumiyoshi, and Jun Deguchi. AiSAQ: All-in-Storage ANNS with Product Quantization for DRAM-free Information Retrieval, February 2025. arXiv:2404.06004 [cs]. [38] Yiwei Li, Yuxin Jin, Boyu Tian, Huanchen Zhang, and Mingyu Gao. Ansmet: Approximate nearest neighbor search with near-memory processing and hybrid early termination. In Proceedings of the 52nd Annual International Symposium on Computer Architecture , ISCA ’25, pages 1093–1107, New York, NY, USA, 2025. Association for Computing Machinery. [39] Ruihan Yang, Yikai Zhang, Aili Chen, Xintao Wang, Siyu Yuan, Jiangjie Chen, Deqing Yang, and Yanghua Xiao. ARIA: Training language agents with intention-driven reward aggregation, June 2025. arXiv:2506.00539 [cs.CL]. [40] Yihua Cheng, Kuntai Du, Jiayi Yao, and Junchen Jiang. Do Large Language Models Need a Content Delivery Network? In The 2nd Workshop on Hot Topics in System Infrastructure (HotInfra’24), colocated with SOSP’24, page 6, Austin, TX, November 2024. [41] Alireza Rezazadeh, Zichao Li, Ange Lou, Yuying Zhao, Wei Wei, and Yujia Bao. Collaborative Memory: Multi-User Memory Sharing in LLM Agents with Dynamic Access Control, 2025. arXiv:2505.18279 [cs]. 
+
+# A Memory size of STONE is minimal. 
+
+Theorem 1. Under the requirement that information potentially useful for any future task may not be lost and the assumption that the memory size of extracted information is the same to that of original experience, the STONE paradigm achieves the smallest possible memory size among all extract-then-store paradigms. Proof. Let E be the set of acquired experience, and let fTi (E) ⊆ E (1 ≤ i ≤ k) denote the extracted useful information for the future tasks T1, · · · , Tk. Their memory sizes satisfy |fTi (E)| ≤ |E| often with strict inequality. In STONE paradigm, memory MSTONE is all experience: 
+
+MSTONE = E, |M STONE | = |E| .
+
+In extract-then-store (ETS) paradigms, memory METS is the tuple of extracted information for the tasks: 
+
+METS = ( fT1 (E), · · · , f Tk (E)) .
+
+The zero future-loss requirement demands that every x ∈ E that could be useful for any future task must be stored because no x ∈ E can be guaranteed irrelevant to all future tasks. METS = ( fT1 (E), · · · , f Tk (E)) includes information corresponding to any x ∈ E while information in fTi (E) and fTj (E) for different tasks Ti and Tj (i̸ = j, 1 ≤ i, j ≤ k)
+
+can be overlapped and redundant. Thus, the memory size |M ETS | satisfies 
+
+|M ETS | ≥ |E| .
+
+Hence, STONE achieves the minimum possible memory size: 
+
+|M STONE | ≤ |M ETS |.
+
+13

@@ -1,0 +1,2603 @@
+Title: Conditional Rank-Rank Regression via Deep Conditional Transformation Models
+
+URL Source: https://arxiv.org/pdf/2603.07230v1
+
+Published Time: Tue, 10 Mar 2026 00:47:58 GMT
+
+Number of Pages: 44
+
+Markdown Content:
+# Conditional Rank-Rank Regression via Deep Conditional Transformation Models 
+
+# Xiaoyi Wang, Long Feng and Zhaojun Wang Nankai University March 10, 2026 
+
+Abstract 
+
+Intergenerational mobility quantifies the transmission of socio-economic outcomes from parents to children. While rank-rank regression (RRR) is standard, adding covariates directly (RRRX) often yields parameters with unclear interpretation. Conditional rank-rank regression (CRRR) resolves this by using covariate-adjusted (conditional) ranks to measure within-group mobility. We improve and extend CRRR by estimating conditional ranks with a deep conditional transformation model (DCTM) and cross-fitting, enabling end-to-end conditional distribution learning with structural constraints and strong performance under nonlinearity, high-order interactions, and discrete ordered outcomes where the distributional re-gression used in traditional CRRR may be cumbersome or prone to misconfiguration. We further extend CRRR to discrete outcomes via an ω-indexed conditional-rank definition and study sensitivity to ω.For continuous outcomes, we establish an asymptotic theory for the proposed estimators and verify the validity of exchangeable bootstrap inference. Simulations across simple/complex continuous and discrete ordered designs show clear accuracy gains in challenging settings. Finally, we apply our method to two empirical studies, revealing substantial within-group persistence in U.S. income and pronounced gender differences in educational mobility in India. 
+
+Keywords : Conditional rank-rank regression; Cross-fitting; Deep conditional transformation model; Intergenerational mobility. 
+
+# 1 Introduction 
+
+Intergenerational mobility is a central topic in economics and sociology. It quantifies how socio-economic status—such as income, education, occupation, and health—is transmitted (or reshuffled) from parents to children, and thus provides a window into the mechanisms underlying inequality, opportunity, and social development. A leading empirical tool is the rank-rank regression (RRR) (Dahl and DeLeire, 2008; Chetty et al., 2014a,b). In its canonical form, one transforms the parental and child outcomes into ranks and regresses the child rank on the parent rank; the slope coefficient serves as a popular measure of intergenerational persistence (and hence mobility). RRR has been widely used in empirical work on education (Kotera and Seshadri, 2017; Chetty et al., 2017), labor and occupations (Song et al., 2020; Boar and Lashkari, 2021), income and wealth (Chetty et al., 2014a,b; Fagereng et al., 2021), health (Halliday et al., 2021; Fletcher and Jajtner, 2021), and child development (Chetty et al., 2016), and has become a benchmark for comparing mobility across regions, cohorts, and social groups, informing policy discussions on inequality and opportunity (Mogstad and Torsvik, 2023). RRR is attractive for both statistical and substantive reasons. For continuous outcomes, the RRR slope is closely connected to rank dependence: it equals the Spearman’s rank correlation in the population (Chetverikov and Wilhelm, 2023), a standard dependence measure that is invariant to monotone transfor-mations (Spearman, 1961; Kendall, 1949). Moreover, by operating on ranks, RRR is typically more robust to extreme outcomes than classic mobility measures based on levels, such as the intergenerational elasticity (IGE) (Becker and Tomes, 1986; Atkinson, 1980; Mazumder, 2018; Olivetti and Paserman, 2015; Beller and Hout, 2006). 1
+
+> arXiv:2603.07230v1 [stat.ME] 7 Mar 2026
+
+In many applications, however, researchers seek to account for observed covariates X (e.g., region, race, parental education) and to distinguish within-group persistence from between-group persistence. A common practice is to incorporate X directly in the rank regression, yielding RRR with covariates (RRRX). Yet the co-efficient from RRRX is difficult to interpret: it generally no longer corresponds to a rank correlation measure and may even fall outside the natural range [ −1, 1] (Chetverikov and Wilhelm, 2023). This interpretability concern motivates the conditional rank-rank regression (CRRR) recently proposed by Chernozhukov et al. (2024). CRRR replaces marginal ranks with conditional ranks computed within covariate-defined group, and its slope admits a transparent interpretation as an average within-group persistence: it can be represented as the average Spearman’s rank correlation conditional on X, averaged over the distribution of X (Cher-nozhukov et al., 2024). Consequently, CRRR enables a decomposition of overall persistence into within- and between-group components, facilitating more granular mobility analysis. Implementing CRRR requires estimating conditional ranks, i.e., conditional distribution functions FY |X
+
+and FW |X . When X is low-dimensional and discrete with sufficient within-group sample sizes, empirical conditional CDFs are feasible. In modern applications, X is often continuous and/or high-dimensional, making group-based estimation impractical. Chernozhukov et al. (2024) propose estimating conditional ranks via distribution regression (DR) (Foresi and Peracchi, 1995; Chernozhukov et al., 2013), which approximates the conditional CDF by fitting a collection of threshold-specific binary regressions (often with logit/probit link functions) and then interpolating across thresholds. While DR provides an operational pathway, it faces several limitations in complex data environments: (i) link-function specifications impose implicit shape restrictions, which can lead to misspecification under heavy tails, multimodality, strong nonlinearity, or high-order interactions; (ii) accurately approximating the full distribution may require many thresholds, increasing computational and engineering burden; and (iii) independently fitted thresholds do not automatically enforce the probability axioms for a CDF (e.g., monotonicity), often necessitating post-processing. In addition, existing CRRR theory is primarily developed for continuously distributed outcomes, whereas many variables of interest (e.g., education categories, occupational ranks) are discrete and ordered, inducing pervasive ties. For discrete outcomes, ranks are not uniquely defined without explicit tie-handling, and Chernozhukov et al. (2024) explicitly note that discrete extensions are left for future work. This paper advances CRRR along two dimensions. First, we develop a flexible estimator of conditional ranks based on a Deep Conditional Transformation Model (DCTM), combined with cross-fitting to mitigate overfitting bias. DCTM learns the conditional CDF end-to-end and, through architectural constraints, directly enforces validity of the estimated distribution, avoiding repeated threshold-by-threshold fits as in DR. Second, we provide a first systematic investigation of CRRR for discrete ordered outcomes. We introduce an ω-indexed definition of conditional ranks that parameterizes tie-handling and study how the CRRR slope depends on ω, highlighting that mobility conclusions for discrete outcomes are intrinsically sensitive to rank definitions and must be reported accordingly. Our main contributions are summarized as follows. 1. Methodology. We propose a “DCTM + cross-fitting” procedure for estimating conditional ranks in CRRR, which is computationally efficient and robust in settings with nonlinearity, high-order inter-actions, and discrete ordered outcomes, improving upon the DR-based implementation (Foresi and Peracchi, 1995; Chernozhukov et al., 2013, 2024). 2. Theory (continuous outcomes). Under a fixed-complexity framework, we establish consistency and asymptotic normality of the proposed estimator and prove validity of exchangeable bootstrap inference (Chernozhukov et al., 2024; Chetverikov and Wilhelm, 2023). 3. Discrete CRRR. We develop a parameterized conditional-rank definition for discrete outcomes and quantify sensitivity of the target parameter to tie-handling, filling an important gap highlighted in Chernozhukov et al. (2024). 4. Empirics and simulations. Extensive simulations demonstrate accuracy gains under complex continuous and discrete ordered designs. Empirical applications to PSID-SHELF and IHDS illustrate how CRRR decomposes persistence into within- and between-group components and uncovers gender heterogeneity in mobility patterns. 2The remainder of the paper is organized as follows. Section 2 reviews the key theoretical background, including rank-rank regression, conditional rank-rank regression, and deep conditional transformation models (DCTM). Section 3 presents the proposed framework and model construction, replacing the traditional distribution regression approach for conditional-rank estimation with DCTM and adopting a cross-fitting strategy. Section 4 establishes consistency and asymptotic normality of the proposed estimator under a fixed model-complexity regime. Section 5 reports simulation studies to highlight its advantages relative to the traditional distribution-regression-based CRRR. Section 6 presents empirical applications to the PSID-SHELF and IHDS datasets. Finally, Section 7 concludes and outlines directions for further improvements. The Appendix collects proofs of the lemmas and theorems in Section 4. 
+
+# 2 Basic Concepts 
+
+To facilitate subsequent exposition, we adopt the following unified notation throughout this section: 
+
+• Y denotes the child’s socio-economic outcome (e.g., income, educational attainment, occupational status), and W denotes the parent’s outcome. 
+
+• X ∈ X ⊂ Rp is a covariate vector (e.g., race, region, family characteristics). 
+
+• FY (y) = P(Y ≤ y) and FW (w) = P(W ≤ w) are the marginal distribution functions of Y and W ,respectively. 
+
+• FY |X (y | x) = P(Y ≤ y | X = x) and FW |X (w | x) = P(W ≤ w | X = x) are the conditional distribution functions of Y | X and W | X, respectively. Based on these definitions, we define the marginal ranks and conditional ranks: 
+
+RY := FY (Y ), RW := FW (W ), U := FY |X (Y | X), V := FW |X (W | X),
+
+where, in the continuous-outcome case, RY , RW , U , and V are all distributed as Unif(0 , 1). 
+
+# 2.1 Rank-Rank Regresssion 
+
+Rank-rank regression is a rank-based regression approach for studying the dependence between two variables and has been widely used in economics, especially in intergenerational mobility research. The basic idea is to transform the child outcome Y and the parent outcome W into their population ranks RY and RW , and then use a linear model to describe the dependence of RY on RW . The slope ρ is the parameter of interest: 
+
+RY,i = α + ρR W,i + εi.
+
+When Y and W are continuous, RY ∼ Unif(0 , 1) and RW ∼ Unif(0 , 1), and 
+
+E[RY ] = E[RW ] = 12 , Var( RY ) = Var( RW ) = 112 .
+
+Therefore, the RRR coefficient ρ is both the regression slope of RY on RW and the Spearman’s rank correlation between Y and W (equivalently, the Pearson correlation between RY and RW ): 
+
+ρ = Cov( RY , R W )Var( RW ) = Cov( RY , R W )Var( RY ) = Cor( RY , R W ) = 12 E  RY − 12
+
+   RW − 12
+
+ .
+
+In intergenerational mobility studies, the rank-rank regression slope ρ is typically viewed as a measure of intergenerational persistence. A larger ρ indicates a stronger association between parental rank and child rank, i.e., higher persistence and lower mobility. Because ρ has an intuitive economic interpretation and is relatively robust to extreme values compared with alternative measures, rank-rank regression is widely used to quantify intergenerational dependence and to compare mobility across groups and regions. 3It is important to note that the rank-rank regression model involves only the rank relationship between two variables. It captures aggregate intergenerational mobility, namely the Spearman’s rank correlation between Y and W without controlling for other factors (sometimes referred to as the “unconditional” rank correlation). In many applications, however, researchers wish to study the association after controlling for additional covariates, such as within-group mobility. A conventional practice is to include covariates X
+
+additively or non-additively in the rank regression, referred to as RRR with covariates (RRRX), for example, 
+
+RY = β0 + ρR W + β⊤ 
+
+> 2
+
+X + ϵ, E[ϵ] = 0 , E[RW ϵ] = 0 , E[Xϵ ] = 0 .
+
+However, Chernozhukov et al. (2024) show that the RRRX coefficient ρ is difficult to interpret both econom-ically and statistically: it may fall outside the natural range [ −1, 1] and no longer coincides with Spearman’s rank correlation. This undermines the intuitive role of rank correlation as a dependence measure. Moti-vated by this issue, Chernozhukov et al. (2024) propose conditional rank-rank regression, which incorporates covariates while preserving a rank-correlation interpretation. 
+
+# 2.2 Conditional Rank-Rank Regression 
+
+To address the interpretability difficulty of rank-rank regression with covariates, Chernozhukov et al. (2024) propose conditional rank-rank regression (CRRR) and develop asymptotic theory for the continuous-outcome case. The key idea of CRRR is to replace the marginal ranks RY and RW with the conditional ranks U := 
+
+FY |X (Y | X) and V := FW |X (W | X), thereby incorporating covariate effects. Informally, CRRR computes within-group ranks of Y and W conditional on X, and then regresses the child’s conditional rank on the parent’s conditional rank: 
+
+Ui = α + ρC Vi + εi.
+
+When Y and W are continuous, one has U | X ∼ Unif(0 , 1) and V | X ∼ Unif(0 , 1), and hence 
+
+U, V ∼ Unif(0 , 1). In particular, 
+
+E[V ] = E[U ] = E[V | X] = E[U | X] = 12 , Var( V ) = Var( U ) = Var( V | X) = Var( U | X) = 112 .
+
+Therefore, the CRRR coefficient ρC is both the regression slope of U on V and the (unconditional) correlation between U and V :
+
+ρC = Cov( U, V )Var( V ) = Cov( U, V )Var( U ) = Cor( U, V ). (1) Since the mean and variance are known constants, ρC can also be written as 
+
+ρC = 12 E  U − 12
+
+   V − 12
+
+ . (2) Moreover, because Cov( E[U | X], E[V | X]) = 0, the law of total covariance implies Cov( U, V ) = E[Cov( U, V | X)] .
+
+Since U | X and V | X have constant means and variances, it follows that ρC is the X-average of the conditional Spearman’s rank correlation between Y and W :
+
+ρC = EρY,W |X
+
+ , ρY,W |X := Cor( U, V | X).
+
+Consequently, ρC always lies in [ −1, 1] and retains an interpretation analogous to the unconditional Spearman rank correlation, namely average within-group intergenerational persistence . By contrast, the RRRX slope generally does not correspond to a rank correlation and suffers from interpretability issues, whereas CRRR preserves the rank-correlation interpretive framework by construction. CRRR also provides a more refined lens for mobility analysis. The RRR slope ρ measures overall per-sistence, while the CRRR slope ρC measures average within-group persistence. Their difference can be in-terpreted as between-group persistence , capturing the extent to which cross-group heterogeneity contributes 4to overall dependence. For example, in intergenerational income studies, ρC reflects the association between parent and child income ranks within group defined by gender or family background, while ρ reflects the overall association; their gap can be attributed to differences across such group. To estimate ρC , one needs to estimate the conditional ranks U and V , i.e., the conditional distribution functions FY |X and FW |X , and then plug the estimates into (1) or (2) to obtain a sample estimator bρC . Cher-nozhukov et al. (2024) propose estimating conditional ranks via distribution regression (DR). Specifically, for a grid of thresholds y, construct binary responses I{Y ≤ y} and fit P(Y ≤ y | X) using logit or probit links, thereby approximating the entire conditional CDF by threshold-by-threshold fitting. Concretely, to estimate the conditional ranks for Y , choose quantile-based thresholds {y(m)}Mm=1 (e.g., an equally spaced grid from the 2% to 98% quantiles), and for each y(m) fit a logit/probit model for P(Y ≤ y(m) | X) with response 
+
+I(Y ≤ y(m)) and covariates X. Conditional ranks for values of y between adjacent grid points are obtained by linear interpolation. To ensure reasonable tail behavior, local extrapolation is applied outside the grid range: if y is below the minimum threshold, extrapolate using the fitted model at the smallest threshold and map the result back to [0 , 1] through the link function; similarly extrapolate above the maximum threshold using the model at the largest threshold. Applying the same procedure to W yields bV . Substituting bU and 
+
+bV into (1) or (2) yields the following three sample estimators: 
+
+bρC := 
+
+Pni=1 
+
+ bUi − bU
+
+  bVi − bV
+
+Pni=1 
+
+ bVi − bV
+
+2 , (3) 
+
+eρC := 
+
+Pni=1 
+
+ bUi − bU
+
+  bVi − bV
+
+rPni=1 
+
+ bUi − bU
+
+2 Pni=1 
+
+ bVi − bV
+
+2 , (4) ˘ρC := 12 
+
+n
+
+> n
+
+X
+
+> i=1
+
+ bUi − 12
+
+  bVi − 12
+
+
+
+. (5) Here (3) is the OLS-slope form, while (4) and (5) are correlation-type forms. The three estimators are equivalent if and only if Y and W are continuous. When Y and W are discrete, we take the OLS-slope estimator bρC in (3) as the default. However, because DR estimates the CDF by threshold-by-threshold fitting, it implicitly assumes correct model specification at each threshold. While DR can deliver consistent distribution estimates under favorable conditions and sufficient data, misspecification risk can arise in complex settings with high-dimensional 
+
+X, nonlinear interactions, and discrete ordered outcomes; this is also confirmed in our simulation studies. Therefore, we need alternative conditional-rank estimation methods that are more flexible, robust, accurate, and broadly applicable. 
+
+# 2.3 Deep Conditional Transformation Model 
+
+The deep conditional transformation model (DCTM) is a general method for directly modeling conditional distributions by combining classical transformation models with modern deep neural networks (Baumann et al., 2021; Kook et al., 2024). It provides a flexible framework for estimating the conditional CDF 
+
+FY |X (y | x) without imposing stringent parametric assumptions on the distributional shape, while allowing architectural design to enforce the required monotonicity and boundedness properties of a valid distribution function. Transformation models form a general framework that includes many common statistical models as special cases, such as linear regression and logistic regression. Historically, the development of transformation models can be traced from the Box-Cox transformation paradigm (Box and Cox, 1964), to the most likely transformation (MLT) framework (Hothorn et al., 2018), to conditional transformation models (CTM) for modeling conditional distributions (Hothorn et al., 2014), and finally to DCTM by integrating CTM with modern deep learning (Baumann et al., 2021; Kook et al., 2024). In particular, the conditional transformation 5model proposed by Hothorn et al. (2014) is built on the idea that there exists a transformation function 
+
+h(y; x) that is nondecreasing in y and maps the response Y (given covariates X = x) to a latent variable Z
+
+with a known baseline distribution: 
+
+h(Y ; x) = Z, Z ∼ F0,
+
+where F0 is a chosen baseline CDF, e.g., Z ∼ N (0 , 1). This assumption implies 
+
+P(Y ≤ y | X = x) = P h(Y ; x) ≤ h(y; x) | X = x
+
+= P Z ≤ h(y; x) = F0
+
+ h(y; x).
+
+In other words, instead of modeling the CDF of Y | X directly, one models the transformation function 
+
+h(y; x), i.e., how Y is transformed to follow the baseline distribution. It is crucial to impose appropriate constraints so that, for each fixed x, h(y; x) is nondecreasing in y. The function h(y; x) can be estimated, for example, via maximum likelihood, and the estimator of FY |X follows from the identity above. Classical conditional transformation models nonetheless have practical boundaries. When the covariate dimension is high, the relationship between variables exhibits strong nonlinearity and high-order interactions, or covariates include unstructured information such as images and text, the estimators relying on strong structural assumptions may be inadequate. The DCTM proposed by Baumann et al. (2021) is designed for conditional distribution modeling in such complex scenarios by combining the interpretable structure of transformation models with the flexibility of deep learning. The DCTM can be summarized as 
+
+h(y; x) = T  y; f (x),
+
+where T is a transformation function that is nondecreasing in y, and its form is governed by the neural network output f (x). In practice, T is typically modeled as either the sum or the product of a y-function and an 
+
+x-dependent shift component. For instance, in the no-interaction case one may use h(y; x) = ψ(y) − m(x), where ψ(y) is a baseline transformation depending only on y, and m(x) captures covariate effects. More generally, DCTM allows for interactions, meaning that covariates can affect not only location but also the shape of the transformation: 
+
+h(y; x) = h1 + h2 = a(y)⊤ϑ(x) + β(x),
+
+where a(y) is a pre-specified basis function a : Ξ 7 → RM +1 with Ξ the sample space, and ϑ : χϑ 7 → RM +1 is a parameter function defined on χϑ ⊆ χ. The function ϑ governs the shape of the y-transformation, while 
+
+β(x) is a covariate-dependent distributional shift; both are learned and output by neural networks. To implement this idea, DCTM typically uses two network modules: a shift prediction module that predicts the transformation shift β(x), and an interaction prediction module that outputs ϑ(x), which is multiplied by the basis a(y) to adjust the transformation shape. Benefiting from deep learning’s represen-tation power, the network can automatically learn feature selection and cross-feature interactions in X. A schematic DCTM architecture is shown in Figure 1. Moreover, to ensure that for each fixed x the transformation function h(y; x) is nondecreasing in y, one needs to impose constraints on the network architecture or parameters. For example, one may enforce order-ing constraints on output-layer weights or nonnegativity constraints on certain parameters. Such constraints guarantee structurally that the estimated bFY |X is always a valid distribution function satisfying the basic probability axioms. DCTM is trained by maximizing the log-likelihood or, equivalently, minimizing the negative log-likelihood loss in (6), where ω denotes learnable network parameters and ℓ ω; yi, xi
+
+ denotes the single-observation log-likelihood function (Baumann et al., 2021; Kook et al., 2024). Since FY |X (y | x) = F0(h(y; x)), the log-likelihood is straightforward to write down, and the model can be trained using standard optimizers (e.g., SGD (Bottou, 2012), Adam (Kingma and Ba, 2014), AdamW (Loshchilov and Hutter, 2017)): NLL  ω; yi, x i
+
+ := − 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+ℓ ω; yi, x i
+
+. (6) 6Figure 1: Schematic architecture of the DCTM network. 
+
+# 3 Methodology and Model Construction 
+
+# 3.1 Estimating conditional ranks via DCTM 
+
+A key step of conditional rank-rank regression (CRRR) is the estimation of conditional ranks . Accurate conditional-rank estimation directly improves the estimation of the target parameter ρC . The classical CRRR approach relies on distribution regression (DR): one selects a grid {y(m)}Mm=1 and fits P (Y ≤ y(m) | X)separately for each m, and then obtains conditional-rank estimates for all observations via interpolation and local extrapolation. DR suffers from several limitations: (i) fitting many pointwise binary regressions is computationally expensive and does not guarantee that the resulting estimated distribution satisfies basic probabilistic con-straints (e.g., monotonicity in y) or global coherence; (ii) boundary handling is complicated and often requires ad local extrapolation; (iii) parametric link functions may be misspecified and can fail to adapt to nonlin-earities, strong interactions, and discrete/heavy-tailed outcomes; (iv) extensive manual feature engineering is often required, which is costly and inefficient. We replace DR by deep conditional transformation models (DCTM) to estimate conditional ranks. DCTM resolves the above issues because: a single end-to-end model outputs the entire conditional distribution without repeated pointwise fits and is structurally constrained to yield a valid CDF; boundary points do not require special treatment; neural networks provide strong representation power for high-dimensional and complex data types without manual feature engineering. Moreover, DCTM is a unified framework: depending on the response type, one may flexibly design the transformation structure, neural architecture, and monotonicity constraints. Below we describe our DCTM designs for continuous and discrete outcomes; the network structures used in our numerical experiments follow this design. 
+
+3.1.1 Continuous outcomes 
+
+The core idea of DCTM is to learn, via a neural network, a monotone nondecreasing transformation T (y, x )such that the transformed variable Z = T (Y, X ) | X approximately follows a chosen baseline distribution. In the continuous-outcome simulations, we set the baseline distribution to N (0 , 1). For the child outcome 
+
+Y , we model 
+
+FY |X (y | x) = Φ  T (y, x ), T (y, x ) = 
+
+> J
+
+X
+
+> j=0
+
+βj (x) Bj,J 
+
+ y01 
+
+, (7) where Φ( ·) is the CDF of N (0 , 1), {βj (·)}Jj=0 are learned functions of x, {Bj,J (·)}Jj=0 are Bernstein basis functions, and y01 is a normalized version of y that maps R to [0 , 1]: 
+
+y01 = σ
+
+ y − ms
+
+
+
+= 11 + exp  − y−ms
+
+ , (8) 7with fixed constants m and s > 0, and σ(·) the sigmoid function. 
+
+Monotonicity via a two-head network. To ensure that, for each fixed x, the map y 7 → T (y, x ) is nondecreasing, we design two output heads: one head predicts a baseline value c(x) = β0(x), and the other head predicts increments {∆k(x)}Jk=1 . We then set 
+
+βj (x) = c(x) + 
+
+> j
+
+X
+
+> k=1
+
+softplus  ∆k(x), softplus( a) = log(1 + ea), (9) which implies the ordered constraint 
+
+β0(x) ≤ β1(x) ≤ · · · ≤ βJ (x) for all x. (10) 
+
+Why (10) implies monotonicity of T (·, x ). Recall the Bernstein basis on [0 , 1]: 
+
+Bk,J (u) = 
+
+Jk
+
+
+
+uk(1 − u)J−k, u ∈ [0 , 1] , k = 0 , . . . , J. 
+
+A standard identity is ddu Bk,J (u) = J
+
+
+
+Bk−1,J −1(u) − Bk,J −1(u)
+
+
+
+, (11) with the conventions B−1,J −1 ≡ 0 and BJ,J −1 ≡ 0. Using (11), for u ∈ [0 , 1], 
+
+∂∂u T (u; x) = 
+
+> J
+
+X
+
+> k=0
+
+βk(x) ddu Bk,J (u)= J
+
+> J
+
+X
+
+> k=0
+
+βk(x)
+
+
+
+Bk−1,J −1(u) − Bk,J −1(u)
+
+
+
+= J
+
+> J−1
+
+X
+
+> k=0
+
+
+
+βk+1 (x) − βk(x)
+
+
+
+Bk,J −1(u),
+
+where the last step follows by index shifting and the endpoint conventions. Let e∆k(x) := βk+1 (x)−βk(x) ≥ 0by (10). Since Bk,J −1(u) ≥ 0 and PJ−1 
+
+> k=0
+
+Bk,J −1(u) = 1 for all u ∈ [0 , 1], we obtain 
+
+∂∂u T (u; x) = J
+
+> J−1
+
+X
+
+> k=0
+
+e∆k(x) Bk,J −1(u) ≥ 0.
+
+Hence u 7 → T (u; x) is nondecreasing. Because y 7 → y01 in (8) is strictly increasing, it follows that y 7 →
+
+T (y, x ) = T (y01 (y); x) is also nondecreasing. Therefore, the architecture enforces monotonicity structurally, ensuring that bFY |X (y | x) = Φ( T (y, x )) is a valid CDF. 
+
+Training objective. DCTM is trained by minimizing the negative log-likelihood (NLL). For the standard normal baseline, the (population) objective can be written as 
+
+L = −E
+
+
+
+log ϕ T (Y, X ) + log 
+
+ ∂T (Y, X )
+
+∂y 
+
+ 
+
+, (12) where ϕ(·) is the N (0 , 1) density. Minimizing (12) encourages the model-implied CDF Φ( T (y, x )) to approx-imate the true conditional distribution of Y | X.Similarly, for the parent outcome W , we independently train a DCTM of the same form to estimate 
+
+FW |X (and the conditional rank V := FW |X (W | X) in the continuous case). Compared with DR (multi-ple pointwise fits), DCTM fits the entire conditional distribution end-to-end and guarantees distributional validity by construction, without any post-hoc monotonicity corrections. 83.1.2 Discrete outcomes 
+
+The DCTM framework also applies to ordinal discrete responses (denoted by dDCTM). We introduce the notation: let X ∈ Rp be covariates, and let the child and parent ordinal outcomes be 
+
+Y ∈ { 0, 1, . . . , K Y − 1}, W ∈ { 0, 1, . . . , K W − 1},
+
+representing ordered categories (e.g., occupational status, education level). Define the conditional CDFs 
+
+F Yk (x) := P(Y ≤ k | X = x), k = 0 , . . . , K Y − 1, (13) 
+
+F Wℓ (x) := P(W ≤ ℓ | X = x), ℓ = 0 , . . . , K W − 1, (14) where F YKY −1(x) = F WKW −1(x) = 1. Unlike the continuous DCTM, the discrete dDCTM takes only X as input and outputs the entire vector of conditional CDF values across categories. We choose the logistic distribution as the baseline and use a simple cumulative monotone construction. For Y , define 
+
+sYk (x) = cY (x) + 
+
+> k
+
+X
+
+> j=0
+
+e∆Yj (x), e∆Yj (x) = softplus  ∆Yj (x) ≥ 0, (15) and 
+
+F Yk (x) = σ sYk (x), k = 0 , . . . , K Y − 2, (16) where σ(t) = 1 /(1 + e−t) is the logistic CDF, and cY (·) and {∆Yj (·)} are network outputs. 
+
+Network structure. Following the general DCTM architecture in Figure 1, we use a backbone network 
+
+hθ : Rp → Rd to extract features from X, and then feed them into two heads that output cY and {∆Yj }.The cumulative construction and softplus( ·) ensure 
+
+sY 
+
+> 0
+
+(x) ≤ sY 
+
+> 1
+
+(x) ≤ · · · ≤ sYKY −2(x),
+
+and since σ(·) is increasing, we obtain 
+
+F Y 
+
+> 0
+
+(x) ≤ F Y 
+
+> 1
+
+(x) ≤ · · · ≤ F YKY −2(x),
+
+i.e., monotonicity across categories holds by structural design, without post-hoc rearrangement. 
+
+From CDF to category probabilities. Given ( F Y 
+
+> 0
+
+(x), . . . , F YKY −2(x)), the conditional category proba-bilities are obtained by differences: 
+
+pY 
+
+> 0
+
+(x) = F Y 
+
+> 0
+
+(x),pYy (x) = F Yy (x) − F Yy−1(x), 1 ≤ y ≤ KY − 2,pYKY −1(x) = 1 − F YKY −2(x).
+
+We train dDCTM by minimizing the negative log-likelihood 
+
+LY (θ) = −Elog pYY (X) = − 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+log pYyi (xi). (17) The construction for W is analogous. One may train the two networks separately or use a multi-task architecture (e.g., MMoE (Ma et al., 2018)) to learn them jointly. To address class imbalance, one can also introduce class-weighted NLL (e.g., inverse-frequency weights for tail categories). 9Comparison with DR in the discrete case. Under DR, one typically fits KY − 1 separate binary regressions for I{Y ≤ k} | X to obtain bF Yk (x) and then enforces monotonicity across k. This approach (i) does not share information across thresholds, (ii) is prone to misspecification and crossing CDF curves when 
+
+k and x interact strongly, and (iii) can be particularly fragile in the tails. In contrast, dDCTM shares the backbone representation and uses a structured monotone increment design, enabling joint fitting across all thresholds with fewer degrees of freedom and guaranteed global coherence. Compared with the classical DR approach, using DCTM (and dDCTM) to estimate conditional CDFs has the following advantages: 1. Broad applicability. DCTM can handle a wide range of response types, including continuous, dis-crete/ordinal, and survival outcomes. By selecting an appropriate baseline distribution and designing the corresponding transformation, one can cover multiple output types within a unified framework. While the concrete form of the transformation varies across tasks, the training objective, optimization pipeline, and downstream inference steps can remain largely consistent, enabling a “one workflow, multiple outputs” implementation. 2. Distribution-free with interpretability. DCTM is often described as distribution-free in the sense that it does not impose a parametric family for Y | X; instead, it uses flexible transformations to map 
+
+Y | X toward a baseline distribution. 3. Monotonicity and global coherence. By enforcing monotonicity structurally through the network, DCTM produces CDF estimates that satisfy basic probabilistic properties. Unlike DR’s pointwise fitting, DCTM fits the entire conditional distribution end-to-end, thereby improving global coherence. 4. Scalability and extensibility with deep learning. With neural networks as function approxima-tors, DCTM can automatically learn rich feature representations (e.g., higher-order nonlinear interac-tions), improving pattern discovery and scalability to high dimensions (Sick et al., 2021; Kook et al., 2022). Related methods have been implemented in the deeptrafo package (Kook et al., 2024), which allows flexible choices of network architecture, loss functions, optimization strategies, hyperparameter tuning, and diagnostics. In summary, DCTM provides a powerful and flexible tool for conditional distribution estimation. In the CRRR setting, we use DCTM to estimate FY |X and FW |X , and then compute conditional ranks. This yields reliable conditional-rank estimates (bounded and monotone), improves accuracy, and adapts to complex data distributions. 
+
+# 3.2 Cross-Fitting 
+
+To improve robustness and avoid in-sample overfitting bias (training and prediction on the same data), we adopt a cross-fitting strategy. Specifically, we split the sample into K folds. For each fold, we train DCTM on the other K −1 folds and then compute out-of-fold (OOF) conditional ranks on the held-out fold. We then pool the OOF ranks across all folds and compute the sample estimator of ρC . The procedure is summarized in Algorithm 1. 
+
+Algorithm 1 (Cross-Fitting Estimator of ρC ). 
+
+1. Randomly split the index set {1, . . . , n } into K disjoint subsets I1, . . . , IK . Let Ick = {1, . . . , n } \ I k
+
+denote the complement of the kth fold. 2. For k = 1 , . . . , K , do: (a) Fit fold-specific conditional CDFs. Using the training sample {(Yi, X i)}i∈I ck , fit a DCTM and obtain bF (−k)  
+
+> Y|X
+
+(· | · ). Similarly, using {(Wi, X i)}i∈I ck , fit a DCTM and obtain bF (−k)  
+
+> W|X
+
+(· | · ). 10 (b) Compute OOF conditional ranks. For each i ∈ I k, compute 
+
+bUi = bF (−k)  
+
+> Y|X
+
+(Yi | Xi), bVi = bF (−k)  
+
+> W|X
+
+(Wi | Xi).
+
+If Y and/or W are discrete, conditional ranks require the tie parameter ω; see Section 3.3. 3. Compute the OLS-slope estimator of ρC .
+
+bρC =
+
+Pni=1 ( bUi − U )( bVi − V )
+
+Pni=1 ( bVi − V )2 , U = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+bUi, V = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+bVi.
+
+If Y and W are continuous, two equivalent forms (defined earlier as (4) and (5)) are 
+
+eρC := 
+
+Pni=1 ( bUi − bU )( bVi − bV )
+
+qPni=1 ( bUi − bU )2 Pni=1 ( bVi − bV )2
+
+, ˘ρC := 12 
+
+n
+
+> n
+
+X
+
+> i=1
+
+bUi − 12
+
+  bVi − 12
+
+
+
+.
+
+# 3.3 CRRR with Discrete Outcomes 
+
+In many empirical applications, the outcomes are not continuous but discrete/ordinal, such as occupational status (Ward, 2022), education level (Asher et al., 2024), and human capital (Croix and Go˜ ni, 2024). Dis-creteness induces many ties. Importantly, without changing the overall ordering, tied observations can be assigned any rank value within an interval. Specifically, if P(Y = y0 | X = x) = p0 > 0, then 
+
+FY |X (y0 | x) − F −  
+
+> Y|X
+
+(y0 | x) = p0, and observations with Y = y0 may be assigned ranks anywhere in 
+
+F −  
+
+> Y|X
+
+(y0 | x), F Y |X (y0 | x)
+
+without affecting the induced ordering. Since ρC depends on the ranks, we must handle ties carefully to ensure identification and interpretability. Note also that, in the discrete case, the three estimators (3)–(5) are no longer equivalent; we take the OLS-slope estimator (3) as the default. In the context of rank-rank regression, Chetverikov and Wilhelm (2023) emphasize three key differences in the discrete case: (i) the meaning of the target parameter depends on whether ties exist; (ii) different tie-breaking rank definitions imply different target parameters; (iii) the sampling properties of the estimator also depend on the rank definition. Hence, the discrete setting requires a separate treatment of parameter definition and inference (Chetverikov and Wilhelm, 2023). Similarly, CRRR faces analogous challenges when Y and/or W are discrete. Existing CRRR work focuses on the continuous case and does not address discreteness (Chernozhukov et al., 2024). We therefore propose a parametric family of conditional-rank definitions for the discrete case and investigate how bρC changes with the rank definition. 
+
+3.3.1 Conditional-rank definition with a tie parameter 
+
+Let FY |X (y | X) = P(Y ≤ y | X) and F −  
+
+> Y|X
+
+(y | X) = P(Y < y | X); define FW |X (w | X) and F −  
+
+> W|X
+
+(w | X)analogously. For any ω ∈ [0 , 1] and fixed X = x, define the conditional ranks by 
+
+RY |X=x(y) := ωF Y |X (y | x) + (1 − ω)F −  
+
+> Y|X
+
+(y | x), (18) 
+
+RW |X=x(w) := ωF W |X (w | x) + (1 − ω)F −  
+
+> W|X
+
+(w | x). (19) For comparability, we recommend using the same ω for both Y and W . Fixing ω yields well-defined con-ditional ranks Uω = RY |X (Y ) and Vω = RW |X (W ). Intuitively, ω controls where the rank of a tied group falls within the interval between the smallest possible rank and the largest possible rank: ω = 1 assigns the largest rank FY |X (y | X); ω = 0 assigns the smallest rank F −  
+
+> Y|X
+
+(y | X); and ω = 0 .5 assigns the midpoint, i.e., the mid-rank (see, e.g., Hoeffding, 1992). Table 1 illustrates the three choices. 11 Table 1: An example of three tie-breaking rank definitions (adapted from Chetverikov and Wilhelm (2023)). 
+
+i 1 2 3 4 5 6 7 8 9 10 
+
+Yi 3 4 7 7 10 11 15 15 15 15 
+
+Smallest rank ( ω = 0) 0.1 0.2 0.3 0.3 0.5 0.6 0.7 0.7 0.7 0.7 
+
+Mid-rank ( ω = 0 .5) 0.1 0.2 0.35 0.35 0.5 0.6 0.85 0.85 0.85 0.85 
+
+Largest rank ( ω = 1) 0.1 0.2 0.4 0.4 0.5 0.6 1 1 1 1
+
+In the continuous case, since U, V ∼ Unif(0 , 1), the CRRR slope ρC equals the conditional Spearman’s rank correlation ρS . In the discrete case, however, Uω and Vω are generally not uniform, and ρC is no longer equal to ρS . Instead, 
+
+ρC = Cov( U, V )Var( V ) = Cov( U, V )
+
+pVar( U ) Var( V ) ×
+
+pVar( U )
+
+pVar( V ) = ρS ×
+
+pVar( U )
+
+pVar( V ) .
+
+In the continuous case, Var( U ) = Var( V ) = 1 /12, hence ρC = ρS . In the discrete case, the standard-deviation ratio may deviate from 1, so ρC can even fall outside [ −1, 1] and should not be interpreted directly as a correlation coefficient. In empirical work, it is therefore important to distinguish whether one targets the Spearman-type rank correlation ρS or the regression slope ρC ; if a correlation interpretation is desired, one may rescale ρC by the standard-deviation ratio. 
+
+3.3.2 Impact of ω on ρC
+
+With the parametric rank definition above, the estimator becomes bρC (ω) and varies with the tie parameter 
+
+ω. In the discrete ordinal simulations in Section 5, we consider 101 grid points in ω ∈ [0 , 1] and use large-scale Monte Carlo simulation to approximate the population quantities ρC (ω), ρS (ω), and sd( Uω )/sd( Vω ). The resulting curves are reported in Figure 2. The figure shows that the choice of ω (i.e., the rank definition) is crucial for intergenerational mobility measurement with discrete outcomes: different ω values may lead to materially different conclusions, sometimes even reversing the qualitative direction. Therefore, when outcomes are discrete, one must pre-specify and report the rank definition; otherwise, mobility conclusions are invalid. 
+
+Figure 2: ρC (ω), ρS (ω), and sd( Uω )/sd( Vω ) as functions of ω.12 3.4 Bootstrap Inference 
+
+In Section 4, we establish the consistency and asymptotic normality of bρC , eρC , and ˘ ρC in the continuous case. Although one can construct plug-in variance estimators from their asymptotic linear representations, the implementation is often nontrivial. We therefore follow Chernozhukov et al. (2024) and use an exchangeable bootstrap to conduct inference, obtaining standard errors and confidence intervals for bρC , eρC , and ˘ ρC . The validity of the bootstrap procedure is proved in Section 4. The exchangeable bootstrap is a general resampling-by-reweighting scheme: by appropriately choosing the distribution of the weight vector ( ωn1, . . . , ω nn ), it can cover many common bootstrap methods, including the empirical bootstrap, weighted bootstrap, and wild bootstrap; see Vaart and Wellner (1997). For example, the empirical bootstrap corresponds to ( ωn1, . . . , ω nn ) being multinomial with parameters n and cell probabilities (1 /n, . . . , 1/n ). We now describe how to use the exchangeable bootstrap to compute standard errors and asymptotic confidence intervals for ρC . Let B be the number of bootstrap repetitions and α the significance level for a (1 − α) confidence interval (e.g., B = 500 and α = 0 .05). 
+
+Algorithm 2 (Exchangeable Bootstrap Inference for ρC ). 
+
+1. Main estimates. Apply Algorithm 1 with K folds to obtain the main estimates bρC , eρC , and ˘ ρC .2. Generate and normalize weights. For each bootstrap repetition b = 1 , . . . , B , generate a weight vector ( ω(b)1 , . . . , ω (b) 
+
+> n
+
+) satisfying Assumption 4, and normalize: 
+
+eω(b) 
+
+> i
+
+:= ω(b)
+
+> i
+> 1
+> n
+
+Pnj=1 ω(b)
+
+> j
+
+, i = 1 , . . . , n. 
+
+3. Weighted DCTM fitting (fold by fold). For each R ∈ { Y, W } and each fold k = 1 , . . . , K , fit the DCTM on the training set Ick via weighted maximum likelihood. Let nck := |I ck|. Define the weighted NLL: NLL w 
+
+> R
+
+= − 1
+
+nck
+
+X
+
+> i∈I ck
+
+eω(b) 
+
+> i
+
+ℓR(θ; Ri, X i) .
+
+This yields fold-specific bootstrap CDF estimators bF ∗(b, −k)  
+
+> Y|X
+
+and bF ∗(b, −k)  
+
+> W|X
+
+. For each i ∈ I k, compute the fold-k out-of-fold conditional ranks 
+
+bU ∗(b) 
+
+> i
+
+= bF ∗(b, −k)  
+
+> Y|X
+
+(Yi | Xi), bV ∗(b) 
+
+> i
+
+= bF ∗(b, −k)  
+
+> W|X
+
+(Wi | Xi).
+
+If Y and/or W are discrete, define ranks via (18)–(19) with the chosen tie parameter ω.4. Bootstrap estimates via weighted moments. Using the normalized weights {eω(b) 
+
+> i
+
+}ni=1 , compute 
+
+bρ∗(b) 
+
+> C
+
+, eρ∗(b) 
+
+> C
+
+, and ˘ ρ∗(b) 
+
+> C
+
+by replacing all sample moments (means, variances, covariances) in the original estimators with their weighted analogues. For example, ˘ρ∗(b) 
+
+> C
+
+= 12 
+
+n
+
+> n
+
+X
+
+> i=1
+
+eω(b)
+
+> i
+
+bU ∗(b) 
+
+> i
+
+− 12
+
+  bV ∗(b) 
+
+> i
+
+− 12
+
+
+
+.
+
+5. Repeat. Repeat Steps 2–4 for b = 1 , . . . , B to obtain bootstrap draws {bρ∗(b) 
+
+> C
+
+}Bb=1 , {eρ∗(b) 
+
+> C
+
+}Bb=1 , and 
+
+{˘ρ∗(b) 
+
+> C
+
+}Bb=1 .6. Standard error and confidence interval (example: bρC ). Define 
+
+Z∗ 
+
+> b
+
+= √n
+
+bρ∗(b) 
+
+> C
+
+− bρC
+
+
+
+, b = 1 , . . . , B. 
+
+13 Let q0.75 and q0.25 be the empirical 75% and 25% quantiles of {Z∗ 
+
+> b
+
+}Bb=1 . Set 
+
+bσρ = q0.75 − q0.25 
+
+z0.75 − z0.25 
+
+, zp = Φ −1(p),
+
+and estimate the standard error by 
+
+cSE( bρC ) = bσρ
+
+√n .
+
+Next define the studentized statistics 
+
+Tb = |Z∗ 
+
+> b
+
+|
+
+bσρ
+
+, b = 1 , . . . , B, 
+
+and let bt1−α be the empirical (1 − α) quantile of {Tb}Bb=1 . Then an asymptotic (1 − α) confidence interval is ACI 1−α =
+
+bρC − bt1−α
+
+bσρ
+
+√n , bρC + bt1−α
+
+bσρ
+
+√n
+
+
+
+.
+
+The same construction applies to eρC and ˘ ρC .
+
+# 4 Asymptotic Theory 
+
+This section develops the asymptotic theory for the CRRR slope estimator ρC in the continuous outcome case where both Y and W are continuous. In the discrete case, the conditional ranks are step functions and hence non-differentiable; the resulting inference theory becomes substantially more involved. We therefore do not pursue the discrete case here and leave it for future research. As discussed earlier, when Y and W are continuous, ρC admits three equivalent representations (cf. (1) and (2)), namely the OLS-slope form ρols  
+
+> C
+
+, the rank-correlation form ρcorr  
+
+> C
+
+, and the covariance form ρcov  
+
+> C
+
+:
+
+ρols  
+
+> C
+
+= Cov( U, V )Var( V ) , (20) 
+
+ρcorr  
+
+> C
+
+= Cov( U, V )
+
+pVar( U )Var( V ) , (21) 
+
+ρcov C = 12 E[( U − 12 )( V − 12 )] . (22) Their sample counterparts are bρC , eρC , and ˘ ρC defined in (3)–(5). For each R ∈ { Y, W }, as described in subsection 2.3, we first apply a normalization: 
+
+g(r) = σ
+
+ r − ms
+
+
+
+, σ(a) = 11 + e−a ,
+
+where m and s > 0 are fixed scale constants chosen so that most observations fall into the “nearly linear” region of the sigmoid curve, preventing excessive mass from being compressed near 0 or 1. Since g(·) is strictly increasing, this normalization does not change the overall rank ordering nor the resulting ρC . For notational convenience, we will still write R ∈ { Y, W } for the normalized variables below. For continuous outcomes, DCTM uses the standard normal distribution as the baseline. The transfor-mation function is expanded using Bernstein basis functions {Bj,J }Jj=0 and is constrained to be monotone nondecreasing through a structured nondecreasing coefficient sequence {βj }Jj=0 :
+
+FR|X (r | x; θR) = Φ 
+
+
+
+T (r, x ; θR)
+
+
+
+, T (r, x ; θR) = 
+
+> J
+
+X
+
+> j=0
+
+βj (x; θR) Bj,J (r),
+
+14 where θR is the network parameter vector, Φ( ·) is the CDF of N (0 , 1), and T (·, x ; θR) is monotone nonde-creasing in r. Training is carried out by maximum likelihood, i.e., minimizing the negative log-likelihood (NLL). In the cross-fitting stage, we randomly partition the sample indices {1, . . . , n } into K disjoint folds 
+
+{I k}Kk=1 . For each fold k, let nk := |I k| and denote the training set by Ick with size nck := |I ck|. We fit DCTM on Ick to obtain fold-specific conditional CDF estimators bF (−k)  
+
+> Y|X
+
+and bF (−k)  
+
+> W|X
+
+, and then compute out-of-fold (OOF) conditional ranks for i ∈ I k:
+
+bUi := bF (−k)  
+
+> Y|X
+
+(yi | xi), bVi := bF (−k)  
+
+> W|X
+
+(wi | xi).
+
+Finally, substituting {( bUi, bVi)}ni=1 into (3)–(5) yields bρC , eρC , and ˘ ρC .Throughout this section we consider a fixed-complexity asymptotic regime: the DCTM architecture (depth, width, activation functions), the Bernstein order J, training hyperparameters, and the number of folds K do not vary with n. Moreover, the K folds are approximately balanced so that nk/n → 1/K and 
+
+nck /n → 1 − 1/K . For each R ∈ { Y, W }, let Θ R be the parameter space and define the induced class of conditional CDFs 
+
+FR := 
+
+n
+
+F (· | · ) = FR|X (· | · ; θR) : θR ∈ ΘR
+
+o
+
+.
+
+Because neural networks often have permutation symmetries and scale invariances, θR is typically not identi-fiable in a strict statistical sense: different θR may correspond to the same conditional CDF FR|X . Therefore, we formulate the asymptotic theory directly at the functional level in terms of FR|X , avoiding identifiability issues for θR. Proofs of the lemmas and theorems are deferred to the appendix. We begin with assumptions. 
+
+Assumption 1 (Continuous case) . The observed sample {Zi}ni=1 = {(Yi, W i, X i)}ni=1 is i.i.d., where Y, W ∈
+
+[0 , 1] are the (normalized) continuous outcomes and X ∈ X ⊂ Rp is the covariate vector with X compact. For almost every x ∈ X , the conditional CDFs FY |X (· | x) and FW |X (· | x) are continuous and strictly increasing, and admit conditional densities fY |X and fW |X that are continuous on their supports and are locally bounded and strictly positive almost everywhere. 
+
+Assumption 2 (Correct specification of DCTM) . For each R ∈ { Y, W }, the true conditional CDF satisfies 
+
+FR|X ∈ F R. Let ℓR(F ; R, X ) denote the single-observation negative log-likelihood loss for F ∈ F R, and define the population risk 
+
+QR(F ) := EℓR(F ; R, X ), F ∈ F R.
+
+Assume that the minimizer of QR(·) over FR is unique in the function sense and is attained by the truth 
+
+FR|X : if QR( eF ) = inf G∈F R QR(G), then eF = FR|X almost everywhere. 
+
+Assumption 3 (Empirical-process regularity and functional asymptotic linearity) . For each R ∈ { Y, W }
+
+and each fold k, define the training-sample empirical risk 
+
+Q(−k) 
+
+> R,n
+
+(F ) := 1
+
+nck 
+
+X
+
+> i∈I ck
+
+ℓR(F ; Ri, X i), F ∈ F R,
+
+and let the fold-specific estimator be 
+
+bF (−k) 
+
+> R|X
+
+∈ arg min  
+
+> F∈F R
+
+Q(−k) 
+
+> R,n
+
+(F ).
+
+Assume: (i) For each fixed k,
+
+sup  
+
+> F∈F R
+
+Q(−k) 
+
+> R,n
+
+(F ) − Q R(F ) p
+
+−→ 0.
+
+15 (ii) There exists a measurable map φR : [0 , 1] × X × Z → R such that, for each fixed k,
+
+sup 
+
+> (r,x )∈[0 ,1] ×X
+
+√nck 
+
+ bF (−k) 
+
+> R|X
+
+(r | x) − FR|X (r | x)
+
+
+
+− 1
+
+√nck 
+
+X
+
+> j∈I ck
+
+φR(r, x ; Zj ) p
+
+−→ 0,
+
+and E[φR(r, x ; Z)] = 0 for all (r, x ). Moreover, there exists some δ > 0 such that 
+
+E
+
+h
+
+sup 
+
+> (r,x )
+
+|φR(r, x ; Z)|2+ δ i
+
+< ∞.
+
+Remark 1. Assumption 3 imposes high-level regularity conditions for M-estimation / empirical risk mini-mization (ERM) over the function class FR. Assumption 3(ii) provides a √n-asymptotic linear expansion for bF (−k) 
+
+> R|X
+
+. Under fixed complexity and standard smoothness/identifiability conditions, the parameter estima-tor bθR admits a √n asymptotic linear representation, and the Delta method transfers this linearization to 
+
+FR|X (r | x); see, e.g., (Newey and McFadden, 1994; Vaart and Wellner, 1997; Van der Vaart, 2000). 
+
+Lemma 1 (Consistency of fold-specific conditional CDF estimators) . Under Assumptions 1–3, for each 
+
+R ∈ { Y, W } and each fixed fold k,
+
+sup 
+
+> (r,x )∈[0 ,1] ×X
+
+bF (−k) 
+
+> R|X
+
+(r | x) − FR|X (r | x) p
+
+−→ 0.
+
+Theorem 1 (Consistency of ρC estimators) . Under Assumptions 1–3, the three (equivalent) estimators bρC ,
+
+eρC , and ˘ρC satisfy 
+
+bρCp
+
+−→ ρC , eρCp
+
+−→ ρC , ˘ρCp
+
+−→ ρC .
+
+Define the following sample moments: 
+
+An := Pn
+
+( bU − 12 )( bV − 12 ), Bn,U := Pn
+
+( bU − 12 )2, Bn,V := Pn
+
+( bV − 12 )2,
+
+and their population counterparts: 
+
+A := E(U − 12 )( V − 12 ) = ρC
+
+12 , BU := E(U − 12 )2 = 112 , BV := E(V − 12 )2 = 112 .
+
+Under Assumption 3 (ii), let eZ = ( eY , fW , eX) be an independent copy of Z, and set eU = FY |X ( eY | eX) and 
+
+eV = FW |X (fW | eX). For R ∈ { Y, W }, define the following conditional expectation functions (as functions of 
+
+Z): 
+
+γY (Z) := E
+
+h
+
+( eV − 12 ) φY ( eY , eX; Z) Z
+
+i
+
+,γW (Z) := E
+
+h
+
+( eU − 12 ) φW (fW , eX; Z) Z
+
+i
+
+,δY (Z) := 2 E
+
+h
+
+( eU − 12 ) φY ( eY , eX; Z) Z
+
+i
+
+,δW (Z) := 2 E
+
+h
+
+( eV − 12 ) φW (fW , eX; Z) Z
+
+i
+
+.
+
+Since E[φR(r, x ; Z)] = 0 for all ( r, x ), it follows that E[γY (Z)] = E[γW (Z)] = E[δY (Z)] = E[δW (Z)] = 0. Moreover, Assumption 3 (ii) implies these functions have finite second moments. 
+
+Lemma 2 (Joint asymptotic linearity of ( An, B n,U , B n,V )) . Under Assumptions 1–3, there exists a mean-zero, finite-variance influence function vector Ψ( Z) = ( ψA(Z), ψ U (Z), ψ V (Z)) ⊤ such that 
+
+√n
+
+
+
+(An − A, B n,U − BU , B n,V − BV )⊤
+
+= 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+Ψ( Zi) + op(1) ,
+
+16 where one may take 
+
+ψA(Z) = 
+
+
+
+(U − 12 )( V − 12 ) − A
+
+
+
++ γY (Z) + γW (Z),ψU (Z) = 
+
+
+
+(U − 12 )2 − BU
+
+
+
++ δY (Z),ψV (Z) = 
+
+
+
+(V − 12 )2 − BV
+
+
+
++ δW (Z).
+
+Theorem 2 (Asymptotic normality of bρC , eρC , and ˘ ρC ). Under the conditions of Theorem 1 and Lemma 2, 
+
+√n(˘ ρC − ρC ) ⇒ N (0 , σ 2cov ), √n(bρC − ρC ) ⇒ N (0 , σ 2ols ), √n(eρC − ρC ) ⇒ N (0 , σ 2corr ),
+
+where the corresponding influence functions are 
+
+ψcov (Z) = 12 ψA(Z),ψols (Z) = 12 
+
+n
+
+ψA(Z) − ρC ψV (Z)
+
+o
+
+,ψcorr (Z) = 12 
+
+n
+
+ψA(Z) − ρC
+
+2
+
+ ψU (Z) + ψV (Z)o
+
+,
+
+and 
+
+σ2cov = Var  ψcov (Z), σ2ols = Var  ψols (Z), σ2corr = Var  ψcorr (Z).
+
+The asymptotic variance expressions above are relatively complicated, and implementing their plug-in estimators can be computationally demanding. We therefore follow Chernozhukov et al. (2024) and use the 
+
+exchangeable bootstrap for inference. We now show that, under the weight conditions below, the bootstrap statistics in Algorithm 2 have the same asymptotic distribution as the corresponding CRRR estimators. 
+
+Assumption 4. For each n, let the weight vector (ωn1, . . . , ω nn ) consist of nonnegative exchangeable 1
+
+random variables, independent of the observed sample. Assume that there exists ε > 0 such that 
+
+sup 
+
+> n
+
+Eω2+ εn1
+
+ < ∞, n−1
+
+> n
+
+X
+
+> i=1
+
+(ωni − ¯ωn)2 p
+
+−→ 1, ¯ωnp
+
+−→ 1, (23) 
+
+where ¯ωn = n−1 Pni=1 ωni .
+
+To establish bootstrap validity, we adopt the notation and definitions in Vaart and Wellner (1997). Let 
+
+Dn = ( Z1, . . . , Z n) be the data vector with Zi = ( Yi, W i, X i), and let Mn = ( ωn1, . . . , ω nn ) be the random bootstrap-weight vector generated independently of Dn. Consider a random element Z∗ 
+
+> n
+
+= Zn(Dn, M n)taking values in a normed space E. If there exists a tight random element Z such that sup 
+
+> h∈BL 1(E)
+
+EMn [h(Z∗
+
+> n
+
+)] − E[h(Z)] p
+
+−→ 0,
+
+where BL 1(E) is the set of functions with Lipschitz norm at most 1 and EMn denotes conditional expectation with respect to Mn given Dn, then we say that the bootstrap distribution of Z∗ 
+
+> n
+
+consistently estimates the distribution of Z, and write Z∗ 
+
+> n
+
+⇝P Z.
+
+Lemma 3 (Exchangeable bootstrap CLT; Vaart and Wellner, 1997) . Let {ξi}ni=1 be i.i.d. random variables with E[ξ1] = 0 and E[ξ21 ] = σ2 ∈ (0 , ∞), and assume there exists δ > 0 such that E|ξ1|2+ δ < ∞. Under Assumption 4, define eωni := ωni /¯ωn and 
+
+S∗ 
+
+> n
+
+= 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+(eωni − 1) ξi.     
+
+> 1A sequence of random variables X1, . . . , X nis called exchangeable if and only if for every finite permutation σof {1, . . . , n },the permuted sequence ( Xσ(1) , . . . , X σ(n)) has the same joint distribution as ( X1, . . . , X n).
+
+17 Then the bootstrap distribution of S∗ 
+
+> n
+
+converges to the normal limit: 
+
+S∗ 
+
+> n
+
+⇝P N (0 , σ 2).
+
+Theorem 3 (Bootstrap consistency) . Under Assumptions 1–3, Theorem 2, and Assumption 4, suppose that for any estimator form ¨ρC ∈ { bρC , eρC , ˘ρC } we have 
+
+√n(¨ ρC − ρC ) ⇒ N (0 , σ 2
+
+> ρ
+
+).
+
+Then the corresponding bootstrap statistic ¨ρ∗ 
+
+> C
+
+constructed in Algorithm 2 satisfies 
+
+√n(¨ ρ∗ 
+
+> C
+
+− ¨ρC ) ⇝P Zρ,
+
+where Zρ ∼ N (0 , σ 2
+
+> ρ
+
+). Consequently, the standard error and confidence interval produced by Algorithm 2 are asymptotically valid: 
+
+bσρp
+
+−→ σρ, PρC ∈ ACI 1−α(ρC ) → 1 − α. 
+
+Finally, we emphasize that the asymptotic theory in this section is developed only for the continuous case and under the fixed-complexity regime. In a more general nonparametric regime, network complexity and the Bernstein order J should increase with n to eliminate approximation bias. However, in this case, achieving an 
+
+o(n−1/2) convergence rate for neural networks typically requires rather stringent conditions, so an important future direction is to incorporate the Neyman-orthogonality ideas from double/debiased machine learning (DDML) to relax the rate requirements; see Chernozhukov et al. (2018). However, since the main goal of this paper is to propose a new estimation workflow and demonstrate its empirical effectiveness, we leave the nonparametric theoretical development to future work. 
+
+# 5 Simulation Studies 
+
+This section conducts simulation experiments under four settings — simple continuous, complex continuous, simple discrete ordinal, and complex discrete ordinal — to comprehensively compare our proposed workflow (DCTM/dDCTM for conditional-rank estimation with cross-fitting) against the traditional CRRR approach (distribution regression, DR, for conditional-rank estimation). Throughout this section, we focus on the OLS-slope estimator as the representative target: 
+
+bρC := 
+
+Pni=1 
+
+ bUi − bU
+
+  bVi − bV
+
+Pni=1 
+
+ bVi − bV
+
+2 .
+
+Implementation details. For different data-generating scenarios, the model design involves several tuning parameters that must be chosen and adjusted based on the experimental setting. 
+
+DR. For DR, we choose M threshold grid points and fit a logit distribution regression model pointwise. The thresholds uniformly cover the [0 .01 , 0.99] sample quantiles of Y (or W ), with step size 0 .98 /M , so that the grid is dense enough to capture the distributional shape. We then obtain conditional-rank estimates bUi (or 
+
+bVi) for all observations via linear interpolation and local extrapolation. See Algorithm 1 in Chernozhukov et al. (2024) for details. 
+
+DCTM/dDCTM. For DCTM (and dDCTM), we train two separate networks for Y and W . The architecture follows subsection 2.3. Hyperparameters such as hidden-layer width/depth, learning rate, and batch size are tuned for each setting. We use Adam for optimization and early stopping based on the validation NLL to prevent overfitting. Note the architecture differs between continuous and discrete cases. We set the number of cross-fitting folds to K = 3; see Algorithm 1 in the previous section for details. 18 5.1 Simple Continuous Setting 
+
+We first consider a simple continuous setting, using the same simulation design as in Chernozhukov et al. (2024). Let Y be the child’s height, W be the father’s height, and X indicate the country/region (Nether-lands: X = 0; Ireland: X = 1). Conditional on X, ( Y, W ) follows a bivariate normal distribution whose mean may depend on X, while the covariance matrix is constant: 
+
+ YW
+
+
+
+X = x ∼ N2
+
+ 165 180 − δx 
+
+
+
+, 42 1 0.60.6 1
+
+!! 
+
+.
+
+We set P(X = 0) = P(X = 1) = 1 /2. The parameter δ represents a negative shock affecting Ireland. We consider δ ∈ { 0, 12 }. For each case, we generate n = 500 ,000 observations. Note that the conditional Pearson correlation is constant, ρP = 0 .6. Up to negligible numerical error, the conditional Spearman rank correlation ρS and Pearson correlation are related by (Cram´ er, 1999) 
+
+ρS = 6
+
+π arcsin 
+
+ ρP
+
+2
+
+
+
+. (24) Hence the true CRRR slope is 
+
+ρC = ρS = 6
+
+π arcsin 
+
+ ρP
+
+2
+
+
+
+≈ 0.58192 .
+
+In this simple setting — especially under normality — most models perform well. We thus expect DR and DCTM to achieve similarly good conditional-rank estimation. For DR, we use M = 100 grid quantiles in [0 .01 , 0.99]. For DCTM, we use a Bernstein order J = 32; other hyperparameters (learning rate, hidden sizes, batch size) are tuned based on training diagnostics. 
+
+5.1.1 Conditional CDF fitting 
+
+We first evaluate conditional CDF estimation (the first-stage task in CRRR). Figures 3 and 4 plot the estimated conditional CDF curves under δ = 0 and δ = 12. As expected, DR and DCTM produce nearly identical estimates that overlap almost perfectly with the truth, providing a strong foundation for estimating 
+
+ρC .
+
+5.1.2 Calibration via PIT 
+
+To further assess calibration, we perform probability integral transform (PIT) diagnostics for each combi-nation of (target variable Y or W ), ( X = 0 or 1), and ( δ = 0 or 12). If the estimated conditional CDF is correct, then { bUi} and { bVi} should be approximately i.i.d. Unif(0 , 1). Therefore, the PIT distribution reveals systematic bias or over-/under-confidence in conditional distribution estimation. Figures 5 and 6 display PIT histograms (with the ideal uniform reference line) and QQ plots. The PIT histograms for both DR and DCTM are fairly flat, without prominent U-shaped or hump-shaped patterns. The QQ plots closely follow the 45-degree line, with only mild deviations in extreme quantiles. Overall, both methods exhibit good calibration with no obvious systematic bias. 
+
+5.1.3 Quantitative PIT checks 
+
+To quantify the graphical diagnostics, we compute (i) the Kolmogorov–Smirnov (KS) test p-value, (ii) the chi-squared ( χ2) goodness-of-fit test p-value, and (iii) the sample mean/variance of PIT for each case. The results are reported in Tables 2 and 3. Across all cases, the KS and χ2 test p-values are well above α = 0 .05, so we do not reject the null that PIT is uniform. The PIT means are close to 1 /2 and the PIT variances are close to 1 /12, consistent with the figures and confirming good calibration in this simple normal setting. 19 Figure 3: Simple continuous setting with δ = 0: conditional CDFs estimated by DR and DCTM versus the truth. 
+
+Figure 4: Simple continuous setting with δ = 12: conditional CDFs estimated by DR and DCTM versus the truth. 20 Figure 5: PIT diagnostics for DR-based conditional CDF estimation. 
+
+Figure 6: PIT diagnostics for DCTM-based conditional CDF estimation. Table 2: Simple continuous setting with δ = 0: KS p-values, χ2 p-values, and PIT mean/variance. 
+
+Method KS p-value χ2 p-value PIT Mean PIT Var 
+
+Y | X = 0 DR 0.9024 0.4708 0.4986 0.0845 DCTM 0.8850 0.4024 0.4988 0.0845 
+
+Y | X = 1 DR 0.3220 0.9870 0.4948 0.0839 DCTM 0.2174 0.8696 0.4941 0.0838 
+
+W | X = 0 DR 0.9180 0.9710 0.4999 0.0841 DCTM 0.9327 0.9117 0.4997 0.0840 
+
+W | X = 1 DR 0.3118 0.6169 0.4958 0.0824 DCTM 0.3444 0.5482 0.4961 0.0823 21 Table 3: Simple continuous setting with δ = 12: KS p-values, χ2 p-values, and PIT mean/variance. 
+
+Method KS p-value χ2 p-value PIT Mean PIT Var 
+
+Y | X = 0 DR 0.9024 0.4708 0.4986 0.0845 DCTM 0.9217 0.3770 0.4984 0.0845 
+
+Y | X = 1 DR 0.3220 0.9870 0.4948 0.0839 DCTM 0.3127 0.9800 0.4946 0.0838 
+
+W | X = 0 DR 0.9199 0.9540 0.5000 0.0842 DCTM 0.9080 0.9522 0.5000 0.0840 
+
+W | X = 1 DR 0.3075 0.6745 0.4958 0.0824 DCTM 0.3609 0.4394 0.4960 0.0823 
+
+5.1.4 Slope estimation 
+
+Finally, we compare ρC estimation accuracy. Table 4 reports Monte Carlo performance for DR and DCTM, based on 30 repetitions. In each repetition we use n = 10 5 observations and report the mean, standard deviation (SD), mean absolute deviation (MAD), and root mean squared error (RMSE) of bρC .Table 4: Simple continuous setting: estimation results for the CRRR slope ρC .
+
+Method Mean SD MAD RMSE 
+
+δ = 0 DR 0.58205 0.00080 0.00066 0.00079 DCTM 0.58216 0.00091 0.00073 0.00092 
+
+δ = 12 DR 0.58190 0.00085 0.00068 0.00084 DCTM 0.58206 0.00112 0.00084 0.00111    
+
+> Note: errors are computed relative to the theoretical truth ρC≈0.58192.
+
+In summary, under this simple continuous (normal) setting, both DR and DCTM perform similarly well for both conditional CDF estimation and the slope ρC , with DR slightly better in some cases. This is expected: when DR is correctly specified, it can be highly competitive. The natural question is whether differences emerge under more complex and misspecified settings, which we investigate next. 
+
+# 5.2 Complex Continuous Setting 
+
+In socio-economic applications, data are often far more complex than the simple normal setting above, involving nonlinearities, strong feature interactions, and heteroskedasticity. To assess the advantage of our approach in such settings, we consider a complex continuous DGP with nonlinearity and high-order interactions. Let latent variables ( Z1, Z 2) follow (Z1, Z 2) ∼ N 00
+
+!
+
+, 1 ρ0
+
+ρ0 1
+
+!! 
+
+, ρ0 ∈ (0 , 1) .
+
+Let X = ( X1, . . . , X p) be p-dimensional covariates with i.i.d. components Xj ∼ Unif[ −1, 1]. We generate Y
+
+22 and W by nonlinear transformations: 
+
+Y = mY (X) + sY (X) gY (Z1), (25) 
+
+W = mW (X) + sW (X) gW (Z2), (26) where mY (·) and mW (·) are nonlinear mean functions, sY (·) and sW (·) are positive heteroskedastic scale functions capturing conditional standard deviations, and gY (·) and gW (·) are strictly monotone nonlinear transforms (e.g., softplus-based). This construction induces both skewness and heteroskedasticity in Y | X
+
+and W | X: the monotone nonlinear transforms distort symmetry, while the scale functions make dispersion depend on X. Such a DGP is closer to many real-world datasets and provides a stringent test of conditional distribution modeling. Importantly, since gY and gW are strictly monotone, the Spearman’s rank correlation between Y and W
+
+conditional on X is primarily determined by the rank dependence of ( Z1, Z 2). For a Gaussian copula, the approximate relation (24) yields the theoretical CRRR slope (used as the benchmark truth): 
+
+ρC = ρS = 6
+
+π arcsin 
+
+ ρ0
+
+2
+
+
+
+.
+
+5.2.1 DGP specification 
+
+We generate a sample {(Yi, W i, X i)}ni=1 with n = 5 × 10 5 and p = 8. In (25)–(26), we set 
+
+mY (X) = 6 sin( πX 1X2) + 2( X23 − X24 ),mW (X) = 4 cos( πX 1) + 3 X2X3,sY (X) = exp(0 .5 + 0 .6X5 + 0 .5X6X7 − 0.3X8) ,sW (X) = exp(0 .3 + 0 .5X4 − 0.5X5X6) ,gY (z) = z + αY softplus( βY z),gW (z) = z + αW softplus( βW z),
+
+with αY = 0 .8, βY = 1 .2, αW = 0 .6, and βW = 1 .0. We set ρ0 = 0 .6. Plugging into (24) yields the theoretical truth 
+
+ρC = 6
+
+π arcsin(0 .6/2) ≈ 0.58192 .
+
+That is, regressing ranks of Y on ranks of W should yield a slope around 0 .58. 
+
+5.2.2 Conditional CDF comparisons at representative covariates 
+
+In the DGP design described above, distributional variation with respect to X is jointly driven by interaction terms, curvature terms, and nonlinear components. Accordingly, we construct the following one-dimensional index s(X) to characterize the complexity of covariate-group heterogeneity: 
+
+s(X) = 0 .8X1X2 + 0 .6  X23 − X24
+
+ + 0 .8 sin ( πX 5) + 0 .6X6X7,
+
+where X1X2 and X6X7 capture high-dimensional interaction effects, X23 − X24 represents polynomial-type nonlinear curvature, and sin( πX 5) captures a smooth non-polynomial nonlinearity. The coefficients are chosen to balance the relative contribution of each component to the variation in the simulated sample. We then select covariate groups around the 10% and 90% percentiles of s(X) as representative groups and plot their estimated conditional CDF curves, as shown in Figure 7. Importantly, s(X) is used solely to select representative groups for visualization and does not enter the estimation or inference of ρC .Figure 7 shows that DCTM tracks the true distributional shape much more closely: across both central and tail regions, the DCTM curves almost overlap with the truth, yielding small global shape error. In contrast, DR exhibits clear systematic deviations, indicating limited expressive power under this nonlinear, interaction-rich DGP. Therefore, DCTM produces more accurate first-stage ranks, which in turn supports more accurate slope estimation. 23 Figure 7: Complex continuous setting: DR, DCTM, and true conditional CDFs for two representative covariate groups. 
+
+5.2.3 Slope estimation 
+
+Table 5 reports the Monte Carlo performance for estimating ρC , based on 30 repetitions with n = 10 5
+
+observations per repetition (Mean, SD, MAD, RMSE). Table 5: Complex continuous setting: estimation results for the CRRR slope ρC .
+
+Method Mean SD MAD RMSE 
+
+DR 0.14761 0.00158 0.43432 0.43432 DCTM 0.57646 0.00119 0.00547 0.00559    
+
+> Note: 30 repetitions; errors are computed relative to the theoretical truth ρC≈0.58192.
+
+The DR-based estimator exhibits severe bias: its mean is about 0 .148, far from the truth, with MAD and RMSE around 0 .43. This indicates substantial model misspecification in DR for conditional CDF estimation under this DGP; the resulting structural rank errors propagate directly into bρC , causing serious underestimation. In contrast, DCTM achieves near-oracle first-stage rank estimation and fits the complex conditional distributions well, yielding a slope mean close to the truth (about 0 .576) and dramatically smaller MAD/RMSE (around 0 .005). Overall, this nonlinear continuous simulation demonstrates that DCTM substantially outperforms DR in both conditional CDF fitting and ρC estimation, expanding the applicability and robustness of CRRR for complex continuous economic outcomes. 
+
+# 5.3 Simple Discrete Ordinal Setting 
+
+In research on intergenerational mobility, discrete ordinal outcomes (e.g., years of schooling, occupational class) arise frequently. To the best of our knowledge, existing studies of CRRR focus on continuous outcomes. We therefore consider CRRR modeling with discrete ordinal outcomes and develop an associated estimation strategy, which is verified through numerical simulation experiments below. First, consider the simple discrete ordinal case. We start from the continuous DGP in Section 5.1 to generate continuous Y and W , and then discretize them into 8 ordered categories Yd and Wd using equally spaced quantile cutoffs {ck}. The cutoffs are computed under the baseline distribution at δ = 0 (Y ∼ N (165 , 42) and W ∼ N (180 , 42)) and are then reused for δ = 12. In the discrete case, the rank must be explicitly defined as in (18)–(19). Here we illustrate three repre-sentative choices ω ∈ { 0.0, 0.5, 1.0}.24 5.3.1 Model specification 
+
+For DR, for each category k we fit a logit model for the binary outcome I{Yd ≤ k} to estimate Fk(x) = P(Yd ≤
+
+k | X = x), and then impose monotonicity across k by rearrangement to ensure nondecreasing cumulative probabilities. For dDCTM, the network outputs all category probabilities end-to-end; see subsection 2.3 (discrete case). Hyperparameters are tuned as needed; we use Adam with early stopping based on validation NLL. 
+
+5.3.2 Conditional CDF fitting 
+
+Figures 8 and 9 show the estimated and true step-function CDFs for δ = 0 and δ = 12, with X ∈ { 0, 1}.In this simple discrete setting, DR and dDCTM achieve very similar and accurate CDF estimates, almost overlapping with the truth. 
+
+Figure 8: Simple discrete ordinal setting with δ = 0 and X ∈ { 0, 1}: estimated vs. true step CDFs for 
+
+F (Yd | X) and F (Wd | X). 
+
+5.3.3 Slope estimation under different ω
+
+Table 6 reports Monte Carlo performance for ω ∈ { 0.0, 0.5, 1.0}, based on 30 repetitions with n = 100 ,000 per repetition. We report the Mean, SD, MAD, and RMSE of bρC . The “true” slope ρTrue  
+
+> C
+
+for each ω is computed as follows: for each category k we know its interval ( ck, c k+1 ], and using the normal CDF we can obtain the population values of F − 
+
+> Yd|X
+
+(k | x) and FYd|X (k | x). Applying the rank definition for the given ω
+
+then yields ρTrue  
+
+> C
+
+.Table 6 highlights two points. First, ρC differs substantially across ω, confirming that ρC is sensitive to the tie-handling rule in discrete outcomes; empirical studies must pre-specify and report the rank definition for meaningful interpretation. Second, in this simple discrete ordinal setting, both DR and dDCTM achieve good estimation accuracy for ρC .25 Figure 9: Simple discrete ordinal setting with δ = 12 and X ∈ { 0, 1}: estimated vs. true step CDFs for 
+
+F (Yd | X) and F (Wd | X). Table 6: Simple discrete ordinal setting: CRRR slope ρC estimation for ω ∈ { 0.0, 0.5, 1.0}.
+
+Method ρTrue  
+
+> C
+
+Mean (bρC ) SD (bρC ) MAD RMSE 
+
+ω = 0 .0
+
+δ = 0 DR 0.56920 0.56767 0.00255 0.00234 0.00293 dDCTM 0.56920 0.56762 0.00252 0.00234 0.00293 
+
+δ = 12 DR 0.29507 0.29415 0.00179 0.00166 0.00199 dDCTM 0.29507 0.29413 0.00210 0.00195 0.00227 
+
+ω = 0 .5
+
+δ = 0 DR 0.56920 0.56760 0.00250 0.00241 0.00293 dDCTM 0.56920 0.56759 0.00251 0.00242 0.00294 
+
+δ = 12 DR 0.58077 0.57855 0.00339 0.00330 0.00401 dDCTM 0.58077 0.57848 0.00348 0.00341 0.00412 
+
+ω = 1 .0
+
+δ = 0 DR 0.56920 0.56752 0.00250 0.00249 0.00297 dDCTM 0.56920 0.56756 0.00254 0.00251 0.00299 
+
+δ = 12 DR 0.28573 0.28446 0.00180 0.00181 0.00218 dDCTM 0.28573 0.28430 0.00198 0.00197 0.00241   
+
+> Note: 30 repetitions; sample size per repetition is n= 100 ,000.
+
+26 5.4 Complex Discrete Ordinal Setting 
+
+The previous section considered a simple discrete scenario. To better emulate real-world complexity, we now consider a complex discrete ordinal DGP. We begin with the complex continuous DGP in Section 5.2 (see (25)–(26)) to generate continuous Y and 
+
+W . We then discretize them into 8 ordered categories Yd and Wd using pre-specified cut points {ck}, keeping all other DGP components unchanged. In the discrete case, ties are prevalent, and the regression slope depends on the tie parameter ω in (18) and (19); see Figure 2. We again report results for ω ∈ { 0.0, 0.5, 1.0},with hyperparameters tuned as needed. To visualize conditional distribution fitting in this complex discrete ordinal setting, we randomly select a fixed covariate value X = x and plot estimated versus true step-function CDFs for F (Yd | X = x) and 
+
+F (Wd | X = x). As shown in Figure 10, dDCTM nearly overlaps with the truth, indicating high accuracy, while DR exhibits noticeable deviations. 
+
+Figure 10: Complex discrete ordinal setting: estimated vs. true step CDFs for F (Yd | X = x) and F (Wd |
+
+X = x) at a randomly selected covariate value X = x.Next, we examine bρC for DR and dDCTM across ω ∈ [0 , 1], as shown in Figure 11. We use 11 equally spaced grid points in [0 , 1]. For each ω, the “true” slope ρTrue  
+
+> C
+
+is obtained via an auxiliary large-sample Monte Carlo approximation that is separate from the main simulation loop. Specifically, for each category 
+
+k we know its cut points and interval boundaries ( ck, c k+1 ], so 
+
+F − 
+
+> Yd|X
+
+(k | x) = P(Yd < k | X = x) = P(Y ≤ ck | X = x),FYd|X (k | x) = P(Yd ≤ k | X = x) = P(Y ≤ ck+1 | X = x).
+
+Using the DGP in (25)–(26), one can compute these probabilities (and similarly for Wd) and then apply the rank definition at the given ω to compute the regression slope, yielding the Monte Carlo approximation of 
+
+ρTrue  
+
+> C
+
+.Figure 11 shows that ρC indeed varies with ω, and its sampling behavior also changes accordingly. Moreover, DR exhibits substantial bias relative to the truth. This is driven by systematic underestimation in DR-based conditional CDFs; as ω increases, rank bias becomes more pronounced. In contrast, dDCTM remains close to the truth for all ω, illustrating its robustness to the rank definition in this complex discrete setting. Finally, Table 7 reports detailed Monte Carlo results for the three common rank definitions ω ∈ { 0.0, 0.5, 1.0},based on 30 repetitions with n = 10 5 per repetition. Table 7 confirms that, under all three rank definitions, the substantial bias in DR-based conditional CDF estimation propagates into bρC , producing much larger MAD and RMSE than dDCTM. In contrast, dDCTM maintains good accuracy across ω ∈ { 0.0, 0.5, 1.0}. Therefore, in this complex discrete ordinal DGP, dDCTM clearly outperforms DR both in conditional distribution fitting and in ρC estimation. 27 Figure 11: Complex discrete ordinal setting: estimated ρC (ω) by traditional CRRR (DR) and our method (dDCTM) versus the truth. Table 7: Complex discrete ordinal setting: CRRR slope ρC estimation for ω ∈ { 0.0, 0.5, 1.0}.
+
+Method ρTrue  
+
+> C
+
+Mean SD MAD RMSE 
+
+ω = 0 .0 DR 0.15556 0.14742 0.00312 0.00814 0.00870 dDCTM 0.15556 0.15517 0.00324 0.00039 0.00321 
+
+ω = 0 .5 DR 0.35002 0.11976 0.00336 0.23026 0.23028 dDCTM 0.35002 0.35066 0.00360 0.00169 0.00398 
+
+ω = 1 .0 DR 0.18949 0.08571 0.00351 0.10378 0.10384 dDCTM 0.18949 0.19670 0.00294 0.00722 0.00777   
+
+> Note: 30 repetitions; sample size per repetition is n= 10 5.
+
+# 6 Empirical Studies 
+
+# 6.1 Intergenerational Income Mobility in the PSID 
+
+In this section, we study intergenerational income mobility using the PSID-SHELF dataset from the U.S. Panel Study of Income Dynamics (PSID). 
+
+6.1.1 The PSID-SHELF Dataset 
+
+The Panel Study of Income Dynamics (PSID) 2 is the longest-running nationally representative household panel survey in the world. It was originally launched to study the dynamics of income and poverty and to evaluate President Lyndon Johnson’s War on Poverty. Over the past five decades, the scope of PSID has expanded substantially and now covers a wide range of topics, including health, wealth, consumption, charitable giving, child development, and the transition to adulthood. The PSID has been collecting data for more than 55 years, has surveyed over 85,000 individuals, and traces family lineages for as many as seven generations. Its scientific value has long surpassed the original focus on poverty dynamics and has attracted researchers across disciplines (Solon, 1992; Corcoran et al., 1992; Lee and Solon, 2009; Mazumder, 2016; Pfeffer and Killewald, 2018; Fisher and Johnson, 2023).  
+
+> 2PSID website: https://psidonline.isr.umich.edu/GettingStarted.aspx
+
+28 Despite PSID’s efforts to maintain longitudinal consistency, many variables change across waves. The intricate coding (e.g., ER30000) and shifting cross-year indices make it time-consuming to construct an intergenerational mobility dataset directly from the raw PSID. The Panel Study of Income Dynamics-Social, Health, and Economic Longitudinal File (PSID-SHELF) 3 provides a unified and user-friendly longitudinal file. A key advantage of PSID-SHELF is that it offers a longitudinal file containing the complete multi-generational PSID sample. The current version includes 42 survey waves spanning 1968 – 2021 and integrates all variables for each sample member across the entire period. All individuals ever interviewed in the PSID core study are included. The dataset covers more than 8,000 families and contains over 900,000 observations from about 53,000 individuals. In addition, PSID-SHELF replaces the raw PSID variable codes with meaningful names, greatly reducing data-processing costs. A second advantage is that PSID-SHELF provides a unified set of key indicators covering broad substantive themes: (i) social characteristics (e.g., demographics, family type, education, race and ethnicity); (ii) health characteristics (e.g., chronic conditions, COVID-19, dementia, disability); and (iii) economic characteristics (e.g., earnings, family income, occupation, wealth). In this empirical analysis, we use the individual-level longitudinal PSID-SHELF data to study intergener-ational income mobility. We first obtain the FIMS genealogical identifier (GID) file from PSID to construct a father-child ID mapping, and then link it to PSID-SHELF to build a one-to-one father-child matched dataset. To ensure comparability between generations, we use total labor income measured at age 30 for both the child and the father. We therefore restrict the sample to individuals born between 1939 and 1990, avoiding cases where income is outside the PSID-SHELF coverage. We drop pairs with missing income for either generation, yielding a final matched sample size of 2,360. The covariates include: whether the father has higher education; whether the family has at least two children; total household expenditure; and the father’s age at the child’s birth. Missing covariate values are imputed using the median. Because child income, father income, and household expenditure are highly right-skewed, we apply the transformation log(1 + x) to these three variables for robustness. Table 8 reports descriptive statistics. By gender, sons’ average income is higher than daughters’, while fathers’ average income is not significantly different between the son and daughter samples. The proportion of families with higher education is approximately 53%, slightly lower in the father-daughter sample than in the father-son sample. 75% of families have at least two children. Overall, the covariate differences between the father-son and father-daughter samples are not significant. Table 8: Descriptive statistics Father-Child Father-Son Father-Daughter Mean SD Mean SD Mean SD log (Child Income) 8.90 3.24 9.58 2.59 8.30 3.63 log (Father Income) 5.36 4.09 5.42 4.09 5.30 4.10 Higher Education 0.53 0.50 0.55 0.50 0.51 0.50 At least 2 children 0.75 0.43 0.75 0.44 0.76 0.43 log (Expand) 9.94 0.07 9.94 0.06 9.94 0.08 Age at birth 23.79 4.82 24.00 4.85 23.60 4.78   
+
+> Notes: The sample size is 1,107 for father-son pairs and 1,253 for father-daughter pairs.
+> 3Daumler, Davis, Esther Friedman, and Fabian T. Pfeffer. 2025. PSID-SHELF User Guide and Codebook, 1968–2021, Beta Release . PSID-SHELF Data Documentation 2025-01. Ann Arbor, MI: Survey Research Center, Institute for Social Research, University of Michigan. DOI:10.7302/25205.
+
+29 Figures 12–14 display the heatmaps of the marginal-rank transition matrices for the Father-Child, Father-Son, and Father-Daughter samples, respectively. In the left-hand matrix, the entry in row i and column j
+
+represents the conditional probability that the child falls into the jth income decile given that the father is in the ith income decile. Under complete intergenerational independence, each cell probability should be close to 10%, while the right-hand matrix reports the corresponding percentage deviations from this benchmark. Overall, all three matrices depart markedly from the benchmark of perfect mobility, indicating that the father’s income position exerts a substantial influence on the child’s income position. The most salient common feature is top-end persistence: when the father belongs to the 10th decile, the probability that the child also remains in the 10th decile reaches 22.0%, 23.4%, and 24.6% in the father-child, father-son, and father-daughter samples, respectively, all of which are substantially above the benchmark value of 10%. This pattern indicates strong intergenerational persistence among high-income families. In addition, the father-son matrix exhibits a more pronounced concentration around adjacent deciles, suggesting that income transmission between fathers and sons is characterized by a more continuous inheritance of relative rank positions. By contrast, the father-daughter matrix is relatively more diffuse in the middle deciles, but displays stronger persistence at the top of the distribution. 
+
+Figure 12: Transition matrices: Father-Child 
+
+6.1.2 Income mobility analysis 
+
+Income is continuous. We estimate conditional ranks using DCTM and then compute the OLS-slope estimate 
+
+bρC . A larger bρC indicates stronger intergenerational persistence and hence lower mobility. Table 9 reports RRR, CRRR, and subgroup analyses by father characteristics for father-child pairs. Standard errors and confidence intervals are obtained via Algorithm 2 using the empirical bootstrap with 200 resamples. The results show a significant positive persistence effect in the father-child income relationship both with and without covariate adjustment. The RRR estimate is 0.180, while CRRR decreases to 0.121 after controlling for covariates. This suggests that the within-group average intergenerational persistence is about 0.12, while the remaining persistence can be attributed to between-group differences in covariates (ρRRR − ρC ≈ 0.059). Subgroup results indicate higher income mobility in families with higher paternal education, paternal age at birth above 26, and larger number of children. To study gender differences, we analyze father-son and father-daughter pairs separately; see Table 10. The RRR estimate is 0.099 and the CRRR estimate is 0.062 for father-son pairs, implying that within-group persistence accounts for about 62% of total persistence. For father-daughter pairs, the RRR estimate is 0.248 and the CRRR estimate is 0.180, implying that within-group persistence accounts for about 73% of total persistence. Thus, even after controlling for covariates, the intergenerational persistence in daughters’ 30 Figure 13: Transition matrices: Father-Son 
+
+Figure 14: Transition matrices: Father-Daughter Table 9: Father-Child intergenerational income mobility Father-Child 
+
+bρC SE 95% CI RRR 0.180 0.022 [0.142, 0.218] CRRR 0.121 0.019 [0.081, 0.160] CRRR, by Father: Higher Education 0.073 0.030 [0.018, 0.129] Age > 26 at birth 0.108 0.034 [0.039, 0.178] At least 2 children 0.104 0.021 [0.059, 0.148] 31 income remains substantially higher than that in sons’ income, suggesting that daughters’ income ranks are more strongly tied to family background. Subgroup analyses show that father-daughter persistence exceeds father-son persistence across all subgroups, indicating a pronounced gender gap: daughters’ income appears more constrained by fathers’ experiences and backgrounds. Table 10: Father-Son and Father-Daughter intergenerational income mobility Father-Son Father-Daughter 
+
+bρC SE 95% CI bρC SE 95% CI RRR 0.099 0.031 [0.033, 0.165] 0.248 0.026 [0.188, 0.308] CRRR 0.062 0.029 [0.007, 0.117] 0.180 0.028 [0.124, 0.237] CRRR, by Father: Higher Education -0.027 0.037 [-0.092, 0.039] 0.179 0.045 [0.101, 0.258] Age > 26 at birth 0.036 0.054 [-0.078, 0.151] 0.171 0.047 [0.059, 0.283] At least 2 children 0.047 0.033 [-0.012, 0.107] 0.161 0.034 [0.093, 0.230] 
+
+# 6.2 Intergenerational Educational Mobility in the IHDS 
+
+In this section, we analyze intergenerational educational mobility between fathers and children in India using the 2012 India Human Development Survey (IHDS). 
+
+6.2.1 The IHDS Dataset 
+
+The IHDS is a nationally representative, multi-topic survey in India with two waves: 2004 – 2005 (IHDS-I 4)and 2011 – 2012 (IHDS-II 5). Our empirical analysis uses IHDS-II. IHDS-I interviewed 41,554 households in 2004 – 2005, including 26,734 rural and 14,820 urban households. In 2011 – 2012, IHDS-II re-interviewed about 83% of the original IHDS-I households (some households were replaced when interviewers could not locate them), yielding a final sample of 42,152 households (27,579 rural and 14,573 urban). These households cover 33 states and union territories, 384 districts, 1,420 villages, and 1,042 urban neighborhoods. The survey includes modules on health, education, employment, economic status, marriage, fertility, caste, and household assets, among others, and can be linked to IHDS-I, providing unique value for studying patterns of social and economic change in India (Asher et al., 2017; Chetverikov and Wilhelm, 2023; Asher et al., 2024; Emran et al., 2025; Ahsan et al., 2025). IHDS-II provides questionnaires organized at the individual, household, and eligible-women levels. To construct father-child linkages, we follow the data-processing procedure in Asher et al. (2024). We merge the three data sources with householdID and personID as the primary keys, and infer father-child relationships. Our outcome of interest is the years of education . We drop observations with missing outcome value for either fathers or children, and then aggregate the original education variable into the most widely used education definition in the India literature, yielding 7 ordered discrete levels (Edu Level), from illiterate to higher education, coded as 1 – 7. To explain structural heterogeneity in intergenerational educational association, we include household-level covariates: social group (Group coded as Scheduled Castes (SC) / Scheduled Tribes (ST) = 1; Muslim = 2; Others = 3), household size (Nperson), per-capita monthly household consumption expenditure (Mpce),         
+
+> 4Desai, Sonalde, Vanneman, Reeve, and National Council of Applied Economic Research, New Delhi. India Human Development Survey (IHDS), 2005. Inter-university Consortium for Political and Social Research [distributor], 2018-08-08.
+> https://doi.org/10.3886/ICPSR22626.v12
+> 5Desai, Sonalde, and Vanneman, Reeve. India Human Development Survey-II (IHDS-II), 2011–12. Inter-university Consor-tium for Political and Social Research [distributor], 2018-08-08. https://doi.org/10.3886/ICPSR36151.v6
+
+32 and urban residence (Urban). Mpce is highly right-skewed, so we use log(Mpce + 1). Table 11 reports descriptive statistics. Table 11: Descriptive statistics Father-Child Father-Son Father-Daughter Mean SD Mean SD Mean SD Child Edu Level 3.69 1.88 4.30 1.66 3.32 1.92 Father Edu Level 2.72 1.58 3.19 1.93 2.43 1.25 Group 2.28 0.89 2.30 0.88 2.27 0.89 Nperson 5.88 2.50 6.29 2.63 5.64 2.38 log (Mpce) 9.89 0.65 9.90 0.65 9.89 0.65 Urban 0.36 0.48 0.37 0.48 0.36 0.48  
+
+> Notes: The sample size is 32,099 for father-son pairs and 52,984 for father-daughter pairs.
+
+Figures 15–17 display the heatmaps of the transition matrices for the Father-Child, Father-Son, and Father-Daughter samples, respectively. The left panel shows the transition probability matrix, while the right panel reports the percentage deviation from the child’s marginal distribution. The results show that the transition matrices in all three samples depart markedly from the independence benchmark, indicating that the father’s educational status exerts a substantial influence on the child’s educational outcome. Overall, the probabilities are concentrated along the main diagonal and its neighboring cells, suggesting pronounced intergenerational persistence in educational attainment. Top-end persistence is particularly strong: when the father belongs to the highest education grade, the probability that the child also remains in the highest grade is 36 .0%, 39 .8%, and 29 .0% in the father-child, father-son, and father-daughter samples, respectively. This pattern indicates strong intergenerational persistence among highly educated families, with the effect being most pronounced in the father-son sample. These conclusions are consistent with the RRR coefficient results presented later. 
+
+Figure 15: Transition matrices: Father-Child 33 Figure 16: Transition matrices: Father-Son 
+
+Figure 17: Transition matrices: Father-Daughter 
+
+6.2.2 Educational mobility analysis 
+
+Education level is a discrete ordinal variable. We therefore use dDCTM to estimate the conditional CDF/PMF, following the network design described in the discrete-ordinal simulation section. We then plug the estimated conditional CDF (including the left limit) into the ω-parameterized rank definitions (18) and (19) to compute conditional ranks, and finally compute the OLS-slope estimate bρC .Figure 18 plots bρC (ω) for father-child, father-son, and father-daughter pairs as a function of ω. The figure shows that bρC is highly sensitive to tie handling. For example, under the smallest-rank convention (ω = 0 .0), educational mobility appears lower for father-daughter pairs than for father-son pairs. However, for ω ∈ [0 .5, 1.0], the conclusion reverses: father-daughter pairs exhibit higher persistence (lower mobility) than father-son pairs, and the gap widens as ω increases. Table 12 reports RRR, CRRR, and subgroup analyses under three rank definitions ω ∈ { 0.0, 0.5, 1.0}.The results show significant positive persistence in education between fathers and children, both with and without covariate adjustment. From subgroup analyses under the mid-rank definition ( ω = 0 .5), persistence is stronger (mobility lower) in Muslim households and in urban residence groups, while mobility is higher 34 in larger households. To examine gender heterogeneity, we compare father-son and father-daughter pairs. Under ω = 0 .5, sons exhibit lower mobility in Muslim households, whereas sons in larger households and in urban residence groups show higher mobility. For daughters, mobility is higher in Muslim households and in larger households, while mobility is lower in urban residence groups. Overall, these patterns indicate pronounced gender differences in intergenerational educational mobility in India. 
+
+Figure 18: Estimated CRRR slope bρC (ω)
+
+# 7 Conclusion 
+
+In conclusion, this paper develops a more flexible and robust CRRR estimation framework by replacing DR with a DCTM-based conditional distribution learner and using cross-fitting to reduce overfitting bias. The proposed approach accommodates nonlinear, interaction-rich, heteroskedastic, and discrete ordered out-comes, delivers consistent and asymptotically normal estimation under fixed model complexity, and supports valid inference via an exchangeable bootstrap. Simulations and applications to PSID income and IHDS ed-ucation data show that, while DR-based CRRR can work well in simple settings, the DCTM-based CRRR yields markedly more stable and accurate estimates of conditional ranks and bρC in complex continuous and ordered-discrete scenarios. Next, we outline several limitations of our work and suggest directions for future research. First, the cur-rent asymptotic theory is established under a fixed model-complexity regime. In more general nonparametric settings, eliminating approximation bias typically requires model complexity to grow with sample size, yet neural networks may fail to satisfy weak-convergence conditions for the input process in this case, making the classical CRRR functional inference framework harder to apply. A promising direction is to incorporate ideas from double/debiased machine learning (DDML) by constructing Neyman-orthogonal score functions to reduce the impact of DCTM estimation errors on the target parameter, thereby substantially relaxing rate requirements (e.g., Chernozhukov et al. (2018)). Second, for the discrete extension of CRRR, this paper is among the first to consider parametric rank definitions (via the tie-handling parameter ω) and to study the sensitivity of bρC to alternative rank definitions through simulations and empirical work. However, due to the discontinuity and non-differentiability induced by discrete ranks, the associated inference theory is considerably more involved; a formal discrete-asymptotic theory for CRRR is left for future research. From a practical perspective, DCTM is a neural-network-based algorithm and typically requires suf-ficiently large sample sizes; when subgroups are defined very finely, estimation quality may deteriorate. Moreover, bootstrap-based inference is computationally expensive because the model must be retrained for each resample. Future work may explore influence-function-based resampling or lightweight retraining schemes (e.g., sharing a backbone network) to improve computational efficiency. 35 Table 12: Educational mobility analysis for ω ∈ { 0.0, 0.5, 1.0}
+
+Father-Child Father-Son Father–Daughter 
+
+ω = 0 .0RRR 0.353 0.365 0.312 CRRR 0.246 0.223 0.251 CRRR by: Muslim 0.270 0.286 0.279 Nperson ≥ 4 0.241 0.221 0.252 Urban 0.213 0.246 0.178 
+
+ω = 0 .5RRR 0.366 0.412 0.335 CRRR 0.236 0.259 0.227 CRRR by: Muslim 0.251 0.347 0.203 Nperson ≥ 4 0.231 0.257 0.224 Urban 0.257 0.254 0.233 
+
+ω = 1 .0RRR 0.281 0.466 0.115 CRRR 0.149 0.281 0.037 CRRR by: Muslim 0.173 0.390 0.037 Nperson ≥ 4 0.158 0.280 0.034 Urban 0.237 0.257 0.131 
+
+# 8 Appendix 
+
+Proof of Lemma 1. By Assumption 3 (i) and the uniqueness of the population-risk minimizer in Assump-tion 2, for each fixed k, the estimator bF (−k) 
+
+> R|X
+
+converges to FR|X (almost everywhere). By compactness of [0 , 1] × X and the continuity structure of functions in FR, the convergence can be strengthened to uniform convergence. 
+
+Proof of Theorem 1. Define the full-sample means 
+
+bU := Pn( bU ) = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+bUi, bV := Pn( bV ) = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+bVi,
+
+and write the three estimators as 
+
+bρC := 
+
+Pn
+
+h
+
+( bU − bU )( bV − bV )
+
+i
+
+Pn
+
+h
+
+( bV − bV )2
+
+i ,
+
+eρC := 
+
+Pn
+
+h
+
+( bU − bU )( bV − bV )
+
+ir
+
+Pn
+
+h
+
+( bU − bU )2
+
+i
+
+Pn
+
+h
+
+( bV − bV )2
+
+i ,
+
+˘ρC :=12 Pn
+
+h
+
+( bU − 12 )( bV − 12 )
+
+i
+
+.
+
+Let the true conditional ranks be U := FY |X (Y | X) and V := FW |X (W | X), and define U := Pn(U )and V := Pn(V ). By Assumption 1, E[U ] = E[V ] = 1 /2 and Var( U ) = Var( V ) = 1 /12. 36 For each fold k, define the uniform errors ∆Y,k := sup 
+
+> (y,x )
+
+bF (−k)  
+
+> Y|X
+
+(y | x) − FY |X (y | x) ,
+
+and similarly define ∆ W,k . By Lemma 1, for each fixed k, ∆ Y,k p
+
+−→ 0 and ∆ W,k p
+
+−→ 0. Since K is fixed, ∆Y := max  
+
+> 1≤k≤K
+
+∆Y,k p
+
+−→ 0, ∆W := max  
+
+> 1≤k≤K
+
+∆W,k p
+
+−→ 0.
+
+Hence for any i ∈ I k,
+
+| bUi − Ui| = bF (−k)  
+
+> Y|X
+
+(yi | xi) − FY |X (yi | xi) ≤ ∆Y,k ≤ ∆Y ,
+
+and therefore 
+
+Pn| bU − U | = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+| bUi − Ui| ≤ ∆Yp
+
+−→ 0.
+
+Similarly, Pn| bV − V | p
+
+−→ 0. Consequently, 
+
+| bU − U | ≤ Pn| bU − U | p
+
+−→ 0, | bV − V | ≤ Pn| bV − V | p
+
+−→ 0.
+
+By the law of large numbers, U p
+
+−→ E[U ] = 1 /2 and V p
+
+−→ E[V ] = 1 /2, which implies 
+
+bU p
+
+−→ 12 , bV p
+
+−→ 12 .
+
+Using boundedness bU , U, bV , V ∈ [0 , 1] and the triangle inequality, we obtain the pointwise bound 
+
+( bUi − bU )( bVi − bV ) − (Ui − U )( Vi − V ) ≤ C
+
+
+
+| bUi − Ui| + | bVi − Vi| + | bU − U | + | bV − V |
+
+
+
+,
+
+for some constant C > 0. Averaging over i yields 
+
+Pn
+
+h
+
+( bU − bU )( bV − bV )
+
+i
+
+− Pn
+
+(U − U )( V − V ) p
+
+−→ 0.
+
+Moreover, by the law of large numbers, 
+
+Pn
+
+(U − U )( V − V ) p
+
+−→ Cov( U, V ), Pn
+
+h
+
+( bU − bU )( bV − bV )
+
+i p
+
+−→ Cov( U, V ).
+
+Similarly, 
+
+Pn
+
+h
+
+( bV − bV )2i p
+
+−→ Var( V ) = 112 > 0, Pn
+
+h
+
+( bU − bU )2i p
+
+−→ Var( U ) = 112 > 0.
+
+Since the denominators converge to positive limits, the continuous mapping theorem implies 
+
+bρCp
+
+−→ Cov( U, V )Var( V ) = ρC ,
+
+eρCp
+
+−→ Cov( U, V )
+
+pVar( U )Var( V ) = ρC ,
+
+˘ρCp
+
+−→ 12 E (U − 12 )( V − 12 ) = ρC .
+
+This completes the proof. 37 Proof of Lemma 2. We first handle An. For each observation i, let k(i) denote the fold containing i. Under Assumption 3(ii), define 
+
+ηR,k := sup 
+
+> (r,x )
+
+√nck 
+
+  bF (−k) 
+
+> R|X
+
+(r | x) − FR|X (r | x) − 1
+
+√nck 
+
+X
+
+> j∈I ck
+
+φR(r, x ; Zj ) .
+
+Then for i ∈ I k,
+
+bUi − Ui = 1
+
+nck 
+
+X
+
+> j∈I ck
+
+φY (Yi, X i; Zj ) + rY i , (H1) 
+
+bVi − Vi = 1
+
+nck 
+
+X
+
+> j∈I ck
+
+φW (Wi, X i; Zj ) + rW i , (H2) where the remainders satisfy |rY i | ≤ ηY,k /√nck and |rW i | ≤ ηW,k /√nck .Averaging over the full sample yields 
+
+Pn(|rY |) = 1
+
+n
+
+> K
+
+X
+
+> k=1
+
+X
+
+> i∈I k
+
+|rY i | ≤ 1
+
+n
+
+> K
+
+X
+
+> k=1
+
+X
+
+> i∈I k
+
+ηY,k 
+
+√nck 
+
+=
+
+> K
+
+X
+
+> k=1
+
+nk
+
+n · ηY,k 
+
+√nck 
+
+.
+
+Since K is fixed and nk/n → 1/K while nck ≍ n, we have 
+
+Pn(|rY |) ≤ C · max k ηY,k 
+
+√n ,
+
+for some constant C > 0. Multiplying by √n gives 
+
+√n Pn(|rY |) ≤ C · max  
+
+> k
+
+ηY,k .
+
+For each fixed k, ηY,k = op(1), and since K is fixed, max k ηY,k = op(1). Hence 
+
+√n Pn(|rY |) = op(1) .
+
+Similarly, √n Pn(|rW |) = op(1). Expand the product for An:( bUi − 12 )( bVi − 12 ) =( Ui − 12 )( Vi − 12 ) + ( Vi − 12 )( bUi − Ui)+ ( Ui − 12 )( bVi − Vi) + Rni , (H3) where Rni := ( bUi − Ui)( bVi − Vi). Using (H1)–(H2) and nck ≍ n, together with √n Pn(|rY |) = op(1) and √n Pn(|rW |) = op(1), Assump-tion 3(ii) implies 
+
+Pn
+
+( bU − U )2 = Op(n−1), Pn
+
+( bV − V )2 = Op(n−1).
+
+By Cauchy–Schwarz, 
+
+Pn|Rn| = Pn
+
+ | bU − U | | bV − V | ≤
+
+q
+
+Pn
+
+( bU − U )2 q
+
+Pn
+
+( bV − V )2 = Op(n−1),
+
+and thus √n Pn|Rn| = op(1) .
+
+38 Apply Pn to (H3), subtract A, and multiply by √n:
+
+√n(An − A) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+
+
+(Ui − 12 )( Vi − 12 ) − A
+
+
+
++ √n Pn
+
+h
+
+(V − 12 )( bU − U )
+
+i
+
++ √n Pn
+
+h
+
+(U − 12 )( bV − V )
+
+i
+
++ op(1) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+
+
+(Ui − 12 )( Vi − 12 ) − A
+
+
+
++ Qn + Pn + op(1) .
+
+(H4) We only handle Qn; the term Pn is symmetric. Write 
+
+Qn = √n
+
+> K
+
+X
+
+> k=1
+
+1
+
+n
+
+X
+
+> i∈I k
+
+(Vi − 12 )( bUi − Ui).
+
+By (H1), 
+
+Qn = √n
+
+> K
+
+X
+
+> k=1
+
+1
+
+n
+
+X
+
+> i∈I k
+
+(Vi − 12 )
+
+
+
+1
+
+nck 
+
+X
+
+> j∈I ck
+
+φY (Yi, X i; Zj )
+
+ + op(1) .
+
+Swap sums and rearrange: 
+
+Qn = √n
+
+> K
+
+X
+
+> k=1
+
+nk
+
+n · 1
+
+nck 
+
+X
+
+> j∈I ck
+
+(
+
+1
+
+nk
+
+X
+
+> i∈I k
+
+(Vi − 12 )φY (Yi, X i; Zj )
+
+)
+
++ op(1) .
+
+For each fixed k and conditional on Zj , the random variables {(Vi − 12 )φY (Yi, X i; Zj )}i∈I k are i.i.d. so the conditional law of large numbers yields 1
+
+nk
+
+X
+
+> i∈I k
+
+(Vi − 12 )φY (Yi, X i; Zj ) p
+
+−→ E( eV − 12 )φY ( eY , eX; Zj ) | Zj
+
+ = γY (Zj ).
+
+Using nk/n → 1/K and nck /n → 1 − 1/K ,
+
+Qn = 1
+
+K − 1 · 1
+
+√n
+
+> K
+
+X
+
+> k=1
+
+X
+
+> j∈I ck
+
+γY (Zj ) + op(1) .
+
+Each observation j belongs to exactly one fold Im and is included in the double sum PKk=1 
+
+P
+
+> j∈I ck
+
+for all 
+
+k̸ = m, i.e., exactly K − 1 times. Hence 
+
+> K
+
+X
+
+> k=1
+
+X
+
+> j∈I ck
+
+γY (Zj ) = ( K − 1) 
+
+> n
+
+X
+
+> j=1
+
+γY (Zj ),
+
+and therefore 
+
+Qn = 1
+
+√n
+
+> n
+
+X
+
+> j=1
+
+γY (Zj ) + op(1) .
+
+The term √n Pn[( U − 12 )( bV − V )] is handled similarly, yielding 1√n
+
+Pnj=1 γW (Zj ) + op(1). Substituting back into (H4) gives 
+
+√n(An − A) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+
+
+(Ui − 12 )( Vi − 12 ) − A + γY (Zi) + γW (Zi)
+
+
+
++ op(1) ,
+
+39 which is the asymptotic linear representation for An.For Bn,U , expanding (H1) yields ( bUi − 12 )2 = ( Ui − 12 )2 + 2( Ui − 12 )( bUi − Ui) + Tni ,
+
+where √n Pn|Tn| = op(1). By the same argument as for An,
+
+√n(Bn,U − BU ) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+
+
+(Ui − 12 )2 − BU + δY (Zi)
+
+
+
++ op(1) .
+
+Similarly, 
+
+√n(Bn,V − BV ) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+
+
+(Vi − 12 )2 − BV + δW (Zi)
+
+
+
++ op(1) .
+
+Combining the three expansions yields the joint asymptotic linearity statement, completing the proof. 
+
+Proof of Theorem 2. Note that bρC and eρC are centered by the sample means, whereas ˘ ρC is centered by 1 /2. For convenience, we first derive asymptotic linearity and normality under the 1 /2-centered moment form and then show that the sample-mean-centered forms are asymptotically equivalent. By Lemma 2, 
+
+√n
+
+
+
+(An, B n,U , B n,V ) − (A, B U , B V )
+
+
+
+= 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+Ψ( Zi) + op(1) ,
+
+where A = ρC /12, BU = BV = 1 /12, and Ψ( Z) = ( ψA(Z), ψ U (Z), ψ V (Z)) ⊤ has finite second moments. The three estimators (in 1 /2-centered moment form) are ˘ρC = 12 An, bρC = An
+
+Bn,V 
+
+, eρC = An
+
+pBn,U Bn,V 
+
+.
+
+Since BU = BV = 1 /12 > 0 and ( Bn,U , B n,V ) p
+
+−→ (BU , B V ), the above mappings are differentiable in a neighborhood of the truth and the Delta method applies. For ˘ ρC ,
+
+√n(˘ ρC − ρC ) = 12 · 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+ψA(Zi) + op(1) ,
+
+so the influence function is ψcov (Z) = 12 ψA(Z). For bρC = An/B n,V , let g(a, b ) = a/b . At ( A, B V ), 
+
+∂ag = 1
+
+b = 12 , ∂bg = − ab2 = −12 ρC .
+
+Hence √n(bρC − ρC ) = 12 · 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+
+
+ψA(Zi) − ρC ψV (Zi)
+
+
+
++ op(1) ,
+
+so ψols (Z) = 12 {ψA(Z) − ρC ψV (Z)}.For eρC = An/pBn,U Bn,V , let h(a, b, c ) = a(bc )−1/2. At ( A, B U , B V ), 
+
+∂ah = ( BU BV )−1/2 = 12 , ∂bh = −6ρC , ∂ch = −6ρC .
+
+Therefore, 
+
+√n(eρC − ρC ) = 12 · 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+
+
+ψA(Zi) − ρC
+
+> 2
+
+ ψU (Zi) + ψV (Zi)
+
++ op(1) ,
+
+40 so ψcorr (Z) = 12 {ψA(Z) − ρC 
+
+> 2
+
+(ψU (Z) + ψV (Z)) }.Finally, the central limit theorem yields asymptotic normality and the variance expressions. In the main text, bρC and eρC are centered using sample means bU and bV . Note that 
+
+Pn
+
+h
+
+( bU − bU )( bV − bV )
+
+i
+
+= Pn
+
+h
+
+( bU − 12 )( bV − 12 )
+
+i
+
+− ( bU − 12 )( bV − 12 ).
+
+Since bU − 12 = Op(n−1/2) and bV − 12 = Op(n−1/2), 
+
+√n Pn
+
+h
+
+( bU − bU )( bV − bV )
+
+i
+
+− An = √n | bU − 12 | | bV − 12 | = op(1) .
+
+Similarly, √n Pn
+
+h
+
+( bV − bV )2i
+
+− Bn,V = op(1) , √n Pn
+
+h
+
+( bU − bU )2i
+
+− Bn,U = op(1) .
+
+Hence the sample-mean-centered and 1 /2-centered forms differ by op(1) at the √n scale, and therefore share the same asymptotic distribution and variance expressions. This proves the theorem. 
+
+Proof of Theorem 3. By Theorem 2, any estimator form ¨ ρC admits an asymptotic linear representation 
+
+√n(¨ ρC − ρC ) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+ψρ(Zi) + op(1) ,
+
+where ψρ(·) is the corresponding influence function, satisfying E[ψρ(Z)] = 0 and E|ψρ(Z)|2+ δ < ∞ for some 
+
+δ > 0. The bootstrap statistic ¨ ρ∗ 
+
+> C
+
+is computed using a weighted-MLE fit of DCTM and weighted sample mo-ments. Combining Lemma 2 and the derivation in Theorem 2 (replacing the empirical average Pn with the weighted empirical average P∗
+
+> n
+
+f := n−1 Pni=1 eωni f (Zi), and noting that the within-fold/out-of-fold structure remains valid under reweighting), we obtain the conditional asymptotic linear representation 
+
+√n(¨ ρ∗ 
+
+> C
+
+− ¨ρC ) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+(eωni − 1) ψρ(Zi) + oP ∗ (1) , (H5) where oP ∗ (1) denotes convergence in probability under the weight distribution conditional on the data. By (H5), it suffices to study 
+
+S∗ 
+
+> n
+
+:= 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+(eωni − 1) ψρ(Zi).
+
+Under Assumption 3(ii) and the moment conditions implied by Theorem 2, there exists δ > 0 such that 
+
+E|ψρ(Z)|2+ δ < ∞, and E[ψρ(Z)] = 0, Var( ψρ(Z)) = σ2 
+
+> ρ
+
+∈ (0 , ∞). Therefore, applying the exchangeable bootstrap CLT in Lemma 3 with ξi := ψρ(Zi) yields 
+
+S∗ 
+
+> n
+
+⇝P N (0 , σ 2
+
+> ρ
+
+).
+
+Combining this with (H5) and Slutsky’s theorem gives 
+
+√n(¨ ρ∗ 
+
+> C
+
+− ¨ρC ) ⇝P N (0 , σ 2
+
+> ρ
+
+),
+
+so the bootstrap distribution consistently estimates the limiting distribution and the bootstrap-based stan-dard errors and confidence intervals are asymptotically valid. This completes the proof. 41 References 
+
+Ahsan, M. N., Emran, M. S., Mohammed, S., Murphy, O., and Shilpi, F. (2025). When ranks fail: New evidence on intergenerational educational mobility. SSRN , page 5881282. Asher, S., Novosad, P., and Rafkin, C. (2017). Estimating intergenerational mobility with coarse data: A nonparametric approach. World Bank. Technical report .Asher, S., Novosad, P., and Rafkin, C. (2024). Intergenerational mobility in india: New measures and estimates across time and social groups. American Economic Journal: Applied Economics , 16(2):66–98. Atkinson, A. B. (1980). On intergenerational income mobility in britain. Journal of Post Keynesian Eco-nomics , 3(2):194–218. Baumann, P. F., Hothorn, T., and R¨ ugamer, D. (2021). Deep conditional transformation models. In Joint European Conference on Machine Learning and Knowledge Discovery in Databases , pages 3–18. Springer. Becker, G. S. and Tomes, N. (1986). Human capital and the rise and fall of families. Journal of labor economics , 4(3, Part 2):S1–S39. Beller, E. and Hout, M. (2006). Intergenerational social mobility: The united states in comparative perspec-tive. The future of children , pages 19–36. Boar, C. and Lashkari, D. (2021). Occupational choice and the intergenerational mobility of welfare. Technical report, National Bureau of Economic Research. Bottou, L. (2012). Stochastic gradient descent tricks. In Neural networks: tricks of the trade: second edition ,pages 421–436. Springer. Box, G. E. and Cox, D. R. (1964). An analysis of transformations. Journal of the Royal Statistical Society Series B: Statistical Methodology , 26(2):211–243. Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E., Hansen, C., Newey, W., and Robins, J. (2018). Double/debiased machine learning for treatment and structural parameters. The Econometrics Journal ,21(1):C1–C68. Chernozhukov, V., Fern´ andez-Val, I., Meier, J., Van Vuuren, A., and Vella, F. (2024). Conditional rank-rank regression. arXiv preprint arXiv:2407.06387 .Chernozhukov, V., Fern´ andez-Val, I., and Melly, B. (2013). Inference on counterfactual distributions. Econo-metrica , 81(6):2205–2268. Chetty, R., Friedman, J. N., Saez, E., Turner, N., and Yagan, D. (2017). Mobility report cards: The role of colleges in intergenerational mobility. Technical report, national bureau of economic research. Chetty, R., Hendren, N., and Katz, L. F. (2016). The effects of exposure to better neighborhoods on children: New evidence from the moving to opportunity experiment. American Economic Review , 106(4):855–902. Chetty, R., Hendren, N., Kline, P., and Saez, E. (2014a). Where is the land of opportunity? the geography of intergenerational mobility in the united states. The quarterly journal of economics , 129(4):1553–1623. Chetty, R., Hendren, N., Kline, P., Saez, E., and Turner, N. (2014b). Is the united states still a land of opportunity? recent trends in intergenerational mobility. American economic review , 104(5):141–147. Chetverikov, D. and Wilhelm, D. (2023). Inference for rank-rank regressions. arXiv preprint arXiv:2310.15512 .Corcoran, M., Gordon, R., Laren, D., and Solon, G. (1992). The association between men’s economic status and their family and community origins. Journal of human resources , pages 575–601. 42 Cram´ er, H. (1999). Mathematical methods of statistics , volume 9. Princeton university press. Croix, D. d. l. and Go˜ ni, M. (2024). Nepotism vs. intergenerational transmission of human capital in academia (1088–1800). Journal of Economic Growth , 29(4):469–514. Dahl, M. and DeLeire, T. (2008). The association between children’s earnings and fathers’ lifetime earn-ings: Estimates using administrative data. Discussion Paper 1342-08, Institute for Research on Poverty, University of Wisconsin–Madison. Emran, M. S., Jiang, H., and Shilpi, F. (2025). Is gender destiny? gender bias and intergenerational educational mobility in india. Journal of Economic Behavior & Organization , 238:107217. Fagereng, A., Mogstad, M., and Rønning, M. (2021). Why do wealthy parents have wealthy children? 
+
+Journal of Political Economy , 129(3):703–756. Fisher, J. and Johnson, D. (2023). Intergenerational mobility using income, consumption, and wealth. SSRN ,page 4435534. Fletcher, J. and Jajtner, K. M. (2021). Intergenerational health mobility: Magnitudes and importance of schools and place. Health economics , 30(7):1648–1667. Foresi, S. and Peracchi, F. (1995). The conditional distribution of excess returns: An empirical analysis. 
+
+Journal of the American Statistical Association , 90(430):451–466. Halliday, T., Mazumder, B., and Wong, A. (2021). Intergenerational mobility in self-reported health status in the us. Journal of Public Economics , 193:104307. Hoeffding, W. (1992). A class of statistics with asymptotically normal distribution. In Breakthroughs in statistics: Foundations and basic theory , pages 308–334. Springer. Hothorn, T., Kneib, T., and B¨ uhlmann, P. (2014). Conditional transformation models. Journal of the Royal Statistical Society Series B: Statistical Methodology , 76(1):3–27. Hothorn, T., M¨ ost, L., and B¨ uhlmann, P. (2018). Most likely transformations. Scandinavian Journal of Statistics , 45(1):110–134. Kendall, M. G. (1949). Rank and product-moment correlation. Biometrika , pages 177–193. Kingma, D. P. and Ba, J. (2014). Adam: A method for stochastic optimization. arXiv preprint arXiv:1412.6980 .Kook, L., Baumann, P. F., D¨ urr, O., Sick, B., and R¨ ugamer, D. (2024). Estimating conditional distributions with neural networks using r package deeptrafo. Journal of Statistical Software , 111:1–36. Kook, L., G¨ otschi, A., Baumann, P. F., Hothorn, T., and Sick, B. (2022). Deep interpretable ensembles. 
+
+arXiv preprint arXiv:2205.12729 .Kotera, T. and Seshadri, A. (2017). Educational policy and intergenerational mobility. Review of economic dynamics , 25:187–207. Lee, C.-I. and Solon, G. (2009). Trends in intergenerational income mobility. The review of economics and statistics , 91(4):766–772. Loshchilov, I. and Hutter, F. (2017). Decoupled weight decay regularization. arXiv preprint arXiv:1711.05101 .Ma, J., Zhao, Z., Yi, X., Chen, J., Hong, L., and Chi, E. H. (2018). Modeling task relationships in multi-task learning with multi-gate mixture-of-experts. In Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining , pages 1930–1939. ACM. 43 Mazumder, B. (2016). Estimating the intergenerational elasticity and rank association in the united states: Overcoming the current limitations of tax data. In Cappellari, L., Polachek, S. W., and Tatsiramos, K., editors, Inequality: Causes and Consequences , volume 43 of Research in Labor Economics , pages 83–129. Emerald Group Publishing Limited. Mazumder, B. (2018). Intergenerational mobility in the united states: What we have learned from the psid. 
+
+The Annals of the American Academy of Political and Social Science , 680(1):213–234. Mogstad, M. and Torsvik, G. (2023). Family background, neighborhoods, and intergenerational mobility. 
+
+Handbook of the Economics of the Family , 1(1):327–387. Newey, W. K. and McFadden, D. (1994). Large sample estimation and hypothesis testing. Handbook of econometrics , 4:2111–2245. Olivetti, C. and Paserman, M. D. (2015). In the name of the son (and the daughter): Intergenerational mobility in the united states, 1850–1940. American Economic Review , 105(8):2695–2724. Pfeffer, F. T. and Killewald, A. (2018). Generations of advantage. multigenerational correlations in family wealth. Social Forces , 96(4):1411–1442. Sick, B., Hathorn, T., and D¨ urr, O. (2021). Deep transformation models: Tackling complex regression problems with neural network based transformation models. In 2020 25th International Conference on Pattern Recognition (ICPR) , pages 2476–2481. IEEE. Solon, G. (1992). Intergenerational income mobility in the united states. The American Economic Review ,pages 393–408. Song, X., Massey, C. G., Rolf, K. A., Ferrie, J. P., Rothbaum, J. L., and Xie, Y. (2020). Long-term decline in intergenerational mobility in the united states since the 1850s. Proceedings of the National Academy of Sciences , 117(1):251–258. Spearman, C. (1961). The proof and measurement of association between two things. In Jenkins, J. J. and Paterson, D. G., editors, Studies in Individual Differences: The Search for Intelligence , pages 45–58. Appleton-Century-Crofts, New York. Vaart, A. v. d. and Wellner, J. A. (1997). Weak convergence and empirical processes with applications to statistics. Journal of the Royal Statistical Society-Series A Statistics in Society , 160(3):596–608. Van der Vaart, A. W. (2000). Asymptotic statistics , volume 3. Cambridge university press. Ward, Z. (2022). Internal migration, education, and intergenerational mobility: Evidence from american history. Journal of Human Resources , 57(6):1981–2011. 44

@@ -6,71 +6,73 @@
 - [推荐链路与日报结构说明](/newbie/workflow)
 
 ## 每次日报
-- 最新运行日期：2026-03-11
-- 运行时间：2026-03-11 19:45:55 UTC
+- 最新运行日期：2026-03-13
+- 运行时间：2026-03-13 19:29:48 UTC
 - 运行状态：成功
 - 本次总论文数：17
 - 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日深度解析 17 篇前沿论文，重点发布了针对 AI Agent 跨任务技能与多模态网页浏览
-- 详情：[/202603/11/README](/202603/11/README)
+今日精选 17 篇前沿论文，深度聚焦个性化智能体构建与 AI 长期记忆存储的革命性突破。
+重点展示了如何通过人类反馈定制专属 Agent，以及 AI 协作在工业物联网维护与代码生成中的最新演进。
+建议优先了解高容量存储技术，这是
+- 详情：[/202603/13/README](/202603/13/README)
 
 ### 精读区论文标签
-1. [SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks](/202603/11/2602.12670v1-skillsbench-benchmarking-how-well-agent-skills-work-across-diverse-tasks)  
+1. [Learning Personalized Agents from Human Feedback](/202603/13/2602.16173v1-learning-personalized-agents-from-human-feedback)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：跨领域智能体技能基准测试
-2. [BrowseComp-$V^3$: A Visual, Vertical, and Verifiable Benchmark for Multimodal Browsing Agents](/202603/11/2602.12876v1-browsecomp-v3-a-visual-vertical-and-verifiable-benchmark-for-multimodal-browsing-agents)  
+   evidence：用于个性化智能体的显式用户记忆
+2. [Revolutionizing Long-Term Memory in AI: New Horizons with High-Capacity and High-Speed Storage](/202603/13/2602.16192v1-revolutionizing-long-term-memory-in-ai-new-horizons-with-high-capacity-and-high-speed-storage)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：具有规划和工具使用能力的多模态浏览智能体基准
-3. [In-Context Autonomous Network Incident Response: An End-to-End Large Language Model Agent Approach](/202603/11/2602.13156v1-in-context-autonomous-network-incident-response-an-end-to-end-large-language-model-agent-approach)  
+   evidence：人工智能超级智能的记忆设计概念
+3. [Evaluating Collective Behaviour of Hundreds of LLM Agents](/202603/13/2602.16662v1-evaluating-collective-behaviour-of-hundreds-of-llm-agents)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：用于自主事件响应和决策的端到端LLM智能体
-4. [The Observer-Situation Lattice: A Unified Formal Basis for Perspective-Aware Cognition](/202603/11/2603.01407v1-the-observer-situation-lattice-a-unified-formal-basis-for-perspective-aware-cognition)  
+   evidence：数百个LLM智能体集体行为的评估框架
+4. [Non-verbal Real-time Human-AI Interaction in Constrained Robotic Environments](/202603/13/2603.01804v1-non-verbal-real-time-human-ai-interaction-in-constrained-robotic-environments)  
    标签：评分：8.0/10、query:ai-ux
-   evidence：多智能体环境中的透视感知认知
-5. [When Humans Don't Feel Like an Option: Contextual Factors That Shape When Older Adults Turn to Conversational AI for Emotional Support](/202603/11/2603.01413v1-when-humans-dont-feel-like-an-option-contextual-factors-that-shape-when-older-adults-turn-to-conversational-ai-for-emotional-support)  
+   evidence：通过非语言交流实现实时人机交互
+5. [Rich Insights from Cheap Signals: Efficient Evaluations via Tensor Factorization](/202603/13/2603.02029v1-rich-insights-from-cheap-signals-efficient-evaluations-via-tensor-factorization)  
    标签：评分：8.0/10、query:ai-ux
-   evidence：用户与对话式AI的体验与交互
-6. [TopoCurate:Modeling Interaction Topology for Tool-Use Agent Training](/202603/11/2603.01714v1-topocuratemodeling-interaction-topology-for-tool-use-agent-training)  
+   evidence：利用张量分解进行提示词层面的细粒度评估
+6. [Rich Insights from Cheap Signals: Efficient Evaluations via Tensor Factorization](/202603/13/2603.02029v2-rich-insights-from-cheap-signals-efficient-evaluations-via-tensor-factorization)  
    标签：评分：8.0/10、query:ai-ux
-   evidence：用于训练工具使用智能体和多轮演练的交互拓扑
+   evidence：利用张量分解进行提示词层面的细粒度评估
 
 ### 速读区论文标签
-1. [Impacts of Generative AI on Agile Teams' Productivity: A Multi-Case Longitudinal Study](/202603/11/2602.13766v1-impacts-of-generative-ai-on-agile-teams-productivity-a-multi-case-longitudinal-study)  
+1. [Self-Evolving Multi-Agent Network for Industrial IoT Predictive Maintenance](/202603/13/2602.16738v1-self-evolving-multi-agent-network-for-industrial-iot-predictive-maintenance)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：生成式AI对敏捷软件团队影响的纵向评估
-2. [Does Socialization Emerge in AI Agent Society? A Case Study of Moltbook](/202603/11/2602.14299v2-does-socialization-emerge-in-ai-agent-society-a-case-study-of-moltbook)  
+   evidence：用于工业物联网预测性维护的自进化分层多智能体系统
+2. [How AI Coding Agents Communicate: A Study of Pull Request Description Characteristics and Human Review Responses](/202603/13/2602.17084v1-how-ai-coding-agents-communicate-a-study-of-pull-request-description-characteristics-and-human-review-responses)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：AI智能体社会动态演化的诊断框架
-3. [Configuring Agentic AI Coding Tools: An Exploratory Study](/202603/11/2602.14690v1-configuring-agentic-ai-coding-tools-an-exploratory-study)  
+   evidence：AI 编程智能体在 GitHub 上创建拉取请求
+3. [Mining Type Constructs Using Patterns in AI-Generated Code](/202603/13/2602.17955v1-mining-type-constructs-using-patterns-in-ai-generated-code)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：智能体AI编程工具及其配置机制分析
-4. [Zombie Agents: Persistent Control of Self-Evolving LLM Agents via Self-Reinforcing Injections](/202603/11/2602.15654v1-zombie-agents-persistent-control-of-self-evolving-llm-agents-via-self-reinforcing-injections)  
+   evidence：AI自动化软件工程任务
+4. [Think$^{2}$: Grounded Metacognitive Reasoning in Large Language Models](/202603/13/2602.18806v1-think2-grounded-metacognitive-reasoning-in-large-language-models)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：通过长期记忆对自我进化LLM智能体进行持久控制
-5. [More Than 1v1: Human-AI Alignment in Early Developmental Communities with Multimodal LLMs](/202603/11/2603.07134v1-more-than-1v1-human-ai-alignment-in-early-developmental-communities-with-multimodal-llms)  
+   evidence：LLM中用于自我纠错和推理的元认知框架
+5. [OpenClaw, Moltbook, and ClawdLab: From Agent-Only Social Networks to Autonomous Scientific Research](/202603/13/2602.19810v1-openclaw-moltbook-and-clawdlab-from-agent-only-social-networks-to-autonomous-scientific-research)  
+   标签：评分：8.0/10、query:sr-ai
+   evidence：自主智能体网络中的架构模式与失效模式
+6. [OpenClaw, Moltbook, and ClawdLab: From Agent-Only Social Networks to Autonomous Scientific Research](/202603/13/2602.19810v2-openclaw-moltbook-and-clawdlab-from-agent-only-social-networks-to-autonomous-scientific-research)  
+   标签：评分：8.0/10、query:sr-ai
+   evidence：自主科学研究与智能体交互平台
+7. [Mixed Effects Mixture of Experts: Modeling Double Heterogeneous Trajectories](/202603/13/2603.07479v1-mixed-effects-mixture-of-experts-modeling-double-heterogeneous-trajectories)  
    标签：评分：7.0/10、query:pr-ef
-   evidence：早期发展背景下的亲子互动分析
-6. [Group-Sparse Smoothing for Longitudinal Models with Time-Varying Coefficients](/202603/11/2603.07656v1-group-sparse-smoothing-for-longitudinal-models-with-time-varying-coefficients)  
+   evidence：使用混合效应建模纵向轨迹
+8. [Credibility Matters: Motivations, Characteristics, and Influence Mechanisms of Crypto Key Opinion Leaders](/202603/13/2603.12000v1-credibility-matters-motivations-characteristics-and-influence-mechanisms-of-crypto-key-opinion-leaders)  
    标签：评分：7.0/10、query:pr-ef
-   evidence：用于社会科学的随时间变化的纵向模型
-7. [From Autonomy to Sovereignty - A New Telos for Socially Assistive Technology](/202603/11/2603.07737v1-from-autonomy-to-sovereignty---a-new-telos-for-socially-assistive-technology)  
-   标签：评分：7.0/10、query:pr-ef
-   evidence：自我决定理论 (SDT) 的应用
-8. [The Richest Paradigm You're Not Using: Commercial Videogames at the Intersection of Human-Computer Interaction and Cognitive Science](/202603/11/2603.09753v1-the-richest-paradigm-youre-not-using-commercial-videogames-at-the-intersection-of-human-computer-interaction-and-cognitive-science)  
-   标签：评分：7.0/10、query:pr-ef
-   evidence：执行功能研究的生态效度
-9. [Semi-partitioned Generalized Method of Moments for Longitudinal Data with Lagged and Feedback Covariates](/202603/11/2603.02509v1-semi-partitioned-generalized-method-of-moments-for-longitudinal-data-with-lagged-and-feedback-covariates)  
+   evidence：自我决定理论（SDT）在心理需求中的应用
+9. [Conditional Rank-Rank Regression via Deep Conditional Transformation Models](/202603/13/2603.07230v1-conditional-rank-rank-regression-via-deep-conditional-transformation-models)  
    标签：评分：6.0/10、query:pr-ef
-   evidence：用于分析具有滞后效应的纵向数据的GMM框架
-10. [Doubly Robust Estimation of Treatment Effects in Staggered Difference-in-Differences with Time-Varying Covariates](/202603/11/2603.04080v1-doubly-robust-estimation-of-treatment-effects-in-staggered-difference-in-differences-with-time-varying-covariates)  
+   evidence：代际流动性以及父母对子女结果的传递
+10. [Self-Supervised Evolutionary Learning of Neurodynamic Progression and Identity Manifolds from EEG During Safety-Critical Decision Making](/202603/13/2603.07334v1-self-supervised-evolutionary-learning-of-neurodynamic-progression-and-identity-manifolds-from-eeg-during-safety-critical-decision-making)  
    标签：评分：6.0/10、query:pr-ef
-   evidence：具有随时间变化协变量的纵向处理效应因果推断方法
-11. [Federated Causal Discovery Across Heterogeneous Datasets under Latent Confounding](/202603/11/2603.05149v1-federated-causal-discovery-across-heterogeneous-datasets-under-latent-confounding)  
+   evidence：利用神经传感和脑电图推断认知状态和神经动力学进展
+11. [Event-Study Designs for Discrete Outcomes under Transition Independence](/202603/13/2603.07914v1-event-study-designs-for-discrete-outcomes-under-transition-independence)  
    标签：评分：6.0/10、query:pr-ef
-   evidence：异构数据集的联邦因果发现
+   evidence：在具有离散结果和潜在类型的面板数据中识别处理效应的方法
 
 
 ### ⚡ 这个站点能做什么

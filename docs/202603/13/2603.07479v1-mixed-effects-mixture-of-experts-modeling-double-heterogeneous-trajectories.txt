@@ -1,0 +1,3305 @@
+Title: Mixed Effects Mixture of Experts: Modeling Double Heterogeneous Trajectories
+
+URL Source: https://arxiv.org/pdf/2603.07479v1
+
+Published Time: Tue, 10 Mar 2026 01:11:05 GMT
+
+Number of Pages: 58
+
+Markdown Content:
+# Mixed Effects Mixture of Experts: Modeling Double Heterogeneous Trajectories 
+
+## Xinkai Yue, Xiaodong Yan, Haohui Han and Liya Fu ∗† 
+
+## School of Mathematics and Statistics, Xi’an Jiaotong University March 10, 2026 
+
+Abstract 
+
+Linear mixed-effects model (LMM) is a cornerstone of longitudinal data analy-sis, but is limited to adeptly make heterogeneous analyses predictable under both group-specific fixed effects and subject-specific random effects. To address this chal-lenge, we propose a novel statistical framework by using a large model prototype: a mixed effects mixture of experts model (MEMoE). This framework integrates the ‘divide-and-conquer’ paradigm of Mixture of Experts Models with classical mixed-effect modeling. In the proposed MEMoE, each ‘expert’ is a full LMM dedicated to capturing the longitudinal trajectory of a specific latent subpopulation, while another model “gating function” learns to route subjects to the most appropriate expert in a data-driven manner based on baseline covariates. We develop a robust inferential pro-cedure for parameter estimation based on the Laplace Expectation-Maximization al-gorithm, with standard errors calibrated using robust sandwich estimators to account for potential model misspecification. Extensive simulation studies and an empirical application demonstrate that MEMoE outperforms both traditional single-population LMM and conventional Mixture of Experts models in terms of parameter recovery, classification accuracy, and overall model fit. 
+
+Keywords: Large Model Prototype; Mixture of Experts; Mixed Effects; Prediction Set. 
+
+> ∗
+
+The authors gratefully acknowledge the National Natural Science Foundation of China (No. 12371295, 12371292) and the Shaanxi Fundamental Science Research Project for Mathematics and Physics (No. 22JSY002) 
+
+> †
+
+Email: fuliya@mail.xjtu.edu.cn 
+
+1
+
+> arXiv:2603.07479v1 [stat.ME] 8 Mar 2026
+
+# 1 Introduction 
+
+Longitudinal data provides substantial information on dynamic processes, including disease progression, cognitive development, and behavioral changes (Diggle et al. 2002, Fitzmaurice et al. 2011). The linear mixed-effects model (LMM) accounts for subject-level correlations in longitudinal data by adding random effects, avoids the underestimation of standard er-rors, and thus ensures the validity of hypothesis testing for correlated data (Hedeker & Gibbons 2006) by separating variance into fixed (population-level) and random (subject-level) components (Laird & Ware 1982, Verbeke & Molenberghs 2000, Pinheiro & Bates 2000, Little & Rubin 2019). To address the limitations of the homogeneous population assumption in longitudinal data analysis, mixture linear mixed models (Verbeke & Lesaffre 1996, Muthén 2004) or subgroup analysis approaches (Yang et al. 2019, Yan et al. 2021, Huang et al. 2023) have been developed to accommodate non-Gaussian random-effect dis-tributions and enable clustering of subjects with distinct trajectories. Nonetheless, LMM and its extensions have limited capacity to accurately predict under heterogeneous model structures that simultaneously incorporate group-specific fixed effects and subject-specific random effects. The large model prototype “mixture of experts” (MoE) paradigm is a foundational tech-nique that leverages a gating function to route inputs to appropriate specialized submodels, thereby facilitating the adaptive assignment of expert-specific (i.e., group-specific) effects (Jacobs et al. 1991). In this framework, each expert focuses on a distinct region of the input space and is accountable for a specific data subset. This methodology has demonstrated efficacy across various domains, enabling flexible capture and discovery of latent subgroups in regression data (Yuksel et al. 2012, Bishop 2006). In large-scale data contexts, MoE enhances scalability—a key reason for its adoption in modern deep learning—by efficiently managing complex, multimodal distributions without imposing uniformity assumptions 2(Shazeer et al. 2017). Recent applications to longitudinal trajectories further illustrate MoE’s capacity to identify latent classes while accounting for heterogeneity, as in growth curve analysis (Gao et al. 2002, Quiroz & Villani 2013). The adaptive gating mechanism weights expert contributions differentially across individuals or time points, thereby effec-tively accommodating population heterogeneity (He et al. 2025). Consequently, MoE is particularly advantageous for longitudinal applications involving divergent subgroup pat-terns, such as varying treatment responses in patient cohorts or differential growth curves in educational studies, where it can uncover time-dependent latent classes, such as het-erogeneous brain activity trajectories in infant emotional reactivity research (Che et al. 2023). However, standard MoE models lack an explicit mechanism to account for within correla-tion, simply treating all observations as independent, which can lead to biased estimates in longitudinal settings (Jordan & Jacobs 1994). Hierarchical extensions of MoE have been proposed, but they typically fail to incorporate random effects within the experts, thereby limiting their ability to capture unobserved subject-level heterogeneity (Xu & Jor-dan 1996). In contrast, existing mixed-effects extensions of regression models, such as mixtures of linear mixed models, effectively capture correlations yet fail to leverage the gating-expert architecture of MoE. Recent research has sought to bridge this gap. Fung & Tseung (2022) proposed a mixed MoE for multilevel data, demonstrating that such models can approximate arbitrary mixed-effects distributions. Similarly, Kock et al. (2025) de-veloped a deep mixture of linear mixed models to handle irregular longitudinal data with complex temporal dynamics, incorporating deep latent factors to model high-dimensional random effects. These pioneering studies underscore the promise of combining mixtures and random effects. However, practical parameter estimation remains difficult, stemming not only from the presence of hidden variables but also from the substantial computational 3burden associated with integrating over random effects. To address the challenges of classical LMMs and MoE models, we propose a Mixed-Effects Mixture of Experts (MEMoE) model, which unifies the MoE framework with subject-specific random effects. In MEMoE, each expert comprises a linear mixed-effects model with its own random intercepts and slopes, governed by a multivariate normal prior; the gating function then probabilistically assigns observations to the respective experts. This approach captures heterogeneity between-subjects through mixture components while si-multaneously accounting for within correlations through random effects, thereby bridging multilevel data structures with MoE architecture. The key contributions are listed as follows: (i) For methodology, the proposed MEMoE model advances the synergy between MoE and LMMs, because it flexibly models double heterogeneous longitudinal trajectories, accommo-dating subject-specific variability. Relative to mixtures of linear mixed models, MEMoE employs explicit gating for subgroup discovery; in contrast to standard MoE models, it formally incorporates within correlations. (ii) In computation, we develop a new Laplace-EM algorithm to address the challenge of intractable marginal likelihood, which integrates over the latent random effects. (iii) Practically, MEMoE is especially appropriate for applications such as patient trajectory modeling in healthcare, where latent subgroups may exhibit distinct progression patterns (e.g., heterogeneous epidemic disease progression, (Cui et al. 2022)); educational growth curves accounting for student-specific differences; or socioeconomic trends with subgroup-specific dynamics. The remainder of this paper is organized as follows. In Section 2, we present the MEMoE models and the Laplace-EM algorithm. Section 3 provides a set of constructions for re-4sponse prediction. In Section 4, we establish the theoretical properties of the proposed estimator, including the consistency of the Laplace-EM estimator and the asymptotic nor-mality of the predictor. Section 5 evaluates the performance of the proposed method through extensive simulation studies and real-data analysis. Section 6 gives some conclud-ing remarks. 
+
+# 2 Methods 
+
+This section introduces the MEMoE framework, which demonstrates the primary advantage of making both observation- and subgroup-specific heterogeneous analyses predictable when the subgroup structure is unknown. 
+
+## 2.1 The Mixed Effects Mixture of Experts Models 
+
+Consider the data collected from 𝑁 subjects. Let 𝑦 𝑖𝑗 denote the 𝑗 -th outcome for subject 
+
+𝑖 , and 𝑥 𝑖𝑗 = (1, 𝑥 𝑖𝑗1 , … , 𝑥 𝑖𝑗(𝑝−1) )⊤ ∈ ℝ 𝑝 be the fixed-effect covariates and 𝑧 𝑖𝑗 ∈ ℝ 𝑞 be the random-effect covariates, where 𝑖 = 1, … 𝑁 and 𝑗 = 1, … , 𝑛 𝑖 . We posit 𝐾 latent subgroups and assign to each observation a latent label 𝑣 𝑖𝑗 ∈ {1, … , 𝐾} indicating its subgroup membership. Given the expert label 𝑣 𝑖𝑗 = 𝑘 , the response follows an expert-specific mixed effects model: 
+
+𝑦 𝑖𝑗 = 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 + 𝜀 𝑘 𝑖𝑗 ,
+
+where 𝛽 𝑘 ∈ ℝ 𝑝 is an expert-specific fixed effect, 𝑢 𝑖 ∈ ℝ 𝑞 is a subject-level random effect shared between experts, and the random error 𝜀 𝑘 𝑖𝑗 ∼ 𝒩(0, 𝜎 2𝑘 ). Then 
+
+𝑦 𝑖𝑗 ∣ 𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 , 𝑢 𝑖 , 𝑣 𝑖𝑗 = 𝑘 ∼ 𝒩(𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 , 𝜎 2𝑘 ). (1) To identify which expert a subject belongs to, we assume that the gating function depends 5only on the covariates at the subject-level: 
+
+𝑣 𝑖𝑗 ∣ 𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ∼ Multinomial ( 𝜋 1(𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼), … , 𝜋 𝐾 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)), 
+
+where 𝛼 is an unknown parameter vector. The covariate-dependent weight 𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼) 
+
+can be interpreted as the probability that the (𝑖, 𝑗) -th observation comes from the 𝑘 th expert model and serves to automatically discover latent subgroups and regime changes. To provide a more explanatory and predictive structure for subject-level random effects 𝑢 𝑖 ,we construct the following covariate-dependent model: 
+
+𝑢 𝑖 ∣ 𝑤 𝑖 ∼ 𝒩(𝜅𝑤 𝑖 , Σ), (2) where 𝑤 𝑖 collects subject-level covariates (e.g., demographics, baseline measures), 𝜅 ∈ ℝ 𝑞×𝑑 ,and Σ is a 𝑞 × 𝑞 covariance matrix. This specification encodes explainable between-subject variation through 𝑤 𝑖 ; setting 𝜅 = 0 recovers the commonly used random-effects 𝑢 𝑖 ∼𝒩(0, Σ) . In this zero-mean random-effects case, we refer to the resulting expert model as the random-effects mixture-of-experts (ReMoE) specification. Figure 1 shows the workflow framework of the proposed MEMoE model. The proposed MEMoE specification is a unifying formulation that nests several widely used expert models. In particular, when each subject has a single observation ( 𝑛 𝑖 = 1 for all 
+
+𝑖 ) or the random effects vanish (i.e., Σ = 0 , such that 𝑢 𝑖 ≡ 0 ), the model coincides with the classical MoE regression, dedicating an expert model to each partitioned observation. When the gating function is degenerate with only one expert, i.e., 𝛽 1 = ⋯ = 𝛽 𝐾 and 
+
+𝜎 21 = ⋯ = 𝜎 2𝐾 , MEMoE reduces to a single homoscedastic linear mixed effects model. 
+
+## 2.2 Laplace-EM Algorithm 
+
+In this subsection, we construct a Laplace EM algorithm to estimate the parameters in the MEMoE. The E-step relies on a Laplace approximation to compute the approximate 6Figure 1: Structure of the MEMoE. Pink blocks represent data inputs, yellow blocks denote the created model framework, and the green block signifies the model output. modes of the random effects (Breslow & Clayton 1993, Skaug & Fournier 2006). The M-step updates model parameters via block-wise optimizations. To ensure stable and monotonic convergence, particularly for non-convex components, we integrate a majorize-minimize strategy (Hunter & Lange 2004). Conditional on the random effect 𝑢 𝑖 and covariates 𝑥 𝑖𝑗 and 𝑧 𝑖𝑗 , the conditional density of 
+
+𝑦 𝑖𝑗 is 
+
+𝑓(𝑦 𝑖𝑗 ∣ 𝑢 𝑖 , 𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; Ψ) = 
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼) 𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 , 𝜎 2𝑘 ) , 
+
+where 𝜑(⋅) is a normal density 
+
+𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 , 𝜎 2𝑘 ) = 1√2𝜋𝜎 2𝑘 
+
+exp 
+
+⎧{⎨{⎩−(𝑦 𝑖𝑗 − (𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 )) 2
+
+2𝜎 2𝑘 
+
+⎫}⎬}⎭,
+
+and Ψ represents the set of all model parameters and belongs to a parameter space Θ.Under the assumption that {𝑦 𝑖𝑗 }𝑛 𝑖  
+
+> 𝑗=1
+
+are conditionally independent given 𝑢 𝑖 , the likelihood 7function for the repeated measurements takes the following form: 
+
+𝐿(Ψ) = 
+
+> 𝑁
+
+∏
+
+> 𝑖=1
+
+𝑓(𝑦 𝑖1 , 𝑦 𝑖2 , … , 𝑦 𝑖𝑛 𝑖 ∣ {𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 }𝑛 𝑖 
+
+> 𝑗=1
+
+; Ψ) =
+
+> 𝑁
+
+∏
+
+> 𝑖=1
+
+∫
+
+> 𝑛 𝑖
+
+∏
+
+> 𝑗=1
+
+𝑓(𝑦 𝑖𝑗 ∣ 𝑢 𝑖 , 𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; Ψ) 𝜑(𝑢 𝑖 ; 𝜅𝑤 𝑖 , Σ) 𝑑𝑢 𝑖 
+
+=
+
+> 𝑁
+
+∏
+
+> 𝑖=1
+
+∫ [ 
+
+> 𝑛 𝑖
+
+∏
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼) 𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 , 𝜎 2𝑘 )] 𝜑(𝑢 𝑖 ; 𝜅𝑤 𝑖 , Σ) 𝑑𝑢 𝑖 . (3) This integral has no closed-form in general because the subject-level mixture is embedded within the product over 𝑗 , and all measurements share the same random effect 𝑢 𝑖 . Expand-ing the product of sums leads to a mixture of 𝐾 𝑛 𝑖 multivariate Gaussians. We therefore approximate the integral in (3) using the Laplace method (Breslow & Clayton 1993, Tierney & Kadane 1986). Let ℎ𝑖 (𝑢 𝑖 ; Ψ) denote the logarithm of the integrand: 
+
+ℎ𝑖 (𝑢 𝑖 ; Ψ) = log 𝜑(𝑢 𝑖 ; 𝜅𝑤 𝑖 , Σ) + 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+log [
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 (𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 , 𝜎 2𝑘 )] . 
+
+The Laplace method approximates the integral by forming a second-order Taylor expan-sion of ℎ𝑖 (𝑢 𝑖 ; Ψ) around its mode, ̂ 𝑢 𝑖 = arg max 𝑢 𝑖 ℎ𝑖 (𝑢 𝑖 ; Ψ) . Let 𝐻 𝑖 = 𝐻 𝑖 (̂𝑢 𝑖 ; Ψ) = −∇ 2𝑢 𝑖 ℎ𝑖 (𝑢 𝑖 ; Ψ)∣ 𝑢 𝑖 =̂𝑢 𝑖 
+
+be the negative Hessian matrix evaluated in the mode, then 
+
+𝐻 𝑖 = Σ −1 −
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗𝑘 (̂𝑢 𝑖 )∑𝐾 ℓ=1 𝜋 ℓ(𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗ℓ (̂𝑢 𝑖 ) (𝑒 𝑖𝑗𝑘 (̂𝑢 𝑖 )2
+
+𝜎 4𝑘 
+
+− 1𝜎 2𝑘 
+
+) 𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 
+
++
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗𝑘 (̂𝑢 𝑖 )∑𝐾 ℓ=1 𝜋 ℓ(𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗ℓ (̂𝑢 𝑖 )𝑒 𝑖𝑗𝑘 (̂𝑢 𝑖 )𝜎 2𝑘 
+
+𝑧 𝑖𝑗 ) ( 
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗𝑘 (̂𝑢 𝑖 )∑𝐾 ℓ=1 𝜋 ℓ(𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗ℓ (̂𝑢 𝑖 )𝑒 𝑖𝑗𝑘 (̂𝑢 𝑖 )𝜎 2𝑘 
+
+𝑧 ⊤𝑖𝑗 ) , 
+
+where 𝑒 𝑖𝑗𝑘 (̂𝑢 𝑖 ) = 𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 . Therefore, 
+
+𝐻 𝑖 ≃ Σ−1 +
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗𝑘 (̂𝑢 𝑖 )∑𝐾 ℓ=1 𝜋 ℓ(𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗ℓ (̂𝑢 𝑖 )1𝜎 2𝑘 
+
+𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 
+
+is positive definite. The Laplace approximation to the likelihood function is then given by: 
+
+𝐿(Ψ) ≈ 
+
+> 𝑁
+
+∏
+
+> 𝑖=1
+
+[(2𝜋) 𝑞/2 |𝐻 𝑖 |−1/2 exp {ℎ 𝑖 (̂𝑢 𝑖 ; Ψ)}] . 
+
+Taking the logarithms yields the approximated log-likelihood for the parameter set Ψ:
+
+ℓLA (Ψ) = 𝑁 𝑞 2 log (2𝜋) + 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+[ℎ 𝑖 (̂𝑢 𝑖 ; Ψ) − 12 log |𝐻 𝑖 |] . 
+
+8Optimizing the Laplace-approximated log-likelihood ℓLA (Ψ) poses significant challenges. In this context, we implement an EM-inspired minorize-maximize algorithm that iteratively builds and maximizes a lower-bound surrogate of ℓLA (Ψ) , thereby ensuring steady progress toward a local optimum. Given the current iterate Ψ(𝑡) , we construct a surrogate lower bound 𝑄 LA (Ψ ∣ Ψ (𝑡) ) for ℓLA (Ψ) and maximize it over Ψ, thereby increasing ℓLA (Ψ) − ℓLA (Ψ (𝑡) ). Concretely, 𝑄 LA is obtained by a Laplace expansion of the subject-level integral at the posterior mode ̂ 𝑢 𝑖 computed by the negative Hessian 𝐻 𝑖 .
+
+E-step (random effects mode and responsibilities). 
+
+Let ̂ 𝑢 (𝑡) 𝑖 = arg max 𝑢 𝑖 ℎ𝑖 (𝑢 𝑖 ; Ψ (𝑡) ). Denote 𝛾 (𝑡) 𝑖𝑗𝑘 as the probability that observation is gener-ated by expert 𝑘 , conditional on the latent random effect: 
+
+𝛾 (𝑡) 𝑖𝑗𝑘 = 𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼 (𝑡) ) 𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 (𝑡) 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 (𝑡) 𝑖 , (𝜎 2𝑘 )(𝑡) )
+
+> 𝐾
+
+∑
+
+> ℓ=1
+
+𝜋 ℓ(𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼 (𝑡) ) 𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 (𝑡) ℓ + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 (𝑡) 𝑖 , (𝜎 2ℓ )(𝑡) ). (4) It is called the responsibility, as it quantifies how ‘responsibility’ expert 𝑘 is for 𝑦 𝑖𝑗 at the current conditional state. Form a touching lower limit 𝑄 LA (Ψ ∣ Ψ(𝑡) ) for ℓLA (Ψ) using Jensen’s inequality to the subject-level term log [∑ 𝐾 𝑘=1 𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 (𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 , 𝜎 2𝑘 )] evaluated at ̂ 𝑢 (𝑡) 𝑖 , and linearize − log |𝐻 𝑖 | at the current estimate 𝐻 (𝑡) 𝑖 , with − log |𝐻 𝑖 | ≥− log |𝐻 (𝑡) 𝑖 | − tr {(𝐻 (𝑡) 𝑖 )−1 (𝐻 𝑖 − 𝐻 (𝑡) 𝑖 )} . Then the 𝑄 LA (Ψ ∣ Ψ (𝑡) ) is 
+
+𝑄 LA (Ψ ∣ Ψ (𝑡) ) =
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+{ log 𝜑(̂𝑢 (𝑡) 𝑖 ; 𝜅𝑤 𝑖 , Σ) + 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝛾 (𝑡) 𝑖𝑗𝑘 [ log 𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼) + log 𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 (𝑡) 𝑖 , 𝜎 2𝑘 ) − log 𝛾 (𝑡) 𝑖𝑗𝑘 ]}− 12
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+tr ((𝐻 (𝑡) 𝑖 )−1 𝐻 𝑖 ). (5) 
+
+M-step: parameter updates to maximize the objective function in (5) .
+
+Gating parameter vector 𝛼 is updated by the following formula: 
+
+𝛼 (𝑡+1) = arg max 
+
+> 𝛼 𝑁
+
+∑
+
+> 𝑖=1 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝛾 (𝑡) 𝑖𝑗𝑘 log 𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼). 
+
+9Expert’s coefficients {𝛽 𝑘 }𝐾 𝑘=1 :̂𝛽 (𝑡+1) 𝑘 = ( ∑ 
+
+> 𝑖,𝑗 𝛾 (𝑡) 𝑖𝑗𝑘 ̂𝜎 2,(𝑡) 𝑘
+
+𝑥 𝑖𝑗 𝑥 ⊤𝑖𝑗 )−1 
+
+( ∑ 
+
+> 𝑖,𝑗 𝛾 (𝑡) 𝑖𝑗𝑘 ̂𝜎 2,(𝑡) 𝑘
+
+𝑥 𝑖𝑗 (𝑦 𝑖𝑗 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 (𝑡) 𝑖 )). 
+
+Noise variances {𝜎 2𝑘 }𝐾 𝑘=1 :
+
+(𝜎 2𝑘 )(𝑡+1) =
+
+> 𝑁
+
+∑
+
+> 𝑖=1 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝛾 (𝑡) 𝑖𝑗𝑘 [(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 (𝑡+1) 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 (𝑡) 𝑖 )2 + 𝑧 ⊤𝑖𝑗 (𝐻 (𝑡) 𝑖 )−1 𝑧 𝑖𝑗 ]
+
+> 𝑁
+
+∑
+
+> 𝑖=1 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝛾 (𝑡) 𝑖𝑗𝑘 
+
+.
+
+Random-effect mean parameter matrix 𝜅 :
+
+𝜅 (𝑡+1) = ( 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+̂𝑢 (𝑡) 𝑖 𝑤 ⊤𝑖 )( 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+𝑤 𝑖 𝑤 ⊤𝑖 )−1 
+
+.
+
+Random-effect covariance matrix Σ:
+
+Σ(𝑡+1) = 1𝑁 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+[(̂𝑢 (𝑡) 𝑖 − 𝜅 (𝑡+1) 𝑤 𝑖 )(̂𝑢 (𝑡) 𝑖 − 𝜅 (𝑡+1) 𝑤 𝑖 )⊤ + (𝐻 (𝑡) 𝑖 )−1 ]. 
+
+The algorithm alternates between computing subject-level membership probabilities and updating the model parameters. At iteration 𝑡 , the E-step computes the responsibilities 
+
+𝛾 (𝑡) 𝑖𝑗𝑘 ,̂ 𝑢 (𝑡) 𝑖 , and 𝐻 (𝑡) 𝑖 , using the current parameter vector Ψ(𝑡) . Subsequently, the M-step updates the elements of Ψ via the specified iterative formulas. 
+
+# 3 Prediction Sets 
+
+Quantifying predictive uncertainty is essential for reliable inference in longitudinal studies that exhibit both population heterogeneity and within-subject dependence. We develop prediction sets for the MEMoE model — a covariate-gated mixture framework that captures the latent subgroup structures while accounting for subject-specific random effects. Given a fitted model based on 𝑁 subjects, a target confidence level 1 − 𝑞 ∈ (0, 1) , and a tuple of new covariates (𝑥 new , 𝑧 new , 𝑤 new ), our aim is to construct a conditionally valid prediction 10 set Ω(𝑥 new , 𝑧 new , 𝑤 new ) for a future response 𝑦 new , such that: Pr (𝑦 new ∈ Ω(𝑥 new , 𝑧 new , 𝑤 new ) ∣ 𝑥 new , 𝑧 new , 𝑤 new ) ≥ 1 − 𝑞, (6) a guaranty targeted at fixed covariates rather than averaged over their distribution (cf. conditional versus marginal coverage in predictive inference). In words, a prediction set is a range — possibly a union of disjoint intervals — within which a future response is expected to fall with a probability of at least 1 − 𝑞 ; shorter prediction sets are preferred for informativeness, whereas the trivial set (−∞, ∞) achieves 100% coverage yet conveys no meaningful information. This conditional coverage target mirrors recent developments in predictive inference for MoE models and highlights the advantage of parametric modeling of the conditional law when per-covariate guarantees are required. Given the new input, the density of the response 𝑦 new can be obtained via 
+
+𝑓(𝑦 new ∣ 𝑥 new , 𝑧 new , 𝑤 new ; Ψ) = ∫ 𝑓(𝑦 new ∣ 𝑢 new , 𝑥 new , 𝑧 new ; Ψ) 𝜑(𝑢 new ; 𝜅𝑤 new , Σ) 𝑑𝑢 =
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 new , 𝑧 new ; 𝛼)𝒩 (𝑦 new ; 𝑥 ⊤
+
+> new
+
+𝛽 𝑘 + 𝑧 ⊤
+
+> new
+
+𝜅𝑤 new , 𝜎 2𝑘 + 𝑧 ⊤
+
+> new
+
+Σ𝑧 new ) . 
+
+If 𝑣 new = 𝑘 , we obtain the predictor ̂ Γ𝑘 = 𝑥 ⊤
+
+> new
+
+̂ 𝛽 𝑘 + 𝑧 ⊤
+
+> new
+
+̂ 𝜅𝑤 new based on Laplace-EM estimates and approximate the variance of ̂ Γ𝑘 by a working variance ma-trix ̂ 𝑉 𝑘 =̂ 𝑉 (𝛽) 𝑘 +̂ 𝑉 (𝜅) 𝑘 , where ̂ 𝑉 (𝛽) 𝑘 = 𝑥 ⊤ 
+
+> new
+
+(∑ 𝑖,𝑗 𝛾 𝑖𝑗𝑘 ̂𝜎 2𝑘 
+
+𝑥 𝑖𝑗 𝑥 ⊤𝑖𝑗 )−1 
+
+𝑥 new and ̂ 𝑉 (𝜅) 𝑘 =(𝑤 new ⊗ 𝑧 new )⊤ (̂Σ ⊗ (∑ 𝑁 𝑖=1 𝑤 𝑖 𝑤 ⊤𝑖 )−1 
+
+) (𝑤 new ⊗ 𝑧 new ). Then the variance estimate of the predicted response is ̂𝑏 2𝑘 = 𝑧 ⊤
+
+> new
+
+̂ Σ𝑧 new +̂ 𝜎 2𝑘 +̂ 𝑉 𝑘 . (7) Recall that our goal is to construct a 100(1−𝑞)% prediction set Ω𝑞 (𝑥 new , 𝑧 new , 𝑤 new ) satisfy-ing (6). In MEMoE, the predictive distribution for 𝑦 new given covariates (𝑥 new , 𝑧 new , 𝑤 new )
+
+is a finite mixture of Gaussian, with each component corresponding to an expert indexed by 𝑘 = 1, … , 𝐾 . Motivated by the mixture structure, we establish a prediction set given 11 as follows: 
+
+Ω𝑞 (𝑥 new , 𝑧 new , 𝑤 new ) = 
+
+> 𝐾
+
+⋃
+
+> 𝑘=1
+
+[ℓ 𝑘 , 𝑢 𝑘 ], 
+
+where each [ℓ 𝑘 , 𝑢 𝑘 ] is a estimator ̂ Γ𝑘 . Treating the length of Ω𝑞 (𝑥 new , 𝑧 new , 𝑤 new ) as our budget, it is intuitive that we should allocate more of this budget to the mixture components to which the new predictor is more likely to be assigned–that is, to those groups 𝑘 with larger value of 𝜋(𝑥 new , 𝑧 new ). To this end, we construct the marginal predictive density ̂𝑓(𝑦) using a weighted mixture of Gaussian mixture densities: ̂𝑓(𝑦) = 
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+̂𝜋 𝑘 
+
+1̂ 𝑏 𝑘 
+
+𝜑 ( 𝑦 −̂ Γ 𝑘 ̂𝑏 𝑘 
+
+) , 
+
+where 𝜑(⋅) denotes the density function of the standard normal distribution, and ̂ 𝜋 𝑘 =𝜋 𝑘 (𝑥 new , 𝑧 new ;̂ 𝛼) .Our objective is to construct the shortest set Ω𝑞 ⊂ ℝ such that ∫Ω𝑞 ̂ 𝑓(𝑦)𝑑𝑦 ≥ 1 − 𝑞 . To ensure that the numerical search is limited to a finite and relevant region, we first define a conservative bounding interval 𝒬 guaranteed to contain the target set. Let 𝑐 𝑞 = Φ −1 (1 − 𝑞/2) and define 
+
+𝒬 = [ min  
+
+> 𝑘
+
+{̂Γ 𝑘 − 𝑐 𝑞 ̂ 𝑏 𝑘 }, max  
+
+> 𝑘
+
+{̂Γ 𝑘 + 𝑐 𝑞 ̂ 𝑏 𝑘 }], 
+
+which has a probability of at least 1 − 𝑞 . Next, we partition 𝒬 into 𝑀 equal width subintervals 𝑄 𝑟 = [𝑎 𝑟 , 𝑒 𝑟 ) with length 𝛿 = Len (𝒬)/𝑀 , where 𝑎 𝑟 = min 𝑘 {̂Γ 𝑘 −𝑐 𝑞 ̂ 𝑏 𝑘 }+(𝑟−1)𝛿 
+
+and 𝑒 𝑟 = min 𝑘 {̂Γ 𝑘 − 𝑐 𝑞 ̂ 𝑏 𝑘 } + 𝑟𝛿 , for 𝑟 = 1, ⋯ , 𝑀 . Let 𝑦 𝑟 = (𝑎 𝑟 + 𝑒 𝑟 )/2 be the midpoint. For each cell, we compute the exact probability under the estimated predictive density ̂ 𝑓(⋅) 𝑚 𝑟 = ∫ 
+
+> 𝑄 𝑟
+
+̂𝑓(𝑦) 𝑑𝑦 = 
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+̂𝜋 𝑘 [Φ( 𝑒 𝑟 −̂Γ 𝑘 ̂𝑏 𝑘 
+
+) − Φ( 𝑎 𝑟 −̂Γ 𝑘 ̂𝑏 𝑘 
+
+)] , 
+
+and record the midpoint value ℎ𝑟 =̂ 𝑓(𝑦 𝑟 ). By sorting {ℎ 𝑟 } in decreasing order: ℎ(1) ≥⋯ ≥ ℎ (𝑀) and applying the same permutation to {𝑚 𝑟 }, we choose the smallest 𝑛 ⋆ such that: 
+
+𝑛 ⋆ = min {𝑛 ∶ 
+
+> 𝑛
+
+∑
+
+> 𝑖=1
+
+𝑚 (𝑖) ≥ 1 − 𝑞} . 
+
+12 Define the selected set 𝒮 = {(1), (2), … , (𝑛 ⋆)}. Form the discrete region on this grid by taking the union of the selected cells ̂Ω𝑞 ∶= ⋃
+
+> 𝑟∈𝒮
+
+𝑄 𝑟 =
+
+> 𝑛 ⋆
+
+⋃
+
+> 𝑖=1
+
+𝑄 (𝑖) .
+
+By construction, ∫̂Ω𝑞 ̂ 𝑓(𝑦) 𝑑𝑦 = ∑ 𝑛 ⋆ 
+
+> 𝑖=1
+
+𝑚 (𝑖) ≥ 1 − 𝑞 , and thus ̂ Ω𝑞 is a finite grid approxima-tion to the shortest set Ω𝑞 with ̂ 𝑓 –mass at least 1 − 𝑞 . Algorithm 1 presents the detailed steps for constructing a (1−𝑞) prediction set for MEMoE. 13 Algorithm 1 Constructing a (1−𝑞) Prediction Set for MEMoE  
+
+> 1:
+
+Inputs: Confidence level 1 − 𝑞 ; discretization scale 𝛿 , fitted value ̂ Ψ; covariates 
+
+(𝑥 new , 𝑧 new , 𝑤 new ). 
+
+> 2:
+
+Form a weighted mixture of Gaussian densities: ̂𝑓(𝑦) = 
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+̂𝜋 𝑘 (𝑥 new , 𝑧 new ;̂ 𝛼) 1̂ 𝑏 𝑘 
+
+𝜑 ( 𝑦 −̂ Γ 𝑘 ̂𝑏 𝑘 
+
+) .  
+
+> 3:
+
+Coverage-safe truncation: Let 𝑐 𝑞 = Φ −1 (1 − 𝑞/2) and set 𝒬 that ∫𝒬 ̂ 𝑓(𝑦)𝑑𝑦 ≥ 1 − 𝑞 ,i.e. 
+
+𝒬 = [ min  
+
+> 𝑘
+
+(̂Γ 𝑘 − 𝑐 𝑞 ̂ 𝑏 𝑘 ), max  
+
+> 𝑘
+
+(̂Γ 𝑘 + 𝑐 𝑞 ̂ 𝑏 𝑘 )].  
+
+> 4:
+
+Grid by density threshold: Divide 𝒬 into mesh 𝑄 𝑟 of size 𝛿 with midpoints 𝑦 𝑟 and 
+
+𝑚 𝑟 = ∫ 
+
+> 𝑄 𝑟
+
+̂𝑓(𝑦) 𝑑𝑦 = 
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+̂𝜋 𝑘 [Φ( 𝑒 𝑟 −̂ Γ 𝑘 ̂𝑏 𝑘 
+
+) − Φ( 𝑎 𝑟 −̂ Γ 𝑘 ̂𝑏 𝑘 
+
+)] . 
+
+Sort ℎ𝑟 =̂ 𝑓(𝑦 𝑟 ) decreasing and find the smallest 𝑛 ⋆ such that 
+
+> 𝑛 ⋆
+
+∑
+
+> 𝑖=1
+
+𝑚 (𝑖) ≥ 1 − 𝑞. 
+
+Set the prediction set as: ̂Ω𝑞 (𝑥 new , 𝑧 new , 𝑤 new ) = 
+
+> 𝑛 ⋆
+
+⋃
+
+> 𝑖=1
+
+𝑄 (𝑖) . 
+
+> 5:
+
+Output: Ω𝑞 (𝑥 new , 𝑧 new , 𝑤 new )
+
+# 4 Asymptotical Properties 
+
+In this section, we will prove the consistency of the Laplace-EM estimator ̂ Ψ and asymptotic normality of the regression parameter estimator ̂ 𝛽 𝑘 . Before giving the consistency of the 14 estimator ̂ Ψ, the following regularity conditions are required. (A1) For covariates, 𝔼(‖𝑥 𝑖𝑗 ‖6) < ∞ , 𝔼(‖𝑧 𝑖𝑗 ‖6) < ∞ , and 𝔼(‖𝑤 𝑖 ‖6) < ∞ , where ‖ ⋅ ‖ denotes 
+
+𝐿 2 norm. (A2) The parameter space Θ is a compact set. (A3) There exist constants 0 < 𝑐 1 ≤ 𝑐 2 < ∞ such that the eigenvalues of Σ satisfy 
+
+𝑐 1 ≤ 𝜆 min (Σ) ≤ 𝜆 max (Σ) ≤ 𝑐 2.(A4) 𝔼(ℓ LA (Ψ)) is uniquely maximized at the true parameter value Ψ.(A5) Let [𝐾] denotes the set {1, ⋯ , 𝑘} . Assume that {𝛼 𝑘 + 𝑐 ∶ 𝑘 ∈ [𝐾]} corresponds to the same 𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ) as {𝛼 𝑘 ∶ 𝑘 ∈ [𝐾]} for a constant 𝑐 .Conditions (A1)–(A4) are standard regularity assumptions in the literature on mixture models and linear mixed effect models (Kiefer 1959, Hennig 2000). Condition (A5) ensures that the parameters in the gating function are identifiable. Based on these regularity conditions, we establish the consistency of the parameter estimators. 
+
+Theorem 1. Let ̂ Ψ denote the estimator obtained by maximizing ℓLA (Ψ) over the parameter space. Under the regularity conditions (A1)–(A5), ̂ Ψ is a consistent estimator of Ψ as 
+
+𝑁 → ∞ ; that is: ̂ Ψ 𝑝 
+
+−→ Ψ. 
+
+Theorem 1 establishes the consistency of the global parameter estimator ̂ Ψ as 𝑁 → ∞ .To establish the asymptotic normality of the regression estimator, we require the following additional regularity conditions. (B1) There exists a constant 𝑐 𝑧 > 0 such that the second moment of the random-effect covariates 𝑧 𝑖𝑗 satisfies 𝑐 𝑧 ≤ 𝔼[𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 ] < ∞ .(B2) The information matrix is positive definite: 
+
+0 ≺ 𝔼 [− 𝜕 2ℓLA 
+
+𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+] ≺ ∞. 
+
+15 (B3) The function ℎ𝑖 (𝑢 𝑖 ; Ψ) is strictly concave in a neighborhood of the true random effect 
+
+𝑢 𝑖 . Furthermore, the negative Hessian matrix 𝐻 𝑖 (𝑢 𝑖 , Ψ) = −∇ 2𝑢 𝑖 ℎ𝑖 (𝑢 𝑖 ; Ψ) is positive definite. The smallest eigenvalue of −∇ 2𝑢 𝑖 ℎ𝑖 (̂𝑢 𝑖 ; Ψ) satisfies a linear growth condition: 
+
+𝜆 min (−∇ 2𝑢 𝑖 ℎ𝑖 (̂𝑢 𝑖 ; Ψ)) ≥ 𝜆 0 + 𝑐 1𝑛 𝑖 ,
+
+where 𝜆 0 > 0 depends on the variance of the random effects and 𝑐 1 > 0 depends on the error variance lower bound. (B4) There exists a constant 𝐿 > 0 such that for subjects 𝑖 , all indices 𝑗, 𝑘, 𝑙 ∈ {1, … , 𝑞} ,
+
+∣𝜕 3ℎ𝑖 (𝑢 𝑖 ; Ψ) 𝜕𝑢 𝑗 𝜕𝑢 𝑘 𝜕𝑢 𝑙 
+
+∣ ≤ 𝐿 ⋅ 𝑛 𝑖 .
+
+Condition (B1) ensures that the asymptotic variance of the estimators is well-defined and finite. Condition (B2) guarantees the uniqueness of ̂ 𝑢 𝑖 , as stated in Pinheiro & Bates (2000). Condition (B3) serves as a regularity condition for deriving the convergence rate of the Taylor expansion, while also ensuring the existence of a unique mode ̂ 𝑢 𝑖 in a neighborhood of 𝑢 𝑖 . Condition (B4) assumes that the norm of the third derivative of ℎ𝑖 (𝑢 𝑖 ; Ψ) is bounded by a term linear in 𝑛 𝑖 .
+
+Theorem 2. Suppose that the regularity conditions (A1)–(A5) and (B1)–(B3) hold. For any fixed expert component 𝑘 ∈ [𝐾] , the estimator converges in distribution to a normal distribution as 𝑁 → ∞ :
+
+√𝑁 (̂𝛽 𝑘 − 𝛽 𝑘 ) 𝑑 
+
+−→ 𝒩(0, 𝑉 𝛽 𝑘 ), 𝑉 𝛽 𝑘 = 𝐽 −1 𝛽 𝑘 𝐾 𝛽 𝑘 𝐽 −1 𝛽 𝑘 ,
+
+where 
+
+𝐽 𝛽 𝑘 ∶= 𝔼 [− 𝜕 2ℓLA 
+
+𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+] , 𝐾 𝛽 𝑘 ∶= 𝔼 [( 𝜕ℓ LA 
+
+𝜕𝛽 𝑘 
+
+) ( 𝜕ℓ LA 
+
+𝜕𝛽 𝑘 
+
+)
+
+> ⊤
+
+] . 
+
+Theorem 2 explicitly characterizes the asymptotic behavior of the estimator of regression coefficients 𝛽 𝑘 . This result plays a pivotal role in quantifying predictive uncertainty and 16 ensuring the validity of the constructed prediction sets. The proofs of Theorems 1 and 2 are provided in the supplementary materials. 
+
+# 5 Numerical studies 
+
+In this section, we conduct three simulation experiments to investigate the finite-sample performance of the proposed MEMoE across a sequence of mixture-of-experts designs. We compare MEMoE against three methods: (1) The linear mixed model (LMM), which in-corporates random effects to account for within correlations but assumes a uniform model structure across all subjects (i.e., it lacks the mixture-of-experts framework to capture group-level heterogeneity); (2) The classical mixture-of-experts (MoE) model, which cap-tures group heterogeneity through latent components but treats repeated measurements as statistically independent (i.e., it ignores within correlations); (3) The random effects mixture-of-experts (REMoE) model, which incorporates both the mixture-of-experts struc-ture and random effects, with the random effects distribution specified as zero-mean. In the three simulation experiments, the generated data are randomly split into two datasets: 
+
+80% allocated to the training set and the remaining 20% to the test set. The entire simu-lation procedure is replicated 500 times for each case. Additionally, we apply the proposed method to a real-data case study. 
+
+## 5.1 Simulation studies 
+
+Example 1: We generate the data from a two-component mixture-of-experts model with-out a random-effect term. The latent expert label 
+
+𝑣 𝑖 ∼ Muitinomial (𝜋 1(𝑥 𝑖 ), 𝜋 2(𝑥 𝑖 )), 𝜋 𝑘 (𝑥 𝑖 ) = exp (𝑥 ⊤𝑖 𝛼 𝑘 )∑2ℓ=1 exp (𝑥 ⊤𝑖 𝛼 ℓ), 𝑘 = 1, 2, 
+
+17 where the gating‐network parameters 𝛼 1 = (6, −5, 3, 2, 1) ⊤ and 𝛼 2 = (−4, 2, −7, 5, −3) ⊤.Conditional on 𝑣 𝑖 = 𝑘 , the response variable is generated via the following model: 
+
+𝑦 𝑖 = 𝑥 ⊤𝑖 𝛽 𝑘 + 𝜖 𝑖 ,
+
+with regression coefficients vectors 𝛽 1 = (3, −3, 1, −1, 0) ⊤ and 𝛽 2 = (−5, 5, 0, 2, −2) ⊤. The covariate vector 𝑥 𝑖 is independently generated from 𝒩( 0, 𝐼 5), and the random error 𝜖 𝑖 is generated from 𝒩(0, 1) . A total of 1500 independent observations are sampled. The aver-age biases and mean squared errors (MSEs) of regression parameters and gating-network parameters for MoE, ReMoE, and MEMoE are presented in Table 1. The prediction errors are exhibited in the left panel of Figure 2. Table 1: Average biases and MSEs of parameter estimators in Example 1 and MEMoE attains the performance of oracle estimators. 
+
+Parameter Method 
+
+MoE ReMoE MEMoE Bias MSE Bias MSE Bias MSE Expert 1 𝛽 1 0.0025 (0.0015) 0.0026 (0.0015) 0.0024 (0.0015) 
+
+𝛼 1 0.0661 (0.0085) 0.0793 (0.0106) 0.0726 (0.0094) Expert 2 𝛽 2 0.0049 (0.0013) 0.0049 (0.0012) 0.0048 (0.0013) 
+
+𝛼 2 0.0628 (0.0076) 0.0575 (0.0051) 0.0542 (0.0047) As expected, the standard MoE estimator exhibits negligible bias and small variance for both expert-specific regression coefficients and gating parameters (Table 1). The estimates of the expert coefficients 𝛽 𝑘 and gating parameters 𝛼 𝑘 obtained from the proposed MEMoE and ReMoE are unbiased and have variances comparable to those of the correctly specified 18 MoE. The simulation results demonstrate that, when the data-generating process is a standard MoE without random effects, introducing a mixed-effects layer into the MoE framework does not result in significant efficiency loss in either parameter estimation or predictive performance. 
+
+Example 2: We generate the data from a classical linear mixed‐effects model: 
+
+𝑦 𝑖𝑗 = 𝑥 ⊤𝑖𝑗 𝛽 + 𝑢 𝑖 + 𝜖 𝑖𝑗 , 𝑖 = 1, ⋯ , 100, 𝑗 = 1, ⋯ , 15, (8) where 𝛽 = (3, −3, 1, −1, 0) ⊤, and the covariate vector 𝑥 𝑖𝑗 is independently sampled from 𝒩( 0, 𝐼 5), in which 𝐼 5 denotes the five-dimensional identity matrix. The random effect 𝑢 𝑖 is generated from a normal distribution 𝒩(0, 𝜏 ) , where the variance parameter 
+
+𝜏 takes a value of 0.01 , 0.1 , 1, 2.5 , and 5. The random error 𝜖 𝑖𝑗 is drawn from 𝒩(0, 1) .The average biases and mean squared errors (MSEs) of regression parameters and gating network parameters for the MoE, ReMoE, and MEMoE are presented in the top panel of Table 2. The prediction errors are exhibited in the right panel of Figure 2. When 𝜏 is less than 1, the performance of the four methods is comparable. As 𝜏 increases, the bias and variance of MoE increase and are larger than those of the other three methods; in contrast, the biases and variances of MEMoE and ReMoE exhibit slight fluctuations and remain stable, yielding results comparable to those of the classical LMM approach. The boxplots (Figure 2) show prediction mean squared errors (PMSE) of the four methods. The PMSE of MoE increases with 𝜏 . In contrast, the PMSEs of MEMoE, ReMoE, and LMM have no significant change as 𝜏 increases. Example 2 serves as a key validation: when the data conform to a classical LMM framework, the MEMoE procedures closely align with the LMM benchmark in terms of both estimation and prediction accuracy. However, it is worth noting that the performance of the MoE approach declines as variability between subjects increases. When considered alongside the findings from Example 2, these results demonstrate that MEMoE adapts well to both the 19 presence and absence of subject-level random effects. In contrast, models that neglect either the random effects (the standard MoE) or expert heterogeneity (LMM) exhibit severe bias when deployed in misspecified modeling scenarios. 
+
+(a) Example 1 (b) Example 2 
+
+Figure 2: Prediction mean square error under MEMoE, MoE, ReMoE and LMM for Exam-ples 1 and 2. LMM is deleted in Examples 1 because it shows larger PMSE and all results imply that MEMoE attains oracle estimation performance. 
+
+Example 3: We consider a linear mixed model mixture-of-experts framework with a Gaussian response. The observed data consist of 𝑛 = 100 subjects, with each subject contributing 𝑛 𝑖 = 15 repeated measurements; this yields a total of 𝑁 = ∑ 𝑛 𝑖=1 𝑛 𝑖 = 1500 
+
+observations. The covariate vector 𝑥 𝑖𝑗 = (𝑥 𝑖𝑗1 , 𝑥 𝑖𝑗2 , … , 𝑥 𝑖𝑗5 )⊤ is independently drawn from a multivariate normal distribution 𝒩( 0, I5). Expert membership for each observation is determined by a multinomial gating mechanism, where a softmax function governs class assignment probabilities: 
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 , 𝛼) = exp (𝑥 ⊤𝑖𝑗 𝛼 𝑘 )∑𝐾 ℓ=1 exp (𝑥 ⊤𝑖𝑗 𝛼 ℓ), 𝑘 = 1, ⋯ , 𝐾. 
+
+For each observation with assigned latent expert 𝑘 , the Gaussian response 𝑦 𝑖𝑗 is generated according to a linear mixed-effects model: 
+
+𝑦 𝑖𝑗 = 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑢 𝑖 + 𝜖 𝑖𝑗 .
+
+20 We consider the following three cases for the number of experts 𝐾 , the random effect 𝑢 𝑖 ,the random error 𝜖 𝑖𝑗 , the regression coefficients 𝛽 𝑘 , and the gating-network parameters 𝛼 𝑘 
+
+for 𝑘 = 1, ⋯ , 𝐾 .
+
+Case 1: For 𝐾 = 2 . Expert-specific fixed effects and the gating-network parameters are given by: 
+
+𝛽 1 = (3, −3, 1, −1, 0) ⊤, 𝛼 1 = (6, −5, 3, 2, 1) ⊤,𝛽 2 = (−5, 5, 0, 2, −2) ⊤, 𝛼 2 = (−4, 2, −7, 5, −3) ⊤.
+
+The random error 𝜖 𝑖𝑗 is independently sampled from 𝒩(0, 1) , and the random effect 𝑢 𝑖 is generated from 𝒩(0, 𝜏) .
+
+Case 2: The settings of the number of experts, the random error, the expert-specific fixed effects, and the gating-network parameters are the same as those in Case 1. The random effect 𝑢 𝑖 is generated from 𝒩(𝜅𝑤 𝑖 , 𝜏 ) , where 𝜔 𝑖 = (1, 𝜔 𝑖2 , 𝜔 𝑖3 , 𝜔 𝑖4 )⊤ with 𝜔 𝑖𝑗 𝑖.𝑖.𝑑. 
+
+∼ 𝒩(0, 1) 
+
+for 𝑗 = 2, 3, 4 , and 𝜅 = (2, 5, −1, 5) ⊤.
+
+Case 3: For 𝐾 = 3 . Expert-specific fixed effects and the gating-network parameters are given by 
+
+𝛽 1 = (3, −3, 1, −1, 0) ⊤, 𝛼 1 = (6, −5, 3, 2, 1) ⊤,𝛽 2 = (−5, 5, 0, 2, −2) ⊤, 𝛼 2 = (−4, 2, −7, 5, −3) ⊤,𝛽 3 = (1, −2, 3, 1, −4) ⊤, 𝛼 3 = (2, −1, 4, −3, 6) ⊤.
+
+The random effect 𝑢 𝑖 is generated from 𝒩(𝜅𝑤 𝑖 , 𝜏 ) , where 𝜅 = (5, −3, 2, 1) and 𝜔 𝑖 =(1, 𝜔 𝑖2 , 𝜔 𝑖3 , 𝜔 𝑖4 )⊤ with 𝜔 𝑖𝑗 𝑖.𝑖.𝑑. 
+
+∼ 𝒩(0, 1) . Conditional on the 𝑘 th expert, the random error 
+
+𝜖 𝑖𝑗 ∼ 𝒩(0, 𝜎 2𝑘 ). The standard deviations for three experts are 𝜎 1 = 1.0 , 𝜎 2 = 1.2 , and 
+
+𝜎 3 = 0.8 , respectively. The average biases and mean squared errors of the parameter estimators for fixed effects in three cases are presented in Table 2. The prediction mean squared errors for three cases 21 are displayed in panels (a), (c), and (e) of Figure 3. The empirical coverage probabilities for three cases are shown in panels (b), (d), and (f) of Figure 3. For the expert-specific regression coefficients 𝛽 𝑘 , both MEMoE and ReMoE yield essentially unbiased estimates with small variance across all values of 𝜏 . In contrast, the LMM esti-mator, which ignores the underlying expert structure, exhibits substantial bias, reflecting its inability to recover expert-specific effects. The standard MoE performs well when 𝜏 is near zero but shows a marked increase in both bias and variance as 𝜏 grows, confirming the severe impact of ignoring subject-level random effects. Across all three cases, MEMoE and ReMoE achieve the lowest and most stable prediction mean squared errors, while the performance of the standard MoE deteriorates sharply with larger 𝜏 , and LMM yields intermediate but consistently inferior performance. Overall, Simulation 3 confirms the theoretical advantages of correctly specifying both the expert structure and the random-effects distribution, and highlights that MEMoE provides the most reliable parameter and prediction inference in heterogeneous mixed-effects settings. Across all three simulation settings, the prediction sets of the proposed MEMoE maintain empirical 95% coverage probabilities closely aligned with the nominal level across a wide range of random-effect variances. The mean interval lengths increase as 𝜏 grows. The simulation results provide strong finite-sample evidence for the validity of the proposed prediction-set construction. 22 Table 2: Biases and MSEs of parameter estimates of 𝛽 in Examples 2 and 3 across different variances of random effects. MEMoE shows robust and best estimation performance except for the oracle estimators. 
+
+𝜏 = 0.01 𝜏 = 0.1 𝜏 = 1 𝜏 = 2.5 𝜏 = 5 
+
+Scenario Parameter Model Bias MSE Bias MSE Bias MSE Bias MSE Bias MSE 
+
+Example 2 𝛽 
+
+LMM (oracle) 0.015 0.005 0.015 0.005 0.016 0.005 0.016 0.005 0.017 0.005 MoE 0.025 0.015 0.026 0.015 0.027 0.017 0.038 0.019 0.044 0.025 ReMoE (oracle) 0.017 0.005 0.018 0.005 0.020 0.005 0.025 0.005 0.025 0.005 
+
+MEMoE 0.025 0.007 0.025 0.005 0.026 0.006 0.026 0.005 0.026 0.007 Example 3: (Cases 1–3) 
+
+𝜏 = 0.01 𝜏 = 0.1 𝜏 = 1 𝜏 = 2.5 𝜏 = 5 
+
+Case 1 
+
+Expert 1 𝛽 1
+
+LMM 1.997 4.020 1.997 4.019 1.997 4.020 1.997 4.022 1.998 4.024 MoE 0.020 0.001 0.020 0.001 0.035 0.002 0.048 0.002 0.066 0.010 ReMoE (oracle) 0.012 0.001 0.018 0.001 0.012 0.001 0.010 0.001 0.010 0.001 
+
+MEMoE 0.015 0.003 0.014 0.004 0.019 0.003 0.020 0.003 0.021 0.003 
+
+Expert 2 𝛽 2
+
+MoE 0.021 0.001 0.024 0.005 0.041 0.003 0.063 0.007 0.084 0.013 ReMoE 0.021 0.001 0.019 0.001 0.016 0.001 0.017 0.001 0.017 0.001 
+
+MEMoE 0.018 0.003 0.019 0.004 0.019 0.004 0.021 0.004 0.022 0.004 Case 2 
+
+Expert 1 𝛽 1
+
+LMM 5.955 2.210 5.938 2.205 5.954 2.210 5.945 2.205 5.958 2.210 MoE 0.097 0.403 0.071 0.411 0.099 0.421 0.108 0.406 0.109 0.415 ReMoE 0.013 0.044 0.018 0.047 0.014 0.047 0.010 0.046 0.006 0.048 
+
+MEMoE 0.003 0.016 0.006 0.017 0.004 0.016 0.003 0.016 0.008 0.018 
+
+Expert 2 𝛽 2
+
+MoE 0.092 0.403 0.096 0.399 0.118 0.418 0.104 0.415 0.102 0.430 ReMoE 0.011 0.045 0.019 0.047 0.013 0.047 0.011 0.047 0.003 0.046 
+
+MEMoE 0.003 0.016 0.003 0.017 0.004 0.017 0.004 0.017 0.009 0.016 Case 3 
+
+Expert 1 𝛽 1
+
+LMM 2.641 8.557 2.641 8.557 2.641 8.557 2.642 8.557 2.642 8.557 MoE 1.380 2.483 1.381 2.489 1.385 2.510 1.387 2.533 1.389 2.561 ReMoE 0.015 0.014 0.015 0.014 0.015 0.014 0.015 0.014 0.015 0.014 
+
+MEMoE 0.007 0.004 0.007 0.004 0.007 0.004 0.007 0.004 0.006 0.004 
+
+Expert 2 𝛽 2
+
+MoE 1.679 3.079 1.681 3.086 1.685 3.108 1.689 3.129 1.693 3.155 ReMoE 0.014 0.013 0.017 0.014 0.016 0.014 0.016 0.014 0.016 0.014 
+
+MEMoE 0.003 0.004 0.003 0.004 0.002 0.004 0.002 0.004 0.001 0.004 
+
+Expert 3 𝛽 3
+
+MoE 1.396 2.643 1.397 2.645 1.398 2.654 1.400 2.666 1.400 2.681 ReMoE 0.015 0.012 0.014 0.012 0.015 0.012 0.015 0.012 0.015 0.012 
+
+MEMoE 0.003 0.002 0.003 0.002 0.003 0.002 0.003 0.002 0.004 0.002 
+
+23 (a) Example 3: Case 1 (PMSE) (b) Example 3: Case 1 (Coverage)   
+
+> (c) Example 3: Case 2 (PMSE) (d) Example 3: Case 2 (Coverage)
+> (e) Example 3: Case 3 (PMSE) (f) Example 3: Case 3 (Coverage)
+
+Figure 3: Prediction mean square error (a),(c) and (e) under MEMoE, MoE, ReMoE and LMM for Cases 1-3 of Example 3 and MEMoE shows the best prediction performance. MEMoE is also robust about the random effect variance in (b), (d) and (f). 24 Table 3: Coverage probabilities (CP) and mean interval lengths of 95% confidence intervals across 𝜏 values in Cases 1, 2, and 3.                                            
+
+> 𝜏
+> Case 1 Case 2 Case 3 CP Interval Length CP Interval Length CP Interval Length 0.01 0.9521 4.4463 0.9509 4.4592 0.9560 4.7725 0.10 0.9432 4.4730 0.9458 4.4891 0.9452 4.7818 0.25 0.9427 4.7090 0.9443 4.7204 0.9401 5.0306 1.00 0.9425 5.9020 0.9416 5.9086 0.9381 6.2112 2.50 0.9338 7.6414 0.9417 7.7088 0.9409 8.0411 5.00 0.9173 9.7118 0.9239 9.7735 0.9275 10.0818
+
+## 5.2 Real Data Analysis 
+
+Primary Biliary Cirrhosis (PBC) is a chronic, progressive autoimmune liver disease char-acterized by the destruction of intrahepatic bile ducts, leading to cholestasis, cirrhosis, and eventually liver failure. The data used in this section are from a randomized clinical trial conducted at the Mayo Clinic between January 1974 and May 1984 that compared D-penicillamine with a placebo (Murtaugh et al. 1994). The randomized sample comprises 
+
+312 patients with 1, 945 measurements. The number of visits per patient varies from 1 to 
+
+16 during a follow-up period of up to 14.1 years. The dataset is available in the survival Rpackage (named pbcseq). Among the collected longitudinal biomarkers, serum bilirubin is widely recognized as the most powerful prognostic indicator of disease progression and survival. To mitigate skew-ness and stabilize variance, a natural logarithm transformation is applied to serum bilirubin (log (bili )) as the response variable 𝑦 𝑖𝑗 for subsequent analyses. To model the longitudinal 25 disease progression while accounting for patient differences, we specify three design compo-nents: (i) observation-level covariates 𝑥 𝑖𝑗 for the expert mean functions; (ii) random-effects design vector 𝑧 𝑖𝑗 = (1, 𝑡 𝑖𝑗 )⊤ for representing random intercepts and slopes and capturing within correlations, where 𝑡 𝑖𝑗 denotes the follow-up time in years; (iii) and subject-level covariates 𝑤 𝑖 = (1, Stage 𝑖 )⊤ for modeling the distribution of the random effects. The co-variates maily include demographic factors: Age 𝑖 and Sex 𝑖 (coded as 1 for females); key biochemical markers of liver function: serum cholesterol (Chol 𝑖0 ), baseline serum biliru-bin (Bili 𝑖0 ), albumin (Alb 𝑖0 ), and prothrombin time (Protime 𝑖0 ); and clinical signs of dis-ease severity: presence of edema (Edema 𝑖0 ), spiders angiomata (Spiders 𝑖0 ), and ascites (Ascites 𝑖𝑗 ). Note that while Ascites 𝑖𝑗 is modeled as a time-varying covariate to capture dis-ease progression, other clinical and biochemical markers are fixed at their baseline values (denoted by the subscript “0”) to serve as baseline prognostic stratification factors. Trt 𝑖 
+
+indicates the treatment group (1 for D-penicillamine, 0 for placebo). The observation-level design vector 𝑥 𝑖𝑗 is constructed using a comprehensive set of feature factors. Specifically: 
+
+𝑥 𝑖𝑗 = (1, 𝑡 𝑖𝑗 , Age 𝑖 , Chol 𝑖0 , Sex 𝑖 , Ascites 𝑖𝑗 , Edema 𝑖0 , Trt 𝑖 , Bili 𝑖0 , Alb 𝑖0 , Protime 𝑖0 , Spiders 𝑖0 )⊤.
+
+Excluding time variable 𝑡 𝑖𝑗 , all predictors are fixed at enrollment. This approach ensures temporal precedence and reduces endogeneity bias caused by biomarkers that change with disease activity (Hernán et al. 2004). Specifically, all continuous covariates are standard-ized. The histogram (Figure 4) of the residuals from the LMM exhibits a clear bimodal pattern, with two local peaks around the zero line and a noticeable dip in the middle. This deviation from unimodality indicates the presence of unobserved heterogeneity within the patient population. Therefore, given the implication of potential latent subgroups, we adopt the MEMoE framework to model this hidden heterogeneity. The data are randomly partitioned into 80% for training and 20% for testing. The five-fold 26 Figure 4: The histogram of residuals from the LMM. cross-validation is conducted on the training set to select the optimal number of experts, with the training set split into four folds for model training and one for validation in each iteration. For each candidate number of experts 𝐾 ranging from 1 to 5, model parame-ters are estimated using the four training folds, and the corresponding predictive error is computed on the validation fold. Let ̂ 𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ) and ̂ 𝛽 𝑘 denote the estimates of the gating probabilities and the expert-specific regression coefficients, respectively. We use ̂𝑦 = (𝑥 new )⊤̂ 𝛽 ̂ 𝑘 + (𝑧 new )⊤̂ 𝜅𝑤 new 
+
+to make predictions at a given 𝑥 new , 𝑧 new , 𝑤 new , where ̂ 𝑘 = arg max 𝑘∈{1,…,𝐾} ̂ 𝜋 𝑘 (𝑥 new , 𝑧 new )
+
+is the class with highest estimated probability. The cross-validated root mean squared error indicates that 𝐾 = 3 yields the lowest predictive error. Subsequently, the full training set is used to re-estimate the model parameters using the selected optimal 𝐾 . Table 4 presents the expert-specific estimates of parameters in the three-expert MEMoE model. 27 Table 4: Parameter estimates for the MEMoE model ( 𝐾 = 3 ) on PBC data, and ∗ indicates 
+
+𝑝 -value is less than 0.05 .
+
+Parameter Expert 1 Expert 2 Expert 3 
+
+Fixed Effects ( 𝛽 𝑘 )
+
+Intercept 0.393 ∗ −2.375 ∗ 1.308 ∗
+
+Time ( 𝑡 𝑖𝑗 ) −0.030 ∗ −0.098 ∗ −0.041 ∗
+
+Baseline Age −0.048 ∗ −0.486 ∗ −0.096 ∗
+
+Baseline Albumin −0.093 ∗ −0.573 ∗ −0.242 ∗
+
+Baseline Bilirubin 1.496 ∗ 0.673 ∗ 0.698 ∗
+
+Baseline Cholesterol 0.100 ∗ 0.411 ∗ 0.042 ∗
+
+Baseline Prothrombin Time 0.021 ∗ 0.467 ∗ −0.030 ∗
+
+Sex (Female) −0.276 ∗ 0.228 ∗ −0.593 ∗
+
+Ascites −0.149 ∗ 1.556 ∗ 0.010 Edema score 0.066 ∗ −2.497 ∗ −0.018 Spiders 0.123 ∗ −0.522 ∗ 0.212 ∗
+
+Treatment 0.022 −0.197 ∗ 0.141 ∗
+
+𝜎 2𝑘 0.090 0.041 0.058 
+
+The results indicate the existence of three distinct latent progression patterns, each charac-terized by specific factor drivers. Expert 1 represents a “Biochemical Instability” phenotype, exhibiting the strongest positive association with Baseline Bilirubin (1.496) among the ex-perts. This group also demonstrates the largest variance ( 𝜎 2𝑘 = 0.090 ), reflecting a high degree of clinical unpredictability driven by biochemical derangement rather than physical signs. Expert 2 characterizes a “Clinical Decompensation” phenotype. This component is dominated by severe clinical manifestations, showing the most significant coefficients for 28 Ascites ( 1.556 ) and Edema ( −2.497 ), as well as the strongest negative association with Base-line Albumin ( −0.573 ). The substantial impact of these markers suggests this subgroup represents patients with advanced structural damage and synthetic failure. Notably, this is the only subgroup where Treatment shows a significant negative association ( −0.197 ), suggesting a potential differential response. Expert 3 captures a “Demographic-Driven” phenotype. Unlike the other groups, this pattern shows strong sensitivity to Sex ( −0.593 )and a high baseline intercept. In contrast to Expert 2, clinical signs of fluid retention (Ascites, Edema) contribute minimally (0.010 and −0.018, respectively) and are not sta-tistically significant. This suggests a subgroup in which disease trajectory is influenced more by demographic factors and baseline metabolic state (Bilirubin 0.698) than by overt clinical decompensation. The proposed MEMoE achieved the lowest predictive error (RMSE = 0.756 ), outperform-ing both the standard MoE (RMSE = 0.835 ) and the single-component LMM (RMSE = 
+
+0.990 ). This sequential reduction in RMSE shows that accounting for within correlations via random effects—beyond merely capturing population heterogeneity—is essential for accurate PBC progression modeling. Furthermore, we construct the 95% predictive sets (Ω 0.05 (𝑥 new )) and record whether 𝑦 new ∈Ω0.05 (𝑥 new ) for 100 randomly selected test observations (see Figure 5). The overall cover probability is 94.76%. Most prediction sets are contiguous, while the MEMoE adaptively produces disjoint intervals (visible as gaps in the red lines) in regions where the predictive distribution is highly skewed or exhibits multiple modes. This flexibility reflects genuine ambiguity about future log (bilirubin ) levels, yet even in these complex cases, the vast majority of observations are correctly covered by the prediction sets. 29 Figure 5: Plot of MEMoE 95% prediction sets for the PBCseq bilirubin. The red bars are prediction sets for each observation. The dark and light blue points correspond to the covered and missed log (bilirubin ) values by the prediction sets, respectively. 
+
+# 6 Conclusions 
+
+In this paper, we propose a MEMoE model that combines subject-level random effects with a flexible expert structure and a gating function. The MEMoE framework provides a unified approach that simultaneously addresses between-subject heterogeneity and within correlations by integrating a covariate-dependent gating function with expert-specific lin-ear mixed-effects models. To overcome the computational intractability of the likelihood function, we develop a robust estimation scheme that combines a Laplace approximation for latent-variable integration with a generalized EM algorithm augmented by a majorize-minimize strategy. This method ensures numerical stability and the accuracy of the model 30 parameter estimates. Simulation studies and the real data application show that MEMoE can effectively identify hidden dynamic regimes and significantly improve predictive ac-curacy for new samples compared to LMMs and standard MoE. A key innovation in our framework is the construction of prediction sets. Unlike traditional interval estimates, the proposed method can easily handle multimodal predictive distributions, which commonly arise in heterogeneous populations, thereby facilitating more comprehensive uncertainty quantification. Despite these positive aspects, the current model has some limitations. The Laplace approximation can introduce bias when the number of longitudinal observa-tions per subject is small, and the non-convexity of the objective function poses challenges for avoiding local optima. In summary, MEMoE bridges the gap between the interpretabil-ity of mixed-effects models and the flexibility of finite mixture models, providing a valuable and principled tool for complex longitudinal data analysis. 
+
+# 7 Disclosure statement 
+
+The authors report there are no competing interests to declare. 
+
+# 8 Data Availability Statement 
+
+The data used in this study are available in the [survival] R package. 
+
+## SUPPLEMENTARY MATERIAL 
+
+Detailed mathematical proofs for Theorems 1 and 2 are provided in the supplementary material. 31 References 
+
+Bishop, C. M. (2006), Pattern Recognition and Machine Learning , Information Science and Statistics, Springer. Breslow, N. E. & Clayton, D. G. (1993), ‘Approximate inference in generalized linear mixed models’, Journal of the American Statistical Association 88 (421), 9–25. Che, C., Li, S., Zhang, C. & Li, H. (2023), ‘Covariate-guided bayesian mixture of spline experts for the analysis of multivariate high-density longitudinal data’, Biometrics 
+
+79 (2), 1239–1252. Cui, S., Yoo, E. C., Li, D., Laudanski, K. & Engelhardt, B. E. (2022), ‘Hierarchical Gaus-sian processes and mixtures of experts to model COVID-19 patient trajectories’, Pacific Symposium on Biocomputing 27 , 266–277. Diggle, P. J., Heagerty, P. J., Liang, K.-Y. & Zeger, S. L. (2002), Analysis of Longitudinal Data , 2nd edn, Oxford University Press, Oxford. Fitzmaurice, G. M., Laird, N. M. & Ware, J. H. (2011), Applied Longitudinal Analysis , 2 edn, Wiley. Fung, T. C. & Tseung, S. C. (2022), ‘Mixture of experts models for multilevel data: Mod-elling framework and approximation theory’, Neural Networks 154 , 287–302. Gao, J., Gunn, S. & Kandola, J. (2002), Adapting kernels by variational approach in svm, 
+
+in B. McKay & J. Slaney, eds, ‘AI 2002: Advances in Artificial Intelligence’, Springer Berlin Heidelberg, Berlin, Heidelberg, pp. 395–406. He, T., Jiang, K., Zhao, A., Schroder, A., Thompson, E., Soskic, S., Barkhof, F. & Alexan-der, D. C. (2025), ‘A stage-aware mixture of experts framework for neurodegenerative 32 disease progression modelling’, arXiv preprint arXiv:2508.07032 .
+
+URL: https://arxiv.org/abs/2508.07032 
+
+Hedeker, D. & Gibbons, R. D. (2006), Longitudinal Data Analysis , Wiley Series in Proba-bility and Statistics, John Wiley & Sons, Hoboken. Hennig, C. (2000), ‘Identifiablity of models for clusterwise linear regression’, Journal of Classification 17 (2), 273–296. Hernán, M. A., Hernández-Díaz, S. & Robins, J. M. (2004), ‘A structural approach to selection bias’, Epidemiology 15 (5), 615–625. Huang, J., Jiao, Y., Wang, W., Yan, X. & Zhu, L. (2023), ‘Integrative analysis for high-dimensional stratified models’, Statistica Sinica 33 , 1533–1553. Hunter, D. R. & Lange, K. (2004), ‘A tutorial on mm algorithms’, The American Statisti-cian 58 (1), 30–37. Jacobs, R. A., Jordan, M. I., Nowlan, S. J. & Hinton, G. E. (1991), ‘Adaptive mixtures of local experts’, Neural Computation 3(1), 79–87. Jordan, M. I. & Jacobs, R. A. (1994), ‘Hierarchical mixtures of experts and the em algo-rithm’, Neural Computation 6(2), 181–214. Kiefer, J. (1959), ‘Optimum experimental designs’, Journal of the Royal Statistical Society. Series B (Methodological) 21 (2), 272–319. Kock, L., Klein, N. & Nott, D. J. (2025), ‘Deep mixture of linear mixed models for complex longitudinal data’, Statistics in Medicine 44 (23-24), e70288. Laird, N. M. & Ware, J. H. (1982), ‘Random-effects models for longitudinal data’, Biomet-rics 38 (4), 963–974. 33 Little, R. J. A. & Rubin, D. B. (2019), Statistical Analysis with Missing Data , Wiley Series in Probability and Statistics, 3rd edn, John Wiley & Sons, Hoboken, NJ. Murtaugh, P. A., Dickson, E. R., Van Dam, G., Malinchoc, M., Grambsch, P., Langworthy, A. & Gips, C. (1994), ‘Primary biliary cirrhosis: prediction of short-term survival based on repeated patient visits’, Hepatology 20 (1), 126–134. Muthén, B. (2004), Latent variable analysis: Growth mixture modeling and related tech-niques for longitudinal data, in D. Kaplan, ed., ‘Handbook of Quantitative Methodology for the Social Sciences’, Sage Publications, Thousand Oaks, CA, pp. 345–369. Pinheiro, J. C. & Bates, D. M. (2000), Mixed-Effects Models in S and S-PLUS , Statistics and Computing, Springer. Quiroz, M. & Villani, M. (2013), Dynamic mixture-of-experts models for longitudinal and discrete-time survival data, Working Paper Series 268, Sveriges Riksbank. Shazeer, N., Mirhoseini, A., Maziarz, K., Davis, A., Le, Q., Hinton, G. & Dean, J. (2017), Outrageously large neural networks: The sparsely-gated mixture-of-experts layer, in 
+
+‘International Conference on Learning Representations’. Skaug, H. J. & Fournier, D. A. (2006), ‘Automatic approximation of the marginal likeli-hood in Non-Gaussian hierarchical models’, Computational Statistics & Data Analysis 
+
+51 (2), 699–709. Tierney, L. & Kadane, J. B. (1986), ‘Accurate approximations for posterior moments and marginal densities’, Journal of the American Statistical Association 81 (393), 82–86. Verbeke, G. & Lesaffre, E. (1996), ‘A linear mixed-effects model with heterogeneity in the random-effects population’, Journal of the American Statistical Association 91 (433), 217– 221. 34 Verbeke, G. & Molenberghs, G. (2000), Linear Mixed Models for Longitudinal Data ,Springer. Xu, L. & Jordan, M. I. (1996), ‘On convergence properties of the em algorithm for Gaussian mixtures’, Neural Computation 8(1), 129–151. Yan, X., Yin, G. & Zhao, X. (2021), ‘Subgroup analysis in censored linear regression’, 
+
+Statistica Sinica 31 , 1027–1054. Yang, X., Yan, X. & Huang, J. (2019), ‘High-dimensional integrative analysis with homo-geneity and sparsity recovery’, Journal of Multivariate Analysis 174 , 104529. Yuksel, S. E., Wilson, J. N. & Gader, P. D. (2012), ‘Twenty years of mixture of experts’, 
+
+IEEE Transactions on Neural Networks and Learning Systems 23 (8), 1177–1193. 35 Proof Theorem 1 
+
+We define the population objective function as the expected Laplace-approximated log-likelihood for a representative subject: 
+
+𝑀(Ψ) ∶= 𝔼 [ 1𝑁 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+ℓLA ,𝑖 (Ψ)] , 
+
+where 
+
+ℓLA ,𝑖 (Ψ) = ℎ 𝑖 (̂𝑢 𝑖 (Ψ); Ψ) + 𝑞 2 log (2𝜋) − 12 log |𝐻 𝑖 (Ψ)|. 
+
+Correspondingly, the sample objective function is: 
+
+𝑀 𝑁 (Ψ) ∶= 1𝑁 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+ℓLA ,𝑖 (Ψ). 
+
+The norm ‖ ⋅ ‖ in these supplementary materials is defined as the 𝐿 2 norm. For a vector 
+
+𝑣 ∈ ℝ 𝑑 , ‖𝑣‖ = √𝑣 ⊤𝑣 = (∑ 𝑑 𝑘=1 𝑣 2𝑘 )1/2 ; for a matrix 𝐴 ∈ ℝ 𝑚×𝑑 , ‖𝐴‖ ∶= sup ‖𝑣‖=1 ‖𝐴𝑣‖ = √𝜆 max (𝐴 ⊤𝐴) , where 𝜆 max is the largest eigenvalue. To prove Theorem 1, we give the following Propositions 1 and 2. 
+
+8.0.0.1 Proposition 1 Under conditions (A1)– (A4), the class of functions {ℓ LA ,𝑖 (Ψ) ∶ Ψ ∈ Θ} , as 𝑁 → ∞ :sup 
+
+> Ψ∈Θ
+
+|𝑀 𝑁 (Ψ) − 𝑀 (Ψ)| 𝑝 
+
+−→ 0. 
+
+Remark: By the Glivenko-Cantelli theorem, it suffices to verify that the function class ℱ = {ℓ LA ,𝑖 (Ψ) ∶ Ψ ∈ Θ} satisfies: each function Ψ ↦ ℓ LA ,𝑖 (Ψ) is continuous on the compact set 
+
+Θ; there exists a random variable 𝐺 𝑖 with sup Ψ∈Θ |ℓ LA ,𝑖 (Ψ)| ≤ 𝐺 𝑖 and 𝔼[𝐺 𝑖 ] < ∞ .
+
+Proof. We first construct an integrable envelope function that does not depend on Ψ. By the eigenvalue bounds in Condition (A3) and the compactness of the parameter space Θ
+
+in Condition (A2), all parameter components (𝛼, 𝛽, 𝜎 2, 𝜅, Σ) are uniformly bounded over 
+
+Ψ ∈ Θ . The eigenvalues of Σ are uniformly bounded away from zero and infinity. 36 Condition (A2) imposes uniform bounds on all model parameters, and Condition (A1) ensures finite second moments for the covariates. Therefore, the unconditional second moment of the response 
+
+𝔼[𝑦 2𝑖𝑗 ] ≤ 𝐶 ′ (1 + 𝔼‖𝑥 𝑖𝑗 ‖2 + 𝔼‖𝑧 𝑖𝑗 ‖2 + 𝔼‖𝑤 𝑖 ‖2) < ∞. 
+
+We will prove that ℓLA ,𝑖 (Ψ) is continuous on the parameter space Θ. Recall that 
+
+ℓLA ,𝑖 (Ψ) = ℎ 𝑖 (̂𝑢 𝑖 (Ψ); Ψ) + 𝑞 2 log (2𝜋) − 12 log |𝐻 𝑖 (Ψ)|, 
+
+where ̂ 𝑢 𝑖 (Ψ) = arg max 𝑢 ℎ𝑖 (𝑢; Ψ) and 𝐻 𝑖 (Ψ) = −∇ 2𝑢 ℎ𝑖 (̂𝑢 𝑖 (Ψ); Ψ) .We first establish the continuity of the mapping Ψ ↦̂ 𝑢 𝑖 (Ψ) . Specifically, ̂ 𝑢 𝑖 (Ψ) denotes the unique solution to the first-order condition ∇𝑢 ℎ𝑖 (𝑢, Ψ) = 0 . Under the smoothness conditions imposed by the model, the function 𝐹 (𝑢, Ψ) ∶= ∇ 𝑢 ℎ𝑖 (𝑢, Ψ) is continuously differentiable. For an arbitrary fixed Ψ0 ∈ Θ , let 𝑢 0 =̂ 𝑢 𝑖 (Ψ 0). The partial derivative of 𝐹 (𝑢, Ψ) with respect to 𝑢 , evaluated at (𝑢 0, Ψ 0), is the Hessian matrix of the joint log-likelihood function ℎ𝑖 (⋅, ⋅) :
+
+𝜕 𝜕𝑢 𝐹 (𝑢, Ψ)| (𝑢 0,Ψ 0) = ∇ 2𝑢 ℎ𝑖 (𝑢 0, Ψ 0) = −𝐻 𝑖 (Ψ 0). 𝐻 𝑖 (Ψ 0) is positive definite, and hence ∇2𝑢 ℎ𝑖 (𝑢 0; Ψ 0) = −𝐻 𝑖 (Ψ 0) is negative definite and thus invertible. By the Implicit Function Theorem, there exists a neighborhood 𝑈 of Ψ0
+
+and a unique continuously differentiable function 𝑔 ∶ 𝑈 → ℝ 𝑞 such that 𝐹 (𝑔(Ψ), Ψ) = 0 for all Ψ ∈ 𝑈 . Given the global uniqueness of the maximizer ̂ 𝑢 𝑖 (Ψ) , we identify ̂ 𝑢 𝑖 (Ψ) = 𝑔(Ψ) 
+
+on 𝑈 . Since Ψ0 is chosen arbitrarily, the mapping Ψ ↦̂ 𝑢 𝑖 (Ψ) is continuous over the entire compact set Θ.The function ℎ𝑖 (𝑢; Ψ) is differentiable with respect to 𝑢 and Ψ, and the mapping 
+
+(𝑢, Ψ) ↦ ℎ𝑖 (𝑢; Ψ) is jointly continuous. Since the mapping Ψ ↦̂ 𝑢 𝑖 (Ψ) is contin-uous, Ψ ↦ ℎ𝑖 (̂𝑢 𝑖 (Ψ); Ψ) is continuous on Θ. The Hessian (𝑢, Ψ) ↦ ∇2𝑢 ℎ𝑖 (𝑢; Ψ) is 37 continuous (as the second derivative of a three-times differentiable function). Since 
+
+𝐻 𝑖 (Ψ) = −∇ 2𝑢 ℎ𝑖 (̂𝑢 𝑖 (Ψ); Ψ) , similarly, the mapping Ψ ↦ 𝐻 𝑖 (Ψ) is continuous on Θ.Since 𝐻 𝑖 (Ψ) is positive definite, all its eigenvalues are strictly positive. Since Ψ ↦ 𝐻 𝑖 (Ψ) 
+
+is continuous, and Θ is compact, the eigenvalue function Ψ ↦ 𝜆 min (𝐻 𝑖 (Ψ)) is continuous on the compact set. By the extreme value theorem, 
+
+𝑐 ∶= inf  
+
+> Ψ∈Θ
+
+𝜆 min (𝐻 𝑖 (Ψ)) = min  
+
+> Ψ∈Θ
+
+𝜆 min (𝐻 𝑖 (Ψ)) > 0. 
+
+Therefore, for all Ψ ∈ Θ :
+
+|𝐻 𝑖 (Ψ)| = 
+
+> 𝑞
+
+∏
+
+> 𝑗=1
+
+𝜆 𝑗 (𝐻 𝑖 (Ψ)) ≥ 𝜆 min (𝐻 𝑖 (Ψ)) 𝑞 ≥ 𝑐 𝑞 > 0. 
+
+Since |𝐻 𝑖 (Ψ)| is strictly positive and continuous on Θ, and the logarithm function is con-tinuous on (0, ∞) , the mapping 
+
+Ψ ↦ log |𝐻 𝑖 (Ψ)| 
+
+is continuous on Θ.Finally, the function ℓLA ,𝑖 (Ψ) is a linear combination of continuous functions: 
+
+ℓLA ,𝑖 (Ψ) = ℎ 𝑖 (̂𝑢 𝑖 (Ψ); Ψ) ⏟⏟⏟⏟⏟ 
+
+> continuous
+
++ 𝑞 2 log (2𝜋) ⏟
+
+> constant
+
+−12 log |𝐻 𝑖 (Ψ)| ⏟⏟⏟⏟⏟
+
+> continuous
+
+.
+
+Therefore, ℓLA ,𝑖 (Ψ) is continuous on Θ.We now prove that there exists a random variable 𝐺 𝑖 such that sup 
+
+> Ψ∈Θ
+
+|ℓ LA ,𝑖 (Ψ)| ≤ 𝐺 𝑖 , and 𝔼[𝐺 𝑖 ] < ∞. 
+
+The maximizer ̂ 𝑢 𝑖 (Ψ) = arg max 𝑢 𝑖 ℎ𝑖 (𝑢 𝑖 ; Ψ) satisfies the first-order condition 
+
+∇𝑢 𝑖 ℎ𝑖 (𝑢 𝑖 ; Ψ) = −Σ −1 (𝑢 𝑖 − 𝜅𝑤 𝑖 ) + 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝛾 𝑖𝑗𝑘 (Ψ) 𝑧 𝑖𝑗 (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 𝑢 𝑖 )𝜎 2𝑘 
+
+= 0, 
+
+where 𝛾 𝑖𝑗𝑘 (Ψ) ∈ (0, 1) and ∑𝐾 𝑘=1 𝛾 𝑖𝑗𝑘 = 1 . Rearrange the first-order condition, and we obtain 
+
+Σ−1 ̂ 𝑢 𝑖 + ∑ 
+
+> 𝑗,𝑘
+
+𝛾 𝑖𝑗𝑘 (Ψ) 𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 
+
+𝜎 2𝑘 ̂𝑢 𝑖 = Σ −1 𝜅𝑤 𝑖 + ∑ 
+
+> 𝑗,𝑘
+
+𝛾 𝑗𝑘 (Ψ) 𝑧 𝑖𝑗 (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 )𝜎 2𝑘 
+
+. (9) 38 According to 
+
+𝐻 𝑖 (Ψ) = Σ −1 +
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗𝑘 (̂𝑢 𝑖 )∑𝐾 ℓ=1 𝜋 ℓ(𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗ℓ (̂𝑢 𝑖 )1𝜎 2𝑘 
+
+𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 ,
+
+the equation (9) becomes 
+
+𝐻 𝑖 (Ψ)̂𝑢 𝑖 = Σ −1 𝜅𝑤 𝑖 + ∑ 
+
+> 𝑗,𝑘
+
+𝛾 𝑗𝑘 (Ψ) 𝑧 𝑖𝑗 (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 )𝜎 2𝑘 
+
+.
+
+Under Condition (A3), the eigenvalues of Σ are bounded as 𝑐 1 ≤ 𝜆 min (Σ) ≤ 𝜆 max (Σ) ≤ 𝑐 2.According to Condition (A2), the variances satisfy 0 < 𝜎 2 
+
+> min
+
+≤ 𝜎 2𝑘 ≤ 𝜎 2 
+
+> max
+
+< ∞ for all 𝑘 . It follows that 
+
+𝐻 𝑖 (Ψ) ⪰ Σ −1 ⟹ 𝜆 min (𝐻 𝑖 (Ψ)) ≥ 𝜆 min (Σ −1 ) = 1𝜆 max (Σ) ≥ 1𝑐 2
+
+,
+
+and hence 
+
+‖𝐻 𝑖 (Ψ) −1 ‖ = 1𝜆 min (𝐻 𝑖 (Ψ)) ≤ 𝑐 2
+
+uniformly over Ψ ∈ Θ .Taking norms on both sides of the normal equation and using the triangle inequality, we obtain 
+
+‖̂𝑢 𝑖 (Ψ)‖ ≤ ∥𝐻 𝑖 (Ψ) −1 ∥ (‖Σ −1 𝜅𝑤 𝑖 ‖ + ∥∑ 
+
+> 𝑗,𝑘
+
+𝛾 𝑗𝑘 (Ψ) 𝑧 𝑖𝑗 (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 )𝜎 2𝑘 
+
+∥) , 
+
+Under Conditions (A2) and (A3), there exists a constant 𝐶 𝜅 > 0 such that ‖𝜅‖ ≤ 𝐶 𝜅 , and similarly ‖𝛽 𝑘 ‖ ≤ 𝐵 for all 𝑘 , where 𝐵 ∶= sup 𝑘 ‖𝛽 𝑘 ‖ < ∞ . Moreover, ‖Σ −1 ‖ ≤ 𝑐 −1 1 and 
+
+𝜎 2𝑘 ≥ 𝜎 2
+
+> min
+
+. Hence 
+
+∥Σ −1 𝜅𝑤 𝑖 ∥ ≤ ∥Σ −1 ∥ ‖𝜅‖‖𝑤 𝑖 ‖ ≤ 𝑐 −1 1 𝐶 𝜅 ‖𝑤 𝑖 ‖, 
+
+we can obtain 
+
+∥∑ 
+
+> 𝑗,𝑘
+
+𝛾 𝑗𝑘 (Ψ) 𝑧 𝑖𝑗 (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 )𝜎 2𝑘 
+
+∥ ≤ 1𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+∥𝑧 𝑖𝑗 ∥ (∣𝑦 𝑖𝑗 ∣ + max  
+
+> 𝑘
+
+∣𝑥 ⊤𝑖𝑗 𝛽 𝑘 ∣) ≤ 1𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖(|𝑦 𝑖𝑗 |+𝐵‖𝑥 𝑖𝑗 ‖), 
+
+39 where 𝜎 2 
+
+> min
+
+> 0 is the lower bound of the variances, and ∣𝑥 ⊤𝑖𝑗 𝛽 𝑘 ∣ ≤ ∥𝑥 𝑖𝑗 ∥ ‖𝛽 𝑘 ‖ ≤ 𝐵 ∥𝑥 𝑖𝑗 ∥.Altogether, 
+
+‖̂𝑢 𝑖 (Ψ)‖ ≤ 𝑐 2 (𝑐 −1 1 𝐶 𝜅 ‖𝑤 𝑖 ‖ + 1𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+∥𝑧 𝑖𝑗 ∥ (∣𝑦 𝑖𝑗 ∣ + 𝐵 ∥𝑥 𝑖𝑗 ∥)) , 
+
+Using (𝑎 + 𝑏) 2 ≤ 2(𝑎 2 + 𝑏 2):
+
+‖̂𝑢 𝑖 (Ψ)‖ 2 ≤ 2𝑐 22 ⎡⎢⎣𝐶 2𝜅 
+
+𝑐 21
+
+‖𝑤 𝑖 ‖2 + 1𝜎 4
+
+> min
+
+(
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖(|𝑦 𝑖𝑗 | + 𝐵‖𝑥 𝑖𝑗 ‖)) 
+
+> 2
+
+⎤⎥⎦.
+
+For the second term, using the Cauchy-Schwarz inequality: 
+
+(
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖(|𝑦 𝑖𝑗 | + 𝐵‖𝑥 𝑖𝑗 ‖)) 
+
+> 2
+
+≤
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2 ⋅
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(|𝑦 𝑖𝑗 | + 𝐵‖𝑥 𝑖𝑗 ‖) 2
+
+≤
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2 ⋅
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+2(𝑦 2𝑖𝑗 + 𝐵 2‖𝑥 𝑖𝑗 ‖2)= 2 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2 ⋅
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(𝑦 2𝑖𝑗 + 𝐵 2‖𝑥 𝑖𝑗 ‖2). 
+
+Substituting: 
+
+‖̂𝑢 𝑖 (Ψ)‖ 2 ≤ 2𝑐 22 [𝐶 2𝜅 
+
+𝑐 21
+
+‖𝑤 𝑖 ‖2 + 2𝜎 4
+
+> min
+
+(
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2) ( 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(𝑦 2𝑖𝑗 + 𝐵 2‖𝑥 𝑖𝑗 ‖2))] ≤ 𝐶 ′1 [‖𝑤 𝑖 ‖2 + ( 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2) ( 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(𝑦 2𝑖𝑗 + ‖𝑥 𝑖𝑗 ‖2))] , 
+
+where 𝐶 ′1 ∶= max {2𝑐 22𝐶 2𝜅 /𝑐 21, 4𝑐 22𝐵 2/𝜎 4
+
+> min
+
+, 4𝑐 22/𝜎 4
+
+> min
+
+}.Consequently, we define a random variable: 
+
+𝑊 (1) 𝑖 ∶= 1 + ‖𝑤 𝑖 ‖2 +
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(|𝑦 𝑖𝑗 |2 + ‖𝑥 𝑖𝑗 ‖2 + ‖𝑧 𝑖𝑗 ‖2). 
+
+Since all terms are non-negative, the individual components are bounded by the envelope: 
+
+‖𝑤 𝑖 ‖2 ≤ 𝑊 (1) 𝑖 ,
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2 ≤ 𝑊 (1) 𝑖 , and 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(|𝑦 𝑖𝑗 |2 + ‖𝑥 𝑖𝑗 ‖2) ≤ 𝑊 (1) 𝑖 .
+
+40 Applying these bounds to the inequality derived above: 
+
+‖̂𝑢 𝑖 (Ψ)‖ 2 ≤ 𝐶 ′1 [‖𝑤 𝑖 ‖2 +
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2 ⋅
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(|𝑦 𝑖𝑗 |2 + ‖𝑥 𝑖𝑗 ‖2)] ≤ 𝐶 ′1 [𝑊 (1) 𝑖 + 𝑊 (1) 𝑖 ⋅ 𝑊 (1) 𝑖 ]= 𝐶 ′1 [𝑊 (1) 𝑖 + (𝑊 (1) 𝑖 )2] . 
+
+Since 𝑊 (1) 𝑖 ≥ 1 , we have 𝑊 (1) 𝑖 ≤ (𝑊 (1) 𝑖 )2. Therefore, 
+
+‖̂𝑢 𝑖 (Ψ)‖ 2 ≤ 𝐶 ′1 [(𝑊 (1) 𝑖 )2 + (𝑊 (1) 𝑖 )2] = 2𝐶 ′1(𝑊 (1) 𝑖 )2.
+
+Let 𝐶 1 ∶= 2𝐶 ′1. We conclude that sup 
+
+> Ψ∈Θ
+
+‖̂𝑢 𝑖 (Ψ)‖ 2 ≤ 𝐶 1(𝑊 (1) 𝑖 )2.
+
+Regarding integrability, since 𝑊 (1) 𝑖 consists of linear terms of the data, its square (𝑊 (1) 𝑖 )2
+
+consists of squared terms (e.g., ‖𝑤 𝑖 ‖4, 𝑦 4𝑖𝑗 , ‖𝑥 𝑖𝑗 ‖4) and cross-products. Condition (A1) guar-antees finite second moments for the response and covariates, and by the Generalized Hölder’s Inequality, the expectation of the cross-products is finite provided the individual fourth moments are finite. Thus, 𝔼[(𝑊 (1) 𝑖 )2] < ∞ .In summary, under Conditions (A1), (A2) and (A3), there exists a constant 𝐶 1 > 0 such that sup 
+
+> Ψ∈Θ
+
+‖̂𝑢 𝑖 (Ψ)‖ 2 ≤ 𝐶 1(𝑊 (1) 𝑖 )2, (10) where 𝑊 (1) 𝑖 is a random variable defined by linear terms, satisfying 𝔼(𝑊 (1) 𝑖 ) < ∞ . Recall that 
+
+ℎ𝑖 (𝑢 𝑖 ; Ψ) = log 𝜑(𝑢 𝑖 ; 𝜅𝑤 𝑖 , Σ) + 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+log [
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 , 𝜎 2𝑘 )] . 
+
+We bound the random effects term and the likelihood term separately. Recall the expression for the log-density of the Gaussian random effects: log 𝜑(𝑢 𝑖 ; 𝜅𝑤 𝑖 , Σ) = − 𝑞 2 log (2𝜋) − 12 log |Σ| − 12(𝑢 𝑖 − 𝜅𝑤 𝑖 )⊤Σ−1 (𝑢 𝑖 − 𝜅𝑤 𝑖 ). 
+
+41 We bound the three terms on the right-hand side uniformly over Θ, using the eigenvalue bounds from Condition (A3), 𝜆 max (Σ −1 ) = 1/𝜆 min (Σ) ≤ 1/𝑐 1,
+
+(𝑢 𝑖 −𝜅𝑤 𝑖 )⊤Σ−1 (𝑢 𝑖 −𝜅𝑤 𝑖 ) ≤ 𝜆 max (Σ −1 ) ‖𝑢−𝜅𝑤 𝑖 ‖2 ≤ 𝑐 −1 1 (‖𝑢‖ + ‖𝜅‖‖𝑤‖) 2 ≤ 2𝑐 −1 1 (‖𝑢‖ 2 + 𝐶 2𝜅 ‖𝑤‖ 2) . 
+
+Therefore, 
+
+| log 𝜑(𝑢 𝑖 ; 𝜅𝑤 𝑖 , Σ)| ≤ 𝑞 2 log (2𝜋)+ 12| log |Σ||+ 12 ⋅ 2𝑐 1
+
+(‖𝑢‖ 2 +𝐶 2𝜅 ‖𝑤 𝑖 ‖2) ≤ 𝐶 2(1+‖𝑢 𝑖 ‖2 +‖𝑤 𝑖 ‖2), 
+
+where 𝐶 2 ∶= max {𝑞 log (2𝜋)/2, 1/2 log (𝑐 𝑞 2), 1/𝑐 1, 𝐶 2𝜅 /𝑐 1}. Substituting 𝑢 𝑖 =̂ 𝑢 𝑖 (Ψ) and using equation (10) sup 
+
+> Ψ⊂Θ
+
+| log 𝜑(̂𝑢 𝑖 (Ψ); 𝜅𝑤 𝑖 , Σ)| ≤ 𝐶 2 (1 + (𝐶 1𝑊 (1) 𝑖 )2
+
++ ‖𝑤 𝑖 ‖2) ≤ 𝐶 3 (1 + (𝑊 (1) 𝑖 )2
+
++ ‖𝑤 𝑖 ‖2) . 
+
+For the 𝑗 -th observation of the 𝑖 -th subject ( 𝑗 = 1, … , 𝑛 𝑖 ), define the contribution to the likelihood as: 
+
+ℓ𝑖𝑗 (Ψ) ∶= log [
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 (𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ), 𝜎 2𝑘 )] . 
+
+Since ∑𝐾 𝑘=1 𝜋 𝑘 = 1 and 𝜑(⋅; ⋅, ⋅) is a density function, we have ∑𝐾 𝑘=1 𝜋 𝑘 𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 +𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ), 𝜎 2𝑘 ) ≤ max 𝑘 𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ), 𝜎 2𝑘 ). The Gaussian density is bounded by 
+
+(2𝜋𝜎 2 
+
+> min
+
+)−1/2 . Hence 
+
+ℓ𝑖𝑗 (Ψ) ≤ log (𝐾 max  
+
+> 𝑘
+
+𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ), 𝜎 2𝑘 )) ≤ log 𝐾 − 12 log (2𝜋𝜎 2
+
+> min
+
+) =∶ 𝐶 +,
+
+a deterministic constant. For any fixed component 𝑘 ,
+
+𝜑 (𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ), 𝜎 2𝑘 ) = 1√2𝜋𝜎 2𝑘 
+
+exp ⎛⎜⎝−(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ)) 2
+
+2𝜎 2𝑘 
+
+⎞⎟⎠.
+
+Thus log 𝜑 (𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ), 𝜎 2𝑘 ) = − 12 log (2𝜋𝜎 2𝑘 ) − (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ)) 2
+
+2𝜎 2𝑘 
+
+.
+
+42 Due to 𝜎 2 
+
+> min
+
+≤ 𝜎 2𝑘 ≤ 𝜎 2
+
+> max
+
+, (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ)) 2 ≤ 2𝑦 2𝑖𝑗 + 2(𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ)) 2, then log 𝜑 (𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ), 𝜎 2𝑘 ) ≥ − 12 log (2𝜋𝜎 2
+
+> max
+
+) − 1𝜎 2
+
+> min
+
+(𝑦 2𝑖𝑗 + (𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ)) 2) . 
+
+Using the inequality (𝑎 + 𝑏 + 𝑐) 2 ≤ 3(𝑎 2 + 𝑏 2 + 𝑐 2):
+
+(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ)) 2 ≤ 3|𝑦 𝑖𝑗 |2 + 3‖𝑥 𝑖𝑗 ‖2‖𝛽 𝑘 ‖2 + 3‖𝑧 𝑖𝑗 ‖2‖̂𝑢 𝑖 (Ψ)‖ 2.
+
+Substituting the bound for ‖̂𝑢 𝑖 (Ψ)‖ derived in equation 10, i.e., ‖̂𝑢 𝑖 (Ψ)‖ 2 ≤ 𝐶 1(𝑊 (1) 𝑖 )2:
+
+(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ)) 2 ≤ 3[|𝑦 𝑖𝑗 |2 + 𝐵 2‖𝑥 𝑖𝑗 ‖2 + ‖𝑧 𝑖𝑗 ‖2‖̂𝑢 𝑖 (Ψ)‖ 2], 
+
+Therefore, log 𝜑 (𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ), 𝜎 2𝑘 ) ≥ − 12 log (2𝜋𝜎 2
+
+> max
+
+)− 32𝜎 2
+
+> min
+
+[|𝑦 𝑖𝑗 |2+𝐵 2‖𝑥 𝑖𝑗 ‖2+‖𝑧 𝑖𝑗 ‖2‖̂𝑢 𝑖 (Ψ)‖ 2]. 
+
+Since the mixture includes at least one component with a positive weight 
+
+ℓ𝑖𝑗 (Ψ) = log 
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 𝜑 𝑘 ≥ log (min  
+
+> 𝑘
+
+𝜋 𝑘 ⋅ max  
+
+> 𝑘
+
+𝜑 𝑘 ) = log 𝜋 min + max  
+
+> 𝑘
+
+log 𝜑(𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 (Ψ), 𝜎 2𝑘 )≥ −𝐶 3 − 32𝜎 2
+
+> min
+
+[|𝑦 𝑖𝑗 |2 + 𝐵 2‖𝑥 𝑖𝑗 ‖2 + ‖𝑧 𝑖𝑗 ‖2‖̂𝑢 𝑖 (Ψ)‖ 2], 
+
+where 𝐶 3 ∶= 1/2 log (2𝜋𝜎 2
+
+> max
+
+) + | log 𝜋 min |.The mixture is at least one component times its weight, and the weights are positive and uniformly bounded below on a compact set Θ for fixed data. Combining constants, we derive 
+
+|ℓ 𝑖𝑗 (Ψ)| ≤ 𝐶 4 (1 + |𝑦 𝑖𝑗 |2 + ∥𝑥 𝑖𝑗 ∥2 + ∥𝑧 𝑖𝑗 ∥2 ‖̂𝑢 𝑖 (Ψ)‖ 2) , 
+
+where 𝐶 4 ∶= max {𝐶 +, 𝐶 3, 3𝐵 2/2𝜎 2
+
+> min
+
+, 3/2𝜎 2
+
+> min
+
+}.Summing over all 𝑛 𝑖 observations: 
+
+∣
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+ℓ𝑖𝑗 (Ψ)∣ ≤ 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+|ℓ 𝑖𝑗 (Ψ)| ≤ 𝐶 4𝑛 𝑖 
+
+∑
+
+> 𝑗=1
+
+(1 + |𝑦 𝑖𝑗 |2 + ‖𝑥 𝑖𝑗 ‖2 + ‖𝑧 𝑖𝑗 ‖2‖̂𝑢 𝑖 (Ψ)‖ 2)= 𝐶 4 [𝑛 𝑖 +
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(|𝑦 𝑖𝑗 |2 + ‖𝑥 𝑖𝑗 ‖2) + ‖̂𝑢 𝑖 (Ψ)‖ 2𝑛 𝑖 
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2] , 
+
+43 thus sup 
+
+> Ψ∈Θ
+
+∣
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+ℓ𝑖𝑗 (̂𝑢 𝑖 (Ψ); Ψ)∣ ≤ 𝐶 4 [𝑛 𝑖 +
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(|𝑦 𝑖𝑗 |2 + ‖𝑥 𝑖𝑗 ‖2) + 𝐶 1(𝑊 (1) 𝑖 )2𝑛 𝑖 
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2] . 
+
+Combining the bounds sup 
+
+> Ψ∈Θ
+
+|ℎ 𝑖 (̂𝑢 𝑖 (Ψ); Ψ)| ≤ sup 
+
+> Ψ
+
+| log 𝜑(̂𝑢 𝑖 (Ψ); 𝜅𝑤 𝑖 , Σ)| + sup 
+
+> Ψ
+
+∣
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+ℓ𝑖𝑗 (̂𝑢 𝑖 (Ψ); Ψ)∣ ≤ 𝐶 2(1 + 𝐶 21 (𝑊 (1) 𝑖 )2 + ‖𝑤 𝑖 ‖2)+ 𝐶 4 [𝑛 𝑖 +
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(|𝑦 𝑖𝑗 |2 + ‖𝑥 𝑖𝑗 ‖2) + 𝐶 1(𝑊 (1) 𝑖 )2𝑛 𝑖 
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2] . 
+
+The term 𝐶 1(𝑊 (1) 𝑖 )2 ∑𝑗 ‖𝑧 𝑖𝑗 ‖2 can be bounded using 
+
+𝐶 1(𝑊 (1) 𝑖 )2𝑛 𝑖 
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2 ≤ 𝐶 1(𝑊 (1) 𝑖 )2 ⋅ 𝑊 (1) 𝑖 = 𝐶 1(𝑊 (1) 𝑖 )3.
+
+Since 𝑊 (1) 𝑖 ≥ 1 , we have 
+
+1 ≤ 𝑊 (1) 𝑖 ≤ (𝑊 (1) 𝑖 )2 ≤ (𝑊 (1) 𝑖 )3.
+
+We now simplify the bound by defining an appropriate random variable 𝑊 (2) 𝑖 . Define 
+
+𝑊 (2) 𝑖 ∶= 𝑛 𝑖 + (𝑊 (1) 𝑖 )3
+
++
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+(|𝑦 𝑖𝑗 |2 + ∥𝑥 𝑖𝑗 ∥2 + ∥𝑧 𝑖𝑗 ∥2) + ‖𝑤 𝑖 ‖2.
+
+Note that by the definition of 𝑊 (1) 𝑖 ,
+
+𝑊 (2) 𝑖 = 𝑛 𝑖 + (𝑊 (1) 𝑖 )3 + [𝑊 (1) 𝑖 − 1]. 
+
+Therefore: sup 
+
+> Ψ
+
+|ℎ 𝑖 (̂𝑢 𝑖 (Ψ); Ψ)| ≤ 𝐶 2(1 + 𝐶 1(𝑊 (1) 𝑖 )2 + ‖𝑤 𝑖 ‖2) + 𝐶 4(𝑛 𝑖 + 𝑊 (1) 𝑖 + 𝐶 1(𝑊 (1) 𝑖 )3)≤ [𝐶 2 + 𝐶 4]𝑊 (2) 𝑖 + [𝐶 2𝐶 1 + 𝐶 4𝐶 1]𝑊 (2) 𝑖 = 𝐶 5 ⋅ 𝑊 (2) 𝑖 ,
+
+where 𝐶 5 ∶= (𝐶 2 + 𝐶 4)(2 + 𝐶 1). 
+
+44 To establish that the envelope is integrable, i.e., 𝔼[𝑊 (2) 𝑖 ] < ∞ , we must examine the moments of the dominating terms. Since 𝑢 𝑖 ∼ 𝒩(𝜅𝑤 𝑖 , Σ) and ‖𝑎 + 𝑏‖ 6 ≤ 2 5(‖𝑎‖ 6 + ‖𝑏‖ 6),
+
+𝔼[‖𝑢 𝑖 ‖6] ≤ 32‖𝜅‖ 6𝔼[‖𝑤 𝑖 ‖6] + 32𝔼[‖̃𝑢 𝑖 ‖6], 
+
+where ̃ 𝑢 𝑖 ∼ 𝒩(0, Σ) . Since ̃ 𝑢 𝑖 is zero-mean Gaussian, all its moments are finite. Under Condition (A1), we have 𝔼[‖𝑢 𝑖 ‖6] < ∞ .Conditionally on covariates and random effects, 
+
+𝑦 𝑖𝑗 = 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 + 𝜖 𝑖𝑗 ,
+
+we have 
+
+𝔼[|𝑦 𝑖𝑗 |6] ≤ 𝐶 (𝔼[‖𝑥 𝑖𝑗 ‖6‖𝛽 𝑘 ‖6] + 𝔼[‖𝑧 𝑖𝑗 ‖6‖𝑢 𝑖 ‖6] + 𝔼[𝜖 6𝑖𝑗 ]) < +∞. 
+
+All cross-product terms can be bounded using Hölder’s inequality, 
+
+𝔼[‖𝑤 𝑖 ‖4|𝑦 𝑖𝑗 |2] ≤ √𝔼[‖𝑤 𝑖 ‖8] ⋅ √𝔼[|𝑦 𝑖𝑗 |4] ≤ 𝔼[‖𝑤 𝑖 ‖6]2/3 ⋅ 𝔼[|𝑦 𝑖𝑗 |6]1/3 < ∞. 
+
+Therefore, (𝑊 (1) 𝑖 )3 has a finite expectation under the strengthened moment conditions, which implies 
+
+𝔼[𝑊 (2) 𝑖 ] < ∞. 
+
+Thus, there exists a constant 𝐶 6 > 0 and a random variable 𝑊 (2) 𝑖 such that sup 
+
+> Ψ∈Θ
+
+|ℎ 𝑖 (̂𝑢 𝑖 , Ψ)| ≤ 𝐶 6𝑊 (2) 𝑖 
+
+with 𝐸[𝑊 (2) 𝑖 ] < ∞. The Hessian is given by 𝐻 𝑖 (Ψ) = Σ −1 + ∑ 𝑛 𝑗=1 ∑𝐾 𝑘=1 𝛾 𝑗𝑘 (Ψ)𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 /𝜎 2𝑘 ,
+
+where 𝛾 𝑖𝑗𝑘 (Ψ) ∈ (0, 1) and ∑𝐾 𝑘=1 𝛾 𝑖𝑗𝑘 (Ψ) = 1 . Since 𝐻 𝑖 (Ψ) is positive definite, by Condition (A3), the eigenvalues are bounded by 
+
+𝜆 min (𝐻 𝑖 (Ψ)) ≥ 𝜆 min (Σ −1 ) = 1/𝜆 max (Σ) ≥ 1𝑐 2
+
+∶= 𝜆 > 0. 
+
+45 By the sub-additivity of the maximum eigenvalue for positive definite matrices: 
+
+𝜆 max (𝐻 𝑖 (Ψ)) ≤ 𝜆 max (Σ −1 ) + 𝜆 max (
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝛾 𝑖𝑗𝑘 (Ψ) 𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 
+
+𝜎 2𝑘 
+
+)≤ 𝜆 max (Σ −1 ) + 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝛾 𝑖𝑗𝑘 (Ψ) 𝜆 max (𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 )𝜎 2𝑘 
+
+= 𝜆 max (Σ −1 ) + 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝛾 𝑖𝑗𝑘 (Ψ) ‖𝑧 𝑖𝑗 ‖2
+
+𝜎 2𝑘 
+
+.
+
+Since ∑𝐾 𝑘=1 𝛾 𝑖𝑗𝑘 (Ψ) = 1 and 𝜎 2𝑘 ≥ 𝜎 2
+
+> min
+
+,
+
+𝜆 max (𝐻 𝑖 (Ψ)) ≤ 𝜆 max (Σ −1 ) + ∑ 
+
+> 𝑗,𝑘
+
+𝛾 𝑗𝑘 (Ψ) 𝜆 max (𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 )𝜎 2𝑘 
+
+≤ 𝑐 −1 1 + 𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+∥𝑧 𝑖𝑗 ∥2 ∶=̄ 𝜆 𝑖 
+
+Thus, the eigenvalues of 𝐻 𝑖 (Ψ) satisfy 
+
+𝜆 ≤ 𝜆 𝑟 (𝐻 𝑖 (Ψ)) ≤̄ 𝜆 𝑖 , 𝑟 = 1, ⋯ , 𝑞. 
+
+Consequently, since the determinant is the product of eigenvalues, 
+
+|𝐻 𝑖 (Ψ)| = 
+
+> 𝑞
+
+∏
+
+> 𝑟=1
+
+𝜆 𝑟 (𝐻 𝑖 (Ψ)) ∈ [𝜆 𝑞 ,̄ 𝜆 𝑞 𝑖 ] . 
+
+Since |𝐻 𝑖 (Ψ)| > 0 , we have 
+
+| log |𝐻 𝑖 (Ψ)‖ ≤ max {𝑞| log 𝜆|, 𝑞 ∣ log ̄ 𝜆 𝑖 ∣} . 
+
+For the upper bound term, ̄𝜆 𝑖 = 1𝑐 1
+
++ 1𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2 = 1𝑐 1
+
+(1 + 𝑐 1
+
+𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2) . 
+
+Therefore, 
+
+𝑞 log ̄ 𝜆 𝑖 = 𝑞 log [ 1𝑐 1
+
+(1 + 𝑐 1
+
+𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2)] = −𝑞 log 𝑐 1 + 𝑞 log (1 + 𝑐 1
+
+𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2) . 
+
+Using the elementary inequality log (1 + 𝑡) ≤ 𝑡 for 𝑡 ≥ 0 ,
+
+𝑞 log ̄ 𝜆 𝑖 ≤ 𝑞| log 𝑐 1| + 𝑞 ⋅ 𝑐 1
+
+𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2.
+
+46 Thus, 
+
+| log |𝐻 𝑖 (Ψ)|| ≤ max {𝑞 log 𝑐 2, 𝑞| log 𝑐 1| + 𝑞𝑐 1
+
+𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2} ≤ 𝐶 6 (1 + 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2) , 
+
+where 𝐶 6 ∶= max {𝑞 log 𝑐 2, 𝑞| log 𝑐 1|, 𝑞𝑐 1/𝜎 2
+
+> min
+
+} . 
+
+Define 𝑊 (3) 𝑖 ∶= 1 + ∑ 𝑛 𝑖  
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2. We can derive sup 
+
+> Ψ∈Θ
+
+| log |𝐻 𝑖 (Ψ)|| ≤ 𝐶 6𝑊 (3) 𝑖 .
+
+By Condition (A1), 
+
+𝔼[𝑊 (3) 𝑖 ] = 1 + 𝔼[ 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑧 𝑖𝑗 ‖2] < ∞. 
+
+There exists a constant 𝐶 6 > 0 such that sup 
+
+> Ψ∈Θ
+
+| log |𝐻 𝑖 (Ψ)|| ≤ 𝐶 6𝑊 (3) 𝑖 ,
+
+with 𝔼[𝑊 (3) 𝑖 ] < ∞ .Combine the bounds from the above proof to construct an integrable envelope for 
+
+{ℓ LA ,𝑖 (Ψ) ∶ Ψ ∈ Θ} . Recall the Laplace-approximated log-likelihood 
+
+ℓLA ,𝑖 (Ψ) = ℎ 𝑖 (̂𝑢(Ψ), Ψ) + 𝑞 2 log (2𝜋) − 12 log |𝐻 𝑖 (Ψ)|. 
+
+Using the triangle inequality, 
+
+|ℓ LA ,𝑖 (Ψ)| ≤ |ℎ 𝑖 (̂𝑢 𝑖 (Ψ); Ψ)| + 𝑞 2| log (2𝜋)| + 12| log |𝐻 𝑖 (Ψ)||. 
+
+Taking supremum over Ψ ∈ Θ ,sup 
+
+> Ψ∈Θ
+
+|ℓ LA ,𝑖 (Ψ)| ≤ sup 
+
+> Ψ
+
+|ℎ 𝑖 (̂𝑢(Ψ), Ψ)| + 𝑞 2 log (2𝜋) + 12| sup 
+
+> Ψ
+
+| log |𝐻 𝑖 (Ψ)||. 
+
+According to sup Ψ∈Θ |ℎ 𝑖 (̂𝑢 𝑖 (Ψ); Ψ)| ≤ 𝐶 6𝑊 (2) 𝑖 and sup Ψ∈Θ | log |𝐻 𝑖 (Ψ)|| ≤ 𝐶 7𝑊 (3) 𝑖 , we obtain sup 
+
+> Ψ∈Θ
+
+|ℓ LA ,𝑖 (Ψ)| ≤ 𝐶 6𝑊 (2) 𝑖 + 𝑞 2 log (2𝜋) + 12𝐶 7𝑊 (3) 𝑖 .
+
+47 Define the integrable envelope 
+
+𝐺 𝑖 ∶= 𝐶 6𝑊 (2) 𝑖 + 12𝐶 7𝑊 (3) 𝑖 + 𝑞 2| log (2𝜋)|. 
+
+Then for all Ψ ∈ Θ , |ℓ LA ,𝑖 (Ψ)| ≤ sup Ψ∈Θ |ℓ LA ,𝑖 (Ψ)| ≤ 𝐺 𝑖 . Because 𝑊 (2) 𝑖 and 𝑊 (3) 𝑖 have finite expectations, 
+
+𝔼[𝐺 𝑖 ] ≤ 𝐶 6𝔼[𝑊 (2) 𝑖 ] + 12𝐶 7𝔼[𝑊 (3) 𝑖 ] + 𝑞 2| log (2𝜋)| < ∞. 
+
+This establishes that 𝐺 𝑖 is an integrable envelope for the class {ℓ LA ,𝑖 (Ψ) ∶ Ψ ∈ Θ} .Since the parameter space Θ is compact, and ℓLA ,𝑖 (Ψ) are continuous in Ψ and dominated by an integrable envelope 𝐺 𝑖 , the Glivenko–Cantelli property holds. By the Glivenko-Cantelli theorem for continuous functions on compact spaces, sup 
+
+> Ψ∈Θ
+
+∣ 1𝑁 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+ℓLA ,𝑖 (Ψ) − 𝔼[ 1𝑁 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+ℓLA ,𝑖 (Ψ)]∣ 𝑝 
+
+−→ 0 as 𝑁 → ∞. 
+
+Equivalently, in terms of the objective functions, sup 
+
+> Ψ∈Θ
+
+|𝑀 𝑁 (Ψ) − 𝑀 (Ψ)| 𝑝 
+
+−→ 0 as 𝑁 → ∞. 
+
+This completes the proof of uniform convergence. 
+
+8.0.0.2 Proposition 2 
+
+Under Conditions (A2) and (A4), the true parameter Ψ0 is the unique maximizer of the limiting objective function 𝑀(Ψ) . Specifically, for any 𝜖 > 0 , there exists a constant 
+
+Δ(𝜖) > 0 such that: sup 
+
+> ‖Ψ−Ψ 0‖≥𝜖
+
+𝑀(Ψ) ≤ 𝑀 (Ψ 0) − Δ(𝜖). 
+
+This means the peak of the population objective function at Ψ0 is strictly higher than its value anywhere outside an 𝜖 -neighborhood of Ψ0
+
+48 Proof. Let ̂ Ψ be any value that maximizes 𝑀 𝑁 (Ψ) . By definition, 𝑀 𝑁 (̂Ψ) ≥ 𝑀 𝑁 (Ψ) for all Ψ ∈ Θ . In particular, 𝑀 𝑁 (̂Ψ) ≥ 𝑀 𝑁 (Ψ 0).Fix an arbitrary 𝜖 > 0 . According to Proposition 1, the well-separated maximum condition guarantees the existence of a constant Δ(𝜖) > 0 such that 𝑀(Ψ) ≤ 𝑀 (Ψ 0)−Δ(𝜖) whenever 
+
+‖Ψ − Ψ 0‖ ≥ 𝜖 . The Uniform Law of Large Numbers states that for any 𝛿 > 0 , we can find a sample size 𝑁 𝛿 such that for all 𝑁 ≥ 𝑁 𝛿 , the event 𝑀 𝑁 = { sup Ψ∈Θ |𝑀 𝑁 (Ψ) − 𝑀 (Ψ)| < Δ(𝜖)/2} occurs with a probability of at least 1 − 𝛿 .First, by applying the triangle inequality at the true parameter Ψ0, we have 𝑀 𝑁 (Ψ 0) > 𝑀 (Ψ 0) − Δ(𝜖)/2 . Second, for any parameter value Ψ outside the 𝜖 -ball around Ψ0 (i.e., where ‖Ψ − Ψ 0‖ ≥ 𝜖 ), we have 𝑀 𝑁 (Ψ) < 𝑀 (Ψ) + Δ(𝜖)/2 . Using the separation property, this becomes 
+
+𝑀 𝑁 (Ψ) < (𝑀(Ψ 0) − Δ(𝜖)) + Δ(𝜖)/2 = 𝑀 (Ψ 0) − Δ(𝜖)/2. 
+
+Combining these two inequalities on the event ℰ𝑁 reveals a crucial relationship: sup 
+
+> ‖Ψ−Ψ 0‖≥𝜖
+
+𝑀 𝑁 (Ψ) < 𝑀(Ψ 0) − Δ(𝜖) 2 < 𝑀 𝑁 (Ψ 0). 
+
+This chain of inequalities shows that the value of the sample objective function anywhere outside the 𝜖 -ball around Ψ0 is strictly less than its value at Ψ0. Since ̂ Ψ is the maximizer of 𝑀 𝑁 (Ψ) , it must achieve a value at least as large as 𝑀 𝑁 (Ψ 0). Therefore, ̂ Ψ cannot possibly lie outside the 𝜖 -ball. This means that on the event ℰ𝑁 , the estimator ̂ Ψ must be within a distance 𝜖 of Ψ0.From Proposition 1 and Proposition 2, this implies that {‖̂Ψ − Ψ 0‖ ≥ 𝜖} is a subset of the complement of ℰ𝑁 , such {‖̂Ψ 𝑁 − Ψ 0‖ ≥ 𝜖} ⊆ ℰ 𝑐 𝑁 . Consequently, for all 𝑁 ≥ 𝑁 𝛿 , its probability is bounded: 
+
+𝑃 (‖̂Ψ − Ψ 0‖ ≥ 𝜖) ≤ 𝑃 (ℰ 𝑐 𝑁 ) < 𝛿. 
+
+49 Since 𝛿 can be made arbitrarily small by choosing a large enough 𝑁 , we have shown that for any 𝜖 > 0 , lim 𝑁→∞ 𝑃 (‖̂Ψ − Ψ 0‖ ≥ 𝜖) = 0 .This is the definition of convergence in probability, which completes the proof of consistency. 
+
+# Proof of Theorem 2 
+
+## 8.1 Proof of Lemma 1 
+
+To prove Theorem 2, we provide the following Lemma. 
+
+Lemma 1. For subject 𝑖 , let the random effects mode be ̂ 𝑢 𝑖 ∶= arg max 𝑢 ℓ𝑖 (𝑢) . Under the conditions (B1)-(B3), When the number of observations 𝑛 𝑖 → ∞ , for subject 𝑖 ,
+
+‖̂𝑢 𝑖 − 𝑢 𝑖 ‖ = 𝑂 𝑝 (𝑛 −1/2 𝑖 ). 
+
+Proof. Let ̂ 𝑢 𝑖 be the maximizer of ℎ𝑖 (𝑢) :̂𝑢 𝑖 = arg max  
+
+> 𝑢∈ℝ 𝑞
+
+ℎ𝑖 (𝑢). 
+
+By definition, the mode ̂ 𝑢 𝑖 is a stationary point of the log-posterior function; it must satisfy the first-order optimality condition: ∇𝑢 ℎ𝑖 (̂𝑢 𝑖 ) = 0. The second-order Taylor expansion of this score vector around the true value 𝑢 𝑖 :
+
+0 = ∇ 𝑢 ℓ𝑖 (̂𝑢 𝑖 ) = ∇ 𝑢 ℓ𝑖 (𝑢 𝑖 ) + ∇ 2𝑢 ℓ𝑖 (̄𝑢 𝑖 )(̂𝑢 𝑖 − 𝑢 𝑖 ), 
+
+where ̄ 𝑢 𝑖 is a point on the line segment between ̂ 𝑢 𝑖 and 𝑢 𝑖 . Let 𝑠 𝑖 (𝑢 𝑖 ) ∶= ∇ 𝑢 ℓ𝑖 (𝑢 𝑖 ) denote the score vector evaluated at the true value, and let 𝐻 𝑖 (𝑢) ∶= −∇ 2𝑢 ℓ𝑖 (𝑢) be the negative Hessian matrix. The expansion can be rewritten as: 
+
+0 = 𝑠 𝑖 (𝑢 𝑖 ) − 𝐻 𝑖 (̄𝑢 𝑖 )(̂𝑢 𝑖 − 𝑢 𝑖 ). 
+
+Rearranging this equation gives a fundamental expression for the estimation error: ̂𝑢 𝑖 − 𝑢 𝑖 = 𝐻 𝑖 (̄𝑢 𝑖 )−1 𝑠 𝑖 (𝑢 𝑖 ). 
+
+50 Under the assumption of a correctly specified model, the conditional expectation of the score, given the true random effect 𝑢 𝑖 and covariates, is zero. The variance of the score, be-ing a sum of approximately independent, mean-zero terms, scales linearly with the number of observations. Thus, we have: 
+
+𝔼[𝑠 𝑖 (𝑢 𝑖 )|𝑢 𝑖 , 𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ] = 0 and Var (𝑠 𝑖 (𝑢 𝑖 )) = 𝑂(𝑛 𝑖 ). 
+
+According to Chebyshev’s inequality, a mean-zero random vector with variance of order 
+
+𝑂(𝑛 𝑖 ) has a stochastic magnitude of order 𝑂 𝑝 (√𝑛 𝑖 ). Therefore, ‖𝑠 𝑖 (𝑢 𝑖 )‖ = 𝑂 𝑝 (𝑛 1/2 𝑖 ). 
+
+First, Condition (B1) directly provides the key property of the Hessian: its eigenvalues grow linearly with 𝑛 𝑖 . The norm of the inverse of a symmetric matrix is the reciprocal of its smallest eigenvalue. There exists a constant 𝑐 ℎ > 0 such that 𝜆 min {𝐻 𝑖 (𝑢)} ≥ 𝑐 ℎ𝑛 𝑖 , so we have: ‖𝐻 𝑖 (𝑢) −1 ‖ ≤ 1𝑐 ℎ𝑛 𝑖 
+
+. So the inverse Hessian shrinks at a rate of 𝑂(𝑛 −1 𝑖 ) for any 𝑢 in the specified neighborhood. Assuming for a moment that ̄ 𝑢 𝑖 is in the neighborhood, we can bound the error: 
+
+‖̂𝑢 𝑖 − 𝑢 𝑖 ‖ = ‖𝐻 𝑖 (̄𝑢 𝑖 )−1 𝑠 𝑖 (𝑢 𝑖 )‖ ≤ ‖𝐻 𝑖 (̄𝑢 𝑖 )−1 ‖ ⋅ ‖𝑠 𝑖 (𝑢 𝑖 )‖ = 𝑂 𝑝 (𝑛 −1 𝑖 ) ⋅ 𝑂 𝑝 (𝑛 1/2 𝑖 ) = 𝑂 𝑝 (𝑛 −1/2 𝑖 ). 
+
+This preliminary result shows that the error ‖̂𝑢 𝑖 − 𝑢 𝑖 ‖ converges to zero in probability as 
+
+𝑛 𝑖 → ∞ . Since ̄ 𝑢 𝑖 lies between ̂ 𝑢 𝑖 and 𝑢 𝑖 , it must also converge to 𝑢 𝑖 . Therefore, for any fixed neighborhood around 𝑢 𝑖 ,̄ 𝑢 𝑖 will eventually lie within it with probability approaching one. This validates the use of the Hessian bound at the point ̄ 𝑢 𝑖 .
+
+## 8.2 Proof of Theorem 2 
+
+Proof. Suppose Conditions (A1)–(A5) and (B1)–(B4) hold, and let Ψ0 = (𝛽 ⊤0 , 𝜃 ⊤0 )⊤ denote the true parameter, where 𝛽 0 = (𝛽 ⊤1,0 , … , 𝛽 ⊤𝐾,0 )⊤. By Lemma 1, we can replace ̂ 𝑢 𝑖 (Ψ 0)
+
+with 𝑢 𝑖 in the score, enabling application of the central limit theorem. 51 For a fixed 𝑘 ∈ {1, … , 𝐾} , define the subject-level score and Hessian blocks 
+
+𝑈 𝑖,𝛽 𝑘 (Ψ) ∶= 𝜕ℓ LA ,𝑖 (Ψ) 𝜕𝛽 𝑘 
+
+, 𝐻 𝑖,𝛽 𝑘 (Ψ) ∶= − 𝜕 2ℓLA ,𝑖 (Ψ) 𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+.
+
+Then 𝔼[𝐻 𝑖,𝛽 𝑘 (Ψ 0)] −1 is positive definite and the Laplace–MLE ̂ 𝛽 𝑘 satisfies 
+
+√𝑁 (̂𝛽 𝑘 − 𝛽 𝑘,0 ) 𝑑 
+
+−→ 𝒩(0, 𝑉 𝛽 𝑘 ), 
+
+where 
+
+𝑉 𝛽 𝑘 = 𝔼[𝐻 𝑖,𝛽 𝑘 (Ψ 0)] −1 𝔼[𝑈 𝑖,𝛽 𝑘 (Ψ 0) 𝑈 𝑖,𝛽 𝑘 (Ψ 0)⊤]𝔼[𝐻 𝑖,𝛽 𝑘 (Ψ 0)] −1 .
+
+Our model’s Laplace log likelihood is 
+
+ℓLA (Ψ) = 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+{ℎ 𝑖 (̂𝑢 𝑖 ; Ψ) + 𝑞 2 log (2𝜋) − 12 log |𝐻 𝑖 |} , 
+
+where 
+
+ℎ𝑖 (̂𝑢 𝑖 ; Ψ) = log 𝜑(̂𝑢 𝑖 ; 𝜅𝜔 𝑖 , Σ) + 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+log [
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 (𝑦 𝑖𝑗 ; 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 , 𝜎 2𝑘 )] . 
+
+Define 
+
+𝛾 𝑖𝑗,𝑘 (Ψ,̂ 𝑢 𝑖 ) = 𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗,𝑘 
+
+∑𝐾 𝑚=1 𝜋 𝑚 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗,𝑚 
+
+.
+
+We obtain 
+
+𝜕ℓ LA 
+
+𝜕𝛽 𝑘 
+
+∣
+
+> 𝑢=̂𝑢
+
+=
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+𝜕ℎ 𝑖 
+
+𝜕𝛽 𝑘 
+
+∣
+
+> 𝑢=̂𝑢
+
+=
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+(
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝜋 𝑘 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗,𝑘 
+
+∑𝐾 𝑚=1 𝜋 𝑚 (𝑥 𝑖𝑗 , 𝑧 𝑖𝑗 ; 𝛼)𝜑 𝑖𝑗,𝑚 
+
+𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 
+
+𝜎 2𝑘 
+
+𝑥 𝑖𝑗 )=
+
+> 𝑁
+
+∑
+
+> 𝑖=1 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝛾 𝑖𝑗,𝑘 
+
+𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 
+
+𝜎 2𝑘 
+
+𝑥 𝑖𝑗 .
+
+According to 
+
+𝜕 2ℒ𝜕𝛽𝜕𝛽 = 𝜕 2ℎ𝜕𝛽𝜕𝛽 − 𝜕 2ℎ𝜕𝛽𝜕̂𝑢 ( 𝜕 2ℎ𝜕̂𝑢𝜕̂𝑢 𝑇 ) 
+
+> −1
+
+𝜕 2ℎ𝜕̂𝑢𝜕𝛽 ,
+
+the second derivative of ℓLA is 
+
+𝜕 2ℓLA 
+
+𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+=
+
+> 𝑁
+
+∑
+
+> 𝑖=1 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+[− 𝛾 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+𝑥 𝑖𝑗 𝑥 ⊤𝑖𝑗 + 𝛾 𝑖𝑗𝑘 (1 − 𝛾 𝑖𝑗𝑘 )𝜎 4𝑘 
+
+(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 )2
+
+𝑥 𝑖𝑗 𝑥 ⊤𝑖𝑗 
+
+− 𝛾 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+𝑥 𝑖𝑗 𝑧 ⊤𝑖𝑗 [𝐻 𝑖 ]−1 𝑛 𝑖 
+
+∑
+
+> 𝑗 ′=1
+
+𝛾 𝑖𝑗 ′𝑘 
+
+𝜎 2𝑘 
+
+𝑧 𝑖𝑗 ′ 𝑥 ⊤𝑖𝑗 ′ ], 
+
+52 where 
+
+𝜕 2ℎ𝑖 
+
+𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+= − 
+
+𝑛 𝑖 
+
+∑
+
+𝑗=1 
+
+𝑥 𝑖𝑗 𝑥 ⊤𝑖𝑗 
+
+𝜎 2𝑘 
+
+[𝛾 𝑖𝑗𝑘 − 𝛾 𝑖𝑗𝑘 (1 − 𝛾 𝑖𝑗𝑘 )(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 )2
+
+𝜎 2𝑘 
+
+], 𝜕 2ℎ𝑖 
+
+𝜕𝑢 𝑖 𝜕𝑢 ⊤𝑖 
+
+= −Σ −1 +
+
+𝑛 𝑖 
+
+∑
+
+𝑗=1 
+
+𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 {[ 
+
+𝐾 
+
+∑
+
+𝑘=1 
+
+𝛾 𝑖𝑗𝑘 (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 
+
+𝜎 2𝑘 
+
+)
+
+2
+
+− ( 
+
+𝐾 
+
+∑
+
+𝑘=1 
+
+𝛾 𝑖𝑗𝑘 
+
+𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 
+
+𝜎 2𝑘 
+
+)
+
+2
+
+] − 
+
+𝐾 
+
+∑
+
+𝑘=1 
+
+𝛾 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+}, 𝜕 2ℎ𝑖 
+
+𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+=
+
+𝑛 𝑖 
+
+∑
+
+𝑗=1 
+
+𝛾 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+[(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 )2
+
+𝜎 2𝑘 
+
+− (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 ) ( 
+
+𝐾 
+
+∑
+
+ℓ=1 
+
+𝛾 𝑖𝑗ℓ (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 ℓ − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 )𝜎 2ℓ
+
+) − 1] 𝑥 𝑖𝑗 𝑧 ⊤𝑖𝑗 ,𝜕 2ℎ𝑖 
+
+𝜕𝑢 𝑖 𝜕𝛽 ⊤𝑘 
+
+=
+
+𝑛 𝑖 
+
+∑
+
+𝑗=1 
+
+𝛾 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+[(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 )2
+
+𝜎 2𝑘 
+
+− (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 ) ( 
+
+𝐾 
+
+∑
+
+ℓ=1 
+
+𝛾 𝑖𝑗ℓ (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 ℓ − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 )𝜎 2ℓ
+
+) − 1] 𝑧 𝑖𝑗 𝑥 ⊤𝑖𝑗 .
+
+We assume that 
+
+𝑠 𝑖𝑗𝑘 ∶= 𝛾 𝑖𝑗𝑘 −𝛾 𝑖𝑗𝑘 
+
+(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 )2
+
+𝜎 2𝑘 
+
++𝛾 𝑖𝑗𝑘 (𝑦 𝑖𝑗 −𝑥 ⊤𝑖𝑗 𝛽 𝑘 −𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 ) ( 
+
+𝐾 
+
+∑
+
+𝑘=1 
+
+𝛾 𝑖𝑗𝑘 (𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 )𝜎 2𝑘 
+
+) , 𝑡 𝑖𝑗𝑘 ∶= 
+
+𝐾 
+
+∑
+
+𝑘=1 𝐾 
+
+∑
+
+𝑙=1 
+
+𝛾 𝑖𝑗𝑘 𝛾 𝑖𝑗𝑙 [( 𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 
+
+𝜎 2𝑘 
+
+) − ( 𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑙 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 
+
+𝜎 2𝑙 
+
+)] 
+
+2
+
+,𝑞 𝑖𝑗𝑘 ∶= 𝛾 𝑖𝑗𝑘 − 𝛾 𝑖𝑗𝑘 (1 − 𝛾 𝑖𝑗𝑘 )(𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 )2
+
+𝜎 2𝑘 
+
+.
+
+Therefore, we can rewrite them as follows: 
+
+𝜕 2ℎ𝑖 
+
+𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+= −
+
+𝑛 𝑖 
+
+∑
+
+𝑗=1 
+
+𝑞 𝑖𝑗𝑘 
+
+𝑥 𝑖𝑗 𝑥 ⊤𝑖𝑗 
+
+𝜎 2𝑘 
+
+, 𝜕 2ℎ𝑖 
+
+𝜕𝑢 𝑖 𝜕𝑢 ⊤𝑖 
+
+= − 
+
+𝑛 𝑖 
+
+∑
+
+𝑗=1 𝐾 
+
+∑
+
+𝑘=1 
+
+𝑡 𝑖𝑗𝑘 
+
+𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 
+
+𝜎 2𝑘 
+
+,𝜕 2ℎ𝑖 
+
+𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+= −
+
+𝑛 𝑖 
+
+∑
+
+𝑗=1 𝐾 
+
+∑
+
+𝑘=1 
+
+𝑠 𝑖𝑗𝑘 
+
+𝑥 𝑖𝑗 𝑧 ⊤𝑖𝑗 
+
+𝜎 2𝑘 
+
+, 𝜕 2ℎ𝑖 
+
+𝜕𝑢 𝑖 𝜕𝛽 ⊤𝑘 
+
+= − 
+
+𝑛 𝑖 
+
+∑
+
+𝑗=1 𝐾 
+
+∑
+
+𝑘=1 
+
+𝑠 𝑖𝑗𝑘 
+
+𝑧 𝑖𝑗 𝑥 ⊤𝑖𝑗 
+
+𝜎 2𝑘 
+
+.
+
+53 Apply the uniform law of large numbers, for any compact neighborhood 𝒩(Ψ 0) ⊂ Θ :sup 
+
+> Ψ∈𝒩(Ψ 0)
+
+∥ 1𝑁 
+
+> 𝑁
+
+∑
+
+> 𝑖=1
+
+𝐻 𝑖,𝛽 𝑘 (Ψ) − 𝐸[𝐻 𝑖,𝛽 𝑘 (Ψ 0)]∥ 𝑝 
+
+−→ 0. 
+
+We assume 𝑟 𝑖𝑗𝑘 = 𝑦 𝑖𝑗 − 𝑥 ⊤𝑖𝑗 𝛽 𝑘 − 𝑧 ⊤𝑖𝑗 ̂ 𝑢 𝑖 . Differentiate 𝑞 𝑖𝑗𝑘 with respect to 𝛽 𝑘 :
+
+𝜕𝑞 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+= 𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+− 𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+(1 − 𝛾 𝑖𝑗𝑘 )𝑟 𝑖𝑗𝑘 2
+
+𝜎 2𝑘 
+
+− 𝛾 𝑖𝑗𝑘 
+
+𝜕(1 − 𝛾 𝑖𝑗𝑘 )𝜕𝛽 𝑘 
+
+𝑟 𝑖𝑗𝑘 2
+
+𝜎 2𝑘 
+
+− 𝛾 𝑖𝑗𝑘 (1 − 𝛾 𝑖𝑗𝑘 ) 𝜕 𝜕𝛽 𝑘 
+
+𝑟 𝑖𝑗𝑘 2
+
+𝜎 2𝑘 
+
+= 𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+[1 − (1 − 𝛾 𝑖𝑗𝑘 )𝑟 𝑖𝑗𝑘 2
+
+𝜎 2𝑘 
+
+] + 𝛾 𝑖𝑗𝑘 
+
+𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+𝑟 𝑖𝑗𝑘 2
+
+𝜎 2𝑘 
+
+− 2𝛾 𝑖𝑗𝑘 (1 − 𝛾 𝑖𝑗𝑘 )𝑟 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+𝑥 𝑖𝑗 
+
+= 𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+[1 − (1 − 2𝛾 𝑖𝑗𝑘 )𝑟 2𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+] − 2𝛾 𝑖𝑗𝑘 (1 − 𝛾 𝑖𝑗𝑘 )𝑟 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+𝑥 𝑖𝑗 ,
+
+and hence we can contribute 
+
+∥𝜕𝑞 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+∥ ≤ ∥ 𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+∥ ⋅ ∣1 − (1 − 2𝛾 𝑖𝑗𝑘 )𝑟 2𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+∣ + ∥ 2𝛾 𝑖𝑗𝑘 (1 − 𝛾 𝑖𝑗𝑘 )𝑟 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+𝑥 𝑖𝑗 ∥≤ ∥ 𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+∥ ⋅ [1 + 1𝜎 2𝑘 
+
+(|𝜖 𝑖𝑗𝑘 | + ‖𝑥 𝑖𝑗 ‖‖𝛽 𝑘 ‖ + ‖𝑧 𝑖𝑗 ‖‖̂𝑢 𝑖 ‖) 2]+ 12𝜎 2𝑘 
+
+(|𝜖 𝑖𝑗𝑘 | + ‖𝑥 𝑖𝑗 ‖‖𝛽 𝑘 ‖ + ‖𝑧 𝑖𝑗 ‖‖̂𝑢 𝑖 ‖) ‖𝑥 𝑖𝑗 ‖. 
+
+Using the derivative property of Softmax, 
+
+𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+= 𝛾 𝑖𝑗𝑘 
+
+𝑥 𝑖𝑗 𝑟 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+− 𝛾 𝑖𝑗𝑘 𝐾 
+
+∑
+
+> ℓ=1
+
+𝛾 𝑖𝑗ℓ 
+
+𝑥 𝑖𝑗 𝑟 𝑖𝑗ℓ 
+
+𝜎 2ℓ
+
+,∥𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+∥ ≤ 𝛾 𝑖𝑗𝑘 (∥ 𝑥 𝑖𝑗 𝑟 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+∥ + 
+
+> 𝐾
+
+∑
+
+> ℓ=1
+
+𝛾 𝑖𝑗ℓ ∥𝑥 𝑖𝑗 𝑟 𝑖𝑗ℓ 
+
+𝜎 2ℓ
+
+∥) . 
+
+Due to 𝛾 𝑖𝑗𝑘 ≤ 1 and 𝜎 2𝑘 ≥ 𝜎 2
+
+> min
+
+,
+
+∥𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+∥ ≤ 1 ⋅ ( ‖𝑥 𝑖𝑗 ‖ max ℓ |𝑟 𝑖𝑗ℓ |𝜎 2
+
+> min
+
++ (∑ 
+
+> ℓ
+
+𝛾 𝑖𝑗ℓ ) ‖𝑥 𝑖𝑗 ‖ max ℓ |𝑟 𝑖𝑗ℓ |𝜎 2
+
+> min
+
+) = 2‖𝑥 𝑖𝑗 ‖ max ℓ |𝑟 𝑖𝑗ℓ |𝜎 2
+
+> min
+
+,
+
+and then we derive 
+
+∥𝜕𝛾 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+∥ ≤ 2‖𝑥 𝑖𝑗 ‖𝜎 2
+
+> min
+
+[max  
+
+> 𝑘
+
+|𝜖 𝑖𝑗𝑘 | + ‖𝑥 𝑖𝑗 ‖‖𝛽 𝑘 ‖ + ‖𝑧 𝑖𝑗 ‖‖̂𝑢 𝑖 ‖]. 
+
+54 Assume that 𝑀 𝑖𝑗 ∶= | max 𝑘 |𝜖 𝑖𝑗𝑘 | + ‖𝑥 𝑖𝑗 ‖‖𝛽 𝑘 ‖ + ‖𝑧 𝑖𝑗 ‖‖̂𝑢 𝑖 ‖,
+
+∥𝜕𝑞 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+∥ ≤ ∥ 𝜕𝑞 𝑖𝑗𝑘 
+
+𝜕𝛽 𝑘 
+
+∥ ⋅ [1 + 1𝜎 2𝑘 
+
+𝑀 2𝑖𝑗 ] + 12𝜎 2𝑘 
+
+𝑀 𝑖𝑗 ‖𝑥 𝑖𝑗 ‖≤ 2‖𝑥 𝑖𝑗 ‖𝜎 2
+
+> min
+
+𝑀 𝑖𝑗 + 2‖𝑥 𝑖𝑗 ‖𝜎 2
+
+> min
+
+𝜎 2𝑘 
+
+𝑀 3𝑖𝑗 + 12𝜎 2𝑘 
+
+𝑀 𝑖𝑗 ‖𝑥 𝑖𝑗 ‖ ≤ 12𝜎 2
+
+> min
+
+𝐵 2‖𝑥 𝑖𝑗 ‖4.
+
+Under the stated assumptions, together with the normality of the noise and the finiteness of 𝐾 , the expectation of the preceding quantity is finite. This bounded gradient implies that 𝑞 𝑖𝑗𝑘 is Lipschitz continuous with respect to 𝛽 𝑘 . Similarly, we can conclude that 𝑠 𝑖𝑗𝑘 
+
+and 𝑡 𝑖𝑗𝑘 is also Lipschitz continuous, with Lipschitz constant 𝑂(2𝑀 3𝑖𝑗 ‖𝑥 𝑖𝑗 ‖/𝜎 4
+
+> min
+
+).Next, we consider the second-order derivative term 
+
+𝐻 𝑖,𝛽 𝑘 (Ψ) = 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
++ 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+⋅ [𝐻 𝑖 (̂𝑢 𝑖 , Ψ)] −1 ⋅ 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝑢 𝑖 𝜕𝛽 ⊤𝑘 
+
+.
+
+The difference between 𝐻 𝑖,𝛽 𝑘 (Ψ) at Ψ and ̃ Ψ can be decomposed into four terms: 
+
+𝐻 𝑖,𝛽 𝑘 (Ψ) − 𝐻 𝑖,𝛽 𝑘 (̃Ψ) = Δ 1 + Δ 2 + Δ 3 + Δ 4.
+
+The first term represents the difference in the direct second derivatives with respect to 𝛽 𝑘 :
+
+Δ1 = [ 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+− 𝜕 2ℎ𝑖 (̂𝑢 𝑖 ,̃ Ψ) 𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+] . 
+
+The remaining terms arise from the expansion of the product involving the inverse random-effect Hessian matrix [𝐻 𝑖 ]−1 . By adding and subtracting intermediate terms, we obtain 
+
+Δ2 = [ 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+− 𝜕 2ℎ𝑖 (̂𝑢 𝑖 ,̃ Ψ) 𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+] [𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)] −1 𝜕 2ℎ𝑖 (̂𝑢 𝑖 ,̃ Ψ) 𝜕𝑢 𝑖 𝜕𝛽 𝑘 
+
+,Δ3 = 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+[𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)] −1 [𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝑢 𝑖 𝜕𝛽 𝑘 
+
+− 𝜕 2ℎ𝑖 (̂𝑢 𝑖 ,̃ Ψ) 𝜕𝑢 𝑖 𝜕𝛽 𝑘 
+
+] , Δ4 = 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+([𝐻 𝑖 (̂𝑢 𝑖 , Ψ)] −1 − [𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)] −1 ) 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝑢 𝑖 𝜕𝛽 𝑘 
+
+.
+
+Bound for Δ1: Recall that the Hessian (or its principal part) is given by 
+
+𝜕 2ℎ𝑖 (̂𝑢 𝑖 ; Ψ) 𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+= − 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝑞 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+𝑥 𝑖𝑗 𝑥 ⊤𝑖𝑗 .
+
+55 Using the Mean Value Theorem to the scalar weights 𝑞 𝑖𝑗𝑘 , we have 
+
+|𝑞 𝑖𝑗𝑘 (Ψ) − 𝑞 𝑖𝑗𝑘 (̃Ψ)| ≤ ‖∇ 𝛽 𝑞 𝑖𝑗𝑘 ‖‖𝛽 𝑘 −̃ 𝛽 𝑘 ‖. (11) Substituting the previously derived bound for ‖∇𝑞 𝑖𝑗𝑘 ‖, we obtain 
+
+‖Δ 1‖ ≤ 1𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+( 𝐵 2
+
+𝜎 2
+
+> min
+
+‖𝑥 𝑖𝑗 ‖4‖𝛽 𝑘 −̃ 𝛽 𝑘 ‖) ‖𝑥 𝑖𝑗 ‖2
+
+= ( 𝐵 2
+
+𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖6) ‖𝛽 𝑘 −̃ 𝛽 𝑘 ‖. 
+
+This confirms that Δ1 scales linearly with the subject size 𝑛 𝑖 . Define 
+
+𝐵 𝑖 (Ψ) ∶= ‖ 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+‖ = ∥ 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝑞 𝑖𝑗𝑘 
+
+𝜎 2𝑘 
+
+𝑥 𝑖𝑗 𝑧 ⊤𝑖𝑗 ∥ , 
+
+we can get 
+
+∥
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝑞 𝑖𝑗𝑘 (̃Ψ) 𝜎 2𝑘 
+
+𝑥 𝑖𝑗 𝑧 ⊤𝑖𝑗 ∥ ≤
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+|𝑞 𝑖𝑗𝑘 |𝜎 2
+
+> min
+
+‖𝑥 𝑖𝑗 ‖‖𝑧 𝑖𝑗 ‖ ≤ 𝐶 𝐵 𝑛 𝑖 
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖‖𝑧 𝑖𝑗 ‖, 𝐵 𝑖 (Ψ) − 𝐵 𝑖 (̃Ψ) = −
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+1𝜎 2𝑘 
+
+(𝑞 𝑖𝑗𝑘 (Ψ) − 𝑞 𝑖𝑗𝑘 (̃Ψ)) 𝑥 𝑖𝑗 𝑧 ⊤𝑖𝑗 .
+
+By the Mean Value Theorem applied to the scalar function 𝑞 𝑖𝑗𝑘 (Ψ) , with the bound derived in equation (11), and using the gradient bound derived earlier, substituting this back: 
+
+‖𝐵 𝑖 (Ψ) − 𝐵 𝑖 (̃Ψ)‖ ≤ 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+1𝜎 2
+
+> min
+
+( 12𝜎 2
+
+> min
+
+𝐵 2‖𝑥 𝑖𝑗 ‖4‖Ψ −̃ Ψ‖) ‖𝑥 𝑖𝑗 ‖‖𝑧 𝑖𝑗 ‖≤ (𝐶 ′𝐵 𝑛 𝑖 
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖5‖𝑧 𝑖𝑗 ‖) ‖Ψ −̃ Ψ‖. 
+
+Decompose Δ2 into three components 
+
+‖Δ 2‖ ≤ ‖𝐵 𝑖 (Ψ) − 𝐵 𝑖 (̃Ψ)‖ ⋅ ‖[𝐻 𝑖 (̃Ψ)] −1 ‖ ⋅ ‖𝐵 𝑖 (̃Ψ)‖, 
+
+and 
+
+Δ3 ≤ ‖𝐵 𝑖 (Ψ)‖ ⋅ ‖[𝐻 𝑖 (̃Ψ)] −1 ‖ ⋅ ‖𝐵 𝑖 (Ψ) ⊤ − 𝐵 𝑖 (̃Ψ) ⊤‖. 
+
+56 Bound for Δ4: According to 𝐴 −1 − 𝐵 −1 = −𝐴 −1 (𝐴 − 𝐵)𝐵 −1 , we expand the difference of inverses, 
+
+[𝐻 𝑖 (̂𝑢 𝑖 , Ψ)(Ψ)] −1 −[𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)] −1 
+
+= − [𝐻 𝑖 (̂𝑢 𝑖 , Ψ)] −1 (𝐻 𝑖 (̂𝑢 𝑖 , Ψ) − 𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)) [𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)] −1 
+
+,
+
+and hence 
+
+Δ4 = − 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+([𝐻 𝑖 (̂𝑢 𝑖 , Ψ)] −1 (𝐻 𝑖 (̂𝑢 𝑖 , Ψ) − 𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)) [𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)] −1 
+
+) 𝜕 2ℎ𝑖 (̂𝑢 𝑖 , Ψ) 𝜕𝑢 𝑖 𝜕𝛽 𝑘 
+
+.
+
+Because 
+
+𝐻 𝑖 (̂𝑢 𝑖 , Ψ) = 𝜕 2ℎ𝜕̂𝑢𝜕̂𝑢 ⊤ = −Σ −1 −
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+𝑞 𝑖𝑗𝑘 𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 ,
+
+we can derive 
+
+𝔼 ( 𝜕 2ℎ𝜕̂𝑢𝜕̂𝑢 ⊤ ) = 𝔼 ( 
+
+> 𝐾
+
+∑
+
+> 𝑘=1
+
+𝑞 𝑖𝑗𝑘 𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 ) ≥ 𝔼 (2(𝑘 − 1) ⋅ min  
+
+> 𝑘
+
+((𝑥 ⊤𝑖𝑗 𝛽 𝑘 + 𝑧 ⊤𝑖𝑗 𝑢 𝑖 − 𝑦 𝑖𝑗 )2 + 1) ⋅ 𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 )) ≥ [ (𝐾 − 1) min (𝛽 𝑘 − 𝛽 𝑙 )2
+
+4𝜎 2𝑚𝑎𝑥 
+
++ 1] 𝔼(𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 ) ≥ 𝑐𝐼 𝑞 ,
+
+where 𝐼 𝑞 is a 𝑞 × 𝑞 dimensional identity matrix. According to the Law of Large Num-bers, when the sample size 𝑛 𝑖 is sufficiently large, 𝐻 𝑖 (̂𝑢 𝑖 , Ψ) converges in probability to its expectation. Thus, for sufficiently large 𝑛 𝑖 , we have 
+
+𝜆 min (𝐻 𝑖 (̂𝑢 𝑖 , Ψ)) ≥ 𝐶 2 = 𝜆 1, ‖[𝐻 𝑖 (̂𝑢 𝑖 , Ψ)] −1 ‖ ≤ 1𝜆 1
+
+.
+
+Therefore, 
+
+∥[𝐻 𝑖 (̂𝑢 𝑖 , Ψ)] −1 (𝐻 𝑖 (̂𝑢 𝑖 , Ψ) − 𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)) [𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)] −1 
+
+∥ ≤ 1𝜆 21
+
+∥𝐻 𝑖 (̂𝑢 𝑖 , Ψ) − 𝐻 𝑖 (̂𝑢 𝑖 ,̃ Ψ)∥ . 
+
+Recall the structure of the Hessian matrix with respect to 𝑢 𝑖 , and the difference is driven entirely by the weights 𝑞 𝑖𝑗𝑘 :
+
+𝐻 𝑖 (Ψ) − 𝐻 𝑖 (̃Ψ) = 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+(𝑞 𝑖𝑗𝑘 (Ψ) − 𝑞 𝑖𝑗𝑘 (̃Ψ))𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 .
+
+Applying the gradient bound derived previously: 
+
+|𝑞 𝑖𝑗𝑘 (Ψ) − 𝑞 𝑖𝑗𝑘 (̃Ψ)| ≤ ‖∇ 𝛽 𝑞 𝑖𝑗𝑘 ‖‖Ψ −̃ Ψ‖ ≤ ( 𝐵 2
+
+𝜎 2
+
+> min
+
+‖𝑥 𝑖𝑗 ‖4) ‖Ψ −̃ Ψ‖. 
+
+57 Substituting this back: 
+
+‖𝐻 𝑖 (Ψ) − 𝐻 𝑖 (̃Ψ)‖ ≤ 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1 𝐾
+
+∑
+
+> 𝑘=1
+
+|𝑞 𝑖𝑗𝑘 (Ψ) − 𝑞 𝑖𝑗𝑘 (̃Ψ)| ⋅ ‖𝑧 𝑖𝑗 𝑧 ⊤𝑖𝑗 ‖≤ ( 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝐾𝐵 2
+
+𝜎 2
+
+> min
+
+‖𝑥 𝑖𝑗 ‖4‖𝑧 𝑖𝑗 ‖2) ‖Ψ −̃ Ψ‖ ≤ 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝐾𝐵 2
+
+𝜎 2
+
+> min
+
+‖𝑥 𝑖𝑗 ‖4‖𝑧 𝑖𝑗 ‖2‖𝛽 −̃ 𝛽‖. 
+
+The term 𝜕 2ℎ𝑖 
+
+> 𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖
+
+is bounded by 
+
+∥
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+𝜕ℓ 𝑖𝑗 
+
+𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+∥ ≤ 𝐶 𝐵 𝑛 𝑖 
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖‖𝑧 𝑖𝑗 ‖. 
+
+Now, assemble the bounds, 
+
+‖Δ 4‖ ≤ ‖ 𝜕ℓ 𝑖𝑗 
+
+𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+‖ ⋅ ∥[𝐻 𝑖 (Ψ)] −1 − [𝐻 𝑖 (̃Ψ)] −1 ∥ ⋅ ‖ 𝜕ℓ 𝑖𝑗 
+
+𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+‖≤ ‖ 𝜕ℓ 𝑖𝑗 
+
+𝜕𝛽 𝑘 𝜕𝑢 ⊤𝑖 
+
+‖2 ⋅ 1𝜆 21
+
+⋅ ‖𝐻 𝑖 (Ψ) − 𝐻 𝑖 (̃Ψ)‖‖𝛽 −̃ 𝛽‖ ≤ (𝐶 𝐵 𝑛 𝑖 
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖‖𝑧 𝑖𝑗 ‖) 
+
+> 2
+
+⋅ 1𝜆 21
+
+⋅ ( 𝐾𝐵 2
+
+𝜎 2
+
+> min
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖4‖𝑧 𝑖𝑗 ‖2)= 𝐶 𝐵 
+
+𝜆 21
+
+(
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖‖𝑧 𝑖𝑗 ‖) 
+
+> 2
+
+(
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖4‖𝑧 𝑖𝑗 ‖2) ‖𝛽 −̃ 𝛽‖. 
+
+Bound for Δ2 and Δ3:
+
+‖Δ 3‖ ≈ ‖Δ 2‖ ≤ 𝐶 ′𝑏 
+
+𝜆 1
+
+(
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖5‖𝑧 𝑖𝑗 ‖) ( 
+
+> 𝑛 𝑖
+
+∑
+
+> 𝑗=1
+
+‖𝑥 𝑖𝑗 ‖‖𝑧 𝑖𝑗 ‖) ‖𝛽 −̃ 𝛽‖. 
+
+According to Theorem 1, ̂ 𝛽 𝑘 𝑝 
+
+−→ 𝛽 𝑘 ; additionally, since the preceding term is bounded, 
+
+Δ1 + Δ 2 + Δ 3 + Δ 4𝑝 
+
+−→ 0 . Finally, regarding the first-order derivative part, the results hold because the mixed normal distribution density function is continuously twice differentiable, and the samples are independent. Further, by Condition (B4) and Slutsky’s theorem, we have 
+
+√𝑁 (̂𝛽 𝑘 − 𝛽 𝑘 ) 𝑑 
+
+=⇒ 𝒩 (0, 𝑉 𝛽 ) , 
+
+where 
+
+𝑉 𝛽 = (𝔼[ 𝜕 2ℓ𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+]
+
+> 𝛽 0
+
+)
+
+> −1
+
+(𝔼[ 𝜕ℓ 𝜕𝛽 𝑘 
+
+( 𝜕ℓ 𝜕𝛽 𝑘 
+
+)
+
+> ⊤
+
+]
+
+> 𝛽 0
+
+)(𝔼[ 𝜕 2ℓ𝜕𝛽 𝑘 𝜕𝛽 ⊤𝑘 
+
+]
+
+> 𝛽 0
+
+)
+
+> −1
+
+.
+
+58

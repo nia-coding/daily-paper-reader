@@ -1,0 +1,4378 @@
+Title: Event-Study Designs for Discrete Outcomes under Transition Independence
+
+URL Source: https://arxiv.org/pdf/2603.07914v1
+
+Published Time: Tue, 10 Mar 2026 01:41:51 GMT
+
+Number of Pages: 68
+
+Markdown Content:
+# Event-Study Designs for Discrete Outcomes under Transition Independence ∗
+
+Young Ahn Department of Economics University of Pennsylvania youngahn@sas.upenn.edu Hiroyuki Kasahara Vancouver School of Economics University of British Columbia hkasahar@mail.ubc.ca March 10, 2026 
+
+Abstract 
+
+We develop a new identification strategy for average treatment effects on the treated (ATT) in panel data with discrete outcomes. Standard difference-in-differences (DiD) relies on parallel trends, which is frequently violated in categorical settings due to mean reversion, out-of-bounds counterfactuals, and ill-defined trends for multi-category outcomes. We propose an alternative identification strategy with transition independence : absent treatment, transition dynamics conditional on pre-treatment outcomes are identical between control and treated groups. To capture unobserved heterogeneity, we introduce a latent-type Markov structure delivering type-specific and aggregate treatment effects from short panels. Three empirical applications yield ATT estimates substantially different from conventional DiD. 
+
+Keywords: Difference-in-differences, discrete outcomes, latent heterogeneity, treatment effects, finite mixture models 
+
+JEL Classification: C14, C23, C33 
+
+# 1 Introduction 
+
+Many empirical questions in economics involve outcomes that are inherently discrete and categor-ical: whether a worker is employed, unemployed, or out of the labor force; or which occupation a worker transitions into. Difference-in-differences (DiD) designs are routinely applied in these settings—researchers binarize the categorical labels into indicators and compare mean differences between treated and control groups under the parallel trends assumption (e.g., Bustos, 2011; An-derson and Sallee, 2011; Hvide and Jones, 2018; Charoenwong et al., 2019). Yet the properties of DiD when applied to discrete outcomes have received surprisingly little scrutiny. 
+
+> ∗This paper supersedes earlier versions of the manuscript titled “Event Studies for Discrete Outcomes with Latent Transition Heterogeneity.”
+
+1
+
+> arXiv:2603.07914v1 [econ.EM] 9 Mar 2026
+
+When outcomes are discrete, the parallel trends assumption is logically inconsistent with the data-generating process of bounded outcomes, invalidating the identification strategy. As Roth and Sant’Anna (2023) demonstrate, treatment effect estimates under parallel trends can be sensitive to functional form, a concern that is especially pronounced for discrete outcomes, where three specific failures arise. First, discrete outcomes evolve through state transitions rather than continuous movements, so when treated and control groups differ in their baseline distributions, mean reversion alone can generate divergent trends even absent any treatment effect. Second, DiD may produce counterfactual means outside the [0 , 1] range—a logical impossibility for a probability—undermining the coherence, not just the precision, of the resulting estimates. Third, for multi-category outcomes such as occupation or labor-force status, the notion of a single “trend” is ill-defined. The parallel trends assumption offers no coherent basis for comparing the joint temporal evolution of categorical distributions between treated and control groups. This paper provides a resolution. We propose to replace the parallel trends assumption with 
+
+transition independence —the condition that transition dynamics, conditional on pre-treatment out-come paths, would be identical between treated and control units in the absence of treatment. By operating directly on the transition structure of discrete outcomes, identification with transition independence avoids the logical failures of parallel trends while accommodating the bounded, cat-egorical nature of the data. Our paper makes three main contributions: 1. We show that the parallel trends assumption is generically violated for discrete, bounded outcomes: it can generate out-of-bounds counterfactual probabilities and confounds mean re-version with treatment effects. We propose transition independence as an alternative credible strategy: like parallel trends, the plausibility of transition independence can be assessed using pre-treatment data. 2. We extend the framework to incorporate a discrete latent-type structure under which out-comes follow latent-type-specific Markov chains. This extension addresses unobserved het-erogeneity in transition dynamics and mitigates the curse of dimensionality arising from long pre-treatment histories. We establish identification of both latent-type-specific average treat-ment effects on the treated (LTATTs) and aggregate ATTs from short panel data. 3. We demonstrate the practical importance of our approach in three empirical applications—the Dodd-Frank Act, Norway’s patent reform, and the Americans with Disabilities Act of 1990 (ADA)—where our estimator produces substantively different results relative to conventional DiD. The empirical consequences are immediate: in our reanalysis of the Dodd-Frank data, the counterfactual complaint rates implied by parallel trends fall below zero in post-treatment periods, a quantity that cannot be a probability. This is not a finite-sample artifact but a logical consequence of applying linear extrapolation to a bounded outcome. The resulting sign reversal—DiD reports 2an increase in complaints where our method finds a decrease—illustrates that the parallel trends assumption can produce not just imprecise but fundamentally misleading estimates for discrete outcomes. Transition independence avoids these failures by constructing counterfactuals from transition probabilities rather than mean levels, thereby respecting the bounded, discrete nature of the out-come and accounting for differential mean reversion driven by baseline differences. Under transition independence, counterfactuals are built by applying control-group transition probabilities to the treated group’s pre-treatment distribution, predicting the outcome evolution of treated units absent treatment. ATTs are then identified by comparing observed outcomes against these constructed counterfactuals. In practice, two challenges arise. First, unobserved heterogeneity may simultaneously affect treatment assignment and outcome transitions, violating transition independence at the popula-tion level. Second, the number of possible outcome histories grows exponentially with the number of pre-treatment periods, creating finite-sample limited overlap concerns. We address these challenges with two distinct devices: latent types accommodate unobserved heterogeneity by allowing transi-tion independence to hold conditionally within types, while a low-order Markov restriction reduces the conditioning set from the full pre-treatment history to a small number of recent outcomes, re-solving the dimensionality problem. The combined mixture-of-low-order-Markov approach delivers a tractable estimation framework that addresses both issues simultaneously. We show that the aggregate ATT can be identified as a weighted average of LTATTs, where the weights correspond to the latent-type probabilities among treated units and are identified from data. We establish identification of both LTATTs and weights from short panel data, enabling us to account for unobserved heterogeneity in transition dynamics even when the number of pre-treatment periods is limited. A further distinctive contribution of the transition-based framework is the flow decomposition of treatment effects. Because our approach models outcome dynamics through state-to-state transition probabilities, we can decompose the ATT on any given outcome state into inflow and outflow components, identifying which specific transition channels drive the treatment effect (Remark 8). This decomposition is not available in standard DiD, which operates on outcome levels rather than transitions. In the ADA application, for example, the flow decomposition reveals that the negative employment effect operates primarily through increased transitions from employment directly into out-of-labor-force status, rather than through changes in job-search outcomes, a mechanism not apparent from level-based analysis. 
+
+Empirical illustration. We illustrate the full framework—transition independence, latent het-erogeneity, and flow decomposition—with three applications in Section 5, each demonstrating a distinct failure mode of conventional DiD with discrete outcomes. First, DiD can produce out-of-bounds counterfactuals: in Charoenwong et al. (2019)’s analysis of the Dodd-Frank Act’s 2012 reform, the parallel trends assumption implies counterfactual complaint rates below zero, violating 3Figure 1: Counterfactual Complaint Rates from the Dodd-Frank Act. 0.000 0.005 0.010 0.015 0.020        
+
+> 01234
+> Year Relative to the Policy Change
+> Received Complaint
+> Model Treated DiD Our Model
+> Notes: This plot reports average counterfactual complaint rates of treated units if they were not treated, using the data of Charoenwong et al. (2019). The black solid line represents the observed average complaint rates from treated units. The red dashed line represents the counterfactual complaint rates implied by the parallel trends assumption for difference-in-differences (DiD). The blue dashed line represents the counterfactual complaint rates implied from our proposed method. See Figure 7 for full comparison across different model specifications.
+
+their probabilistic interpretation (Figure 1). Our transition-based approach avoids this out-of-bounds issue by construction, yielding estimates that indicate an increase in service quality, in contrast to the decrease reported by DiD. Second, DiD is susceptible to mean-reversion bias when treated and control groups differ in baseline levels. In Hvide and Jones (2018)’s study of Norway’s 2003 patent law reform, university inventors (treated) had nearly twice the patenting rate of non-university inventors (control) im-mediately before the reform (Figure 2). Because treated units had more room to decline, mean reversion causes the DiD estimator to overstate the negative impact, reporting a 4.5% decline. Our transition-based approach, which directly accounts for state-dependent dynamics, finds no significant change in patenting rates. Third, our framework reveals treatment effect mechanisms that DiD cannot detect. Using monthly labor-force status data from the 1990 SIPP panel and following Acemoglu and Angrist (2001) and Lise et al. (2023), we compare disabled (treated) and non-disabled (control) working-age adults around the ADA. The flow decomposition shows that the negative employment effect operates primarily through increased transitions from employment directly into out-of-labor-force 4Figure 2: Patenting Rates Around the Norwegian Law Reform. 0.00 0.05 0.10 0.15 0.20 0.25     
+
+> −5 05
+> Year Relative to the Policy Change
+> Patented
+> Treatment Status Control Treated
+
+Notes: This plot presents the patenting rates of university inventors (treated group) and non-university inventors (control group) in the years surrounding the introduction of a policy reform that altered patenting rights for university researchers. The x-axis represents years relative to the policy change, with year zero indicating the implementation of the reform. The y-axis shows the annual patenting rates, measured as the proportion of inventors filing at least one patent in a given year. The dashed vertical line marks the year the policy was introduced. Note the substantial baseline difference in patenting rates between the two groups: university inventors exhibited nearly twice the patenting rate of non-university inventors in the years immediately preceding the reform. 
+
+status, rather than through changes in job-search outcomes (Figure 3), an insight into the under-lying channel-specific transition mechanism unavailable from standard DiD. Furthermore, while conventional DiD fails to detect statistically significant employment effects, our transition-based methods reveal significant short-term employment reductions (Figure 4). This finding is consistent with prior evidence of unintended short-term consequences of the reform (Acemoglu and Angrist, 2001), and further suggests that the effects may be larger once mean reversion and heterogeneous transition dynamics are taken into account. 
+
+Related literature. Our framework connects two strands of the program evaluation literature: matching on pre-treatment outcomes, and difference-in-differences with nonlinear dynamics. The first relevant approach comes from the classic literature on program evaluation using matching methods (Card and Sullivan, 1988; Heckman et al., 1997, 1998). For instance, Heckman et al. (1997) use labor force statuses from two periods in their matching procedure for the JTPA program: the month in which a unit becomes eligible and the six months prior to eligibility. We complement 5Figure 3: Decomposing the ADA’s Effect on Employment by Transition Channels. −0.10 −0.05 0.00 0.05 0.10 0.15          
+
+> 0510 15 20
+> Month Relative to the Policy Change
+> Conditional ATT on employed (Weighted)
+> Type Inflow Outflow Outcome OLF Unemployed
+> Notes: This figure decomposes the ADA’s effect on employment into inflow and outflow transition channels. Solid lines show inflow effects (transitions into employment from unemployment and from out of the labor force), and dashed lines show outflow effects (transitions out of employment). The dominant channel is an increase in transitions from employment directly into out-of-labor-force status. The x-axis measures calendar months relative to the ADA, and the y-axis displays weighted conditional ATTs on employment. See Figure 14 for the full analysis in Section 5.3.
+
+their approach by proposing a new flexible method to construct counterfactuals by identifying and matching groups with similar transition dynamics from past outcomes, accounting for latent heterogeneity that can affect transition dynamics and selection. The second strand arises from the DiD literature on incorporating pre-treatment outcomes and allowing for nonlinear outcome dynamics (Roth et al., 2023). Earlier studies (Angrist and Pischke, 2009, Chapter 5.4; Ding and Li, 2019) show how conditioning on pre-treatment outcomes yields identifying assumptions distinct from unconditional parallel trends. We complement the literature by providing a practical solution to limited support issues when outcomes are discrete by developing a flexible framework that accommodates both latent heterogeneity and the inherent support restric-tions of categorical data; see Section 2.2 for discussion. The change-in-changes model of Athey and Imbens (2006) replaces linear parallel trends with rank invariance on a continuous latent variable; our transition independence assumption instead directly models discrete state-to-state transitions without requiring a continuous latent index. More recent work further relaxes linearity: Wooldridge (2023) proposes nonlinear conditional mean functions and Di Francesco and Mellace (2025) develop probability-shift methods for qualitative outcomes. Our framework differs from these approaches 6Figure 4: ATT Estimates of the ADA on Employment: DiD vs Our Method. −0.1 0.0        
+
+> 0510 15 20
+> Month Relative to the Policy Change
+> Average treatment effects (ATT, aggregated)
+> Model DiD Our Model
+> Notes: This figure compares the estimated average treatment effects on the treated (ATTs) of the Americans with Disabilities Act (ADA) on employment outcomes between the conventional difference-in-differences (DiD) estimator and our proposed transition-based method ( J= 1). The x-axis measures calendar months relative to the implementation of the ADA, and the y-axis reports ATT estimates. Red circles represent DiD estimates, and blue circles represent estimates from our proposed method. Vertical bars indicate 95% bootstrap uniform confidence intervals. See Figure 13 for full comparison across model specifications.
+
+by replacing parallel trends entirely with transition independence, extending naturally to multi-category outcomes through transition matrices, and explicitly incorporating latent heterogeneity via a finite mixture structure. In health science, Graves et al. (2022) independently propose using transition matrices for DiD with categorical outcomes, providing an applied framework without formal identification results; we extend this idea by developing nonparametric identification theory under explicit assumptions, incorporating latent heterogeneity via finite mixtures, and deriving flow decomposition of treatment effects with associated asymptotic theory. In particular, the latent-type structure is a distinguishing feature of our framework: it enables identification of type-specific treat-ment effects from short panels while addressing unobserved heterogeneity in transition dynamics that none of the aforementioned approaches accommodate. For multi-category outcomes, nonlinear versions of the parallel trends assumption face the same fundamental limitation as standard approaches: the notion of a single “trend” is ill-defined. Applying DiD with a nonlinear link function such as logit or probit accommodates nonlinearity but handles multi-category outcomes by binarizing them—modeling each category separately— thereby discarding the joint transition structure. The identifying restriction remains on a latent 7index and the target estimand is a marginal state probability, not the transition law governing state-to-state movements; nor does the logit/probit framework incorporate latent heterogeneity in transition dynamics (see Remark 11). Furthermore, with discrete outcomes, accounting for latent heterogeneity in transition dynamics is essential given the limited support. Our transition-based framework addresses these challenges by directly capturing the nonlinear nature of discrete outcomes and explicitly modeling latent heterogeneity. The copula invariance approach in DiD (Callaway et al., 2018; Callaway and Li, 2019; Ghanem et al., 2023) provides a related notion of dependency between outcomes, analogous to transition probabilities; however, with discrete outcomes the limited support necessitates introducing latent types over pre-treatment outcome paths to effectively capture heterogeneity in state dependence and propensity to be treated. Several recent methodological advances address latent heterogeneity in panel data. Bonhomme and Manresa (2015) and Bonhomme et al. (2022) develop group fixed-effects models that iden-tify latent types and their type-specific treatment effects using clustering methods. Similarly, Arkhangelsky et al. (2021) propose the synthetic difference-in-differences (SDiD) estimator, which accounts for heterogeneous effects by reweighting control units. Both approaches, however, require long panels for consistent estimation, whereas our proposed method allows identification of latent-type-specific treatment effects even in short panels while naturally capturing mean reversion in discrete outcomes. Another concept related to transition independence is the sequential exchangeability assumption, widely used in dynamic treatment and causal panel models (e.g. Robins, 1986; Hern´ an and Robins, 2025; Marx et al., 2025). This condition requires that, once the complete outcome–treatment his-tory is controlled for, treatment assignment is as good as random with respect to current potential outcomes. In contrast, our transition independence assumption restricts not the assignment mech-anism but the evolution of untreated potential outcomes, requiring that their transition dynamics conditional on the pre-treatment path be identical across treated and control units. Although both impose conditional independence between potential outcomes and treatment, they differ in their conditioning sets: sequential exchangeability conditions on the entire observed outcome–treatment history , whereas transition independence conditions only on the pre-treatment outcome history .Consequently, neither condition implies the other (see Remark 3). While transition independence is a natural assumption for discrete outcomes, it may be less plausible when agents are forward-looking and adjust transition behavior in anticipation of treat-ment, or when aggregate shocks differentially affect treated and control units’ transition dynamics. In practice, we recommend assessing the plausibility of transition independence by testing for pre-treatment differences in transition probabilities between groups, as demonstrated in our empirical applications. See Remarks 4-5 and 18 for further discussion. The remainder of this paper is organized as follows. Section 2 introduces a potential outcome model with discrete outcomes and illustrates how ATT can be identified from the transition inde-pendence assumption. We also offer several remarks, including extensions to staggered treatment allocation. In Section 3, we add latent type structures to the model to allow latent heterogeneity 8in transition dynamics and establish identification. In Section 4, we develop an estimator and provide a two-stage procedure to estimate latent-type-specific and aggregate ATTs. Section 5 presents three empirical applications. A standalone R package with replication codes is available at https://github.com/bayesiahn/ak .
+
+# 2 Discrete Outcome Models 
+
+This section establishes identification of ATTs under transition independence for discrete outcomes. We show that ATTs are point-identified by comparing observed treated outcomes with counterfac-tuals constructed from control group transition probabilities (Proposition 1). When parallel trends fail unconditionally, we characterize the resulting bias in standard DiD estimates (Proposition 9) and establish equivalence between transition independence and a conditional version of parallel trends (Proposition 12). 
+
+2.1 Potential Outcome Model with Transition Independence 
+
+Consider a panel data model over T = T0 + T1 periods, indexed by t ∈ T := {1, 2, . . . , T 0, T 0 +1, ..., T }, where T0 and T1 denote the numbers of pre- and post-treatment periods, respectively. Observational units are indexed by i ∈ N := {1, . . . , n }. Each unit may receive a binary treatment at some period or remain untreated throughout. We assume that all treated units begin treatment simultaneously at period T0 + 1 and that, once a unit is treated, then it remains treated for the rest of periods. 1
+
+For each unit i at time t, an econometrician observes a discrete outcome with K possible categories, denoted by Yit ∈ Y := {¯y(1) , ¯y(2) , ..., ¯y(K)}, and a binary treatment indicator Dit ∈ { 0, 1}.The potential outcome may depend on the entire treatment path over T periods, denoted by 
+
+Yit (Di1, . . . , D iT ). Let Yit (0T0 , 1T1 ) denote the potential outcome for unit i at period t when first treated at T0 + 1, where 0T0 and 1T1 are vectors of zeros and ones of lengths T0 and T1, respectively. Since treatment is absorbing, the treatment path is determined entirely by the first treatment period. We therefore simplify notation by defining Yit (1) := Yit (0T0 , 1T1 ) and Yit (0) := Yit (0T ). For brevity, let Di := Di,T 0+1 denote the treatment status at period T0 + 1; then Dit = 0 for t ≤ T0
+
+and Dit = Di for t ≥ T0 + 1. For notational brevity, we drop the unit subscript i when no confusion arises; e.g., we write 
+
+Yit (0) and Di as Yt(0) and D, respectively. Given this definition of Yt(d), d ∈ { 0, 1}, define the corresponding vector of binary potential outcomes: 
+
+Xt(d) := 
+
+
+
+X(1)  
+
+> t
+
+(d)...
+
+X(K) 
+
+> t
+
+(d)
+
+ := 
+
+
+
+1(Yt(d) = ¯ y(1) )...
+
+1(Yt(d) = ¯ y(K))
+
+ ∈ X , (1) 
+
+> 1Extension to staggered treatment timings can be straightforwardly managed by analyzing subgroups with identical treatment onset periods. We provide details in Remark 7 and Appendix B.
+
+9where 1(·) denotes the indicator function and X := {(x(1) , ..., x (K)) ∈ { 0, 1}K : PKk=1 x(k) = 1 }.Define Xt analogously to Xt(d), replacing Yt(d) with the observed outcome Yt. Then, the vector of observed binarized outcome Xt relates to the potential outcomes as 
+
+Xt =
+
+(
+
+Xt(0) if 1 ≤ t ≤ T0
+
+DXt(1) + (1 − D)Xt(0) if t ≥ T0 + 1 . (2) Our primary object of interest is the vector of average treatment effects on the treated (ATTs), defined as 
+
+μATT  
+
+> t
+
+:= E [Xt(1) − Xt(0) | D = 1] , t ≥ T0 + 1 , (3) where the kth element of μATT  
+
+> t
+
+represents the change in the probability of belonging to category k
+
+induced by treatment. We adopt two standard assumptions from the event-study literature: the no anticipatory ef-fects and common support (overlap) assumptions. Let XT0 
+
+> 1
+
+:= {Xs}T0 
+
+> s=1
+
+denote collection of pre-treatment outcomes. 
+
+Assumption NA (No anticipatory effects) . For all t ∈ { 1, ..., T 0} and i ∈ N , Xit (1) = Xit (0). 
+
+Assumption CS (Common Support) . For any xT0 
+
+> 1
+
+∈ X T0 with Pr( XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+) > 0, there exists a positive constant ϵ > 0 such that ϵ ≤ Pr( D = 1 |XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+) < 1 − ϵ.We impose the transition independence assumption, which equates the post-T0 transition be-havior of untreated potential outcomes across treated and control units, conditional on the entire pre-treatment path. Formally, we require that the transition probabilities of untreated potential outcomes be independent of treatment status: Pr ( Xt(0) = xt | XT0 (0) = xT0 , . . . , X1(0) = x1, D = 1) = Pr ( Xt(0) = xt | XT0 (0) = xT0 , . . . , X1(0) = x1, D = 0) for t ≥ T0 + 1 (TI) for all possible pre-treatment outcome paths {x1, . . . , xT0 }.
+
+Assumption TI (Transition independence) . For t = T0 + 1 , ..., T , Equation (TI) holds for all 
+
+xt ∈ X and xT0 
+
+> 1
+
+∈ X T0 .Transition independence implies that the outcome dynamics of control units serve as valid counterfactuals for treated units sharing the same pre-treatment history. By matching treated and control units on their observed outcome paths, the post-treatment transitions of the control group identify what the treated group would have experienced absent treatment. Our first proposition shows that ATTs in (3) are identified under Assumptions TI, NA, and CS. 
+
+Proposition 1. Suppose that Assumptions TI, NA, and CS hold. Then, for t = T0 + 1 , ..., T ,
+
+10 ATTs are identified by 
+
+μATT  
+
+> t
+
+= E
+
+
+
+Xt − E
+
+h
+
+Xt | XT0 
+
+> 1
+
+, D = 0 
+
+i
+
+D = 1 
+
+
+
+. (4) Proposition 1 demonstrates that the ATTs are identified by the difference between the mean of observed post-treatment outcomes from the treated units and that of their counterfactual expected untreated potential outcomes conditional on the entire sequence of pre-treatment outcomes. This result is intuitive: the treatment effect is attributable to the difference between the observed out-comes and the counterfactual outcomes that would have been observed if the treated units had not received the treatment. The counterfactual expected untreated potential outcomes are constructed by extrapolating the transition dynamics from the control group to the treated group. The next corollary shows that the (unconditional) ATT at time t can be written as a weighted average of conditional ATTs given the pre-treatment outcome history, with weights given by the treated group’s distribution of pre-treatment outcomes. 
+
+Corollary 2. Suppose that Assumptions TI, NA, and CS hold. Then, for t ≥ T0 + 1 , ATTs are identified by 
+
+μATT  
+
+> t
+
+= X  
+
+> xT01∈X T0
+
+n
+
+E
+
+h
+
+Xt | xT0 
+
+> 1
+
+, D = 1 
+
+i
+
+− E
+
+h
+
+Xt | xT0 
+
+> 1
+
+, D = 0 
+
+io 
+
+× Pr( XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+|D = 1) 
+
+| {z }   
+
+> XT0
+> 1=xT0
+> 1history-specific contribution to the ATT
+
+. (5) Corollary 2 provides a useful diagnostic tool for uncovering the mechanisms that drive treat-ment effects over time. (5) expresses the overall ATT as a mixture of conditional effects across strata defined by the pre-treatment outcome histories, capturing how each history-specific transi-tion contributes to the aggregate effect. The decomposition (5) also allows one to trace how the relative importance of different histories evolves over time, since it is valid for every post-treatment period t ≥ T0 + 1. 
+
+Remark 3 (Relation to sequential exchangeability) . A concept related to transition independence is the sequential exchangeability assumption (e.g. Robins, 1986; Hern´ an and Robins, 2025; Marx et al., 2025), defined as 
+
+Xt(d) ⊥⊥ Dt
+
+ Xt−1, D t−1, . . . , X1, D 1
+
+ for d ∈ { 0, 1} and t = 1 , ..., T . (SE) Sequential exchangeability (SE) and transition independence (TI) are distinct conditions that differ in their conditioning sets. Sequential exchangeability requires that the current treat-ment Dt be as good as random given the entire observed history of outcomes and treatments ,
+
+Ht−1 := {Xs, D s}t−1
+
+> s=1
+
+, whereas transition independence restricts the evolution of potential out-comes Xt(d) given only the pre-treatment control outcome history XT0 
+
+> 1
+
+(0) := {Xs(0) }T0 
+
+> s=1
+
+and the overall treatment status D.11 SE conditions on the observed history Ht−1, which includes post-treatment outcomes Xt−1 
+
+> T0+1
+
+:= 
+
+{Xs}t−1 
+
+> s=T0+1
+
+that depend on D. Thus, even if SE holds, i.e. Xt(d) ⊥⊥ Dt | Ht−1, the marginal law Pr( Xt(d) | XT0 
+
+> 1
+
+(0) , D ) will generally depend on D:Pr( Xt(d) | XT0 
+
+> 1
+
+(0) , D ) = X
+
+> h
+
+Pr( Xt(d) | Ht−1 = h, D ) Pr( Ht−1 = h | XT0 
+
+> 1
+
+, D ).
+
+Although the first term Pr( Xt(d) | Ht−1 = h, D ) in the summand is invariant in D by SE, the second term Pr( Ht−1 = h | XT0 
+
+> 1
+
+, D ) generally is not, because Ht−1 contains post-treatment outcomes affected by treatment. Therefore, SE does not imply TI. Intuitively, in event-study settings with permanent treatment, for t > T 0 + 1, the SE condition is “trivially true” because D
+
+is contained in Ht−1, and hence fails to impose the cross-group equality in counterfactual outcome dynamics that is required under TI. Conversely, TI does not in general imply SE. Transition independence governs only the counter-factual no-treatment process, leaving the assignment and treated potential outcomes unrestricted. Even if the transition dynamics of Xt(0) are identical across treated and control units, Xt(1) may remain correlated with D, violating the exogeneity condition required by SE. 2
+
+Finally, Proposition 1 shows that the transition independence assumption (TI) provides an alternative identification strategy to the classical G-formula (Robins, 1986) for estimating causal effects in dynamic settings. While our approach shares the G-formula’s reliance on the law of iterated expectations, its specialization to event-study settings allows the ATT to be identified using only pre-treatment information, thereby circumventing the need to condition on potential post-treatment confounding that is required by the G-formula and SE. 
+
+Remark 4 (Testing for transition independence in pre-treatment periods) . The assumption of transition independence (TI) is inherently non-testable. However, analogous to the “pre-trends” test in the DiD design (Roth, 2022), we can test if transition independence holds in pre-treatment periods by testing the following null hypothesis: 
+
+H0 : Pr 
+
+
+
+XT0 = xT0 |XT0−11 = xT0−11 , D = 0 
+
+
+
+= Pr 
+
+
+
+XT0 = xT0 |XT0−11 = xT0−11 , D = 1 
+
+
+
+for all xT0 
+
+> 1
+
+∈ X T0 . (6) Testing the null hypothesis in equation (6) may face practical difficulties due to limited support in the conditioned outcomes xT0−11 , especially when the pre-treatment period is long. One alterna-tive approach is to assume that transition independence holds by conditioning on outcomes from only a limited number of pre-treatment periods. We discuss how to implement this approach while incorporating latent heterogeneity in transition probabilities in Section 3 (Remark 18).                              
+
+> 2To see this with a concrete example, consider a two-period model ( T0= 1, T= 2) with binary outcomes
+> X={0,1}.Let Pr( X2(0) = 1 |X1(0) = x1, D =d) = 0 .5 for all ( x1, d ), so TI holds trivially. However, set Pr( X2(1) = 1 |X1= 1 , D = 1) = 0 .9 while Pr( D= 1 |X1= 1) = 0 .8 and Pr( D= 1 |X1= 0) = 0 .2, so that
+> X2(1) ̸⊥⊥D|X1, violating SE.
+
+12 Remark 5 (Placebo test) . Alternatively, the null hypothesis (6) can be tested using a procedure analogous to the “placebo” ATT estimates proposed by Callaway and Sant’Anna (2021) in the DiD setting. Specifically, construct a sample analogue of (4) with the outcome period set to t = T0 and the conditioning set shifted back by one period. This yields a test of whether μATT  
+
+> T0
+
+= 0, since under the no anticipatory effects assumption (Assumption NA) and transition independence at T0,we have μATT  
+
+> T0
+
+= 0.
+
+Remark 6 (Transition independence with covariates) . If there are additional covariates available, we may relax Assumption TI by considering the following extension with discrete control variables 
+
+Vt ∈ V .
+
+Assumption TI’ (Transition independence conditional on covariates) . For all t = T0 + 1 , .., T ,Pr 
+
+
+
+Xt(0) = xt | XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, V t = vt, D = 1 
+
+
+
+= Pr 
+
+
+
+Xt(0) = xt | XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, V t = vt, D = 0 
+
+
+
+(7) holds for all xT0 
+
+> 1
+
+∈ X T0 and vt ∈ V .An extension of Proposition 1 to the case with covariates is straightforward. Once we condition on covariates for the transition probabilities for counterfactual untreated potential outcomes, we may identify the ATT by replacing the transition probabilities in Proposition 1 with the conditional transition probabilities. 
+
+Remark 7 (Staggered treatment adoption) . Our identification strategy can be extended to stag-gered treatment adoption by replacing a treatment group Di with a treatment cohort : the period in which treatment is given, Gi ∈ G with G ⊂ T , defined by Gi = min {t | Dit = 1 } for treated units. For control units, we may use never-treated or (and) not-yet-treated groups to construct counterfactual untreated potential outcomes as in Callaway and Sant’Anna (2021). We can then extend the transition independence assumption for each treatment cohort, allowing us to identify the ATTs for each treatment cohort using a similar argument as in Proposition 1. The aggregate ATT is then identified by the weighted average of the ATTs for each treatment cohort. A formal treatment of the extension is provided in Appendix B. 
+
+Remark 8 (Decomposition by flows) . When transition independence holds with one lag of con-ditioning, the ATT admits a flow decomposition by inflows to and outflows from each outcome state, which is useful for investigating the underlying mechanism through which the treatment dynamically affects outcomes. 13 Specifically, from Corollary 2, we can express the ATT on the kth outcome as 
+
+EX(k) 
+
+> t
+
+(1) − X(k) 
+
+> t
+
+(0) | D = 1 
+
+= X 
+
+> y̸=¯ y(k)
+
+n
+
+Pr( Yt = ¯ y(k) | YT0 = y, D = 1) 
+
+− Pr( Yt = ¯ y(k) | YT0 = y, D = 0) 
+
+o
+
+Pr( YT0 = y | D = 1) 
+
+| {z } 
+
+> inflow effect from y
+
+− X 
+
+> y̸=¯ y(k)
+
+n
+
+Pr( Yt = y | YT0 = ¯ y(k), D = 1) 
+
+− Pr( Yt = y | YT0 = ¯ y(k), D = 0) 
+
+o
+
+Pr( YT0 = ¯ y(k) | D = 1) 
+
+| {z } 
+
+> outflow effect to y
+
+.
+
+(8) The flow decomposition (8) implies that changes in the probability of remaining in the focal state ¯ y(k) (e.g., employed-to-employed) can be understood as the net contribution of transition flows to and from all alternative states. For illustration, consider the ADA example with three outcome states: Employment ( E), Unemployment ( U ), and Out of Labor Force ( O). The introduction of the ADA may induce changes in the transition dynamics across these three outcome states. Under transition independence with the Markov assumption, such impacts on transition probabilities are illustrated in Figure 5, where the ADA induces a larger net outflow from E to U or O by increasing the outflow from E to U or O and decreasing the inflow from U or O to E.The flow-based decomposition (8) highlights underlying mobility patterns that conventional ATTs on a given outcome could mask. For example, an increase in employment may be driven primarily by reduced separations (lower outflow from E), by enhanced hiring from U or O (higher inflow into E), or by a combination of both. Furthermore, the decomposition provides insight into the underlying mechanism. Many policies, including the ADA, operate through specific channels such as job retention, accommodation costs, or hiring practices. Estimating inflow and outflow components separately can thus help assess which hypothesized channels are empirically salient. When latent heterogeneity is present ( J > 1), the decomposition extends to each latent type; see Corollary 22 in the Appendix. 
+
+2.2 Comparison with the DiD Estimator 
+
+2.2.1 The DiD Estimator and the Parallel Trends Assumption 
+
+Many empirical studies apply the DiD estimator when the outcome of interest is binary (Bustos, 2011; Anderson and Sallee, 2011; Hvide and Jones, 2018; Charoenwong et al., 2019). Even when the outcome is discrete with multiple categories, we may apply the DiD estimator to each of binary outcomes constructed from a discrete variable in (1), where the DiD estimator identifies the population quantity given by 
+
+μDiD  
+
+> t
+
+= E[Xt − XT0 |D = 1] − E[Xt − XT0 |D = 0] for t = T0 + 1 , ..., T . 
+
+14 Figure 5: ADA’s Effect on Employment Transitions. 
+
+E
+
+U O
+
+Yit (0): Untreated Potential Outcome 
+
+E
+
+U O
+
+Yit (1): Treated Potential Outcome 
+
+> Notes: This figure illustrates how the ADA affects employment rates through changes in inflow and outflow effects in (8) from unemployment (U) and out-of-labor-force (O) states to employment (E) state. Colored (blue and red) arrows indicate the transitions that drive changes in employment rates under treatment. Arrow thickness reflects the relative strength of each flow (from the magnitudes of inflow and outflow effects from each channel estimated in Section 5).
+
+The key assumption for the DiD estimator is the following mean change independence assumption, also known as parallel trends. Recall Xt(0) := ( X(1)  
+
+> t
+
+(0) , ...., X (K) 
+
+> t
+
+(0)) ⊤ with X(k) 
+
+> t
+
+(0) := 1(Yt(0) = ¯y(k)). 
+
+Assumption PT (Parallel trends) . For t = T0 + 1 , ..., T ,
+
+E [Xt(0) − XT0 (0) | D = 0] = E [Xt(0) − XT0 (0) | D = 1] . (PT) The DiD estimator identifies the ATTs under the parallel trends assumption, as documented in the previous literature (Roth et al., 2023). 
+
+Proposition 9. Suppose that Assumptions NA, CS, and PT hold. Then, μATT  
+
+> t
+
+= μDiD  
+
+> t
+
+.
+
+However, if the initial distributions of outcomes in the pre-treatment periods differ between treated and control units, the parallel trends assumption (PT) becomes implausible for binary outcomes {Xt}Tt=1 due to mean reversion effects. To illustrate mean reversions, consider the following example with binary employment outcomes. Let Xt ∈ { 0, 1} represent binary employment status across two periods, t = 1 , 2. Initially, 50% of treated units and 25% of control units are employed (Pr( X1(0) = 1 | D = 1) = 0 .5 and Pr( X1(0) = 1 | D = 0) = 0 .25). By period 2, 87.5% of treated units are employed. We assume that employed individuals remain employed. As illustrated in Figure 6, suppose that two-thirds of unemployed control units become employed (Pr( X2(0) = 1 | X1(0) = 0 , D i = 0) = 2 /3), This corresponds to a 50 percentage-point increase in their employment rate, which—under the parallel trends assumption—requires the treated group’s employment rate to also rise by 50 percentage points in the absence of treatment. Such an impli-cation is implausible: it would require all unemployed treated units to become employed, yielding 15 Figure 6: A Numerical Example: Parallel Trends and Transition Independence. 0.25 0.50 0.75 1.00  
+
+> 01
+> Period
+> Average Potential Outcome
+
+(a) Mean Independence (Parallel Trends)  
+
+> 0.25 0.50 0.75 1.00
+> 01
+> Period
+
+(b) Transition Independence      
+
+> Treatment Cohort Treated Untreated Outcome Observed Unobserved (Counterfactual)
+
+Notes: The left plot describes the case where the parallel trends assumption holds, yet does not satisfy the transition independence assumption for binary outcome variables. The right plot describes the case where the transition independence assumption holds, yet the parallel trends assumption does not hold. The corresponding data generating process is described in Section 2. 
+
+100% employment (Pr( X2(0) = 1 | X1(0) = 0 , D = 1) = 1). This extreme prediction arises be-cause parallel trends ignores mean reversion: groups with higher initial rates have limited room to improve further. On the other hand, the transition independence assumption constructs counterfactuals di-rectly from transition probabilities, thereby avoiding the implausible implications induced by parallel trends in the presence of mean reversion. In contrast to the parallel trends assump-tion, our Assumption TI requires that the transition probability function of the potential out-come Xt(0), rather than its mean change over time, be independent of treatment status D as Pr( X2(0) = 1 | X1(0) = 0 , D = 0) = Pr( X2(0) = 1 | X1(0) = 0 , D = 1) = 2 /3. Notably, these assumptions yield opposite ATT estimates in this example: negative under parallel trends but positive under transition independence. Given the implausibility of the parallel trends assumption 16 due to mean reversion effects, the transition independence assumption provides a useful alternative to the parallel trends assumption for making causal inferences with discrete outcome models. We may characterize the bias of DiD estimator when the transition independence assumption holds as follows. 
+
+Proposition 10. Suppose that Assumptions TI, NA, and CS hold. Then, the bias of the DiD estimator is given by 
+
+μDiD  
+
+> t
+
+− μATT  
+
+> t
+
+= X  
+
+> xT01∈X T0
+
+E[Xt − xT0 |XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, D = 0] 
+
+×
+
+n
+
+Pr 
+
+
+
+XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+| D = 1 
+
+
+
+− Pr 
+
+
+
+XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+| D = 0 
+
+o 
+
+(9) 
+
+for t = T0 + 1 , ..., T ,
+
+Proposition 10 highlights the two sources of bias for the DiD estimator under the transition independence assumption. Specifically, the bias arises from differences in pre-treatment outcome distributions between treated and control units, Pr( XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+| D = 1) − Pr( XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+| D = 0), multiplied by trends in untreated potential outcomes, E[Xt − xT0 |XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, D = 0]. See Ding and Li (2019) for similar decomposition in continuous outcomes and Angrist and Pischke (2009) for linear models in the context of conditional parallel trends. This suggests that, when the transition independence holds, the DiD estimators may be substantially biased when pre-treatment outcome distributions differ between treated and control units, especially when control units experience large outcome changes over time. Since each term in the bias decomposition (9) is identifiable from the data, we can investigate the potential bias and its source in the DiD estimator under the transition independence assumption. 
+
+Remark 11 (Logit/probit DiD and transition independence) . A natural alternative for discrete outcomes is to apply DiD with a nonlinear link function, such as logit or probit, imposing parallel trends on a latent index rather than on outcome levels (e.g., Athey and Imbens, 2006; Puhani, 2012; Wooldridge, 2023). For multi-category outcomes, such approaches summarize how different outcomes evolve by binarizing them—e.g., modeling “employed vs. not employed” and “unemployed vs. not unemployed” separately—thereby discarding the joint transition structure across states. The identifying restriction in such models is an invariance condition on an unobserved index together with a distributional normalization on the error scale, and the target estimand is a marginal state probability or an odds ratio. In contrast, transition independence is an invariance restriction on the untreated Markov kernel—the transition law governing state-to-state movements—and the target estimands are transition probabilities themselves. Because the two approaches restrict different structural objects, neither implies the other. A logit or probit model applied directly to transitions Pr( St = s′ | St−1 = s, G, t ) is a parametric special case of the transition-based framework; our contribution is to articulate identification on the transition kernel without imposing a specific link 17 function or single-index structure, while further accommodating unobserved heterogeneity through the latent-type Markov structure introduced in section 3. 
+
+2.2.2 Conditional Parallel Trends with Pre-Treatment Outcomes 
+
+Another relevant notion in the DiD literature is the conditional parallel trends assumption, which allows for the parallel trends assumption to hold conditional on the lagged outcomes. Instead of the unconditional parallel trends assumption in Assumption PT, we may consider the following conditional parallel trends assumption given a sequence of pre-treatment outcomes. 
+
+Assumption CPT (Parallel trends, conditional on pre-treatment outcomes) . For all xT0 
+
+> 1
+
+∈ X T0
+
+and post-treatment period t = T0 + 1 , ..., T ,
+
+E
+
+h
+
+Xt(0) − XT0 (0) | XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, D = 0 
+
+i
+
+= E
+
+h
+
+Xt(0) − XT0 (0) | XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, D = 1 
+
+i
+
+. (10) The following proposition shows that the conditional parallel trends assumption (Assump-tion CPT) is equivalent to the transition independence assumption (Assumption TI). 
+
+Proposition 12. Assumption TI holds if and only if Assumption CPT holds. 
+
+Proposition 12 implies that our approach is equivalent to conditional DiD estimator that condi-tions on the full pre-treatment history, an equivalence result that clarifies identification but is not directly implementable in typical panel data because the conditioning set grows exponentially in the length of the pre-treatment period. Our contribution is to make this identification result oper-ational. In the next subsection, we impose a Markov restriction to control the dimensionality of the conditioning set, and in the following section we introduce a latent-type structure to accommodate unobserved heterogeneity in transition dynamics. 
+
+Remark 13 (Conditional DiD with categorical outcomes) . Additional care is required when ex-tending the conditional DiD representation implied by Assumption CPT to outcomes with more than two discrete categories. Suppose we aim to estimate the ATT for category k, defined as 
+
+μ(k) 
+
+> t
+
+:= E[X(k) 
+
+> t
+
+(1) − X(k) 
+
+> t
+
+(0) | D = 1] .
+
+A natural approach is to construct a binary indicator for category k, X(k) 
+
+> t
+
+= 1{Yt = ¯ y(k)}, and apply a conditional DiD estimator conditioning on the sequence {X(k) 
+
+> s
+
+}T0
+
+> s=1
+
+.However, conditioning on a single binarized outcome captures only limited information about the unit’s underlying categorical history. In particular, Assumption CPT need not hold even if the corresponding conditional parallel trends condition holds for each binarized outcome separately, i.e., even if 
+
+E
+
+h
+
+X(k) 
+
+> t
+
+(0) − X(k) 
+
+> T0
+
+(0) | { X(k) 
+
+> s
+
+(0) }T0
+
+> s=1
+
+, D = 0 
+
+i
+
+= E
+
+h
+
+X(k) 
+
+> t
+
+(0) − X(k) 
+
+> T0
+
+(0) | { X(k) 
+
+> s
+
+(0) }T0
+
+> s=1
+
+, D = 1 
+
+i
+
+18 for all k = 1 , . . . , K .Consequently, conditioning only on the pre-treatment history of a single binarized outcome is generally insufficient for consistency under Assumption CPT, unless the full collection of binary histories {{ X(k) 
+
+> s
+
+}T0
+
+> s=1
+
+}Kk=1 is included in the conditioning variables. 
+
+2.3 An Issue in Conditioning on Pre-Treatment Outcomes 
+
+Implementing our estimator under Assumption TI entails an exponential increase in the number of possible past outcome paths as the number of pre-treatment periods grows. This, in turn, can introduce non-negligible finite sample bias, since few observations fall into certain paths and overlap between treated and control units in the conditioning variables becomes weak. To address this challenge, we first propose matching units on a limited history of pre-treatment outcomes, say XT0
+
+> T0−ℓ+1
+
+(0) := {XT0−ℓ+1 (0) , ..., XT0 (0) } for some small ℓ ≥ 1, rather than the full pre-treatment sequence XT0 
+
+> 1
+
+(0) := {X1(0) , ..., XT0 (0) }.
+
+Assumption TI-LH (Transition Independence with Limited History) . For some ℓ ≥ 1 and for all 
+
+t = T0 + 1 , . . . , T ,Pr 
+
+
+
+Xt(0) = xt XT0
+
+> T0−ℓ+1
+
+(0) = xT0
+
+> T0−ℓ+1
+
+, D = 0 
+
+
+
+= Pr 
+
+
+
+Xt(0) = xt XT0
+
+> T0−ℓ+1
+
+(0) = xT0
+
+> T0−ℓ+1
+
+, D = 1 
+
+
+
+(11) for all xt ∈ X and all histories xT0 
+
+> T0−ℓ+1
+
+∈ X ℓ.In practice, we recommend reporting ATT estimates using different lengths of pre-treatment conditioning histories. The “pre-transition” assumption can also be tested, as described in Re-mark 4, by reporting test statistics for the null hypothesis H0 : Pr( XT0 (0) = xT0 | XT0−1 
+
+> T0−ℓ
+
+(0) = 
+
+xT0−1 
+
+> T0−ℓ
+
+(0) , D = 0) = Pr( XT0 (0) = xT0 | XT0−1 
+
+> T0−ℓ
+
+(0) = xT0−1 
+
+> T0−ℓ
+
+(0) , D = 1) using pre-treatment data. Additionally, comparing BIC values from likelihood-based estimation of transition probabilities— either using pre-treatment data from both groups or using the full sample of control units—can be used to guide the choice of lag length. Adopting Assumption TI-LH in place of Assumption TI provides a practical solution to finite sample bias as well as weak overlap between treated and control units due to exponentially in-creasing past outcome paths, yet at the cost of potential violation of Assumption TI-LH due to the presence of latent heterogeneity in transition dynamics. Section 3 considers the possibility of latent heterogeneity in transition dynamics. 
+
+# 3 Discrete Outcome Models with Latent Heterogeneity 
+
+This section introduces latent heterogeneity into the transition-based framework. By augmenting the model with a finite discrete latent type, we show that both latent-type-specific and aggregate 19 ATTs remain identified from short panel data under type-specific transition independence and a Markov assumption (Propositions 14 and 15). Assumption TI or TI-LH may be invalid in the presence of unobserved heterogeneity in tran-sition dynamics that may simultaneously affect both the treatment allocations and the transition probabilities of potential outcomes under no treatment. To address such concerns, we introduce a finite discrete latent type to capture unobserved heterogeneity. We assume each unit i belongs to one of J latent types, where J is known. Let Zi ∈ J := {1, ..., J } denote unit i’s latent type, with 
+
+πj := Pr( Zi = j) representing the population probability of type j for j = 1 , 2, ..., J .We consider assumptions analogous to Assumptions TI and CS, conditional on latent types. 
+
+Assumption TI-LT (Transition independence, conditional on latent types) .
+
+Pr( Xt(0) = xt | XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, D = 0 , Z = j) = Pr( Xt(0) = xt | XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, D = 1 , Z = j) (12) for all xT0 
+
+> 1
+
+∈ X T0 and j = 1 , . . . , J. 
+
+Assumption CS-LT (Common support conditional on latent types) . There exists a positive constant ϵ > 0 such that ϵ ≤ P r (Di = 1 |XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, Z = j) ≤ 1 − ϵ for all xT0 
+
+> 1
+
+∈ X T0 and 
+
+j = 1 , . . . , J .One can consider the latent-type average treatment effects on the treated, ATT for the latent type where transition independence holds within. We define a vector of the average treatment effects on the treated for latent type j (LTATTs) as 
+
+μATT ,j t := E [Xt(1) − Xt(0) | D = 1 , Z = j] for j ∈ J . (13) Taking the average over latent-type-specific ATTs across types, we may estimate the average treatment effects on treated (ATTs) as 
+
+μATT  
+
+> t
+
+:= E [Xt(1) − Xt(0) | D = 1] = 
+
+> J
+
+X
+
+> j=1
+
+Pr( Z = j | D = 1) μATT ,j t for t = T0 + 1 , ..., T . (14) We account for latent heterogeneity in transition dynamics using a finite mixture model under Assumptions NA, TI-LT, and CS-LT. Let W i := ( X⊤
+
+> i1
+
+, . . . , X⊤ 
+
+> iT
+
+, D i)⊤ ∈ W := X T × { 0, 1} denote the vector of binary outcomes over T periods and the treatment indicator for unit i. We assume that the data are generated from the mixture distribution whose probability mass function (PMF) is given by: 
+
+pW (w) = 
+
+> J
+
+X
+
+> j=1
+
+πj pj 
+
+> W
+
+(w), (15) where πj := Pr( Zi = j) is the population proportion of latent type j, and 
+
+pj 
+
+> W
+
+(w) = Pr( W = w|Z = j)20 denotes the conditional PMF of W = ( X1, . . . , XT , D ) given Z = j. The true number of compo-nents, J, is defined as the smallest integer such that the data distribution admits the representa-tion (15). 
+
+Assumption RSM. (Random sampling from a finite mixture distribution) (a) We observe a sample of n i.i.d. draws {W i}ni=1 , where W i i.i.d. 
+
+∼ pW (w) given in (15), where pj 
+
+> W
+
+(w) satisfies Assumptions NA, TI-LT, and CS-LT with the relationship between observed outcome and potential outcomes given in (2). (b) The true number of components J in (15) is known. (c) The population mixture weights are ordered such that π1 < π 2 < · · · < π J .Assumption RSM(a) consolidates the maintained structural restrictions—transition indepen-dence, the no-anticipation condition, and the overlap requirement—into a unified sampling frame-work by specifying that the observed data are drawn from a J-component finite mixture, where each component corresponds to a latent type with its own transition dynamics. Assumption RSM(b) specifies that the number of latent components J is known. In practice, this can be assessed using information criteria (e.g., BIC) or other procedures, which we discuss below. Assumption RSM(c) imposes an ordering restriction to ensure model identifiability, since finite mixture models are identified only up to permutation of their components. For identification, we assume the potential outcome without treatment {Xt(0) }Tt=1 follows a first-order Markov process conditional on the initial outcome X1(0) and latent type Z. This Markovian assumption also serves as a practical condition for identifying the LTATTs from observed data, avoiding the computational burden and finite sample issues that arise from conditioning on complete outcome histories. Recall Xt−11 (d) := {Xs(d)}t−1
+
+> s=1
+
+.
+
+Assumption M (the first-order Markov) . For all j = 1 , 2, ..., J , conditional on Z = j and D = d,
+
+{Xt(d) : t = 1 , ..., T } follows a (non-stationary) first-order Markov process, i.e., for t = 2 , ..., T and all d ∈ { 0, 1},Pr  Xt(d) | { Xs(d)}t−1
+
+> s=1
+
+, D = d, Z = j = Pr ( Xt(d) | Xt−1(d), D = d, Z = j) .
+
+Collect the unknown probability mass functions for Z and the type-specific transition proba-bilities of the potential outcomes Xt(d), d ∈ { 0, 1}, into the parameter vector 
+
+ψ = ( π, φ1, ..., φJ ) ∈ Θψ,
+
+where π = ( π1, ..., π J )⊤ satisfies ϵ ≤ πj ≤ 1−ϵ for some ϵ > 0 and PJj=1 πj = 1, and each component 
+
+φj is defined as a collection of type-specific initial distributions and transition probabilities as follows: 
+
+φj =
+
+
+
+pj
+
+> X1(0) ,D
+
+(·, ·),
+
+n
+
+pj
+
+> Xt(0) |Xt−1(0)
+
+(·|· )
+
+oTt=2 ,
+
+n
+
+pj
+
+> Xt(1) |Xt−1(1)
+
+(·|· )
+
+oTt=T0+1 
+
+
+
+,
+
+21 where 
+
+pj
+
+> X1(0) ,D
+
+(x1, d ) := Pr ( X1(0) = x1, D = d | Z = j) ,pj
+
+> Xt(d)|Xt−1(d)
+
+(xt|xt−1) := Pr ( Xt(d) = xt | Xt−1(d) = xt−1, Z = j)for d ∈ { 0, 1} and t ∈ { 2, ..., T }.Under Assumption M, and noting from Assumption NA that Xt(0) = Xt(1) for t = 1 , . . . , T 0, by explicitly writing its dependence on the parameters ψ and φj , the PMF of W = ( X1, . . . , XT , D )in (15) can be written as 
+
+pW (w; ψ) := 
+
+> J
+
+X
+
+> j=1
+
+πj pj 
+
+> W
+
+(w; φj ) (16) where 
+
+pj 
+
+> W
+
+(w; φ):= 
+
+( pj
+
+> X1(0) ,D
+
+(x1, 0) QTt=2 pj
+
+> Xt(0) |Xt−1(0)
+
+(xt|xt−1) if D = 0 
+
+pj
+
+> X1(0) ,D
+
+(x1, 1) QT0 
+
+> t=2
+
+pj
+
+> Xt(0) |Xt−1(0)
+
+(xt|xt−1) QTt=T0+1 pj
+
+> Xt(1) |Xt−1(1)
+
+(xt|xt−1) if D = 1. Let ψ∗ denote the true value of ψ, so that the true distribution of W is given by pW (w; ψ∗). By extending the arguments in Anderson (1954), Madansky (1960), Hu (2008), Kasahara and Shimotsu (2009), Carroll et al. (2010), Hu and Shum (2012), and Ishimaru (2025), the following proposition establishes the identification of the mixture models for the potential outcome processes 
+
+{Xt(0) }Tt=1 and {Xt(1) }Tt=T0+1 in (16), even when the panel is relatively short. 
+
+Proposition 14. Suppose that Assumptions RSM, M, and ID hold. If T0 ≥ k + 1 , T ≥ 2( k + 1) ,and J ≤ |X | k for k = 1 , 2, 3, . . . , then ψ is uniquely identified from {pW (w; ψ) : w ∈ W}.
+
+Assumption ID, presented in the proof of Proposition 14, imposes a set of regularity conditions for identification. The regularity conditions ensure that certain matrices of transition probabilities are non-singular, guaranteeing that variations in past outcomes induce sufficiently heterogeneous changes in current outcome probabilities across latent types for identification. Applying Proposition 14 with k = 1, we can identify ψ when J ≤ |X | , T0 = 2, and T = 4 under these regularity conditions. This implies, for example, that when the discrete outcome takes three possible values (e.g., E, U , and O in the ADA example), we may identify three latent types ( J = 3) from four-period panel data with two pre-treatment periods ( T = 4, T0 = 2) under the first-order Markov assumption. When the panel is longer, we may identify more latent types. While the regularity conditions in Assumption ID are not directly verifiable from the data, they are generically satisfied: the set of parameter values violating any of the rank conditions has Lebesgue measure zero in the parameter space. In practice, failure of these conditions would manifest as observational equivalence between models with different numbers of latent types, which can be diagnosed through the model selection procedures described in Remark 19. 22 Under Assumption M, Assumption TI-LT implies that Pr ( Xt(0) = xt | XT0 (0) = xT0 , D = 0 , Z = j) = Pr ( Xt(0) = xt | XT0 (0) = xT0 , D = 1 , Z = j) .
+
+Then, given the identification of ψ in Proposition 14, we may identify the LTATTs μAT T,j t (13) for each j as the following proposition states. 
+
+Proposition 15. Suppose that Assumptions RSM, M, TI-LT, and ID hold. Then, for each post-treatment t ≥ T0 +1 and for all j ∈ J , we may uniquely identify μAT T,j t from {pW (w; ψ) : w ∈ W}
+
+as 
+
+μAT T,j t = X 
+
+> xT0∈X
+
+Pr( XT0 = xT0 |D = 1 , Z = j)
+
+× (E [Xt | XT0 = xT0 , D = 1 , Z = j] − E [Xt | XT0 = xT0 , D = 0 , Z = j]) . (17) As a corollary, we may identify the ATT μAT T t defined in (14) for each post-treatment t.
+
+Corollary 16. Under Assumptions TI-LT, RSM, M, and ID, for each post-treatment t ≥ T0 + 1 ,we may uniquely identify the ATT μAT T t from {pW (w; ψ) : w ∈ W}.
+
+The first-order Markov assumption in Assumption M can be straightforwardly relaxed to a higher (but finite) order Markov process, provided that the length of T0 and T is sufficiently large as the following proposition shows. 
+
+Assumption M ℓ (the ℓth-order Markov) . For all j = 1 , 2, ..., J , conditional on Z = j and D = d,
+
+{Xt(d) : t = 1 , ..., T } follows a (non-stationary) ℓth-order Markov process, i.e., for t = ℓ + 1 , ..., T 
+
+and all d ∈ { 0, 1}, Pr( Xt(d) | { Xs(d)}t−1
+
+> s=1
+
+, D = d, Z = j) = Pr( Xt(d) | { Xs(d)}t−1
+
+> s=t−ℓ
+
+, D = d, Z =
+
+j).
+
+Under Assumptions M ℓ and NA, with abuse of notation, we redefine the parameter vector as 
+
+ψ = ( π, φ1, . . . , φJ ) ∈ Θψ with each component given by 
+
+φj =
+
+(
+
+pj
+
+> {Xs(0) }ℓs=1 ,D
+
+(·, ·),
+
+
+
+pj
+
+> Xt(0) |{ Xs(0) }t−1
+> s=t−ℓ
+
+(·|· )
+
+Tt=ℓ+1 
+
+,
+
+
+
+pj
+
+> Xt(1) |{ Xs(1) }t−1
+> s=t−ℓ
+
+(·|· )
+
+Tt=T0+1 
+
+)
+
+,
+
+where pj
+
+> {Xs(0) }ℓs=1 ,D
+
+(·, ·) and pj
+
+> Xt(d)|{ Xs(d)}t−1
+> s=t−ℓ
+
+(·|· ) for d ∈ { 0, 1} are defined similarly to pjXt(0) ,D (·, ·)and pj
+
+> Xt(d)|Xt−1(d)
+
+(·|· ) but using {Xs(0) }ℓs=1 and {Xs(d)}t−1 
+
+> s=t−ℓ
+
+in place of Xt(0) and Xt−1(d), respectively. 
+
+Proposition 17. Suppose that Assumptions RSM, M ℓ, and ID ℓ hold. If T0 ≥ 2ℓ, T ≥ 4ℓ, and 
+
+J ≤ |X | ℓ for ℓ = 1 , 2, ... , then: (a) ψ is uniquely identified from {pW (w; ψ) : w ∈ W}; (b) for each post-treatment t ≥ T0 + 1 and for all j ∈ J , we may uniquely identify μAT T,j t from 
+
+23 {pW (w; ψ) : w ∈ W} as 
+
+μAT T,j t = X 
+
+> xT0
+> T0−ℓ+1 ∈X ℓ
+
+Pr 
+
+
+
+XT0 
+
+> T0−ℓ+1
+
+= xT0
+
+> T0−ℓ+1
+
+|D = 1 , Z = j
+
+
+
+×
+
+n
+
+EXt | XT0 
+
+> T0−ℓ+1
+
+= xT0
+
+> T0−ℓ+1
+
+, D = 1 , Z = j
+
+− EXt | XT0 
+
+> T0−ℓ+1
+
+= xT0
+
+> T0−ℓ+1
+
+, D = 0 , Z = jo
+
+. (18) Under the second-order Markov assumption, for example, Proposition 17 with ℓ = 2 implies that the LTATTs are identified when J ≤ |X | 2, T0 = 4, and T = 8, provided that the stated regularity conditions are satisfied. 
+
+Remark 18 (Testing for transition independence across pre-treatment periods, continued) . Under the Markovian assumption, testing transition independence in pre-treatment periods (Remark 4) can be applied recursively across pre-treatment periods and can be conducted using a graphical diagnostic comparing conditional means between treated and control units, analogous to the stan-dard eyeball tests for pre-trends in event-study plots (Freyaldenhoven et al., 2019; Kahn-Lang and Lang, 2020; Roth, 2022; Rambachan and Roth, 2023). In particular, under Assumption M, the conditioning set in the null hypothesis (6) collapses from the entire sequence of past outcomes to the most recent outcome alone, yielding the following specification: 
+
+H0 : Pr ( Xt = xt|Xt−1 = xt−1, D = 0) = Pr ( Xt = xt|Xt−1 = xt−1, D = 1) for all ( xt−1, xt) ∈ X 2, t = 2 , . . . , T 0. (19) Under the null hypothesis (19), the difference in conditional probabilities should be equal to zero for all pre-treatment periods t = 2 , . . . , T 0. This implication yields a graphical diagnostic for transition independence analogous to pre-trends testing in difference-in-differences. Specifically, one may plot the difference in conditional means of Xt between treated and control units for each lagged outcome xt−1 across pre-treatment periods t = 2 , . . . , T 0 and visually assess whether these differences are close to zero. The null hypothesis (19) can also be formally tested by construct-ing uniform confidence bands for the differences across all pre-treatment periods using bootstrap methods, extending the approach in Callaway and Sant’Anna (2021) to our setting. In the pres-ence of latent types, type-specific conditional means for treated and control units for each latent type can also be consistently estimated using posterior type probabilities obtained via Bayes’ rule. Implementation details are provided in Appendix D. 
+
+Remark 19 (Choosing the number of latent types) . The number of latent types J is a key pa-rameter in the model and is assumed to be known to the econometrician. One may determine the number of latent types using the Bayesian Information Criterion (BIC), computed from the like-lihood function in (16) with an additional penalty term as in Bonhomme and Manresa (2015), or through sequential hypothesis testing based on likelihood ratio tests (e.g., Kasahara and Shimotsu, 24 2015). Alternatively, one may implement the following iterative procedure: beginning with J = 1, estimate the model and test transition independence using the procedure in Remark 18. If the null hypothesis is not rejected, select J as the number of latent types. Otherwise, increment J by one and repeat. 
+
+# 4 Estimation 
+
+We develop a two-stage estimator that is consistent and asymptotically normal (Proposition 20). The first stage estimates the mixture model via maximum likelihood using the EM algorithm; the second computes treatment effects using the estimated posterior type probabilities. We propose the following two-stage estimation procedure. For brevity, we assume a first-order Markov process, but extension to higher-order Markov processes is straightforward. In the first stage, we estimate ψ by the maximum likelihood estimator ˆψ = arg max 
+
+> ψ∈Θψ
+> n
+
+X
+
+> i=1
+
+log pW (W i; ψ), (20) where pW (w; ψ) is the likelihood function defined in (16), and {W i}ni=1 is a random sample of n
+
+i.i.d. observations as described in Assumption RSM. In the second stage, define the conditional type probabilities of Z = j given W = w as a function of ψ as 
+
+τ j (w; ψ) := πj pj 
+
+> W
+
+(w; φj )
+
+PJk=1 πkpk 
+
+> W
+
+(w; φk) .
+
+From the MLE ˆψ, we obtain the estimated type probabilities of Z = j for each observation as ˆτ ji := τ j (W i; ˆψ) = ˆπj pj 
+
+> W
+
+(W i; ˆ φj )
+
+PJk=1 ˆπkpk 
+
+> W
+
+(W i; ˆ φk) . (21) Note that the posterior type probability ˆ τ ji conditions on the full observation vector W i, which includes both pre- and post-treatment outcomes. This is valid because W i is an observed (realized) quantity for each unit: the posterior simply uses all available data to classify units into latent types, and no counterfactual quantities enter the computation. Then, we consistently estimate the LTATTs (13) by the sample analogue estimator of (17) using 
+
+{ˆτ ji }ni=1 as weights: for t ≥ T0 + 1, ˆμAT T,j t = X 
+
+> xT0∈X
+
+cPr( XT0 = xT0 |D = 1 , Z = j)
+
+×
+
+nbE [Xt | XT0 = xT0 , D = 1 , Z = j] − bE [Xt | XT0 = xT0 , D = 0 , Z = j]
+
+o
+
+(22) 25 where 
+
+cPr( XT0 = xT0 |D = 1 , Z = j) = 
+
+Pni=1 1{XiT 0 = xT0 , D i = 1 }ˆτ ji
+
+Pni=1 1{Di = 1 }ˆτ ji
+
+(23) and the estimated conditional expectation is 
+
+bE [Xt | XT0 = xT0 , D = d, Z = j] = 
+
+Pni=1 Xit 1{XiT 0 = xT0 , D i = d}ˆτ ji
+
+Pni=1 1{XiT 0 = xT0 , D i = d}ˆτ ji
+
+. (24) We also propose the following consistent estimator for the ATT: ˆμAT T t =
+
+> J
+
+X
+
+> j=1
+
+cPr( Z = j | D = 1) ˆ μAT T,j t , cPr( Z = j | D = 1) = 
+
+Pni=1 1{Di = 1 }ˆτ jiPni=1 1{Di = 1 } . (25) Let I(ψ∗) be the Fisher information matrix for the MLE in (20). We assume the following regularity conditions for the MLE ˆψ.
+
+Assumption MLE. (a) Θ ψ is compact. All PMF entries in φj and mixture weights πj are bounded away from 0 and 1 by a common constant ϵ > 0. (b) ψ∗ lies in the interior of Θ ψ. (c) the Fisher information matrix I(ψ∗) is nonsingular. Let θt :=  vec( μAT T, 1 
+
+> t
+
+)⊤, . . . , vec( μAT T,J t )⊤, vec( μAT T t )⊤⊤ and θ :=  θ⊤
+
+> T0+1
+
+, . . . , θ⊤
+
+> T
+
+⊤. Denote the true value of θ by θ∗, and its two-step estimator, defined above, by ˆθ.
+
+Proposition 20 (Consistency and asymptotic normality of LTATT and ATT estimators) . Suppose that Assumptions RSM, M, ID, and MLE hold. Then: (a) ˆθ p
+
+−→ θ∗. (b) √n (ˆθ − θ∗) ⇒ N (0 , V ),where V = E[Ψ(W ; ψ∗)Ψ(W ; ψ∗)⊤] is the variance of the combined influence function Ψ := 
+
+ϕ+A∗S, accounting for both the second-stage sampling variability ( ϕ) and the first-stage estimation error propagated through the score ( A∗S). Explicit expressions are given in the proof. 
+
+To obtain a consistent estimator ˆV , we employ a nonparametric weighted bootstrap that yields consistent standard errors for the estimated LTATTs and ATTs while accounting for the dependence structure induced by the two-stage estimation procedure. Further details on the EM algorithm and the weighted bootstrap are provided in Appendix C. 
+
+# 5 Applications 
+
+We illustrate the proposed methodology through three empirical applications, each highlighting a distinct limitation of conventional DiD with discrete outcomes. In Charoenwong et al. (2019)’s study of the Dodd-Frank Act, DiD counterfactuals fall below zero, producing out-of-bounds pre-dictions that our transition-based approach avoids by construction. In Hvide and Jones (2018)’s analysis of a Norwegian patent reform, large baseline differences in patenting rates between treated and control groups induce mean-reversion bias, leading DiD to overstate the reform’s negative 26 effect. In the ADA application, DiD fails to detect statistically significant employment effects be-cause pre-treatment level differences mask the underlying transition dynamics; our method reveals significant negative effects operating through specific labor-force exit channels. 
+
+5.1 Application to Charoenwong et al. (2019) 
+
+Charoenwong et al. (2019) investigate how regulatory jurisdiction affects the quality of investment advisor regulation by exploiting a unique policy shift under the Dodd-Frank Act implemented in 2012, which transferred oversight of midsize registered investment advisers (RIAs) from the SEC to state regulators. This 2012 reform left fiduciary standards unchanged but allowed the SEC to focus on other areas. Charoenwong et al. (2019) compare midsize RIAs transitioned to state oversight (treated) with the remaining RIAs under SEC oversight (control) and document an increase in client complaints among midsize advisers under state oversight, indicating a decrease in service quality following the reform. We revisit Charoenwong et al. (2019) by comparing a canonical difference-in-differences esti-mator and our proposed estimators. The main outcome of interest is the annual rate of client complaints, i.e., whether a RIA received a complaint from customers, which indicates a decline in the service quality. We note that the original regression specification in Charoenwong et al. (2019) includes customer fixed effects and state-level time fixed effects as well, rather than having only RIA-level fixed effects and time fixed effects. This feature makes their reported estimates numerically different from difference-in-differences estimates under the parallel trends assumption. For consistency with previous examples, we implement a canonical difference-in-differences esti-mator with RIA-level fixed effects and time fixed effects only. Although this modification leads to numerically different estimates from Charoenwong et al. (2019), the qualitative conclusions re-main unchanged: the difference-in-differences estimates still suggest an increase in complaint rates following the reform. The counterfactual untreated average outcomes implied by the parallel trends assumption fall below zero as illustrated in Figure 1, indicating an out-of-bounds issue common in linear probability models. In contrast, our transition-based approach naturally restricts counterfactual untreated potential outcomes within the feasible range of probabilities by construction. This difference in the counterfactuals leads to the opposite signs of the ATTs across methods: we find a slight decrease in complaint rates following the reform using our transition-based approach. See Figure 7 for full comparison of counterfactuals across different numbers of latent types and lag orders. Figure 8 summarizes the ATT estimates from both approaches across alternative model specifications. The magnitude of the estimated decline varies across specifications, reflecting the sensitivity of the counterfactual construction to the degree of allowed latent heterogeneity in transition dynamics and the number of conditioning lags, although they all indicate either improvement or null impacts on service quality, in contrast to the findings implied by DiD. To formally assess transition independence in the pre-reform period, we compute differences in 27 Figure 7: Counterfactual Complaint Rates from the Dodd-Frank Act. 0.000 0.005 0.010 0.015 0.020     
+
+> 01234
+> Year Relative to the Policy Change
+> Received Complaint
+> Model
+> DiD
+> Our Method, J = 1
+> Our Method, J = 1 (k = 2 Lags)
+> Our Method, J = 1 (k = 3 Lags)
+> Our Method, J = 2
+> Our Method, J = 3
+> Treated
+
+Notes: This figure reports average counterfactual complaint rates for treated units in the absence of treatment, using the data of Charoenwong et al. (2019). The black solid line represents the observed average complaint rates from treated units. The red dashed line represents the counterfactual complaint rates implied by the parallel trends assumption for difference-in-differences. Blue markers denote counterfactual complaint rates from the proposed transition-based method with J ∈ { 1, 2, 3} latent types. Green markers correspond to lag-augmented variants for 
+
+J = 1 conditioning on k = 2 and k = 3 lags of the outcome variable. 
+
+transition probabilities between treated and control units across all four possible transition pairs (from no complaint to no complaint, from no complaint to complaint, etc.) and report bootstrap uniform confidence intervals for J = 1 , 2, 3 latent types (see Figure 15, Figure 16, and Figure 17 in the Appendix). The estimated differences are small and rarely statistically distinguishable from zero, providing support for transition independence prior to the Dodd-Frank Act. 
+
+5.2 Application to Hvide and Jones (2018) 
+
+Hvide and Jones (2018) examine the impact of the 2003 Norwegian reform that transferred one-third of patent rights to universities from researchers, who previously held full ownership. Hvide and Jones (2018) use a difference-in-differences design for the period 1995-2010 comparing inventors who were university researchers employed from 2000-2002 (treated) and non-university inventors (control). Their main TWFE specification (Equation 1 in Hvide and Jones, 2018) uses a dummy variable for annual patent applications as the outcome. They report a statistically significant estimate of -0.045 (Table 9 in Hvide and Jones, 2018), corresponding to a 4.5 percentage point 28 Figure 8: ATT Estimates of the Dodd-Frank Act on Complaint Rates. −0.02 −0.01 0.00 0.01 0.02    
+
+> 1234
+> Year Relative to the Policy Change
+> Average treatment effects (ATT, aggregated)
+> Model
+> DiD
+> Our Method, J = 1
+> Our Method, J = 1 (k = 2 Lags)
+> Our Method, J = 1 (k = 3 Lags)
+> Our Method, J = 2
+> Our Method, J = 3
+
+Notes: This figure summarizes the estimated average treatment effects on the treated (ATTs) of the Dodd-Frank Act’s 2012 reform on investment adviser complaint rates. The x-axis measures years relative to the policy change, and the y-axis reports aggregated ATT estimates. Red circles represent conventional difference-in-differences (DiD) estimates. Blue markers denote estimates from the proposed transition-based method with varying numbers of latent types ( J ∈ { 1, 2, 3}). Green markers correspond to lag-augmented variants for J = 1 conditioning on k = 2 and k = 3 lags of the outcome variable. Vertical bars indicate 95% bootstrap uniform confidence intervals. 
+
+decline in patenting probability for university researchers. We replicate their analysis using the same data to implement both the standard DiD design and our transition-based method. In contrast to the findings of Hvide and Jones (2018), our proposed method does not find a significant change in patenting rates following the reform. Figure 9 compares the ATT estimates across different methods and post-treatment periods. The results indicate that our transition-based estimates are closer to zero than the negative impacts implied by DiD. For robustness, we condition on additional lagged outcomes ( k = 2 and k = 3) and introduce latent types ( J = 2 and 
+
+J = 3) to account for potential violations of the transition independence assumption. Even after incorporating additional lag terms and latent transition heterogeneity, the ATT estimates remain negligible across all post-reform periods. The aggregate ATT (the average impact on patenting rates over post-reform periods) shows a statistically insignificant decline of approximately 0 .1 percentage points across all specifications ( J = 1 , 2, and 3). The large discrepancy between the DiD and our transition-based estimates is attributable to substantial pre-treatment differences in patenting rates between university inventors (treated) and non-university inventors (control), as illustrated in Figure 2. In fact, in the year immediately pre-29 Figure 9: ATT Estimates of the Norwegian Law Reform on Annual Patenting Rates. −0.2 −0.1 0.0 0.1    
+
+> 2468
+> Year Relative to the Policy Change
+> Average treatment effects (ATT, aggregated)
+> Model
+> DiD
+> Our Method, J = 1
+> Our Method, J = 1 (k = 2 Lags)
+> Our Method, J = 1 (k = 3 Lags)
+> Our Method, J = 2
+> Our Method, J = 3
+
+Notes: This figure summarizes the estimated average treatment effects on the treated (ATTs) of the Norwegian patent reform on annual patenting rates of university inventors, using the data of Hvide and Jones (2018). The x-axis measures years relative to the reform, and the y-axis reports aggregated ATT estimates. Red circles represent conventional difference-in-differences (DiD) estimates. Blue markers denote estimates from the proposed transition-based method with varying numbers of latent types ( J ∈ { 1, 2, 3}). Green markers correspond to lag-augmented variants for J = 1 conditioning on k = 2 and k = 3 lags of the outcome variable. Vertical bars indicate 95% bootstrap uniform confidence intervals. 
+
+ceding the reform, university inventors were nearly twice as likely to patent as their non-university counterparts. As discussed in subsection 2.2, this baseline disparity most likely biases DiD esti-mates: due to higher baseline rates, mean reversion would lead treated units to experience a steeper decline than controls in the absence of the reform, thereby violating the parallel trends assumption. To assess the plausibility of the transition independence assumption, we examine pre-treatment differences in transition probabilities between treated and control units across all four possible tran-sition pairs and report bootstrap uniform confidence intervals in Figure 10 for J = 1 (see Figure 18 and Figure 19 in the Appendix for J = 2 , 3). Across all specifications, the estimated differences are consistently small and statistically indistinguishable from zero, providing empirical support for transition independence in this setting. Transitions conditioning on the more common no-patenting state exhibit tight confidence intervals centered near zero, while transitions conditioning on patent-ing show wider confidence intervals, reflecting the smaller number of inventors in this conditioning subset. While introducing additional latent types ( J = 2 and J = 3) marginally improves the pre-treatment fit by isolating units with systematically different transition patterns, the estimated 30 Figure 10: Differences in Patenting Transition Probabilities Before the Norwegian Law Reform. −0.20 −0.15 −0.10 −0.05 0.00 0.05             
+
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> No patenting Rates, Conditioning on No Patenting Last Year
+> −0.25 0.00 0.25
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> No patenting Rates, Conditioning on Patenting Last Year
+> −0.05 0.00 0.05 0.10 0.15 0.20
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> Patenting Rates, Conditioning on No Patenting Last Year
+> −0.25 0.00 0.25
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> Patenting Rates, Conditioning on Patenting Last Year
+
+Notes: This figure reports estimated differences in annual patenting transition probabilities between university researchers (treated) and non-university inventors (control) before the Norwegian patent reform. Each panel corresponds to a distinct patenting transition, where rates represent the annual probability of moving from one patenting status (No Patent or Patent) to another. The x-axis measures years relative to the introduction of the reform (with zero denoting the last pre-treatment period; treatment begins at period 1), and the y-axis shows the estimated difference in transition probabilities between treated and control groups. Vertical bars represent 95% bootstrap uniform confidence intervals across periods within each transition pair. The dashed vertical line marks the timing of the policy introduction. 
+
+treatment effects remain stable across specifications. 31 Figure 11: Baseline Employment Rate Differences Before the ADA of 1990. 0.6 0.8 1.0        
+
+> −5 0510 15 20
+> Month Relative to the Policy Change
+> Is Employed
+> Treatment Status Control Treated
+> Notes: This figure shows average monthly employment rates for individuals with disabilities (treated group) and those without disabilities (control group) from 1989 to 1991, surrounding the enactment of the ADA. The x-axis reports calendar months, with 1990 marking the implementation year of the ADA. The y-axis shows the fraction of individuals employed. The dashed vertical line indicates the timing of the ADA’s introduction.
+
+5.3 Employment Effects of the Americans with Disabilities Act of 1990 
+
+In this example, we examine the effects of the Americans with Disabilities Act (ADA) signed into law in 1990 on employment comparing working-age individuals with work-related disabil-ity (treated) and individuals without work-related disability (control). The ADA was enacted to prohibit discrimination against individuals with disabilities in employment, public services, and accommodations. Title I of the ADA specifically mandated that employers with 15 or more em-ployees could not discriminate against qualified individuals with disabilities in hiring, advancement, or discharge decisions, and required that reasonable accommodations be provided in the workplace. Previous studies on the ADA (Acemoglu and Angrist, 2001; Hotchkiss, 2003; Lise et al., 2023) have largely relied on before-and-after or difference-in-differences designs to evaluate employment impacts. These studies report declining employment rates among disabled individuals, suggesting that compliance costs and fear of litigation may have reduced employers’ incentives to hire disabled workers. We study monthly labor force status that takes the value of one of three mutually exclusive states: employed, unemployed, and out-of-labor-force (OLF). We use data from Rotation Group 1 of the 1990 Survey of Income and Program Participation (SIPP) panel (United States Census 32 Figure 12: Difference in Labor Force Transition Probabilities Before the ADA. −0.09 −0.06 −0.03 0.00     
+
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Employed−to−Employed Rates
+> −0.08 −0.04 0.00
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> OLF−to−Employed Rates
+> −0.3 −0.2 −0.1 0.0 0.1 0.2 0.3
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Unemployed−to−Employed Rates
+> 0.00 0.02 0.04 0.06 0.08
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Employed−to−OLF Rates
+> −0.05 0.00 0.05 0.10
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> OLF−to−OLF Rates
+> −0.2 0.0 0.2
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Unemployed−to−OLF Rates
+> −0.01 0.00 0.01 0.02 0.03 0.04
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Employed−to−Unemployed Rates
+> −0.05 0.00 0.05
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> OLF−to−Unemployed Rates
+> −0.2 0.0 0.2
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change 
+
+> Unemployed−to−Unemployed Rates
+
+Notes: This figure reports estimated differences in monthly labor force transition probabilities between individuals with and without disabilities before the enactment of the ADA. Each panel corresponds to a distinct labor force transition, where rates represent the monthly probability of moving from one labor force status (e.g., employed, unemployed, out of the labor force (OLF)) to another. The x-axis measures calendar months relative to the introduction of the ADA (with zero denoting the last pre-treatment period; treatment begins at period 1), and the y-axis shows the estimated difference in transition probabilities between treated (individuals with disabilities) and control (individuals without disabilities) groups. Vertical bars represent 95% bootstrap uniform confidence intervals across periods within each transition pair. The dashed vertical line marks the timing of the ADA introduction. 
+
+Bureau, 1990–1993), which provides monthly observations from January 1990 through October 1991. Taking the ADA signing in July 1990 as the treatment date, this yields 6 pre-treatment and up to 22 post-treatment monthly observations per individual, thereby capturing the full labor force transition dynamics before and after the ADA. Since the ADA was implemented nationwide 33 Figure 13: ATT Estimates of the ADA on Employment. −0.2 −0.1 0.0     
+
+> 0510 15 20
+> Month Relative to the Policy Change
+> Average treatment effects (ATT, aggregated)
+> Model
+> DiD
+> Our Method, J = 1
+> Our Method, J = 1 (k = 2 Lags)
+> Our Method, J = 1 (k = 3 Lags)
+> Our Method, J = 2
+> Our Method, J = 3
+
+Notes: This figure summarizes the estimated average treatment effects on the treated (ATTs) of the Americans with Disabilities Act (ADA) on employment outcomes using several estimation strategies. The x-axis measures calendar months relative to the implementation of the ADA, and the y-axis reports aggregated ATT estimates across post-treatment periods. Red circles represent conventional difference-in-differences (DiD) estimates, while green markers correspond to lag-augmented DiD models conditioning on one to three lags of the outcome variable. Blue markers denote estimates from the proposed transition-based method with varying numbers of latent types (J ∈ { 1, 2, 3}). Vertical bars indicate 95% bootstrap uniform confidence intervals. 
+
+without explicit state-level variation, we compare individuals with and without disabilities, as in difference-in-differences strategies used in prior research (Acemoglu and Angrist, 2001; Lise et al., 2023). Throughout the remainder of the paper, individuals with work-related disabilities are referred to as the treated group, and the others as the control group. We restrict the sample to adults aged 21-58 and classify individuals reporting a work-limiting disability as disabled, as in Lise et al. (2023). We first note that the treated and control groups exhibited different baseline employment rates as well as diverging trends even before the introduction of the ADA, as illustrated in Figure 11. For example, in the pre-treatment period, the employment rate among individuals with disabilities was 27.5 percentage points lower than that of individuals without disabilities in our sample. This pre-existing disparity raises concerns about the validity of the parallel trends assumption due to potential mean reversion. Beyond employment status (employed), similar level differences are present across all possible labor force states, as displayed (see Figure 20 in the Appendix). In contrast, the data suggest that treated and control units exhibit broadly similar transition 34 Figure 14: Decomposing ATTs of the ADA on Employment by Employment Channels. −0.10 −0.05 0.00 0.05 0.10 0.15          
+
+> 0510 15 20
+> Month Relative to the Policy Change
+> Conditional ATT on employed (Weighted)
+> Type Inflow Outflow Outcome OLF Unemployed
+
+Notes: This figure applies the flow decomposition in (8) to the ADA’s effect on employment, with the focal state ¯y(k) = Employed. Solid lines plot inflow effects: the difference in transition probabilities into employment between treated and control groups, weighted by the treated group’s pre-treatment distribution—corresponding to the first sum in (8). Specifically, the “Unemployed → Employed” series measures the inflow effect from y = Unemployed, and the “OLF → Employed” series measures the inflow effect from y = OLF. Dashed lines plot outflow effects: the difference in transition probabilities out of employment, weighted by the treated group’s probability of being employed at T0—corresponding to the subtracted sum in (8). All series are plotted as signed contributions to the employment ATT (i.e., outflow effects include the minus sign from (8)), so that negative values indicate channels that reduce employment. The “Employed → Unemployed” series measures the outflow effect to y = Unemployed, and the “Employed → OLF” series measures the outflow effect to y = OLF. The dominant channel is the outflow from employment to OLF. The x-axis measures calendar months relative to the ADA enactment, and the y-axis displays weighted conditional ATTs on employment. 
+
+dynamics across employment statuses, indicating transition independence. To formally assess tran-sition independence in the pre-legislation period, we compute differences in transition probabilities between treated and control units across all nine possible transition pairs and report bootstrap uniform confidence intervals. Across all specifications ( J = 1 , 2, 3), the estimated pre-treatment differences are small and statistically insignificant, supporting the plausibility of transition inde-pendence (Figure 12 for J = 1; see Figure 21 and Figure 22 in the Appendix for J = 2 , 3). The pattern remains qualitatively similar across latent types when allowing for heterogeneity in transi-tion dynamics. Our transition-based estimates indicate a statistically significant negative impact on employ-ment across all specifications, whereas the standard DiD model, which is likely biased due to dif-ferences in pre-treatment employment levels, yields estimates that fail to reject the null hypothesis 35 of no negative employment effects. The ATT estimates across different methods and specifications are provided in Figure 13. The aggregate ATT estimates from the transition-based estimators are robust across specifications: for J = 1, 2, and 3 as well as lag-augmented variants ( k = 2 and k = 3 lags), all consistently indicate negative employment effects, suggesting that the conclusions are not driven by specific modeling choices. Overall, the results indicate that the ADA may have had an unintended short-run negative impact on employment for individuals with disabilities. A distinctive advantage of the transition-based framework is its ability to decompose treatment effects into specific transition channels via the flow decomposition in (8). Figure 14 applies this decomposition to identify how the employment declines arise, namely, which specific inflow and outflow transition channels account for the reduced employment. Figure 14 shows that the domi-nant channel in the decline in employment is an increase in transitions from employment directly into OLF among individuals with disabilities after the ADA, with a secondary contribution from reduced inflows from OLF into employment. In contrast, transitions involving unemployment (both Employment →Unemployment outflows and Unemployment →Employment inflows) play a limited role. This decomposition reveals a mechanism not apparent from the initial-status analysis: the ADA’s adverse employment effect operates primarily through labor-force exits and, to a lesser extent, through reduced labor-force entry from OLF, rather than through changes in job-search outcomes. Such channel-specific insights are unavailable from standard DiD, which estimates only the net change in outcome levels. 36 A Proofs 
+
+A.1 Proof of Proposition 1 
+
+The result follows from the identity E [Xt(1) | D = 1] = E [Xt | D = 1] and 
+
+E [Xt(0) | D = 1] = E
+
+h
+
+E
+
+h
+
+Xt(0) | XT0 
+
+> 1
+
+(0) , D = 1 
+
+i
+
+| D = 1 
+
+i
+
+= E
+
+h
+
+E
+
+h
+
+Xt(0) | XT0 
+
+> 1
+
+(0) , D = 0 
+
+i
+
+| D = 1 
+
+i
+
+= E
+
+h
+
+E
+
+h
+
+Xt | XT0 
+
+> 1
+
+, D = 0 
+
+i
+
+| D = 1 
+
+i
+
+,
+
+where the first equality follows from the law of iterated expectations, where the outer expectation over XT0 
+
+> 1
+
+(0) is taken with respect to Pr( XT0 
+
+> 1
+
+(0) | D = 1); the second from Assumption TI together with the no-anticipation assumption (Assumption NA) and the common support assumption (As-sumption CS); and the third from the fact that Xt(0) = Xt for all t when D = 0, which also uses Assumption NA to replace XT0 
+
+> 1
+
+(0) with the observed XT0 
+
+> 1
+
+in the conditioning set. Substituting these expressions into the definition of μATT  
+
+> t
+
+in (3) yields equation (4). 
+
+A.2 Proof of Proposition 10 
+
+By definition, 
+
+μDiD  
+
+> t
+
+= E[Xt − XT0 | D = 1] − E[Xt − XT0 | D = 0] , μATT  
+
+> t
+
+= E[Xt(1) − Xt(0) | D = 1] .
+
+By Assumption NA, Xt = Xt(0), t ≥ T0 + 1, for D = 0 and XT0 = XT0 (0) for all units, so 
+
+μDiD  
+
+> t
+
+− μATT  
+
+> t
+
+= E[Xt(0) − XT0 (0) | D = 1] − E[Xt(0) − XT0 (0) | D = 0] . (26) Applying the Law of Iterated Expectations to the first term, 
+
+E[Xt(0) | D = 1] = E
+
+h
+
+E[Xt(0) | XT0 
+
+> 1
+
+, D = 1] | D = 1 
+
+i
+
+.
+
+By Assumption TI, 
+
+E[Xt(0) | XT0 
+
+> 1
+
+, D = 1] = E[Xt(0) | XT0 
+
+> 1
+
+, D = 0] = E[Xt | XT0 
+
+> 1
+
+, D = 0] . (27) Using (27) and the same argument for D = 0, equation (26) becomes 
+
+μDiD  
+
+> t
+
+− μATT  
+
+> t
+
+= E[E[Xt | XT0 
+
+> 1
+
+, D = 0] − XT0 | D = 1] − E[E[Xt | XT0 
+
+> 1
+
+, D = 0] − XT0 | D = 0] .
+
+37 Under Assumption CS, expand the above equation over the support X T0 :
+
+μDiD  
+
+> t
+
+− μATT  
+
+> t
+
+= X  
+
+> xT01∈X T0
+
+E[Xt − xT0 | XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+, D = 0] 
+
+| {z }
+
+> control mean trend
+
+×
+
+n
+
+Pr 
+
+
+
+XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+| D = 1 
+
+
+
+− Pr 
+
+
+
+XT0 
+
+> 1
+
+= xT0 
+
+> 1
+
+| D = 0 
+
+o 
+
+.
+
+This proves the stated result. .
+
+A.3 Proof of Proposition 12 
+
+Suppose that Assumption TI holds. Let ¯ x(k) ∈ X denote the value of Xt(0) corresponding to 
+
+Yt(0) = ¯ y(k), where the k-th element equals 1 and all other elements equal 0. Then, Pr( Xt(0) = ¯x(k) | XT0 
+
+> 1
+
+(0) = xT0 
+
+> 1
+
+, D = d] = Pr( X(k) 
+
+> t
+
+(0) = 1 | XT0 
+
+> 1
+
+(0) = xT0 
+
+> 1
+
+, D = d] = E[X(k) 
+
+> t
+
+(0) | XT0 
+
+> 1
+
+(0) = 
+
+xT0 
+
+> 1
+
+, D = d]. Therefore, Assumption TI implies that E[Xt(0) | XT0 
+
+> 1
+
+(0) = xT0 
+
+> 1
+
+, D = 0] = E[Xt(0) |
+
+XT0 
+
+> 1
+
+(0) = xT0 
+
+> 1
+
+, D = 1] for all t ≥ T0 + 1, and Assumption CPT is satisfied. Conversely, suppose that Assumption CPT holds. Then, for each k = 1 , . . . , K , E[X(k) 
+
+> t
+
+(0) |
+
+XT0 
+
+> 1
+
+(0) = xT0 
+
+> 1
+
+, D = 0] = E[X(k) 
+
+> t
+
+(0) | XT0 
+
+> 1
+
+(0) = xT0 
+
+> 1
+
+, D = 1]. Substituting E[X(k) 
+
+> t
+
+(0) | XT0 
+
+> 1
+
+(0) = 
+
+xT0 
+
+> 1
+
+, D = d] = Pr( Xt(0) = ¯ x(k) | XT0 
+
+> 1
+
+(0) = xT0 
+
+> 1
+
+, D = d) into both sides yields Pr 
+
+
+
+Xt(0) = ¯ x(k) | XT0 
+
+> 1
+
+(0) = xT0 
+
+> 1
+
+, D = 0 
+
+
+
+= Pr 
+
+
+
+Xt(0) = ¯ x(k) | XT0 
+
+> 1
+
+(0) = xT0 
+
+> 1
+
+, D = 1 
+
+
+
+.
+
+for all k = 1 , . . . , K . Since X = {¯x(1) , . . . , ¯x(K)}, it follows that Assumption TI holds. 
+
+A.4 Proof of Proposition 14 
+
+Suppose that T0 = k + 1, T = 2( k + 1), and J = |X | k. Partition ( X1, ..., XT ) as ( X1, ..., XT ) = (ξ1, ξ 2, ξ 3, ξ 4), where 
+
+ξ1 := Xk 
+
+> 1
+
+∈ X k, ξ2 := Xk+1 ∈ X , ξ3 = Xk+2 ∈ X , and ξ4 := XTk+3 ∈ X T −(k+2) . (28) Note that, when k = 1, we have ξt = Xt for t = 1 , ..., 4. For d ∈ { 0, 1}, define the corresponding potential outcomes ξ1(d) := Xk 
+
+> 1
+
+(d), ξ2(d) := Xk+1 (d), ξ3(d) = Xk+2 (d), and ξ4(d) := XTk+3 (d). Because Xt = Xt(0) for t = 1 , 2, ..., T for all control units with D = 0, we have ξj = ξj (0) for j = 1 , 2, 3, 4 for all units with D = 0. Then, the probability mass function of ( ξ2, ξ 3, ξ 4) given (ξ1, D ) = ( ξ1, 0) is written as 
+
+pξ2,ξ 3,ξ 4|ξ1,D (ξ2, ξ 3, ξ 4|ξ1, 0) = 
+
+> J
+
+X
+
+> j=1
+
+τ jξ1(0) ,D (ξ1, 0) pjξ2(0) |ξ1(0) (ξ2|ξ1)pjξ3(0) |ξ2(0) (ξ3|ξ2)pjξ4(0) |ξ3(0) (ξ4|ξ3)=
+
+> J
+
+X
+
+> j=1
+
+λj
+
+> 1
+
+(ξ2|ξ1)λj
+
+> 2
+
+(ξ3|ξ2)λj
+
+> 3
+
+(ξ4|ξ3), (29) 38 where 
+
+τ jξ1(0) ,D (ξ1, d ) := πj pjξ1,D (ξ1, d )
+
+PJk=1 πkpkξ1,D (ξ1, d ) , λj
+
+> 1
+
+(ξ2|ξ1) := τ jξ1(0) ,D (ξ1, 0) pjξ2(0) |ξ1(0) (ξ2|ξ1),λj
+
+> 2
+
+(ξ3|ξ2) := pjξ3(0) |ξ2(0) (ξ3|ξ2), and λj
+
+> 3
+
+(ξ4|ξ3) := pjξ4(0) |ξ3(0) (ξ4|ξ3).
+
+Here, because ξ4 is a block of periods, pjξ4(0) |ξ3(0) (ξ4 | ξ3) represents the product of first-order transition probabilities within that block. Evaluating (29) at ( ξ1, ξ 2, ξ 3, ξ 4) = ( a, ξ 2, ξ 3, b ) gives 
+
+pξ2,ξ 3,ξ 4|ξ1,D (ξ2, ξ 3, b |a, 0) = 
+
+> J
+
+X
+
+> j=1
+
+λj
+
+> 1
+
+(ξ2|a)λj
+
+> 2
+
+(ξ3|ξ2)λj
+
+> 3
+
+(b|ξ3). (30) Similarly, evaluating pξ2,ξ 3|ξ1,D (ξ2, ξ 3|ξ1, 0) = PJj=1 τ jξ1(0) ,D (ξ1, 0) pjξ2|ξ1 (ξ2|ξ1)pjξ3(0) |ξ2(0) (ξ3|ξ2) at (ξ1, ξ 2, ξ 3) = ( a, ξ 2, ξ 3) gives 
+
+pξ2,ξ 3|ξ1,D (ξ2, ξ 3|a, 0) = 
+
+> J
+
+X
+
+> j=1
+
+λj
+
+> 1
+
+(ξ2|a)λj
+
+> 2
+
+(ξ3|ξ2). (31) Denote 
+
+qξ2,ξ 3 (a, b ) := pξ2,ξ 3,ξ 4|ξ1,D (ξ2, ξ 3, b |a, 0) and ¯qξ2,ξ 3 (a) := pξ2,ξ 3|ξ1,D (ξ2, ξ 3|a, 0) . (32) Evaluating (30) at a = a1, ..., a J and b = b1, ..., b J−1 gives J(J − 1) equations while evaluating (31) at a = a1, ..., a J gives J equations. Using matrix notation, we collect these J(J − 1) + J = J2 equations as 
+
+Qξ2,ξ 3 = Lξ3 Dξ3|ξ2
+
+¯L⊤ 
+
+> ξ2
+
+, (33) where 
+
+Qξ2,ξ 3 := 
+
+
+
+¯qξ2,ξ 3 (a1) ¯qξ2,ξ 3 (a2) · · · ¯qξ2,ξ 3 (aJ )
+
+qξ2,ξ 3 (a1, b 1) qξ2,ξ 3 (a2, b 1) · · · qξ2,ξ 3 (aJ , b 1)... ... . . . ...
+
+qξ2,ξ 3 (a1, b J−1) qξ2,ξ 3 (a2, b J−1) · · · qξ2,ξ 3 (aJ , b J−1)
+
+ , (34) ¯Lξ2 := 
+
+
+
+λ11(ξ2|a1) · · · λJ 
+
+> 1
+
+(ξ2|a1)... . . . . . . λ11(ξ2|aJ ) · · · λJ 
+
+> 1
+
+(ξ2|aJ )
+
+ , Lξ3 := 
+
+
+
+1 · · · 1
+
+λ13(b1|ξ3) · · · λJ 
+
+> 3
+
+(b1|ξ3)... . . . ...
+
+λ13(bJ−1|ξ3) · · · λJ 
+
+> 3
+
+(bJ−1|ξ3)
+
+ , (35) and Dξ3|ξ2 := diag  λ12(ξ3|ξ2), ..., λ J 
+
+> 2
+
+(ξ3|ξ2).39 Define 
+
+τ jξ1(0) ,ξ 2(0) ,D (ξ1, ξ 2, 1) := τ jξ1(0) ,D (ξ1, 1) pjξ2(0) |ξ1(0) (ξ2|ξ1).
+
+We make the following assumption. 
+
+Assumption ID. (a) There exists a value ξ∗ 
+
+> 3
+
+that satisfies the following condition: For every 
+
+ξ3 ∈ X , we can find ( ˇξ2, ¯ξ2, ¯ξ3) ∈ X 3, ( a1, ..., a J ) ∈ X kJ and ( b1, ..., b J−1) ∈ X (T −(k+2))( J−1) such that (i) ¯Lˇξ2 , ¯L¯ξ2 , Lξ3 , Lξ∗ 
+
+> 3
+
+, and L¯ξ3 are non-singular; (ii) all the diagonal elements of Dξ3,ξ 3 defined in (37) with ξ∗ 
+
+> 3
+
+= ξ3 take distinct values. (b) For every ( ξ2, ξ 3, ξ 4) ∈ X T −k, pjξ3(0) |ξ2(0) (ξ3|ξ2) > 0and pjξ4(0) |ξ3(0) (ξ4|ξ3) > 0 for j = 1 , ..., J . (c) For every value of ξ1 ∈ X k, there exists {cj }Jj=1 ∈ X J
+
+such that 
+
+p1
+
+> ξ2(0) |ξ1(0)
+
+(c1|ξ1) p2
+
+> ξ2(0) |ξ1(0)
+
+(c1|ξ1) · · · pJξ2(0) |ξ1(0) (c1|ξ1)
+
+p1
+
+> ξ2(0) |ξ1(0)
+
+(c2|ξ1) p2
+
+> ξ2(0) |ξ1(0)
+
+(c2|ξ1) · · · pJξ2(0) |ξ1(0) (c2|ξ1)... ... . . . ...
+
+p1
+
+> ξ2(0) |ξ1(0)
+
+(cJ |ξ1) p2
+
+> ξ2(0) |ξ1(0)
+
+(cJ |ξ1) · · · pJξ2(0) |ξ1(0) (cJ |ξ1)
+
+
+
+is non-singular. (d) For each value of ξ2 ∈ X , there exists {ej }Jj=1 ∈ X kJ such that 
+
+
+
+τ 1
+
+> ξ1(0) ,ξ 2(0) ,D
+
+(e1, ξ 2, 1) τ 2
+
+> ξ1(0) ,ξ 2(0) ,D
+
+(e1, ξ 2, 1) · · · τ Jξ1(0) ,ξ 2(0) ,D (e1, ξ 2, 1) 
+
+τ 1
+
+> ξ1(0) ,ξ 2(0) ,D
+
+(e2, ξ 2, 1) τ 2
+
+> ξ1(0) ,ξ 2(0) ,D
+
+(e2, ξ 2, 1) · · · τ Jξ1(0) ,ξ 2(0) ,D (e2, ξ 2, 1) ... ... . . . ...
+
+τ 1
+
+> ξ1(0) ,ξ 2(0) ,D
+
+(eJ , ξ 2, 1) τ 2
+
+> ξ1(0) ,ξ 2(0) ,D
+
+(eJ , ξ 2, 1) · · · τ Jξ1(0) ,ξ 2(0) ,D (eJ , ξ 2, 1) 
+
+
+
+is non-singular. We fix the value of ξ∗ 
+
+> 3
+
+and, for each ξ3, we choose ( ˇξ2, ¯ξ2, ¯ξ3), ( a1, ..., a J ), and ( b1, ..., b J−1) as stated in Assumption ID(a). Evaluating (33) at four different points, ( ξ3, ˇξ2), ( ¯ξ3, ˇξ2), ( ¯ξ3, ¯ξ2), and (ξ∗ 
+
+> 3
+
+, ¯ξ2) gives 
+
+Qˇξ2,ξ 3 = Lξ3 Dξ3| ˇξ2
+
+¯L⊤ 
+
+> ˇξ2
+
+, Qˇξ2, ¯ξ3 = L¯ξ3 D ¯ξ3| ˇξ2
+
+¯L⊤ 
+
+> ˇξ2
+
+,
+
+Q¯ξ2, ¯ξ3 = L¯ξ3 D ¯ξ3| ¯ξ2
+
+¯L⊤ 
+
+> ¯ξ2
+
+, Q¯ξ2,ξ ∗ 
+
+> 3
+
+= Lξ∗ 
+
+> 3
+
+Dξ∗  
+
+> 3|¯ξ2
+
+¯L⊤ 
+
+> ¯ξ2
+
+.
+
+Then, following the identification argument in Carroll et al. (2010), under Assumption ID(a)(b), we have 
+
+Aξ3,ξ ∗ 
+
+> 3
+
+:= Qˇξ2,ξ 3 (Qˇξ2, ¯ξ3 )−1Q¯ξ2, ¯ξ3 (Q¯ξ2,ξ ∗ 
+
+> 3
+
+)−1 = Lξ3 Dξ3,ξ ∗ 
+
+> 3
+
+L−1
+
+> ξ∗
+> 3
+
+, (36) where 
+
+Dξ3,ξ ∗ 
+
+> 3
+
+:= Dξ3| ˇξ2 (D ¯ξ3| ˇξ2 )−1D ¯ξ3| ¯ξ2 (Dξ∗   
+
+> 3|¯ξ2
+
+)−1. (37) We first identify Lξ3 for all ξ3 ∈ X up to an unknown permutation matrix. Evaluating (36) and (37) at ξ∗ 
+
+> 3
+
+= ξ3, we have 
+
+Aξ3,ξ 3 Lξ3 = Lξ3 Dξ3,ξ 3 .
+
+Because Aξ3,ξ 3 has J distinct eigenvalues under Assumption ID(a), the eigenvalues of Aξ3,ξ 3 deter-40 mine the diagonal elements of Dξ3,ξ 3 while the right eigenvectors of Aξ3,ξ 3 determine the columns of Lξ3 up to multiplicative constant and the ordering of its columns. Namely, collecting the right eigenvectors of Aξ3,ξ 3 into a matrix in descending order of their eigenvalues, we identify 
+
+B := Lξ3 ∆ξ3 C,
+
+where B satisfies Aξ3,ξ 3 B = BD ξ3,ξ 3 , ∆ ξ3 is an unknown permutation matrix, and C is some diagonal matrix with non-zero diagonal elements. We can determine the diagonal matrix CD ξ3,ξ 3 from the first row of Aξ3,ξ 3 B = BD ξ3,ξ 3 =
+
+Lξ3 ∆ξ3 CD ξ3,ξ 3 because the first row of Lξ3 ∆ξ3 is a vector of ones. Then, Lξ3 ∆ξ3 is determined from Aξ3,ξ 3 B and CD ξ3,ξ 3 as Lξ3 ∆ξ3 = Aξ3,ξ 3 B(CD ξ3,ξ 3 )−1 in view of Aξ3,ξ 3 B = Lξ3 ∆ξ3 CD ξ3,ξ 3 .Repeating the above argument for all values of ξ3 ∈ X , the eigenvalue decomposition algorithm identifies the matrices ˜Lξ3 := Lξ3 ∆ξ3 for all ξ3 ∈ X , (38) where ∆ ξ3 is an unknown permutation matrix that depends on ξ3.Next, we identify permutation matrices that re-arrange Lξ3 ∆ξ3 into a common order of latent types across different values of ξ3, following the identification argument in Higgins and Jochmans (2023). Pre- and post-multiplying (36) by ˜L−1 
+
+> ξ3
+
+and ˜Lξ∗ 
+
+> 3
+
+, respectively, we obtain ˜Dξ3,ξ ∗ 
+
+> 3
+
+:= ˜L−1 
+
+> ξ3
+
+Aξ3,ξ ∗
+
+> 3
+
+˜Lξ∗ 
+
+> 3
+
+= ∆ −1 
+
+> ξ3
+
+Dξ3,ξ ∗ 
+
+> 3
+
+∆ξ∗ 
+
+> 3
+
+=
+
+
+
+∆−1 
+
+> ξ3
+
+∆ξ∗
+
+> 3
+
+  
+
+∆−1
+
+> ξ∗
+> 3
+
+Dξ3,ξ ∗ 
+
+> 3
+
+∆ξ∗
+
+> 3
+
+
+
+,
+
+where the last equality inserts the identity matrix ∆ ξ∗ 
+
+> 3
+
+∆−1
+
+> ξ∗
+> 3
+
+. Define the relative permutation matrix 
+
+P ξ3 := ∆ −1 
+
+> ξ3
+
+∆ξ∗ 
+
+> 3
+
+and the diagonal matrix D∗ 
+
+> ξ3,ξ ∗
+> 3
+
+:= ∆ −1
+
+> ξ∗
+> 3
+
+Dξ3,ξ ∗ 
+
+> 3
+
+∆ξ∗ 
+
+> 3
+
+. We observe that ˜Dξ3,ξ ∗ 
+
+> 3
+
+=
+
+P ξ3 D∗ 
+
+> ξ3,ξ ∗
+> 3
+
+. Because P ξ3 is a permutation matrix, ˜Dξ3,ξ ∗ 
+
+> 3
+
+is a column-permuted diagonal matrix. Specifically, the j-th column of ˜Dξ3,ξ ∗ 
+
+> 3
+
+contains exactly one non-zero element, which corresponds to a diagonal element of D∗ 
+
+> ξ3,ξ ∗
+> 3
+
+. Therefore, each diagonal element of D∗ 
+
+> ξ3,ξ ∗
+> 3
+
+is identified by the sum of the elements in the corresponding column of ˜Dξ3,ξ ∗ 
+
+> 3
+
+. Consequently, the matrix D∗ 
+
+> ξ3,ξ ∗
+> 3
+
+= ∆ −1
+
+> ξ∗
+> 3
+
+Dξ3,ξ ∗ 
+
+> 3
+
+∆ξ∗
+
+> 3
+
+is identified. With ˜Dξ3,ξ ∗ 
+
+> 3
+
+and D∗ 
+
+> ξ3,ξ ∗
+> 3
+
+identified, we can identify the relative permutation matrix as P ξ3 =˜Dξ3,ξ ∗ 
+
+> 3
+
+(D∗ 
+
+> ξ3,ξ ∗
+> 3
+
+)−1. Substituting the definitions back into this expression, we have identified ∆−1 
+
+> ξ3
+
+∆ξ∗ 
+
+> 3
+
+= ˜Dξ3,ξ ∗ 
+
+> 3
+
+(∆ −1
+
+> ξ∗
+> 3
+
+Dξ3,ξ ∗ 
+
+> 3
+
+∆ξ∗ 
+
+> 3
+
+)−1. Finally, we identify Lξ3 up to a common permutation matrix ∆ξ∗ 
+
+> 3
+
+(which does not depend on ξ3 under Assumption ID(a)) by aligning the columns of ˜Lξ3 using the identified relative permutation as 
+
+L∗ 
+
+> ξ3
+
+:= Lξ3 ∆ξ∗ 
+
+> 3
+
+= ˜Lξ3 (∆ −1 
+
+> ξ3
+
+∆ξ∗ 
+
+> 3
+
+) = ˜Lξ3 ˜Dξ3,ξ ∗
+
+> 3
+
+
+
+∆−1
+
+> ξ∗
+> 3
+
+Dξ3,ξ ∗ 
+
+> 3
+
+∆ξ∗
+
+> 3
+
+−1
+
+. (39) In the next step, we identify {τ jξ1(0) ,D (·, 0) , p jξ2(0) |ξ1(0) (·|· ), p jξ3(0) |ξ2(0) (·|· )}Jj=1 up to a permutation 41 matrix ∆ ξ∗ 
+
+> 3
+
+. Evaluating 
+
+pξ2,ξ 3,ξ 4|ξ1,D (ξ2, ξ 3, ξ 4|ξ1, 0) = 
+
+JX
+
+j=1 
+
+τ jξ1(0) ,D (ξ1, 0) pjξ2(0) |ξ1(0) (ξ2|ξ1)pjξ3(0) |ξ2(0) (ξ3|ξ2)pjξ4(0) |ξ3(0) (ξ4|ξ3)at ξ4 = b1, b 2, ..., b J−1 and collecting them into a vector together with pξ2,ξ 3|ξ1,D (ξ2, ξ 3|ξ1, 0) = 
+
+PJj=1 τ jξ1(0) ,D (ξ1, 0) pjξ2(0) |ξ1(0) (ξ2|ξ1)pjξ3(0) |ξ2(0) (ξ3|ξ2) gives 
+
+qξ2,ξ 3|ξ1 = Lξ3 ℓξ2,ξ 3|ξ1 = L∗
+
+ξ3 ∆−1
+
+ξ∗
+
+> 3
+
+ℓξ2,ξ 3|ξ1 (40) where 
+
+qξ2,ξ 3|ξ1 := 
+
+
+
+pξ2,ξ 3|ξ1,D (ξ2, ξ 3|ξ1, 0) 
+
+pξ2,ξ 3,ξ 4|ξ1,D (ξ2, ξ 3, b 1|ξ1, 0) ...
+
+pξ2,ξ 3,ξ 4|ξ1,D (ξ2, ξ 3, b J−1|ξ1, 0) 
+
+ and 
+
+ℓξ2,ξ 3|ξ1 := 
+
+
+
+ℓ1(ξ2, ξ 3|ξ1)
+
+ℓ2(ξ2, ξ 3|ξ1)...
+
+ℓJ (ξ2, ξ 3|ξ1)
+
+ := 
+
+
+
+τ 1
+
+ξ1(0) ,D (ξ1, 0) p1
+
+ξ2(0) |ξ1(0) (ξ2|ξ1)p1
+
+ξ3(0) |ξ2(0) (ξ3|ξ2)
+
+τ 2
+
+ξ1(0) ,D (ξ1, 0) p2
+
+ξ2(0) |ξ1(0) (ξ2|ξ1)p2
+
+ξ3(0) |ξ2(0) (ξ3|ξ2)...
+
+τ Jξ1(0) ,D (ξ1, 0) pJξ2(0) |ξ1(0) (ξ2|ξ1)pJξ3(0) |ξ2(0) (ξ3|ξ2)
+
+
+
+.
+
+From (39) and (40), we identify ℓξ1,ξ 2,ξ 3 up to ∆ ξ∗ 
+
+> 3
+
+for all ( ξ1, ξ 2, ξ 3) ∈ |X | k+2 as ∆−1
+
+ξ∗
+
+> 3
+
+ℓξ2,ξ 3|ξ1 =
+
+
+
+ℓδ(1) (ξ2, ξ 3|ξ1)
+
+ℓδ(2) (ξ2, ξ 3|ξ1)...
+
+ℓδ(J)(ξ2, ξ 3|ξ1)
+
+ =  L∗
+
+ξ3
+
+−1 qξ2,ξ 3|ξ1 , (41) where 
+
+δ : {1, 2, ..., J } → { 1, 2, ..., J }
+
+is a permutation implied by ∆ ξ∗ 
+
+> 3
+
+. Then, τ δ(j)
+
+ξ1(0) ,D (ξ1, 0) is identified from ℓδ(j)(ξ2, ξ 3|ξ1) in (41) as 
+
+τ δ(j)
+
+ξ1(0) ,D (ξ1, 0) = X
+
+(ξ2,ξ 3)∈X 2
+
+ℓδ(j)(ξ2, ξ 3|ξ1)= X
+
+(ξ2,ξ 3)∈X 2
+
+τ δ(j)
+
+ξ1(0) ,D (ξ1, 0) pδ(j)
+
+ξ2(0) |ξ1(0) (ξ2|ξ1) pδ(j)
+
+ξ3(0) |ξ2(0) (ξ3|ξ2).
+
+42 Given that τ δ(j)
+
+ξ1(0) ,D (ξ1, 0) is identified, pδ(j)
+
+ξ2(0) |ξ1(0) (ξ2|ξ1) and pδ(j)
+
+ξ3(0) |ξ2(0) (ξ3|ξ2) are also identified as 
+
+pδ(j)
+
+ξ2(0) |ξ1(0) (ξ2|ξ1) = X
+
+ξ3∈X 
+
+ℓδ(j)(ξ2, ξ 3|ξ1)/τ δ(j)
+
+ξ1(0) ,D (ξ1, 0) and 
+
+pδ(j)
+
+ξ3(0) |ξ2(0) (ξ3|ξ2) = ℓδ(j)(ξ2, ξ 3|ξ1)/(τ δ(j)
+
+ξ1(0) ,D (ξ1, 0) pδ(j)
+
+ξ2(0) |ξ1(0) (ξ2|ξ1)) .
+
+This proves the identification of {τ δ(j)
+
+ξ1(0) ,D (·, 0) , p δ(j)
+
+ξ2(0) |ξ1(0) (·|· ), p δ(j)
+
+ξ3(0) |ξ2(0) (·|· )}Jj=1 up to ∆ ξ∗ 
+
+> 3
+
+.To identify {pjξ4(0) |ξ3(0) (·|· )}Jj=1 up to ∆ ξ∗ 
+
+> 3
+
+, define ¯q ˇξ2,ξ 3,ξ 4 := 
+
+
+
+pξ2,ξ 3,ξ 4|ξ1,D ( ˇξ2, ξ 3, ξ 4|a1, 0) ...
+
+pξ2,ξ 3,ξ 4|ξ1,D ( ˇξ2, ξ 3, ξ 4|aJ , 0) 
+
+ and ¯ℓξ4|ξ3 := 
+
+
+
+p1
+
+ξ4(0) |ξ3(0) (ξ4|ξ3)...
+
+pJξ4(0) |ξ3(0) (ξ4|ξ3)
+
+ .
+
+For each ( ξ3, ξ 4), we have the linear system: ¯q ˇξ2,ξ 3,ξ 4 = ¯Lˇξ2 Dξ3| ˇξ2
+
+¯ℓξ4|ξ3
+
+= ( ¯Lˇξ2 ∆ξ∗ 
+
+> 3
+
+)(∆ −1
+
+ξ∗
+
+> 3
+
+Dξ3| ˇξ2 ∆ξ∗ 
+
+> 3
+
+)(∆ −1
+
+ξ∗
+
+> 3
+
+¯ℓξ4|ξ3 ).
+
+The matrices ¯Lˇξ2 ∆ξ∗ 
+
+> 3
+
+and ∆ −1
+
+ξ∗
+
+> 3
+
+Dξ3| ˇξ2 ∆ξ∗ 
+
+> 3
+
+are now identified from 
+
+{τ δ(j)
+
+ξ1(0) ,D (·, 0) , p δ(j)
+
+ξ2(0) |ξ1(0) (·|· ), p δ(j)
+
+ξ3(0) |ξ2(0) (·|· )}Jj=1 
+
+up to ∆ ξ∗ 
+
+> 3
+
+. Both are invertible by assumption. We can therefore solve for the permuted component vector as ∆−1
+
+ξ∗
+
+> 3
+
+¯ℓξ4|ξ3 =
+
+
+
+pδ(1) 
+
+ξ4(0) |ξ3(0) (ξ4|ξ3)...
+
+pδ(J)
+
+ξ4(0) |ξ3(0) (ξ4|ξ3)
+
+ = (∆ −1
+
+ξ∗
+
+> 3
+
+Dξ3| ˇξ2 ∆ξ∗ 
+
+> 3
+
+)−1( ¯Lˇξ2 ∆ξ∗ 
+
+> 3
+
+)−1 ¯q ˇξ2,ξ 3,ξ 4 .
+
+Therefore, {pδ(j)
+
+ξ4(0) |ξ3(0) (·|· )}Jj=1 is identified. We proceed to prove the identification of {τ jξ1(0) ,D (·, 1) , p jξ3(1) |ξ2(1) (·|· ), p jξ4(1) |ξ3(1) (·|· )}Jj=1 up to the permutation δ(·) implied by ∆ ξ∗ 
+
+> 3
+
+.First, to identify {τ δ(j)
+
+ξ1(0) ,D (·, 1) }Jj=1 , we note that ξj (0) for j = 1 , 2 is observed for both D = 0 and D = 1. For each ξ1 ∈ X kJ , we choose {cj }Jj=1 as in Assumption ID(c). We then evaluate the PMF pξ2|ξ1,D (ξ2|ξ1, d ) = PJj=1 τ δ(j)
+
+ξ1(0) ,D (ξ1, d )pδ(j)
+
+ξ2(0) |ξ1(0) (ξ2|ξ1) at d = 0 , 1 and ξ2 = c1, . . . , c J . This 43 yields the matrix system: 
+
+pξ2|ξ1,D (c1|ξ1, 0) · · · pξ2|ξ1,D (cJ |ξ1, 0) 
+
+pξ2|ξ1,D (c1|ξ1, 1) · · · pξ2|ξ1,D (cJ |ξ1, 1) 
+
+!
+
+= τ δ(1) 
+
+> ξ1(0) ,D
+
+(ξ1, 0) · · · τ δ(J)
+
+> ξ1(0) ,D
+
+(ξ1, 0) 
+
+τ δ(1) 
+
+> ξ1(0) ,D
+
+(ξ1, 1) · · · τ δ(J)
+
+> ξ1(0) ,D
+
+(ξ1, 1) 
+
+! 
+
+pδ(1) 
+
+> ξ2(0) |ξ1(0)
+
+(c1|ξ1) · · · pδ(1) 
+
+> ξ2(0) |ξ1(0)
+
+(cJ |ξ1)... . . . ...
+
+pδ(J)
+
+> ξ2(0) |ξ1(0)
+
+(c1|ξ1) · · · pδ(J)
+
+> ξ2(0) |ξ1(0)
+
+(cJ |ξ1)
+
+ .
+
+The 2 × J matrix on the left is observed. The second J × J matrix on the right is identified from the D = 0 case and is invertible by Assumption ID(c). Thus, the 2 × J matrix of permuted τ
+
+components is identified by inversion: 
+
+τ δ(1) 
+
+> ξ1(0) ,D
+
+(ξ1, 0) · · · τ δ(J)
+
+> ξ1(0) ,D
+
+(ξ1, 0) 
+
+τ δ(1) 
+
+> ξ1(0) ,D
+
+(ξ1, 1) · · · τ δ(J)
+
+> ξ1(0) ,D
+
+(ξ1, 1) 
+
+!
+
+= pξ2|ξ1,D (c1|ξ1, 0) · · · pξ2|ξ1,D (cJ |ξ1, 0) 
+
+pξ2|ξ1,D (c1|ξ1, 1) · · · pξ2|ξ1,D (cJ |ξ1, 1) 
+
+! 
+
+pδ(1) 
+
+> ξ2(0) |ξ1(0)
+
+(c1|ξ1) · · · pδ(1) 
+
+> ξ2(0) |ξ1(0)
+
+(cJ |ξ1)... . . . ...
+
+pδ(J)
+
+> ξ2(0) |ξ1(0)
+
+(c1|ξ1) · · · pδ(J)
+
+> ξ2(0) |ξ1(0)
+
+(cJ |ξ1)
+
+
+
+> −1
+
+.
+
+This identifies the second row, {τ δ(j)
+
+> ξ1(0) ,D
+
+(·, 1) }Jj=1 .Next, for the identification of {pδ(j)
+
+> ξ3(1) |ξ2(1)
+
+(·|· ), p δ(j)
+
+> ξ4(1) |ξ3(1)
+
+(·|· )}Jj=1 , we define: 
+
+τ δ(j)
+
+> ξ1,ξ 2,D
+
+(ξ1, ξ 2, 1) := τ δ(j)
+
+> ξ1(0) ,D
+
+(ξ1, 1) pδ(j)
+
+> ξ2(0) |ξ1(0)
+
+(ξ2|ξ1) and 
+
+pδ(j) 
+
+> ξ3,ξ 4|ξ2
+
+(ξ3, ξ 4|ξ2) := pδ(j)
+
+> ξ3(1) |ξ2(1)
+
+(ξ3|ξ2)pδ(j)
+
+> ξ4(1) |ξ3(1)
+
+(ξ4|ξ3).
+
+Note that τ δ(j) 
+
+> ξ1,ξ 2,D
+
+is identified from the preceding steps. The conditional PMF for D = 1 can be expressed as: 
+
+pξ2,ξ 3,ξ 4|ξ1,D (ξ2, ξ 3, ξ 4|ξ1, 1) = 
+
+> J
+
+X
+
+> j=1
+
+τ δ(j)
+
+> ξ1,ξ 2,D
+
+(ξ1, ξ 2, 1) pδ(j) 
+
+> ξ3,ξ 4|ξ2
+
+(ξ3, ξ 4|ξ2).
+
+For each ξ2 ∈ X , choose {ej }Jj=1 as in Assumption ID(d). Evaluating the PMF at ξ1 = e1, . . . , e J
+
+yields: 
+
+
+
+pξ2,ξ 3,ξ 4|ξ1,D (ξ2, ξ 3, ξ 4|e1, 1) ...
+
+pξ2,ξ 3,ξ 4|ξ1,D (ξ2, ξ 3, ξ 4|eJ , 1) 
+
+ =
+
+
+
+τ δ(1) 
+
+> ξ1,ξ 2,D
+
+(e1, ξ 2, 1) · · · τ δ(J)
+
+> ξ1,ξ 2,D
+
+(e1, ξ 2, 1) ... . . . ...
+
+τ δ(1) 
+
+> ξ1,ξ 2,D
+
+(eJ , ξ 2, 1) · · · τ δ(J)
+
+> ξ1,ξ 2,D
+
+(eJ , ξ 2, 1) 
+
+
+
+pδ(1)  
+
+> ξ3,ξ 4|ξ2
+
+(ξ3, ξ 4|ξ2)...
+
+pδ(J) 
+
+> ξ3,ξ 4|ξ2
+
+(ξ3, ξ 4|ξ2)
+
+ .
+
+The J × J matrix of τ δ(j) 
+
+> ξ1,ξ 2,D
+
+components is identified and is invertible by Assumption ID(d). We 44 can therefore solve for the vector of permuted product probabilities: 
+
+
+
+pδ(1)  
+
+> ξ3,ξ 4|ξ2
+
+(ξ3, ξ 4|ξ2)...
+
+pδ(J) 
+
+> ξ3,ξ 4|ξ2
+
+(ξ3, ξ 4|ξ2)
+
+ =
+
+
+
+τ δ(1) 
+
+> ξ1,ξ 2,D
+
+(e1, ξ 2, 1) · · · τ δ(J)
+
+> ξ1,ξ 2,D
+
+(e1, ξ 2, 1) ... . . . ...
+
+τ δ(1) 
+
+> ξ1,ξ 2,D
+
+(eJ , ξ 2, 1) · · · τ δ(J)
+
+> ξ1,ξ 2,D
+
+(eJ , ξ 2, 1) 
+
+ 
+
+> −1
+
+
+
+p... (ξ2, ξ 3, ξ 4|e1, 1) ...
+
+p... (ξ2, ξ 3, ξ 4|eJ , 1) 
+
+ .
+
+The individual components {pδ(j)
+
+> ξ3(1) |ξ2(1)
+
+(·|· ), p δ(j)
+
+> ξ4(1) |ξ3(1)
+
+(·|· )}Jj=1 are then identified by marginalizing 
+
+pδ(j) 
+
+> ξ3,ξ 4|ξ2
+
+(e.g., summing over ξ4 to find pδ(j)
+
+> ξ3(1) |ξ2(1)
+
+). Finally, we identify the base probabilities {πδ(j), p δ(j)
+
+> ξ1(0) ,D
+
+(·, ·)}Jj=1 using the identified 
+
+{τ δ(j)
+
+> ξ1(0) ,D
+
+(·, ·)}Jj=1 and the observable PMF pξ1,D (ξ1, d ): 
+
+πδ(j) = X
+
+> (ξ1,d )
+
+τ δ(j)
+
+> ξ1(0) ,D
+
+(ξ1, d )pξ1,D (ξ1, d ),pδ(j)
+
+> ξ1(0) ,D
+
+(ξ1, d ) = τ δ(j)
+
+> ξ1(0) ,D
+
+(ξ1, d )pξ1,D (ξ1, d )
+
+πδ(j) .
+
+Under Assumption RSM(c), re-ordering the components such that π1 < π 2 < · · · < π J fixes the permutation δ(·) and uniquely identifies all components, which completes the proof. 
+
+A.5 Proof of Proposition 15 
+
+The expectation of untreated potential outcomes for treated units can be expressed as 
+
+E [Xt(0) | D = 1 , Z i = j] = E
+
+h
+
+E
+
+h
+
+Xt(0) | XT0 
+
+> 1
+
+(0) , D = 1 , Z = j
+
+i
+
+| D = 1 , Z = j
+
+i
+
+= E
+
+h
+
+E
+
+h
+
+Xt(0) | XT0 
+
+> 1
+
+(0) , D = 0 , Z = j
+
+i
+
+| D = 1 , Z = j
+
+i
+
+= E [E [Xt(0) | XT0 (0) , D = 0 , Z = j] | D = 1 , Z = j]= X 
+
+> xT0∈X
+
+Pr( XT0 = xT0 | D = 1 , Z = j)E [Xt | XT0 = xT0 , D = 0 , Z = j] ,
+
+where the first equality follows from the law of iterated expectations, the second from transition independence, the third from the Markov property of Xt(0), and the fourth from the definition of conditional expectations. Similarly, 
+
+E [Xt(1) | D = 1 , Z i = j] = X
+
+> xT0
+
+Pr( XT0 = xT0 | D = 1 , Z = j)E [Xt | XT0 = xT0 , D = 1 , Z = j] .
+
+Therefore, (17) follows from subtracting the two objects given μAT T,j t = E [Xt(1) | D = 1 , Z i = j]−
+
+E [Xt(0) | D = 1 , Z i = j] .
+
+Moreover, since Proposition 14 implies that the jth type-specific probabilities and expectations 45 appearing in (17) are identified from {pW (w; ψ) : w ∈ W}, it follows directly from (17) that 
+
+μAT T,j t is identified. 
+
+A.6 Proof of Proposition 17 
+
+Suppose that T0 = 2 ℓ, T = 4 ℓ, and J = |X | ℓ. Partition ( X1, . . . , XT ) as ( X1, . . . , XT ) = (ξ1, ξ 2, ξ 3, ξ 4), where 
+
+ξ1 := Xℓ 
+
+> 1
+
+∈ X ℓ, ξ 2 := X2ℓℓ+1 ∈ X ℓ, ξ 3 := X3ℓ 
+
+> 2ℓ+1
+
+∈ X ℓ, and ξ4 := XT 
+
+> 3ℓ+1
+
+∈ X ℓ. (42) For d ∈ { 0, 1}, define the corresponding potential outcomes ξ1(d), ξ2(d), ξ3(d), and ξ4(d) analo-gously, by replacing Xt with Xt(d) in the above definitions. 
+
+Assumption ID ℓ. Assumption ID holds with the ξ’s defined in (42) in place of those in (28). Under Assumption ID ℓ, we can replicate the proof of Proposition 14 using the block definitions in (42) and the corresponding potential outcomes. This establishes identification of 
+
+πj , p jξ1(0) ,D (·, ·), p jξ2(0) |ξ1(0) (· | · ), p jξ3(0) |ξ2(0) (· | · ),pjξ4(0) |ξ3(0) (· | · ), p jξ3(1) |ξ2(1) (· | · ), p jξ4(1) |ξ3(1) (· | · ) Jj=1 ,
+
+thereby proving part (a). Part (b) follows similarly by repeating the proof of Proposition 15 under Assumption M ℓ in place of Assumption M. 
+
+A.7 Proof of Proposition 20 
+
+The consistency of the MLE ˆψ follows directly from Theorem 2.5 of Newey and McFadden (1994). Specifically, condition (i) of that theorem is satisfied by Proposition 14, while conditions (ii)–(iv) are implied by Assumption MLE(a). Asymptotic normality then follows from Theorem 3.3 of Newey and McFadden (1994), whose conditions (i)–(v) are readily verified under Assumption MLE. Hence, ˆψ p
+
+−→ ψ∗, (43) 
+
+√n( ˆψ − ψ∗) = I(ψ∗)−1 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+S(W i; ψ∗) + op(1) (44) 
+
+⇒ N (0 , I(ψ∗)−1), (45) where S(W i; ψ∗) is the individual score function evaluated at ψ∗ for the MLE in (20). By continuity of the posterior mapping, the consistency of ˆψ implies that sup 
+
+> i
+
+ˆτ ji − τ j (W i; ψ∗) p
+
+−→ 0, τ j (W ; ψ∗) := Pr( Z = j | W ; ψ∗). (46) 46 Furthermore, Assumption MLE(a) ensures that E[τ j (W ; ψ)] and E[τ j (W ; ψ)1{XT0 = xT0 , D =
+
+d}] are strictly positive in a neighborhood of ψ∗.Then, in (23), 
+
+cPr( XT0 = xT0 | D = d, Z = j) = 
+
+> 1
+> n
+
+Pni=1 1{XiT 0 = xT0 , D i = d} τ j (W i; ψ∗) + op(1) 
+
+> 1
+> n
+
+Pni=1 τ j (W i; ψ∗) + op(1) 
+
+> p
+
+−→ E1{XT0 = xT0 , D = d} τ j (W ; ψ∗)
+
+Eτ j (W ; ψ∗)
+
+= Pr( XT0 = xT0 | D = d, Z = j),
+
+where the first equality follows from (46), the second from the Law of Large Numbers and the Continuous Mapping Theorem, and the last from E[τ j (W ; ψ∗)g(W )] = E[1{Z = j}g(W )] for any measurable function g.Identical arguments apply to bE[Xt | XT0 = xT0 , D = d, Z = j] and cPr( Z = j | D = 1) in (24) and (25). Hence, 
+
+bE[Xt | XT0 = xT0 , D = d, Z = j] p
+
+−→ E[Xt | XT0 = xT0 , D = d, Z = j] ,
+
+cPr( Z = j | D = 1) p
+
+−→ Pr( Z = j | D = 1) .
+
+Both ˆ μAT T,j t and ˆ μAT T t in (22) and (25) are a continuously differentiable function of these probabilities and expectations. Therefore, by the Continuous Mapping Theorem, ˆμAT T,j tp
+
+−→ μAT T,j t , ˆμAT T tp
+
+−→ μAT T t ,
+
+which establishes part (a). Let ˆmn( ˆψ) denote the vector collecting the estimators for the probabilities and expectations defined in (23)-(25). Specifically, for each j = 1 , 2, . . . , J and ( xT0 , d ) ∈ X × { 0, 1},ˆmj, xT0 
+
+> 1,n
+
+( ˆψ) = 
+
+> 1
+> n
+
+Pni=1 1{XiT 0 = xT0 , D i = 1 } τ j (W i; ˆψ)
+
+> 1
+> n
+
+Pni=1 1{Di = 1 }τ j (W i; ˆψ) ,
+
+ˆmj, xT0 ,d  
+
+> 2,n
+
+( ˆψ) = 
+
+> 1
+> n
+
+Pni=1 Xit 1{XiT 0 = xT0 , D i = d} τ j (W i; ˆψ)
+
+> 1
+> n
+
+Pni=1 1{XiT 0 = xT0 , D i = d} τ j (W i; ˆψ) , ˆmj
+
+> 3,n
+
+( ˆψ) = 
+
+> 1
+> n
+
+Pni=1 1{Di = 1 }ˆτ ji
+
+> 1
+> n
+
+Pni=1 1{Di = 1 } ,
+
+and ˆ mn( ˆψ) stacks all such elements into a vector. Let m(ψ) denote the corresponding vector of population ratios under the parameter value ψ,47 with elements given by 
+
+mj, xT0 
+
+> 1
+
+(ψ) = E1{XT0 = xT0 , D = 1 } τ j (W ; ψ)
+
+E[1{Di = 1 }τ j (W ; ψ)] ,mj, xT0 ,d  
+
+> 2
+
+(ψ) = EXt 1{XT0 = xT0 , D = d} τ j (W ; ψ)
+
+E[1{XT0 = xT0 , D = d} τ j (W ; ψ)] , mj
+
+> 3
+
+(ψ) = E[1{Di = 1 }τ j (W ; ψ)] 
+
+E[1{Di = 1 }] .
+
+By definition, m(ψ∗) collects the true population probabilities and expectations evaluated at the true parameter ψ∗.Note that 
+
+√n  ˆm( ˆψ) − m(ψ∗) = √n( ˆ mn(ψ∗) − m(ψ∗)) 
+
+| {z }
+
+> (I)
+
++ √n
+
+
+
+ˆmn( ˆψ) − ˆmn(ψ∗)
+
+| {z }
+
+> (II )
+
+. (47) For term (II), apply a mean-value (componentwise) expansion of the map ψ 7 → ˆmn(ψ): there exists ˜ψ on the line segment between ˆψ and ψ∗ such that (II ) = 
+
+
+
+∇ψ ˆmn( ˜ψ)
+
+⊤√n ( ˆψ − ψ∗),
+
+where ∇ψ ˆmn( ˜ψ) = ∂ ˆmn(ψ)/∂ ψ|ψ= ˜ψ. Since ˆψ p
+
+−→ ψ∗, we have ˜ψ p
+
+−→ ψ∗. Under the Uniform Law of Large Numbers for the class {∇ ψ ˆmn(ψ) : ψ ∈ N (ψ∗)}—which holds because W is finite (so the supremum over w reduces to a finite maximum and the envelope condition is trivially satisfied), combined with continuity of τ j (·; ψ) and its derivatives in a neighborhood N (ψ∗)—it follows that 
+
+∇ψ ˆmn( ˜ψ) p
+
+−→ ∇ψm(ψ∗).
+
+Combining this with the asymptotic linear representation of the MLE in (44), we obtain (II ) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+A∗S(W i; ψ∗) + op(1) . (48) where A∗ := 
+
+
+
+∇ψm(ψ∗)
+
+⊤
+
+I(ψ∗)−1.For term (I), each component of ˆ mn(ψ∗) is a ratio of empirical means, e.g. ˆmj, xT0 
+
+> 1,n
+
+(ψ∗) = n−1 Pni=1 aψ∗
+
+n−1 Pni=1 bψ∗
+
+, where 
+
+aψ∗ (W ) := τ j (W ; ψ∗) 1{XT0 = xT0 , D = 1 }, b ψ∗ (W ) := τ j (W ; ψ∗)1{Di = 1 }.
+
+Let Ai := aψ∗ (W i) and Bi := bψ∗ (W i) with μA := E[Ai] and μB := E[Bi] > 0. Write ˆ mj, xT0 
+
+> 1,n
+
+(ψ∗) = 
+
+g( ¯An, ¯Bn) with g(a, b ) = a/b and ¯An = n−1 Pni=1 Ai, ¯Bn = n−1 Pni=1 Bi. By the multivariate CLT 48 and a first-order delta method, 
+
+√n  ˆmj, xT0 
+
+> 1,n
+
+(ψ∗) − mj, xT0 
+
+> 1
+
+(ψ∗) = ∇g(μA, μ B )⊤√n ¯An − μA
+
+¯Bn − μB
+
+!
+
++ op(1) .
+
+Since ∇g(μA, μ B ) = (1 /μ B , −μA/μ 2 
+
+> B
+
+)⊤, this equals 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+ Ai − μA
+
+μB
+
+− μA
+
+μ2
+
+> B
+
+(Bi − μB )
+
+
+
++ op(1) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+ϕj, xT0 
+
+> 1
+
+(W i; ψ∗) + op(1) ,
+
+where, using mj, xT0 
+
+> 1
+
+(ψ∗) = μA/μ B ,
+
+ϕj, xT0 
+
+> 1
+
+(W ; ψ∗) = τ j (W ; ψ∗)
+
+E[1{D = 1 }τ j (W ; ψ∗)] 
+
+h
+
+1{XT0 = xT0 , D = 1 } − 1{D = 1 }mj, xT0 
+
+> 1
+
+(ψ∗)
+
+i
+
+.
+
+By analogous arguments, 
+
+ϕj, xT0 ,d  
+
+> 2
+
+(W ; ψ∗) = τ j (W ; ψ∗)1{XT0 = xT0 , D = d}
+
+E[τ j (W ; ψ∗)1{XT0 = xT0 , D = d}]
+
+Xt − mj, xT0 ,d  
+
+> 2
+
+(ψ∗),ϕj
+
+> 3
+
+(W ; ψ∗) = 1{D = 1 }
+
+Pr( D = 1) 
+
+
+
+τ j (W ; ψ∗) − E[τ j (W ; ψ∗) | D = 1] 
+
+
+
+.
+
+Stacking all such elements into a vector ϕ(W ; ψ∗) gives (I) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+ϕ(W i; ψ∗) + op(1) , E[ϕ(W ; ψ∗)] = 0. (49) Therefore, combining (47)–(49), we obtain the asymptotic linear representation: 
+
+√n  ˆm( ˆψ) − m(ψ∗) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+
+
+ϕ(W i; ψ∗) + A∗ S(W i; ψ∗)
+
+
+
++ op(1) .
+
+Let h(·) denote the continuously differentiable function that maps the moment vector m to the vector of LTATT and ATT parameters, θ∗ = h(m(ψ∗)), as defined by (22)–(25). Denote its Jacobian by ∇mh(m) := ∂h(m)/∂ m. Then, by the multivariate delta method, 
+
+√n(ˆθ − θ∗) = 1
+
+√n
+
+> n
+
+X
+
+> i=1
+
+η(W i) + op(1) ⇒ N (0 , V ),
+
+where the influence function and asymptotic covariance matrix are given by 
+
+η(W i) := ( ∇mh(m(ψ∗))) ⊤ ϕ(W i; ψ∗) + A∗ S(W i; ψ∗), V = E[η(W i)η(W i)⊤].
+
+This establishes part (b). 49 B Extension to Staggered Treatment Adoption 
+
+Our identification strategy can be extended to staggered treatment adoption. First, we replace a treatment group Di with a treatment cohort : the period in which treatment is given, Gi ∈ G with 
+
+G ⊂ T , defined by Gi = min {t | Dit = 1 } for treated units. We set Gi = 0 if the unit is never treated and we assume there is no unit who is treated in the initial period of 0. We adopt the dynamic potential outcome framework with multi-stage treatment adoption as in Callaway and Sant’Anna (2021) and Sun and Abraham (2021). Let Yit (0) denote the untreated potential outcome of unit i in period t if she is never treated throughout T . For treated potential outcomes for staggered adoption in period g ∈ G \{ 0}, we use Yit (g) to denote the potential outcome of unit i at period t if she is treated for the first time at period g.For brevity, we focus on the binary outcome case where Yit (g) ∈ Y := {0, 1}. By extending Callaway and Sant’Anna (2021) to our transition independence setup, we suggest never-treated or (and) not-yet-treated units as controls, as follows: 
+
+Assumption 1 (Transition independence with a never-treated group) . For each g ∈ G and t ≥ g,the following hold: Pr( Yit (0) = yt | Yi,g −1(0) = yg−1, ..., Y i0(0) = y0, G i = g)= Pr( Yit (0) = yt | Yi,g −1(0) = yg−1, ..., Y i0(0) = y0, G i = 0) , (50) for all {yt′−1}gt′=1 ∈ Y g.
+
+Assumption 2 (Transition independence with not-yet-treated groups) . For each g ∈ G and t ≥ g,the following hold: Pr( Yit (0) = yt | Yi,g −1(0) = yg−1, ..., Y i0(0) = y0, G i = g)= Pr( Yit (0) = yt | Yi,g −1(0) = yg−1, ..., Y i0(0) = y0, G i > g, G i̸ = 0) , (51) for all {yt′−1}gt′=1 ∈ Y g.Note that these two assumptions are distinct, and one can use either or both of them depend-ing on the research question to choose proper controls. We can also extend the no anticipatory effects assumption (Assumption NA) and the overlap assumption (Assumption CS) to the staggered treatment adoption setting as follows: 
+
+Assumption 3 (No anticipatory effects for staggered treatment adoption) . For all g ∈ G , Yit (g) = 
+
+Yit (0) holds for all units with Gi = g and t < g .
+
+Assumption 4 (Overlap for staggered treatment adoption) . There exists a positive constant ϵ > 0such that ϵ < Pr( Gi = g|Yi,g −1 = yg−1, . . . , Y i0 = y1) < 1 − ϵ for all {yt′−1}gt′=1 ∈ Y g and g ∈ G .50 Let G denote the latest treatment period in which control units are available, i.e., 
+
+G =
+
+
+
+T if 0 ∈ G 
+
+max {g − 1 | g ∈ G} if 0 /∈ G .
+
+Then one can define the following notion of cohort-specific ATT for the staggered treatment adop-tion setting for all g and g ≤ t ≤ G:
+
+AT T g,t = E [Yit (g) − Yit (0) | Gi = g] ,
+
+One can then extend Proposition 1 to the staggered treatment adoption setting by replacing T0 + 1 with Gi and T with G, as follows: 
+
+Proposition 21. Suppose that either (or both) of Assumptions 1 or 2 holds, and Assumptions 3-4 hold. Let G(g, t ) denote the set of treatment cohorts for controls against a treatment cohort g at post-treatment period t for the cohort g, i.e., 
+
+G(g, t ) ⊂ {0}
+
+|{z} 
+
+> never-treated group
+
+∪ { g′ ∈ G | g′ > t }
+
+| {z }
+
+> not-yet-treated groups
+
+,
+
+such that G(g, t ) is set to be the former group {0} if Assumption 1 holds and the latter group 
+
+{g′ ∈ G | g′ > t } if Assumption 2 holds, and the union of the two groups if both assumptions hold. Then, for all g ∈ G \ { 0} and g ≤ t ≤ G, AT T g,t is identified by 
+
+AT T g,t = E
+
+
+
+Yit (g) − E
+
+h
+
+Yit | { Yis }g−1 
+
+> s=0
+
+, G ∈ G (g, t )
+
+i
+
+Gi = g
+
+
+
+,
+
+where 
+
+E
+
+h
+
+Yit | { Yis }g−1 
+
+> s=0
+
+, G ∈ G (g, t )
+
+i
+
+= X
+
+> yt∈Y
+
+yt
+
+X
+
+> g′∈G (g,t )
+
+Pr( Gi = g′ | G ∈ G (g, t )) pYt|{ Ys}g−1  
+
+> s=0 ,G i=g′
+
+(yt|{ Yis }g−1 
+
+> s=0
+
+),
+
+with pYt|{ Ys}g−1  
+
+> s=0 ,G i=g′
+
+(yt|{ Yis }g−1 
+
+> s=0
+
+) = Pr( Yit = yt|Yig −1(0) = yg−1, ..., Y i0(0) = y0, G i = g′) for 
+
+g′ ∈ G (g, t ).
+
+There are several ways to aggregate the cohort-specific ATTs to derive the overall ATT. One approach is to use the average of the cohort-specific ATTs, weighted by the cohort distribution, as follows: 
+
+AT T t = X
+
+> g∈G\{ 0};g≤t
+
+Pr( G = g | G̸ = 0 , g ≤ t)AT T g,t ,
+
+where the weights are given by the cohort distribution Pr( G = g | G̸ = 0 , g ≤ t). The choice of 51 aggregation method depends on the research question and the context of the data. For further examples of alternative aggregation of cohort-specific ATTs and discussions on their corresponding weights for estimation, see Callaway and Sant’Anna (2021). 
+
+# C Estimation Procedure and Weighted Bootstrap 
+
+Estimation Procedure. We provide below a detailed description of the two-stage estimator presented in the main text. In the first stage, we estimate the latent transition probabilities using the EM algorithm; in the second stage, we compute the counterfactual expected untreated potential outcome for each latent type to derive the average treatment effect on the treated for post-treatment observations as follows: 0. Initiate the process with a given starting value, ˆψ(0) = ( ˆ π(0) , ˆφ1(0) , ...., ˆφJ(0) ) ∈ Θψ.1. Estimate ψ by employing the following EM algorithm, starting with s = 1: (a) (E-step) Compute the posterior probabilities from ˆ τ j(s) 
+
+> i
+
+for each i and j:ˆτ j(s) 
+
+> i
+
+= ˆπj(s−1) pj 
+
+> W
+
+(W i; ˆ φj(s−1) )
+
+PJk=1 ˆπk(s−1) pk 
+
+> W
+
+(W i; ˆ φk(s−1) ) .
+
+(b) (M-step) Update the mixture weights ˆ π(s) = ( π1( s), . . . , π J(s))⊤ and type-specific tran-sition probabilities ˆφj(s) = {ˆpj(s)
+
+> X1(0) ,D
+
+(·, ·), ˆpj(s)
+
+> Xt(0) |Xt−1(0)
+
+(·|· )}Tt=2 , {ˆpj(s)
+
+> Xt(1) |Xt−1(1)
+
+(·|· )}Tt=T0+1 
+
+for each latent type j as ˆπj(s) = 1
+
+n
+
+> n
+
+X
+
+> i=1
+
+ˆτ j(s) 
+
+> i
+
+,
+
+ˆpj(s)
+
+> X1(0) ,D
+
+(x1, d ) = 
+
+Pni=1 1{Xi1 = x1, D i = d}ˆτ j(s)
+
+> i
+
+Pni=1 ˆτ j(s)
+
+> i
+
+,
+
+ˆpj(s)
+
+> Xt(0) |Xt−1(0)
+
+(xt|xt−1) = 
+
+    
+
+> Pni=1 1{Xit =xt,Xit −1=xt−1}ˆτj(s)
+> i
+> Pni=1 1{Xit −1=xt−1}ˆτj(s)
+> i
+
+for t = 2 , ..., T 0,    
+
+> Pni=1 1{Xit =xt,Xit −1=xt−1,D i=0 }ˆτj(s)
+> i
+> Pni=1 1{Xit −1=xt−1,D i=0 }ˆτj(s)
+> i
+
+for t = T0 + 1 , ..., T ,ˆpj(s)
+
+> Xt(1) |Xt−1(1)
+
+(xt|xt−1) = 
+
+Pni=1 1{Xit = xt, Xit −1 = xt−1, D i = 1 }ˆτ j(s)
+
+> i
+
+Pni=1 1{Xit −1 = xt−1, D i = 1 }ˆτ j(s)
+
+> i
+
+for t = T0 + 1 , . . . , T .(c) Set s = s + 1 and repeat until convergence. 2. Given the first-step estimate, we estimate LTATTs and ATTs as in (22) and (25), respectively. 52 Weighted Bootstrap. To consistently estimate the asymptotic covariance matrix V , we employ a nonparametric weighted bootstrap. Specifically, we generate B bootstrap replications {ˆθ(b)}Bb=1 
+
+by reweighting each observation’s contribution in the estimation process as follows: 1. Generate weights. For each bootstrap replication b = 1 , . . . , B , draw n i.i.d. positive weights 
+
+{ζ(b) 
+
+> i
+
+}ni=1 from the standard exponential distribution, Exp(1). 2. Weighted MLE. Re-estimate the parameter vector ψ by maximizing the weighted log-likelihood function nX
+
+> i=1
+
+ζ(b) 
+
+> i
+
+log pW (W i; ψ),
+
+implementing the weights ζ(b) 
+
+> i
+
+within the Expectation–Maximization (EM) algorithm. 3. Labeling correction. After each weighted MLE, re-order the components of ˆψ(b) according to the identification constraint in Assumption RSM(c), ensuring consistent labeling of latent types across bootstrap replications. 4. Weighted sample analogue. Compute the bootstrap estimate ˆθ(b) by replacing all summations in the sample-analogue estimators (22), (23), and (24) with their weighted counterparts, incorporating both the random weights ζ(b) 
+
+> i
+
+and the estimated posterior probabilities ˆ τ j(b)
+
+> i
+
+obtained from ˆψ(b).5. Covariance estimation. Estimate the asymptotic covariance matrix V as ˆV = 1
+
+B − 1
+
+> B
+
+X
+
+> b=1
+
+ˆθ(b) − ¯θ
+
+  ˆθ(b) − ¯θ
+
+⊤
+
+, ¯θ = 1
+
+B
+
+> B
+
+X
+
+> b=1
+
+ˆθ(b).
+
+Cluster-Level Weighting. When the data exhibit cluster-level dependence (e.g., individuals within states, or firms within industries), the bootstrap weights are drawn at the cluster level rather than the individual level. Let C denote the number of clusters. For each bootstrap replication 
+
+b, we draw independent exponential weights {w(b) 
+
+> c
+
+}Cc=1 with w(b) 
+
+> c
+
+∼ Exp(1), normalize them to ˜w(b) 
+
+> c
+
+= w(b) 
+
+> c
+
+/ PCc′=1 w(b) 
+
+> c′
+
+, and assign each unit i in cluster c the weight ζ(b) 
+
+> i
+
+= ˜ w(b) 
+
+> c
+
+. This weighted bootstrap procedure at the cluster level follows Cameron et al. (2008) and MacKinnon and Webb (2017), preserving the within-cluster correlation structure while allowing for inference that is robust to cluster-level heterogeneity. 
+
+Uniform Confidence Intervals. We construct uniform (simultaneous) confidence intervals for sequences of treatment effect estimates {ˆθt}Tt=1 using a studentized bootstrap procedure. Unlike pointwise confidence intervals that control coverage at each individual time period, uniform confi-dence intervals provide simultaneous coverage across all periods: Pr ( θt ∈ CI t for all t = 1 , . . . , T ) ≥ 1 − α. 
+
+53 Let ˆθt denote the point estimate for period t. Given B bootstrap estimates {ˆθ(b) 
+
+> t
+
+}Bb=1 from the weighted bootstrap procedure: 1. Compute the bootstrap standard error for each period: ˆσt =
+
+vuut 1
+
+B − 1
+
+> B
+
+X
+
+> b=1
+
+ˆθ(b) 
+
+> t
+
+− ¯θt
+
+2
+
+,
+
+where ¯θt = B−1 PBb=1 ˆθ(b) 
+
+> t
+
+.2. For each bootstrap sample b and period t, compute the studentized statistic: 
+
+t(b) 
+
+> t
+
+= ˆθ(b) 
+
+> t
+
+− ˆθt
+
+ˆσt
+
+.
+
+3. For each bootstrap sample, compute the supremum of the absolute studentized statistics: 
+
+M (b) = max   
+
+> t∈{ 1,...,T }
+
+|t(b) 
+
+> t
+
+|.
+
+4. Obtain the critical value c1−α as the (1 − α)-quantile of {M (1) , . . . , M (B)}.5. Construct the uniform confidence interval for each period t:
+
+hˆθt − c1−α · ˆσt, ˆθt + c1−α · ˆσt
+
+i
+
+.
+
+The key distinction from pointwise intervals is that uniform intervals use a single critical value c1−α
+
+derived from the joint distribution of the supremum statistic, rather than period-specific quantiles. This accounts for the multiple testing problem inherent in examining effects across many time periods. When the uniform confidence band lies entirely above (or below) zero for a range of periods, we can conclude that the treatment effect is significantly positive (or negative) for all those periods simultaneously at the (1 − α) confidence level. 
+
+Computational details. In the empirical applications, the EM algorithm is initialized using a two-stage multistart procedure: a large number of random starting values are evaluated for a small number of iterations, and the top candidates are then run to convergence. Specifically, we use 6,000 short-run initializations narrowed to 20 long-run candidates, with a convergence tolerance of 10 −3
+
+and a maximum of 100 EM iterations. Standard errors are obtained via the weighted bootstrap with B = 500 replications. For the ADA application, bootstrap weights are drawn at the state level to account for within-state correlation; for the remaining applications, weights are drawn at the unit level. 54 Since the EM algorithm is guaranteed to converge only to a local maximum of the likelihood, the multistart procedure is essential: by evaluating many initial points and selecting the best candidates for full convergence, it provides a practical safeguard against convergence to inferior local optima. While global optimality cannot be guaranteed, the large number of initializations (6,000) makes it unlikely that the global maximum is missed in practice. 
+
+# D Construction of Type-Specific Transition Probabilities 
+
+Testing for transition independence across pre-treatment periods (Theorem 18) under the presence of latent heterogeneity in transition dynamics requires estimating type-specific transition probabil-ities for both treated and control units during pre-treatment periods. In this section, we outline the procedure for constructing the type-specific transition probabil-ities across pre-treatment periods for each treatment status and latent type. First, we estimate the parameters of the latent models using the observed outcomes and treatment status via the EM algorithm described in Appendix C. Next, we compute the type-specific probabilities for each unit using the estimated parameters. Lastly, we estimate the type-specific transition probabili-ties for each latent type by weighting pre-treatment observations using the estimated type-specific probabilities. Specifically, the procedure is as follows: 1. Estimate the model parameters for each latent type ˆψ via the EM algorithm described in Appendix C. 2. Obtain the estimated type-specific probabilities ˆ τ ji for each unit i and latent type j from (21) from the estimated parameters ˆψ.3. For each latent type j and treatment status d ∈ { 0, 1}, estimate the type-specific transition probabilities across pre-treatment periods t = 2 , . . . , T 0 as follows: ˆpj
+
+> Xt(0) |Xt−1(0) ,D
+
+(xt|xt−1, d ) = 
+
+Pni=1 1{Xit = xt, Xit −1 = xt−1, D i = d}ˆτij 
+
+Pni=1 1{Xit −1 = xt−1, D i = d}ˆτij 
+
+.
+
+55 E Type-Specific Flow Decomposition 
+
+Corollary 22 (Type-specific flow decomposition) . Under Assumption TI-LH with one lag, the LTATT on the kth outcome for latent type j decomposes as 
+
+EX(k) 
+
+> t
+
+(1) − X(k) 
+
+> t
+
+(0) | D = 1 , Z = j
+
+= X 
+
+> y̸=¯ y(k)
+
+n
+
+Pr( Yt = ¯ y(k) | YT0 = y, D = 1 , Z = j) − Pr( Yt = ¯ y(k) | YT0 = y, D = 0 , Z = j)
+
+o| {z }   
+
+> inflow CATT from yfor type j
+
+× Pr( YT0 = y | D = 1 , Z = j)
+
+− X 
+
+> y̸=¯ y(k)
+
+n
+
+Pr( Yt = y | YT0 = ¯ y(k), D = 1 , Z = j) − Pr( Yt = y | YT0 = ¯ y(k), D = 0 , Z = j)
+
+o| {z }   
+
+> outflow CATT to yfor type j
+
+× Pr( YT0 = ¯ y(k) | D = 1 , Z = j).
+
+(52) 
+
+The aggregate ATT on the kth outcome is recovered by aggregating over types: 
+
+EX(k) 
+
+> t
+
+(1) − X(k) 
+
+> t
+
+(0) | D = 1  =
+
+> J
+
+X
+
+> j=1
+
+Pr( Z = j | D = 1) EX(k) 
+
+> t
+
+(1) − X(k) 
+
+> t
+
+(0) | D = 1 , Z = j. (53) 
+
+Proof. Fix type j and outcome category k. By Proposition 15, the type-specific ATT on the kth outcome is 
+
+EX(k) 
+
+> t
+
+(1) − X(k) 
+
+> t
+
+(0) | D = 1 , Z = j = X
+
+> xT0
+
+Pr( XT0 = xT0 | D = 1 , Z = j) · ∆j,k t (xT0 ),
+
+where ∆ j,k t (xT0 ) := E[X(k) 
+
+> t
+
+| XT0 = xT0 , D = 1 , Z = j] − E[X(k) 
+
+> t
+
+| XT0 = xT0 , D = 0 , Z = j]. Under the first-order Markov assumption, conditioning on XT0 reduces to YT0 . Partitioning the summation over YT0 into {YT0 = ¯ y(k)} (outflows) and {YT0̸ = ¯ y(k)} (inflows) yields the stated decomposition. Equation (53) follows from the law of iterated expectations applied to E[· | D =1] = P 
+
+> j
+
+Pr( Z = j | D = 1) E[· | D = 1 , Z = j]. 56 F Supplementary Figures 
+
+Figure 15: Differences in Complaint Transition Probabilities Before the Dodd-Frank Act ( J = 1). 0.00 0.01 0.02 0.03                     
+
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> No complaint rate | no complaint last year
+> 0.0 0.5
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> No complaint rate | complaint last year
+> −0.03 −0.02 −0.01 0.00
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> Complaint rate | no complaint last year
+> −0.5 0.0
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> Complaint rate | complaint last year
+
+Notes: This figure reports estimated differences in annual complaint transition probabilities between midsize RIAs (treated) and other RIAs (control) before the enactment of the Dodd-Frank Act. Each panel corresponds to a distinct complaint transition, where rates represent the annual probability of moving from one complaint status (No Complaint or Complaint Received) to another. The x-axis measures years relative to the introduction of the Dodd-Frank Act (with zero denoting the last pre-treatment period; treatment begins at period 1), and the y-axis shows the estimated difference in transition probabilities between treated and control groups. Vertical bars represent 95% bootstrap uniform confidence intervals across periods within each transition pair. The dashed vertical line marks the timing of the policy introduction. 
+
+57 Figure 16: Differences in Complaint Transition Probabilities Before the Dodd-Frank Act ( J = 2). −0.4 0.0 0.4 0.8                       
+
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> No complaint rate | no complaint last year
+> −0.5 0.0 0.5 1.0
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> No complaint rate | complaint last year
+> −0.8 −0.4 0.0 0.4
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> Complaint rate | no complaint last year
+> −1.0 −0.5 0.0 0.5
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> Complaint rate | complaint last year
+> Latent Type 1 (95.2%) 2 (4.8%)
+
+Notes: This figure reports estimated differences in annual complaint transition probabilities between midsize RIAs (treated) and other RIAs (control) before the enactment of the Dodd-Frank Act, for each latent type (shown in different colors). Each panel corresponds to a distinct complaint transition. The x-axis measures years relative to the introduction of the Dodd-Frank Act (with zero denoting the last pre-treatment period; treatment begins at period 1), and the y-axis shows the estimated difference in transition probabilities between treated and control groups. Percentages in the legend indicate the estimated population share of each latent type. Vertical bars represent 95% bootstrap uniform confidence intervals across periods within each transition pair and latent type, 
+
+j ∈ { 1, 2}. The dashed vertical line marks the timing of the policy introduction. 
+
+58 Figure 17: Differences in Complaint Transition Probabilities Before the Dodd-Frank Act ( J = 3). −1 012                       
+
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> No complaint rate | no complaint last year
+> −1 012
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> No complaint rate | complaint last year
+> −2 −1 01
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> Complaint rate | no complaint last year
+> −2 −1 01
+> −5 −4 −3 −2 −1 0
+> Year Relative to the Policy Change
+> Complaint rate | complaint last year
+> Latent Type 1 (93.9%) 2 (3.6%) 3 (2.5%)
+
+Notes: This figure reports estimated differences in annual complaint transition probabilities between midsize RIAs (treated) and other RIAs (control) before the enactment of the Dodd-Frank Act, for each latent type (shown in different colors). Each panel corresponds to a distinct complaint transition. The x-axis measures years relative to the introduction of the Dodd-Frank Act (with zero denoting the last pre-treatment period; treatment begins at period 1), and the y-axis shows the estimated difference in transition probabilities between treated and control groups. Percentages in the legend indicate the estimated population share of each latent type. Vertical bars represent 95% bootstrap uniform confidence intervals across periods within each transition pair and latent type, 
+
+j ∈ { 1, 2, 3}. The dashed vertical line marks the timing of the policy introduction. 
+
+59 Figure 18: Differences in Patenting Transition Probabilities Before the Norwegian Reform ( J = 2). −0.4 −0.2 0.0 0.2 0.4               
+
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> No patenting Rates, Conditioning on No Patenting Last Year
+> −2 −1 01
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> No patenting Rates, Conditioning on Patenting Last Year
+> −0.4 −0.2 0.0 0.2 0.4
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> Patenting Rates, Conditioning on No Patenting Last Year
+> −1 012
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> Patenting Rates, Conditioning on Patenting Last Year
+> Latent Type 1 (87.2%) 2 (12.8%)
+
+Notes: This figure reports estimated differences in annual patenting transition probabilities between university researchers (treated) and non-university inventors (control) before the Norwegian patent reform, for each latent type (shown in different colors). Each panel corresponds to a distinct patenting transition. The x-axis measures years relative to the introduction of the reform (with zero denoting the last pre-treatment period; treatment begins at period 1), and the y-axis shows the estimated difference in transition probabilities between treated and control groups. Percentages in the legend indicate the estimated population share of each latent type. Vertical bars represent 95% bootstrap uniform confidence intervals across periods within each transition pair and latent type, 
+
+j ∈ { 1, 2}. The dashed vertical line marks the timing of the policy introduction. 
+
+60 Figure 19: Differences in Patenting Transition Probabilities Before the Norwegian Reform ( J = 3). −1.0 −0.5 0.0 0.5                
+
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> No patenting Rates, Conditioning on No Patenting Last Year
+> −3 −2 −1 012
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> No patenting Rates, Conditioning on Patenting Last Year
+> −0.5 0.0 0.5 1.0
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> Patenting Rates, Conditioning on No Patenting Last Year
+> −2 −1 0123
+> −6 −4 −2 0
+> Year Relative to the Policy Change
+> Patenting Rates, Conditioning on Patenting Last Year
+> Latent Type 1 (76.1%) 2 (12.1%) 3 (11.9%)
+
+Notes: This figure reports estimated differences in annual patenting transition probabilities between university researchers (treated) and non-university inventors (control) before the Norwegian patent reform, for each latent type (shown in different colors). Each panel corresponds to a distinct patenting transition. The x-axis measures years relative to the introduction of the reform (with zero denoting the last pre-treatment period; treatment begins at period 1), and the y-axis shows the estimated difference in transition probabilities between treated and control groups. Percentages in the legend indicate the estimated population share of each latent type. Vertical bars represent 95% bootstrap uniform confidence intervals across periods within each transition pair and latent type, 
+
+j ∈ { 1, 2, 3}. The dashed vertical line marks the timing of the policy introduction. 
+
+61 Figure 20: Labor Force Status Trends Before and After the ADA of 1990. 0.0 0.2 0.4 0.6 0.8      
+
+> −5 0510 15 20
+
+Month Relative to the Policy Change 
+
+> Share of Individuals
+
+Outcome Employed OLF Unemployed Treatment Status Control Treated 
+
+Notes: This figure shows average monthly employment rates for individuals with disabilities (treated group) and those without disabilities (control group) from 1989 to 1991, surrounding the enactment of the ADA. The x-axis reports calendar months, with 1990 marking the implementation year of the ADA. The y-axis shows the fraction of individuals employed. The dashed vertical line indicates the timing of the ADA’s introduction. 
+
+62 Figure 21: Differences in Labor Force Transition Probabilities Before the ADA ( J = 2). −0.2 −0.1 0.0 0.1     
+
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Employed−to−Employed Rates
+> −0.3 −0.2 −0.1 0.0 0.1
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> OLF−to−Employed Rates
+> −1.0 −0.5 0.0 0.5
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Unemployed−to−Employed Rates
+> −0.1 0.0 0.1
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Employed−to−OLF Rates
+> −0.2 −0.1 0.0 0.1 0.2
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> OLF−to−OLF Rates
+> −1.0 −0.5 0.0 0.5 1.0
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Unemployed−to−OLF Rates
+> −0.05 0.00 0.05 0.10
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Employed−to−Unemployed Rates
+> −0.2 −0.1 0.0 0.1 0.2 0.3
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> OLF−to−Unemployed Rates
+> −1.0 −0.5 0.0 0.5 1.0
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change 
+
+> Unemployed−to−Unemployed Rates
+
+Latent Type 1 (69.3%) 2 (30.7%) 
+
+Notes: This figure reports estimated differences in monthly labor force transition probabilities between individuals with and without disabilities before the enactment of the ADA, for each latent type (shown in different colors). Each panel corresponds to a distinct labor force transition, where rates represent the monthly probability of moving from one labor force status (e.g., employed, unemployed, or out of the labor force (OLF)) to another. The x-axis measures calendar months relative to the introduction of the ADA (with zero denoting the policy’s introduction), and the y-axis shows the estimated difference in transition probabilities between treated (individuals with disabilities) and control (individuals without disabilities) groups. Percentages in the legend indicate the estimated population share of each latent type. Vertical bars represent 95% bootstrap uniform confidence intervals across periods within each transition pair and latent type, j ∈ { 1, 2}. The dashed vertical line marks the timing of the ADA’s introduction. 
+
+63 Figure 22: Differences in Labor Force Transition Probabilities Before the ADA ( J = 3). −0.4 −0.2 0.0 0.2     
+
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Employed−to−Employed Rates
+> −0.6 −0.4 −0.2 0.0 0.2 0.4
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> OLF−to−Employed Rates
+> −1.0 −0.5 0.0 0.5 1.0
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Unemployed−to−Employed Rates
+> −0.2 0.0 0.2
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Employed−to−OLF Rates
+> −0.25 0.00 0.25 0.50
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> OLF−to−OLF Rates
+> −1.0 −0.5 0.0 0.5
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Unemployed−to−OLF Rates
+> −0.1 0.0 0.1 0.2
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> Employed−to−Unemployed Rates
+> −0.2 0.0 0.2 0.4
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change     
+
+> OLF−to−Unemployed Rates
+> −1.0 −0.5 0.0 0.5 1.0
+> −4 −3 −2 −1 0
+
+Month Relative to the Policy Change 
+
+> Unemployed−to−Unemployed Rates
+
+Latent Type 1 (64.8%) 2 (27.2%) 3 (8.0%) 
+
+Notes: This figure reports estimated differences in monthly labor force transition probabilities between individuals with and without disabilities before the enactment of the ADA, for each latent type (shown in different colors). Each panel corresponds to a distinct labor force transition, where rates represent the monthly probability of moving from one labor force status (e.g., employed, unemployed, or out of the labor force (OLF)) to another. The x-axis measures calendar months relative to the introduction of the ADA (with zero denoting the policy’s introduction), and the y-axis shows the estimated difference in transition probabilities between treated (individuals with disabilities) and control (individuals without disabilities) groups. Percentages in the legend indicate the estimated population share of each latent type. Vertical bars represent 95% bootstrap uniform confidence intervals across periods within each transition pair and latent type, j ∈ { 1, 2, 3}. The dashed vertical line marks the timing of the ADA’s introduction. 
+
+64 References 
+
+Acemoglu, Daron and Joshua D Angrist , “Consequences of employment protection? The case of the Americans with Disabilities Act,” Journal of Political Economy , 2001, 109 (5), 915–957. 
+
+Anderson, Soren T. and James M. Sallee , “Using Loopholes to Reveal the Marginal Cost of Regulation: The Case of Fuel-Economy Standards,” American Economic Review , June 2011, 
+
+101 (4), 1375–1409. 
+
+Anderson, T. W. , “On Estimation of Parameters in Latent Structure Analysis,” Psychometrika ,1954, 19 (1), 1–10. 
+
+Angrist, Joshua D and J¨ orn-Steffen Pischke , Mostly harmless econometrics: An empiricist’s companion , Princeton University Press, 2009. 
+
+Arkhangelsky, Dmitry, Susan Athey, David A. Hirshberg, Guido W. Imbens, and Stefan Wager , “Synthetic Difference-in-Differences,” American Economic Review , 2021, 111 
+
+(12), 4088–4118. 
+
+Athey, Susan and Guido W Imbens , “Identification and inference in nonlinear difference-in-differences models,” Econometrica , 2006, 74 (2), 431–497. 
+
+Bonhomme, St´ ephane and Elena Manresa , “Grouped patterns of heterogeneity in panel data,” Econometrica , 2015, 83 (3), 1147–1184. 
+
+, Thibaut Lamadon, and Elena Manresa , “Discretizing Unobserved Heterogeneity,” Econo-metrica , 2022, 90 (2), 625–643. 
+
+Bustos, Paula , “Trade Liberalization, Exports, and Technology Upgrading: Evidence on the Impact of MERCOSUR on Argentinian Firms,” The American Economic Review , 2011, 101 (1), 304–340. 
+
+Callaway, Brantly and Pedro H.C. Sant’Anna , “Difference-in-Differences with multiple time periods,” Journal of Econometrics , 2021, 225 (2), 200–230. Themed Issue: Treatment Effect 1. 
+
+and Tong Li , “Quantile treatment effects in difference in differences models with panel data,” 
+
+Quantitative Economics , 2019, 10 (4), 1579–1618. 
+
+, , and Tatsushi Oka , “Quantile treatment effects in difference in differences models under dependence restrictions and with only two time periods,” Journal of Econometrics , 2018, 206 
+
+(2), 395–413. 
+
+Cameron, A. Colin, Jonah B. Gelbach, and Douglas L. Miller , “Bootstrap-Based Improve-ments for Inference with Clustered Errors,” The Review of Economics and Statistics , 2008, 90 
+
+(3), 414–427. 65 Card, David and Daniel Sullivan , “Measuring the Effect of Subsidized Training Programs on Movements In and Out of Employment,” Econometrica , 1988, 56 (3), 497–530. 
+
+Carroll, Raymond J., Xiaohong Chen, and Yingyao Hu , “Identification and Estimation of Nonlinear Models Using Two Samples with Nonclassical Measurement Errors,” Journal of Nonparametric Statististics , 2010, 22 (4), 379–399. 
+
+Charoenwong, Ben, Alan Kwan, and Tarik Umar , “Does regulatory jurisdiction affect the quality of investment-adviser regulation?,” American Economic Review , 2019, 109 (10), 3681– 3712. 
+
+Di Francesco, Riccardo and Giovanni Mellace , “Causal inference for qualitative outcomes,” 
+
+Economics Letters , 2025, 256 , 112626. 
+
+Ding, Peng and Fan Li , “A bracketing relationship between difference-in-differences and lagged-dependent-variable adjustment,” Political Analysis , 2019, 27 (4), 605–615. 
+
+Freyaldenhoven, Simon, Christian Hansen, and Jesse M Shapiro , “Pre-event trends in the panel event-study design,” American Economic Review , 2019, 109 (9), 3307–3338. 
+
+Ghanem, Dalia, D´ esir´ e K´ edagni, and Ismael Mourifi´ e, “Evaluating the Impact of Regulatory Policies on Social Welfare in Difference-in-Difference Settings,” arXiv preprint arXiv:2306.04494 ,2023. 
+
+Graves, John A., Carrie Fry, J. Michael McWilliams, and Laura A. Hatfield , “Difference-in-Differences for Categorical Outcomes,” Health Services Research , 2022, 57 (3), 681–692. 
+
+Heckman, James, Hidehiko Ichimura, and Petra Todd , “Matching as an Econometric Eval-uation Estimator: Evidence from Evaluating a Job Training Programme,” The Review of Eco-nomic Studies , 1997, 64 (4), 605–654. 
+
+, , Jeffrey Smith, and Petra Todd , “Characterizing Selection Bias Using Experimental Data,” Econometrica , September 1998, 66 (5), 1017–1098. 
+
+Hern´ an, Miguel A. and James M. Robins , Causal Inference: What If 2025. Unpublished manuscript (Chapman & Hall/CRC, 2025). 
+
+Higgins, Ayden and Koen Jochmans , “Identification of mixtures of dynamic discrete choices,” 
+
+Journal of Econometrics , 2023, 237 (1), 105462. 
+
+Hotchkiss, Julie L , The labor market experience of workers with disabilities: The ADA and beyond , W.E. Upjohn Institute, 2003. 
+
+Hu, Yingyao , “Identification and estimation of nonlinear models with misclassification error using instrumental variables: A general solution,” Journal of Econometrics , 2008, 144 (1), 27–61. 66 and Matthew Shum , “Nonparametric identification of dynamic models with unobserved state variables,” Journal of Econometrics , 2012, 171 (1), 32–44. 
+
+Hvide, Hans K and Benjamin F Jones , “University innovation and the professor’s privilege,” 
+
+American Economic Review , 2018, 108 (7), 1860–1898. 
+
+Ishimaru, Shoya , “Estimating Treatment Effects in Panel Data Without Parallel Trends,” April 2025. Hitotsubashi University, Working Paper. 
+
+Kahn-Lang, Ariella and Kevin Lang , “The promise and pitfalls of differences-in-differences: Reflections on 16 and pregnant and other applications,” Journal of Business & Economic Statis-tics , 2020, 38 (3), 613–620. 
+
+Kasahara, Hiroyuki and Katsumi Shimotsu , “Nonparametric Identification of Finite Mixture Models of Dynamic Discrete Choices,” Econometrica , 2009, 77 (1), 135–175. 
+
+and , “Testing the Number of Components in Normal Mixture Regression Models,” Journal of the American Statistical Association (Theory and Methods) , 2015, 110 (512), 1632–1645. 
+
+Lise, Jeremy, Elena Pastorino, and Luigi Pistaferri , “Revisiting the Employment Effects of the Americans with Disabilities Act,” 2023. 
+
+MacKinnon, James G. and Matthew D. Webb , “Wild Bootstrap Inference for Wildly Dif-ferent Cluster Sizes,” Journal of Applied Econometrics , 2017, 32 (2), 233–254. 
+
+Madansky, Albert , “Determinantal methods in latent class analysis,” Psychometrika , June 1960, 
+
+25 (2), 183–198. 
+
+Marx, Philip, Elie Tamer, and Xun Tang , “Heterogeneous Treatment Effects via Linear Dynamic Panel Data Models,” 2025. 
+
+Newey, Whitney K. and Daniel McFadden , “Large sample estimation and hypothesis test-ing,” in “Handbook of Econometrics,” Vol. 4, Elsevier, jan 1994, pp. 2111–2245. 
+
+Puhani, Patrick A , “The treatment effect, the cross difference, and the interaction term in nonlinear “difference-in-differences” models,” Economics Letters , 2012, 115 (1), 85–87. 
+
+Rambachan, Ashesh and Jonathan Roth , “A More Credible Approach to Parallel Trends,” 
+
+The Review of Economic Studies , 02 2023. rdad018. 
+
+Robins, J. M. , “A New Approach To Causal Inference in Mortality Studies With a Sustained Exposure Period - Application To Control of the Healthy Worker Survivor Effect,” Mathematical Modelling , 1986, 7, 1393–1512. 
+
+Roth, Jonathan , “Pretest with Caution: Event-Study Estimates after Testing for Parallel Trends,” American Economic Review: Insights , September 2022, 4 (3), 305–22. 67 and Pedro H. C. Sant’Anna , “When Is Parallel Trends Sensitive to Functional Form?,” 
+
+Econometrica , 2023, 91 (2), 737–747. 
+
+, Pedro H.C. Sant’Anna, Alyssa Bilinski, and John Poe , “What’s trending in difference-in-differences? A synthesis of the recent econometrics literature,” Journal of Econometrics , 2023. 
+
+Sun, Liyang and Sarah Abraham , “Estimating dynamic treatment effects in event studies with heterogeneous treatment effects,” Journal of Econometrics , 2021, 225 (2), 175–199. 
+
+United States Census Bureau , “Survey of Income and Program Participation, 1990 Panel,” 1990–1993. 
+
+Wooldridge, Jeffrey M , “Simple approaches to nonlinear difference-in-differences with panel data,” The Econometrics Journal , 2023, 26 (3), C31–C66. 68

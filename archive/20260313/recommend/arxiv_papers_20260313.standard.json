@@ -1,0 +1,686 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-03-13T19:26:58.958281+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 71,
+    "deep_cap": 6,
+    "deep_selected": 6,
+    "quick_candidates": 72,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2603.01804v1",
+      "title": "Non-verbal Real-time Human-AI Interaction in Constrained Robotic Environments",
+      "abstract": "We study the ongoing debate regarding the statistical fidelity of AI-generated data compared to human-generated data in the context of non-verbal communication using full body motion. Concretely, we ask if contemporary generative models move beyond surface mimicry to participate in the silent, but expressive dialogue of body language. We tackle this question by introducing the first framework that generates a natural non-verbal interaction between Human and AI in real-time from 2D body keypoints. Our experiments utilize four lightweight architectures which run at up to 100 FPS on an NVIDIA Orin Nano, effectively closing the perception-action loop needed for natural Human-AI interaction. We trained on 437 human video clips and demonstrated that pretraining on synthetically-generated sequences reduces motion errors significantly, without sacrificing speed. Yet, a measurable reality gap persists. When the best model is evaluated on keypoints extracted from cutting-edge text-to-video systems, such as SORA and VEO, we observe that performance drops on SORA-generated clips. However, it degrades far less on VEO, suggesting that temporal coherence, not image fidelity, drives real-world performance. Our results demonstrate that statistically distinguishable differences persist between Human and AI motion.",
+      "authors": [
+        "Dragos Costea",
+        "Alina Marcu",
+        "Cristina Lazar",
+        "Marius Leordeanu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-02T12:38:43+00:00",
+      "link": "https://arxiv.org/pdf/2603.01804v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "real-time human-AI interaction via non-verbal communication",
+      "llm_evidence_cn": "通过非语言交流实现实时人机交互",
+      "llm_evidence": "通过非语言交流实现实时人机交互",
+      "canonical_evidence": "通过非语言交流实现实时人机交互",
+      "llm_tldr_en": "Develops a framework for natural non-verbal interaction between humans and AI using body language.",
+      "llm_tldr_cn": "开发了一个利用肢体语言实现人类与AI之间自然非语言互动的框架。",
+      "llm_tldr": "开发了一个利用肢体语言实现人类与AI之间自然非语言互动的框架。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Improving human-computer interaction and user experience for AI-driven applications",
+      "matched_requirement_id": "req-17",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.01804v1"
+    },
+    {
+      "id": "2602.16173v1",
+      "title": "Learning Personalized Agents from Human Feedback",
+      "abstract": "Modern AI agents are powerful but often fail to align with the idiosyncratic, evolving preferences of individual users. Prior approaches typically rely on static datasets, either training implicit preference models on interaction history or encoding user profiles in external memory. However, these approaches struggle with new users and with preferences that change over time. We introduce Personalized Agents from Human Feedback (PAHF), a framework for continual personalization in which agents learn online from live interaction using explicit per-user memory. PAHF operationalizes a three-step loop: (1) seeking pre-action clarification to resolve ambiguity, (2) grounding actions in preferences retrieved from memory, and (3) integrating post-action feedback to update memory when preferences drift. To evaluate this capability, we develop a four-phase protocol and two benchmarks in embodied manipulation and online shopping. These benchmarks quantify an agent's ability to learn initial preferences from scratch and subsequently adapt to persona shifts. Our theoretical analysis and empirical results show that integrating explicit memory with dual feedback channels is critical: PAHF learns substantially faster and consistently outperforms both no-memory and single-channel baselines, reducing initial personalization error and enabling rapid adaptation to preference shifts.",
+      "authors": [
+        "Kaiqu Liang",
+        "Julia Kruk",
+        "Shengyi Qian",
+        "Xianjun Yang",
+        "Shengjie Bi",
+        "Yuanshun Yao",
+        "Shaoliang Nie",
+        "Mingyang Zhang",
+        "Lijuan Liu",
+        "Jaime Fernández Fisac",
+        "Shuyan Zhou",
+        "Saghar Hosseini"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-02-18T04:18:47+00:00",
+      "link": "https://arxiv.org/pdf/2602.16173v1",
+      "tags": [
+        "keyword:PR EF",
+        "keyword:SR AI",
+        "query:PR EF",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "explicit per-user memory for personalized agents",
+      "llm_evidence_cn": "用于个性化智能体的显式用户记忆",
+      "llm_evidence": "用于个性化智能体的显式用户记忆",
+      "canonical_evidence": "用于个性化智能体的显式用户记忆",
+      "llm_tldr_en": "A framework for agents to learn individual user preferences through explicit memory and live feedback loops.",
+      "llm_tldr_cn": "提出PAHF框架，通过显式记忆和实时反馈循环实现智能体的持续个性化学习。",
+      "llm_tldr": "提出PAHF框架，通过显式记忆和实时反馈循环实现智能体的持续个性化学习。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Long-term and short-term memory mechanisms for AI agents",
+      "matched_requirement_id": "req-31",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.16173v1"
+    },
+    {
+      "id": "2603.02029v1",
+      "title": "Rich Insights from Cheap Signals: Efficient Evaluations via Tensor Factorization",
+      "abstract": "Moving beyond evaluations that collapse performance across heterogeneous prompts toward fine-grained evaluation at the prompt level, or within relatively homogeneous subsets, is necessary to diagnose generative models' strengths and weaknesses. Such fine-grained evaluations, however, suffer from a data bottleneck: human gold-standard labels are too costly at this scale, while automated ratings are often misaligned with human judgment. To resolve this challenge, we propose a novel statistical model based on tensor factorization that merges cheap autorater data with a limited set of human gold-standard labels. Specifically, our approach uses autorater scores to pretrain latent representations of prompts and generative models, and then aligns those pretrained representations to human preferences using a small calibration set. This sample-efficient methodology is robust to autorater quality, more accurately predicts human preferences on a per-prompt basis than standard baselines, and provides tight confidence intervals for key statistical parameters of interest. We also showcase the practical utility of our method by constructing granular leaderboards based on prompt qualities and by estimating model performance solely from autorater scores, eliminating the need for additional human annotations.",
+      "authors": [
+        "Felipe Maia Polo",
+        "Aida Nematzadeh",
+        "Virginia Aglietti",
+        "Adam Fisch",
+        "Isabela Albuquerque"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-03-02T16:12:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.02029v1",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "fine-grained evaluation at the prompt level using tensor factorization",
+      "llm_evidence_cn": "利用张量分解进行提示词层面的细粒度评估",
+      "llm_evidence": "利用张量分解进行提示词层面的细粒度评估",
+      "canonical_evidence": "利用张量分解进行提示词层面的细粒度评估",
+      "llm_tldr_en": "Proposes a statistical model to enable efficient, fine-grained evaluation of generative models at the prompt level.",
+      "llm_tldr_cn": "提出了一种统计模型，用于在提示词层面实现生成模型的高效细粒度评估。",
+      "llm_tldr": "提出了一种统计模型，用于在提示词层面实现生成模型的高效细粒度评估。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Comparative study of prompt optimization methods for improved model output",
+      "matched_requirement_id": "req-26",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.02029v1"
+    },
+    {
+      "id": "2602.16192v1",
+      "title": "Revolutionizing Long-Term Memory in AI: New Horizons with High-Capacity and High-Speed Storage",
+      "abstract": "Driven by our mission of \"uplifting the world with memory,\" this paper explores the design concept of \"memory\" that is essential for achieving artificial superintelligence (ASI). Rather than proposing novel methods, we focus on several alternative approaches whose potential benefits are widely imaginable, yet have remained largely unexplored. The currently dominant paradigm, which can be termed \"extract then store,\" involves extracting information judged to be useful from experiences and saving only the extracted content. However, this approach inherently risks the loss of information, as some valuable knowledge particularly for different tasks may be discarded in the extraction process. In contrast, we emphasize the \"store then on-demand extract\" approach, which seeks to retain raw experiences and flexibly apply them to various tasks as needed, thus avoiding such information loss. In addition, we highlight two further approaches: discovering deeper insights from large collections of probabilistic experiences, and improving experience collection efficiency by sharing stored experiences. While these approaches seem intuitively effective, our simple experiments demonstrate that this is indeed the case. Finally, we discuss major challenges that have limited investigation into these promising directions and propose research topics to address them.",
+      "authors": [
+        "Hiroaki Yamanaka",
+        "Daisuke Miyashita",
+        "Takashi Toi",
+        "Asuka Maki",
+        "Taiga Ikeda",
+        "Jun Deguchi"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-02-18T05:27:47+00:00",
+      "link": "https://arxiv.org/pdf/2602.16192v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "design concept of memory for artificial superintelligence",
+      "llm_evidence_cn": "人工智能超级智能的记忆设计概念",
+      "llm_evidence": "人工智能超级智能的记忆设计概念",
+      "canonical_evidence": "人工智能超级智能的记忆设计概念",
+      "llm_tldr_en": "Discusses high-capacity and high-speed storage paradigms for long-term memory in AI systems.",
+      "llm_tldr_cn": "探讨了 AI 系统长期记忆的高容量、高速存储范式。",
+      "llm_tldr": "探讨了 AI 系统长期记忆的高容量、高速存储范式。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the mechanisms for long term memory in AI agents?",
+      "matched_requirement_id": "req-45",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.16192v1"
+    },
+    {
+      "id": "2603.02029v2",
+      "title": "Rich Insights from Cheap Signals: Efficient Evaluations via Tensor Factorization",
+      "abstract": "Moving beyond evaluations that collapse performance across heterogeneous prompts toward fine-grained evaluation at the prompt level, or within relatively homogeneous subsets, is necessary to diagnose generative models' strengths and weaknesses. Such fine-grained evaluations, however, suffer from a data bottleneck: human gold-standard labels are too costly at this scale, while automated ratings are often misaligned with human judgment. To resolve this challenge, we propose a novel statistical model based on tensor factorization that merges cheap autorater data with a limited set of human gold-standard labels. Specifically, our approach uses autorater scores to pretrain latent representations of prompts and generative models, and then aligns those pretrained representations to human preferences using a small calibration set. This sample-efficient methodology is robust to autorater quality, more accurately predicts human preferences on a per-prompt basis than standard baselines, and provides tight confidence intervals for key statistical parameters of interest. We also showcase the practical utility of our method by constructing granular leaderboards based on prompt qualities and by estimating model performance solely from autorater scores, eliminating the need for additional human annotations.",
+      "authors": [
+        "Felipe Maia Polo",
+        "Aida Nematzadeh",
+        "Virginia Aglietti",
+        "Adam Fisch",
+        "Isabela Albuquerque"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-03-02T16:12:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.02029v2",
+      "tags": [
+        "keyword:AI UX",
+        "query:AI UX"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "fine-grained evaluation at the prompt level using tensor factorization",
+      "llm_evidence_cn": "利用张量分解进行提示词层面的细粒度评估",
+      "llm_evidence": "利用张量分解进行提示词层面的细粒度评估",
+      "canonical_evidence": "利用张量分解进行提示词层面的细粒度评估",
+      "llm_tldr_en": "Proposes a statistical model to enable efficient, fine-grained evaluation of generative models at the prompt level.",
+      "llm_tldr_cn": "提出了一种统计模型，用于在提示词层面实现生成模型的高效细粒度评估。",
+      "llm_tldr": "提出了一种统计模型，用于在提示词层面实现生成模型的高效细粒度评估。",
+      "llm_tags": [
+        "query:ai-ux"
+      ],
+      "matched_query_tag": "query:ai-ux",
+      "matched_query_text": "Comparative study of prompt optimization methods for improved model output",
+      "matched_requirement_id": "req-26",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.02029v2"
+    },
+    {
+      "id": "2602.16662v1",
+      "title": "Evaluating Collective Behaviour of Hundreds of LLM Agents",
+      "abstract": "As autonomous agents powered by LLM are increasingly deployed in society, understanding their collective behaviour in social dilemmas becomes critical. We introduce an evaluation framework where LLMs generate strategies encoded as algorithms, enabling inspection prior to deployment and scaling to populations of hundreds of agents -- substantially larger than in previous work. We find that more recent models tend to produce worse societal outcomes compared to older models when agents prioritise individual gain over collective benefits. Using cultural evolution to model user selection of agents, our simulations reveal a significant risk of convergence to poor societal equilibria, particularly when the relative benefit of cooperation diminishes and population sizes increase. We release our code as an evaluation suite for developers to assess the emergent collective behaviour of their models.",
+      "authors": [
+        "Richard Willis",
+        "Jianing Zhao",
+        "Yali Du",
+        "Joel Z. Leibo"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA"
+      ],
+      "published": "2026-02-18T18:02:51+00:00",
+      "link": "https://arxiv.org/pdf/2602.16662v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Evaluation framework for collective behavior of hundreds of LLM agents",
+      "llm_evidence_cn": "数百个LLM智能体集体行为的评估框架",
+      "llm_evidence": "数百个LLM智能体集体行为的评估框架",
+      "canonical_evidence": "数百个LLM智能体集体行为的评估框架",
+      "llm_tldr_en": "This paper evaluates the social dilemmas and collective behaviors of large populations of LLM agents.",
+      "llm_tldr_cn": "本文评估了大规模LLM智能体群体在社会困境中的集体行为。",
+      "llm_tldr": "本文评估了大规模LLM智能体群体在社会困境中的集体行为。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-43",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.16662v1"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2602.16738v1",
+      "title": "Self-Evolving Multi-Agent Network for Industrial IoT Predictive Maintenance",
+      "abstract": "Industrial IoT predictive maintenance requires systems capable of real-time anomaly detection without sacrificing interpretability or demanding excessive computational resources. Traditional approaches rely on static, offline-trained models that cannot adapt to evolving operational conditions, while LLM-based monolithic systems demand prohibitive memory and latency, rendering them impractical for on-site edge deployment. We introduce SEMAS, a self-evolving hierarchical multi-agent system that distributes specialized agents across Edge, Fog, and Cloud computational tiers. Edge agents perform lightweight feature extraction and pre-filtering; Fog agents execute diversified ensemble detection with dynamic consensus voting; and Cloud agents continuously optimize system policies via Proximal Policy Optimization (PPO) while maintaining asynchronous, non-blocking inference. The framework incorporates LLM-based response generation for explainability and federated knowledge aggregation for adaptive policy distribution. This architecture enables resource-aware specialization without sacrificing real-time performance or model interpretability. Empirical evaluation on two industrial benchmarks (Boiler Emulator and Wind Turbine) demonstrates that SEMAS achieves superior anomaly detection performance with exceptional stability under adaptation, sustains prediction accuracy across evolving operational contexts, and delivers substantial latency improvements enabling genuine real-time deployment. Ablation studies confirm that PPO-driven policy evolution, consensus voting, and federated aggregation each contribute materially to system effectiveness. These findings indicate that resource-aware, self-evolving 1multi-agent coordination is essential for production-ready industrial IoT predictive maintenance under strict latency and explainability constraints.",
+      "authors": [
+        "Rebin Saleh",
+        "Khanh Pham Dinh",
+        "Balázs Villányi",
+        "Truong-Son Hy"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.LG"
+      ],
+      "published": "2026-02-17T22:45:43+00:00",
+      "link": "https://arxiv.org/pdf/2602.16738v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Self-evolving hierarchical multi-agent system for industrial IoT predictive maintenance",
+      "llm_evidence_cn": "用于工业物联网预测性维护的自进化分层多智能体系统",
+      "llm_evidence": "用于工业物联网预测性维护的自进化分层多智能体系统",
+      "canonical_evidence": "用于工业物联网预测性维护的自进化分层多智能体系统",
+      "llm_tldr_en": "SEMAS is a hierarchical multi-agent system that evolves to handle real-time anomaly detection in IoT environments.",
+      "llm_tldr_cn": "SEMAS是一个分层多智能体系统，可进化以处理物联网环境中的实时异常检测。",
+      "llm_tldr": "SEMAS是一个分层多智能体系统，可进化以处理物联网环境中的实时异常检测。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-43",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.16738v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.07479v1",
+      "title": "Mixed Effects Mixture of Experts: Modeling Double Heterogeneous Trajectories",
+      "abstract": "Linear mixed-effects model (LMM) is a cornerstone of longitudinal data analysis, but is limited to adeptly make heterogeneous analyses predictable under both group-specific fixed effects and subject-specific random effects. To address this challenge, we propose a novel statistical framework by using a large model prototype: a mixed effects mixture of experts model (MEMoE). This framework integrates the divide-and-conquer paradigm of Mixture of Experts Models with classical mixed-effect modeling. In the proposed MEMoE, each expert is a full LMM dedicated to capturing the longitudinal trajectory of a specific latent subpopulation, while another model gating function learns to route subjects to the most appropriate expert in a data-driven manner based on baseline covariates. We develop a robust inferential procedure for parameter estimation based on the Laplace Expectation-Maximization algorithm, with standard errors calibrated using robust sandwich estimators to account for potential model misspecification. Extensive simulation studies and an empirical application demonstrate that MEMoE outperforms both traditional single-population LMM and conventional Mixture of Experts models in terms of parameter recovery, classification accuracy, and overall model fit.",
+      "authors": [
+        "Xinkai Yue",
+        "Xiaodong Yan",
+        "Haohui Han",
+        "Liya Fu"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME"
+      ],
+      "published": "2026-03-08T05:36:49+00:00",
+      "link": "https://arxiv.org/pdf/2603.07479v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "modeling longitudinal trajectories with mixed effects",
+      "llm_evidence_cn": "使用混合效应建模纵向轨迹",
+      "llm_evidence": "使用混合效应建模纵向轨迹",
+      "canonical_evidence": "使用混合效应建模纵向轨迹",
+      "llm_tldr_en": "Proposes a statistical framework for modeling heterogeneous longitudinal trajectories in data analysis.",
+      "llm_tldr_cn": "提出了一种用于建模数据分析中异质纵向轨迹的新型统计框架。",
+      "llm_tldr": "提出了一种用于建模数据分析中异质纵向轨迹的新型统计框架。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "longitudinal association between parenting and executive function",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.07230v1",
+      "title": "Conditional Rank-Rank Regression via Deep Conditional Transformation Models",
+      "abstract": "Intergenerational mobility quantifies the transmission of socio-economic outcomes from parents to children. While rank-rank regression (RRR) is standard, adding covariates directly (RRRX) often yields parameters with unclear interpretation. Conditional rank-rank regression (CRRR) resolves this by using covariate-adjusted (conditional) ranks to measure within-group mobility. We improve and extend CRRR by estimating conditional ranks with a deep conditional transformation model (DCTM) and cross-fitting, enabling end-to-end conditional distribution learning with structural constraints and strong performance under nonlinearity, high-order interactions, and discrete ordered outcomes where the distributional regression used in traditional CRRR may be cumbersome or prone to misconfiguration. We further extend CRRR to discrete outcomes via an $ω$-indexed conditional-rank definition and study sensitivity to $ω$. For continuous outcomes, we establish an asymptotic theory for the proposed estimators and verify the validity of exchangeable bootstrap inference. Simulations across simple/complex continuous and discrete ordered designs show clear accuracy gains in challenging settings. Finally, we apply our method to two empirical studies, revealing substantial within-group persistence in U.S. income and pronounced gender differences in educational mobility in India.",
+      "authors": [
+        "Xiaoyi Wang",
+        "Long Feng",
+        "Zhaojun Wang"
+      ],
+      "primary_category": "stat.ME",
+      "categories": [
+        "stat.ME",
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-03-07T14:27:09+00:00",
+      "link": "https://arxiv.org/pdf/2603.07230v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "intergenerational mobility and transmission of outcomes from parents to children",
+      "llm_evidence_cn": "代际流动性以及父母对子女结果的传递",
+      "llm_evidence": "代际流动性以及父母对子女结果的传递",
+      "canonical_evidence": "代际流动性以及父母对子女结果的传递",
+      "llm_tldr_en": "Proposes a regression model to measure intergenerational mobility and transmission of outcomes.",
+      "llm_tldr_cn": "提出了一种回归模型来衡量代际流动性和父母对子女结果的传递。",
+      "llm_tldr": "提出了一种回归模型来衡量代际流动性和父母对子女结果的传递。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "impact of parental behavioral control on child development",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2602.17084v1",
+      "title": "How AI Coding Agents Communicate: A Study of Pull Request Description Characteristics and Human Review Responses",
+      "abstract": "The rapid adoption of large language models has led to the emergence of AI coding agents that autonomously create pull requests on GitHub. However, how these agents differ in their pull request description characteristics, and how human reviewers respond to them, remains underexplored. In this study, we conduct an empirical analysis of pull requests created by five AI coding agents using the AIDev dataset. We analyze agent differences in pull request description characteristics, including structural features, and examine human reviewer response in terms of review activity, response timing, sentiment, and merge outcomes. We find that AI coding agents exhibit distinct PR description styles, which are associated with differences in reviewer engagement, response time, and merge outcomes. We observe notable variation across agents in both reviewer interaction metrics and merge rates. These findings highlight the role of pull request presentation and reviewer interaction dynamics in human-AI collaborative software development.",
+      "authors": [
+        "Kan Watanabe",
+        "Rikuto Tsuchida",
+        "Takahiro Monno",
+        "Bin Huang",
+        "Kazuma Yamasaki",
+        "Youmei Fan",
+        "Kazumasa Shimari",
+        "Kenichi Matsumoto"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.SE"
+      ],
+      "published": "2026-02-19T05:06:31+00:00",
+      "link": "https://arxiv.org/pdf/2602.17084v1",
+      "tags": [
+        "keyword:PR EF",
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "AI coding agents creating pull requests on GitHub",
+      "llm_evidence_cn": "AI 编程智能体在 GitHub 上创建拉取请求",
+      "llm_evidence": "AI 编程智能体在 GitHub 上创建拉取请求",
+      "canonical_evidence": "AI 编程智能体在 GitHub 上创建拉取请求",
+      "llm_tldr_en": "Analyzes how AI coding agents communicate through pull requests and how humans respond to them.",
+      "llm_tldr_cn": "分析 AI 编程智能体如何通过 PR 进行沟通以及人类审阅者的反应。",
+      "llm_tldr": "分析 AI 编程智能体如何通过 PR 进行沟通以及人类审阅者的反应。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How is AI automating software engineering tasks in SWE bench scenarios?",
+      "matched_requirement_id": "req-46",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.17084v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.12000v1",
+      "title": "Credibility Matters: Motivations, Characteristics, and Influence Mechanisms of Crypto Key Opinion Leaders",
+      "abstract": "Crypto Key Opinion Leaders (KOLs) shape Web3 narratives and retail investment behaviour. In volatile, high-risk markets, their credibility becomes a key determinant of their influence on followers. Yet prior research has focused on lifestyle influencers or generic financial commentary, leaving crypto KOLs' understandings of motivation, credibility, and responsibility underexplored. Drawing on interviews with 13 KOLs and self-determination theory (SDT), we examine how psychological needs are negotiated alongside monetisation and community expectations. Whereas prior work treats finfluencer credibility as a set of static credentials, our findings reveal it to be a self-determined, ethically enacted practice. We identify four community-recognised markers of credibility: self-regulation, bounded epistemic competence, accountability, and reflexive self-correction. This reframes credibility as socio-technical performance, extending SDT into high-risk crypto ecosystems. Methodologically, we employ a hybrid human-LLM thematic analysis. The study surfaces implications for designing credibility signals that prioritise transparency over hype.",
+      "authors": [
+        "Alexander Kropiunig",
+        "Svetlana Kremer",
+        "Bernhard Haslhofer"
+      ],
+      "primary_category": "cs.SI",
+      "categories": [
+        "cs.SI",
+        "cs.CR",
+        "cs.CY",
+        "cs.HC"
+      ],
+      "published": "2026-03-12T14:47:47+00:00",
+      "link": "https://arxiv.org/pdf/2603.12000v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "application of self-determination theory (SDT) to psychological needs",
+      "llm_evidence_cn": "自我决定理论（SDT）在心理需求中的应用",
+      "llm_evidence": "自我决定理论（SDT）在心理需求中的应用",
+      "canonical_evidence": "自我决定理论（SDT）在心理需求中的应用",
+      "llm_tldr_en": "Uses self-determination theory to examine how psychological needs are negotiated by crypto influencers.",
+      "llm_tldr_cn": "利用自我决定理论研究加密货币影响力人物如何协商心理需求。",
+      "llm_tldr": "利用自我决定理论研究加密货币影响力人物如何协商心理需求。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "self-determination theory and basic psychological needs satisfaction",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.07334v1",
+      "title": "Self-Supervised Evolutionary Learning of Neurodynamic Progression and Identity Manifolds from EEG During Safety-Critical Decision Making",
+      "abstract": "Human-vehicle interaction in safety-critical traffic environments increasingly incorporates neural sensing to infer user intent and cognitive state, yet most existing approaches either treat electroencephalography (EEG) as a static biometric credential or train task-specific decoders that ignore long-term neurodynamic trajectories, lacking mechanisms for secure user identity and continual modeling of evolving cognitive states. This work proposes a self-supervised evolutionary learning (SSEL) framework that discovers individualized neurodynamic progressions and intrinsic identity manifolds directly from continuous EEG, without external labels or predefined cognitive stage models. SSEL jointly optimizes within-stage temporal predictability, boundary contrast, cross-trial alignment, and sparse stage-specific feature weights, while a population-based evolutionary search enables direct optimization in the discrete, non-differentiable space of candidate segmentations. We validate the framework on EEG recorded from participants performing a simulated road-crossing decision task, a canonical safety-critical scenario in which perceptual assessment, risk evaluation, and decision commitment unfold over time. The learned segmentations reveal stable, person-specific stage structures and neurodynamic signatures that support authentication and anomaly detection. Compared to inference-based segmentation baselines, SSEL achieves orders-of-magnitude higher boundary contrast, substantial gains in cross-trial generalization of intention boundaries, and more interpretable, sparse stage-wise feature attributions. Beyond performance, the framework advances a progression-aware perspective on cognitive neurodynamics, where security, resilience, and personalization emerge from the intrinsic temporal structure of brain activity, with implications for next-generation smart urban and transportation infrastructures.",
+      "authors": [
+        "Xiaoshan Zhou",
+        "Carol C. Menassa",
+        "Vineet R. Kamat"
+      ],
+      "primary_category": "cs.NE",
+      "categories": [
+        "cs.NE"
+      ],
+      "published": "2026-03-07T20:48:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.07334v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "neural sensing and EEG to infer cognitive state and neurodynamic progression",
+      "llm_evidence_cn": "利用神经传感和脑电图推断认知状态和神经动力学进展",
+      "llm_evidence": "利用神经传感和脑电图推断认知状态和神经动力学进展",
+      "canonical_evidence": "利用神经传感和脑电图推断认知状态和神经动力学进展",
+      "llm_tldr_en": "Proposes a self-supervised framework to discover neurodynamic progressions from continuous EEG data.",
+      "llm_tldr_cn": "提出了一种自监督框架，直接从连续脑电图数据中发现神经动力学进展。",
+      "llm_tldr": "提出了一种自监督框架，直接从连续脑电图数据中发现神经动力学进展。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "Neurobiological mechanisms linking parenting styles to inhibitory control",
+      "matched_requirement_id": "req-14",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2602.17955v1",
+      "title": "Mining Type Constructs Using Patterns in AI-Generated Code",
+      "abstract": "Artificial Intelligence (AI) increasingly automates various parts of the software development tasks. Although AI has enhanced the productivity of development tasks, it remains unstudied whether AI essentially outperforms humans in type-related programming tasks, such as employing type constructs properly for type safety, during its tasks. Moreover, there is no systematic study that evaluates whether AI agents overuse or misuse the type constructs under the complicated type systems to the same extent as humans. In this study, we present the first empirical analysis to answer these questions in the domain of TypeScript projects. Our findings show that, in contrast to humans, AI agents are 9x more prone to use the 'any' keyword. In addition, we observed that AI agents use advanced type constructs, including those that ignore type checks, more often compared to humans. Surprisingly, even with all these issues, Agentic pull requests (PRs) have 1.8x higher acceptance rates compared to humans for TypeScript. We encourage software developers to carefully confirm the type safety of their codebases whenever they coordinate with AI agents in the development process.",
+      "authors": [
+        "Imgyeong Lee",
+        "Tayyib Ul Hassan",
+        "Abram Hindle"
+      ],
+      "primary_category": "cs.SE",
+      "categories": [
+        "cs.SE"
+      ],
+      "published": "2026-02-20T03:17:42+00:00",
+      "link": "https://arxiv.org/pdf/2602.17955v1",
+      "tags": [
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "AI automation of software engineering tasks",
+      "llm_evidence_cn": "AI自动化软件工程任务",
+      "llm_evidence": "AI自动化软件工程任务",
+      "canonical_evidence": "AI自动化软件工程任务",
+      "llm_tldr_en": "Analyzes how AI agents handle type-related programming tasks compared to human developers.",
+      "llm_tldr_cn": "分析了AI智能体在处理编程任务时与人类在类型安全方面的差异。",
+      "llm_tldr": "分析了AI智能体在处理编程任务时与人类在类型安全方面的差异。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "How is AI automating software engineering tasks in SWE bench scenarios?",
+      "matched_requirement_id": "req-46",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.17955v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.07914v1",
+      "title": "Event-Study Designs for Discrete Outcomes under Transition Independence",
+      "abstract": "We develop a new identification strategy for average treatment effects on the treated (ATT) in panel data with discrete outcomes. Standard difference-in-differences (DiD) relies on parallel trends, which is frequently violated in categorical settings due to mean reversion, out-of-bounds counterfactuals, and ill-defined trends for multi-category outcomes. We propose an alternative identification strategy with transition independence: absent treatment, transition dynamics conditional on pre-treatment outcomes are identical between control and treated groups. To capture unobserved heterogeneity, we introduce a latent-type Markov structure delivering type-specific and aggregate treatment effects from short panels. Three empirical applications yield ATT estimates substantially different from conventional DiD.",
+      "authors": [
+        "Young Ahn",
+        "Hiroyuki Kasahara"
+      ],
+      "primary_category": "econ.EM",
+      "categories": [
+        "econ.EM"
+      ],
+      "published": "2026-03-09T03:14:52+00:00",
+      "link": "https://arxiv.org/pdf/2603.07914v1",
+      "tags": [
+        "keyword:PR EF",
+        "query:PR EF"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Method for identifying treatment effects in panel data with discrete outcomes and latent types",
+      "llm_evidence_cn": "在具有离散结果和潜在类型的面板数据中识别处理效应的方法",
+      "llm_evidence": "在具有离散结果和潜在类型的面板数据中识别处理效应的方法",
+      "canonical_evidence": "在具有离散结果和潜在类型的面板数据中识别处理效应的方法",
+      "llm_tldr_en": "Develops a new strategy for identifying treatment effects in panel data, useful for longitudinal studies.",
+      "llm_tldr_cn": "开发了一种识别面板数据处理效应的新策略，可用于纵向研究分析。",
+      "llm_tldr": "开发了一种识别面板数据处理效应的新策略，可用于纵向研究分析。",
+      "llm_tags": [
+        "query:pr-ef"
+      ],
+      "matched_query_tag": "query:pr-ef",
+      "matched_query_text": "longitudinal association between parenting and executive function",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2602.18806v1",
+      "title": "Think$^{2}$: Grounded Metacognitive Reasoning in Large Language Models",
+      "abstract": "Large Language Models (LLMs) demonstrate strong reasoning performance, yet their ability to reliably monitor, diagnose, and correct their own errors remains limited. We introduce a psychologically grounded metacognitive framework that operationalizes Ann Brown's regulatory cycle (Planning, Monitoring, and Evaluation) as a structured prompting architecture, and study its integration within a lightweight dual-process MetaController for adaptive effort allocation. Across diverse reasoning and diagnostic benchmarks (GSM8K, CRUXEval, MBPP, AIME, CorrectBench, and TruthfulQA) using Llama-3 and Qwen-3 (8B), explicit regulatory structuring substantially improves error diagnosis and yields a threefold increase in successful self-correction. Blinded human evaluations over 580 query pairs show an 84% aggregate preference for trustworthiness and metacognitive self-awareness over standard and Chain-of-Thought baselines. Grounding LLM reasoning in established cognitive theory offers a principled path toward more transparent and diagnostically robust AI systems.",
+      "authors": [
+        "Abraham Paul Elenjical",
+        "Vivek Hruday Kavuri",
+        "Vasudeva Varma"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-02-21T11:45:12+00:00",
+      "link": "https://arxiv.org/pdf/2602.18806v1",
+      "tags": [
+        "keyword:PR EF",
+        "keyword:SR AI",
+        "query:PR EF",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Metacognitive framework for self-correction and reasoning in LLMs",
+      "llm_evidence_cn": "LLM中用于自我纠错和推理的元认知框架",
+      "llm_evidence": "LLM中用于自我纠错和推理的元认知框架",
+      "canonical_evidence": "LLM中用于自我纠错和推理的元认知框架",
+      "llm_tldr_en": "Proposes a metacognitive framework to improve LLM error diagnosis and self-correction in reasoning tasks.",
+      "llm_tldr_cn": "提出一种元认知框架，旨在提升LLM在推理任务中的错误诊断与自我纠错能力。",
+      "llm_tldr": "提出一种元认知框架，旨在提升LLM在推理任务中的错误诊断与自我纠错能力。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Reinforcement learning for self-evolving reasoning capabilities",
+      "matched_requirement_id": "req-21",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.18806v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2602.19810v1",
+      "title": "OpenClaw, Moltbook, and ClawdLab: From Agent-Only Social Networks to Autonomous Scientific Research",
+      "abstract": "In January 2026, the open-source agent framework OpenClaw and the agent-only social network Moltbook produced a large-scale dataset of autonomous AI-to-AI interaction, attracting six academic publications within fourteen days. This study conducts a multivocal literature review of that ecosystem and presents ClawdLab, an open-source platform for autonomous scientific research, as a design science response to the architectural failure modes identified. The literature documents emergent collective phenomena, security vulnerabilities spanning 131 agent skills and over 15,200 exposed control panels, and five recurring architectural patterns. ClawdLab addresses these failure modes through hard role restrictions, structured adversarial critique, PI-led governance, multi-model orchestration, and domain-specific evidence requirements encoded as protocol constraints that ground validation in computational tool outputs rather than social consensus; the architecture provides emergent Sybil resistance as a structural consequence. A three-tier taxonomy distinguishes single-agent pipelines, predetermined multi-agent workflows, and fully decentralised systems, analysing why leading AI co-scientist platforms remain confined to the first two tiers. ClawdLab's composable third-tier architecture, in which foundation models, capabilities, governance, and evidence requirements are independently modifiable, enables compounding improvement as the broader AI ecosystem advances.",
+      "authors": [
+        "Lukas Weidener",
+        "Marko Brkić",
+        "Mihailo Jovanović",
+        "Ritvik Singh",
+        "Emre Ulgac",
+        "Aakaash Meduri"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-02-23T13:10:01+00:00",
+      "link": "https://arxiv.org/pdf/2602.19810v1",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Architectural patterns and failure modes in autonomous agent networks",
+      "llm_evidence_cn": "自主智能体网络中的架构模式与失效模式",
+      "llm_evidence": "自主智能体网络中的架构模式与失效模式",
+      "canonical_evidence": "自主智能体网络中的架构模式与失效模式",
+      "llm_tldr_en": "Reviews emergent collective phenomena and proposes a platform for autonomous scientific research.",
+      "llm_tldr_cn": "回顾了智能体涌现现象并提出了一种用于自主科学研究的平台。",
+      "llm_tldr": "回顾了智能体涌现现象并提出了一种用于自主科学研究的平台。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "What are the latest architectures for multi agent systems?",
+      "matched_requirement_id": "req-43",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.19810v1",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2602.19810v2",
+      "title": "OpenClaw, Moltbook, and ClawdLab: From Agent-Only Social Networks to Autonomous Scientific Research",
+      "abstract": "In January 2026, the open-source agent framework OpenClaw and the agent-only social network Moltbook produced a large-scale dataset of autonomous AI-to-AI interaction, attracting six academic publications within fourteen days. This study conducts a multivocal literature review of that ecosystem and presents ClawdLab, an open-source platform for autonomous scientific research, as a design science response to the architectural failure modes identified. The literature documents emergent collective phenomena, security vulnerabilities spanning 131 agent skills and over 15,200 exposed control panels, and five recurring architectural patterns. ClawdLab addresses these failure modes through hard role restrictions, structured adversarial critique, PI-led governance, multi-model orchestration, and domain-specific evidence requirements encoded as protocol constraints that ground validation in computational tool outputs rather than social consensus; the architecture provides emergent Sybil resistance as a structural consequence. A three-tier taxonomy distinguishes single-agent pipelines, predetermined multi-agent workflows, and fully decentralised systems, analysing why leading AI co-scientist platforms remain confined to the first two tiers. ClawdLab's composable third-tier architecture, in which foundation models, capabilities, governance, and evidence requirements are independently modifiable, enables compounding improvement as the broader AI ecosystem advances.",
+      "authors": [
+        "Lukas Weidener",
+        "Marko Brkić",
+        "Mihailo Jovanović",
+        "Ritvik Singh",
+        "Emre Ulgac",
+        "Aakaash Meduri"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-02-23T13:10:01+00:00",
+      "link": "https://arxiv.org/pdf/2602.19810v2",
+      "tags": [
+        "keyword:SR AI",
+        "query:SR AI"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Platform for autonomous scientific research and agent interaction",
+      "llm_evidence_cn": "自主科学研究与智能体交互平台",
+      "llm_evidence": "自主科学研究与智能体交互平台",
+      "canonical_evidence": "自主科学研究与智能体交互平台",
+      "llm_tldr_en": "Presents ClawdLab, an open-source platform for autonomous scientific research using AI agent networks.",
+      "llm_tldr_cn": "介绍了ClawdLab，一个利用AI智能体网络进行自主科学研究的开源平台。",
+      "llm_tldr": "介绍了ClawdLab，一个利用AI智能体网络进行自主科学研究的开源平台。",
+      "llm_tags": [
+        "query:sr-ai"
+      ],
+      "matched_query_tag": "query:sr-ai",
+      "matched_query_text": "Autonomous AI agents architecture and decision making",
+      "matched_requirement_id": "req-26",
+      "selection_source": "carryover_cache",
+      "paper_id": "2602.19810v2",
+      "quick_tier": "8plus"
+    }
+  ]
+}

@@ -1,0 +1,1811 @@
+Title: Living forwards or understanding backwards? A comparison of Inverse Probability of Treatment Weighting and G-estimation methods for targeting hypothetical full adherence estimands in longitudinal cohort studies
+
+URL Source: https://arxiv.org/pdf/2603.06916v1
+
+Published Time: Tue, 10 Mar 2026 00:19:20 GMT
+
+Number of Pages: 43
+
+Markdown Content:
+# Living forwards or understanding backwards? A comparison of Inverse Probability of Treatment Weighting and G-estimation methods for targeting hypothetical full adherence estimands in longitudinal cohort studies 
+
+# Xiaoran Liang ∗a, Deniz Türkmen a, Jane A H Masoli a,b, Luke C Pilling a, and Jack Bowden a,caDepartment of Clinical and Biomedical Sciences, University of Exeter, Exeter, UK 
+
+bRoyal Devon University Healthcare NHS Foundation Trust, Barrack Road, Exeter, UK 
+
+cNovo Nordisk Research Centre (NNRCO), Oxford, U.K Xiaoran Liang (correspondence): x.liang2@exeter.ac.uk 
+
+# 6 March, 2026 
+
+> arXiv:2603.06916v1 [stat.ME] 6 Mar 2026
+
+Abstract 
+
+Medication adherence is essential to ensure treatment effectiveness, but too often in routine care non-adherence compromises the desired outcome. We explore longitudinal causal modelling using observational data to estimate the time-varying effects of continuous drug adherence measures on health outcomes over a sustained period. The goal of such analyses is to quantify the potential impact of interventions to improve adherence on long-term health. We consider two established longitudinal causal approaches designed to handle time-varying confounding under the “no unmeasured confounding” (NUC) assumption: G-estimation and inverse probability of treatment weighting (IPTW). In randomized trials, NUC-based methods have been applied to address non-adherence as an intercurrent event, and instrumental variable (IV) extensions of G-estimation have also been introduced for settings where the NUC assumption may fail. We adapt these methods to observational data settings and illustrate their use for assessing how adherence over time impacts health outcomes. We align the causal parameters across methods and show they can target the same causal estimand: the average effect among treated individuals of full adherence versus zero adherence. We set out the identification conditions for IPTW and G-estimation under NUC, and for an IV-based extension that has specific utility when the NUC assumption is implausible. We assess the statistical properties, strengths and weaknesses of each approach through Monte Carlo simulations designed to reflect longitudinal studies with a continuous exposure. We demonstrate these methods by quantifying the effect of full statin adherence on LDL cholesterol control in 13,000 UK Biobank participants with linked primary care data. 
+
+Keywords : Longitudinal causal modeling; G-estimation; Inverse Probability of Treatment Weighting; Instrumen-tal Variables; Time-varying confounding; Drug adherence; Statin therapy; Pharmacogenetics. 1 Introduction 
+
+Drug adherence refers to the degree to which patients comply with prescribed therapeutic regimens when taking medications [1–3]. Whilst a high level of adherence is essential for ensuring the expected efficacy of a given treatment, in routine care settings, low adherence is commonplace and is a major obstacle that compromises this desired process [2, 4–6]. For instance, real-world studies report that adherence to statin therapy can drop below 50% within the first year of treatment, which is substantially lower than observed in the controlled trials that led to their original approval [7, 8]. With routinely collected patient data available in electronic health records (EHRs), we cannot directly measure how much drug the patients actually take. However, we can estimate adherence using patients’ prescription records and the time they are treated using the Medication Possession Ratio (MPR), which is defined as sum of the days’ supply of medication divided by the number of days in the observation period, expressed as a percentage [2, 9]. If a clinically significant benefit would be achieved by increasing adherence, the focus can then shift to deciding how to realize such an intervention in a cost-effective manner – hence the need for causal methodology. EHRs provide the longitudinal data necessary for such analyses. By tracking both prescription history and health outcomes over time, they create the opportunity to evaluate how sustained adherence impacts long-term health. However, this longitudinal structure introduces a key methodological challenge when estimating the joint effect of a sequence of adherence interventions: feedback between the time-varying exposure and time-varying con-founders. For example, a patient’s evolving health status often influences both their subsequent adherence and their future health outcomes, and thus acts as a confounder. Crucially, this same health status is often itself affected by prior adherence. In this setting, standard regression methods face a dilemma: adjusting for this inter-mediate health status blocks part of the effect of past adherence mediated through health improvement, whereas failing to adjust for it leaves the effect of current adherence confounded [10–13]. To address the time-varying confounding problem, longitudinal causal methods designed to handle such feedback loops are required. These methods have been widely applied in clinical trials to address non-adherence, classified by the ICH E9(R1) addendum [14] as an ‘intercurrent event’, i.e., an event occurring post-randomization that affects the straightfor-ward interpretation of the treatment effect. The addendum formalizes this perspective by introducing the Estimand Framework, which emphasizes the importance of clearly defining the treatment effect of interest by explicitly ac-knowledging and accounting for intercurrent events within the analysis. Estimating the treatment effect which would have been realized if (possibly contrary to fact) all patients fully adhered is a clear example of a Hypo-thetical Strategy when mapped to the E9 addendum. Longitudinal causal modelling approaches have been pro-posed to estimate hypothetical estimands in randomized trials under the assumption that there are no unmeasured confounders of the intercurrent event-outcome relationship. Examples include inverse probability of treatment weighting (IPTW) and the parametric g-formula [15] and more recently, structural nested mean models fitted by G-estimation (e.g., Lasch, Guizzaro, and Loh [16] and Olarte Parra et al. [17]). Whilst the “no unmeasured con-founding” (NUC) assumption is unquestionably valid at the point of randomization in a properly conducted large trial, it does not ensure that the outcomes of patients who adhere fully and those who do not are exchangeable as a trial progresses, especially as the length of follow-up increases. For this reason, instrumental variable (IV) methods have also been developed to target hypothetical estimands within the Estimand Framework: initially for single-time outcomes [18] and more recently for longitudinal outcomes [19]. Trial-based IV approaches exploit random assignment as an instrument because it is generally a strong predictor of adherence and, by definition, is independent of other variables that could confound adherence and the outcome, thereby supporting identification of the target estimand even when the NUC assumption is violated. While the problem of non-adherence is most formally addressed in trials, it is equally pervasive in routine care [2, 4, 5]. We therefore adapt the trial-based framework to address non-adherence in the observational setting, using statin adherence as a clinically prominent example from our recent work in Türkmen et al. [20]. In that study, we conducted a detailed epidemiological and genetic investigation of approximately 69,000 UK Biobank participants with linked primary care data who were prescribed statins and had pre- and post-treatment low-density lipopro-tein cholesterol (LDL-c) measurements, alongside an MPR-based measure of adherence. For a subset of roughly 13,000 individuals with three post-treatment LDL-c measurements over a maximum of 10 years follow-up after statin initiation, our central questions were: ‘Over routine follow-up, how much lower would LDL-c be on average if these 13,000 statin patients had ad-hered fully at every interval (MPR=100%) compared with if they did not adhere at all (MPR=0%)?’ 
+
+1Furthermore, by estimating time-varying effects, the longitudinal framework allows us to decompose this cu-mulative effect and investigate: ‘How does statin adherence at different follow-up intervals contribute to the final LDL-c outcome?’ 
+
+We previously applied IPTW of Marginal Structural Models (MSM) [11] to address these questions, given its widespread use in applied longitudinal studies [21]. Specifically, we estimated weights for continuous adherence using the Covariate Balancing Propensity Score (CBPS) method [22], adjusting for baseline covariates as well as prior LDL-c, prior MPR and follow-up time as time-varying confounders. Building on this work and our observa-tional IPTW application, here we additionally consider G-estimation of Structural Nested Mean Models (SNMM) [23] under the NUC assumption. This is motivated by the fact that adherence is measured on a continuous scale: while IPTW is widely used and useful, it can be sensitive to practical positivity violations and weight instability in continuous-exposure settings, whereas G-estimation can offer a natural alternative with practical advantages [12, 24–26]. A key challenge in the observational setting is the absence of randomization, meaning adherence behaviours are likely influenced by both observed and unobserved confounders. We therefore also consider an IV extension of G-estimation for settings where the NUC assumption may fail [19]. Unlike in randomized trials where treatment assignment provides a natural instrument for adherence, IV analyses in observational data require careful justification of candidate instruments and may be limited by instrument strength. We place IPTW, G-estimation under NUC, and IV-based G-estimation within a unified longitudinal framework and define the causal estimand of interest. We introduce the underlying structural models: MSM for IPTW and SNMM for G-estimation, demonstrating that both can be specified to target the same estimand (Sections 2.1-2.2). We then detail the identification assumptions and general estimation strategies for each approach (Sections 2.3–2.4). We also show how G-estimation can be implemented within a generalized method of moments (GMM) framework, allowing efficient estimation and standard sandwich-based inference. Kierkegaard’s adage that ‘life must be lived forwards but understood backwards’ is particularly apt for our exposition: IPTW sequentially re-weights obser-vations forwards in time from the study beginning to its end, whereas G-estimation subtracts adherence effects backwards in time from the study end to its beginning, but (unlike the adage) both approaches can furnish valid causal estimates. In Section 2.5, we provide specific implementation details and inferential procedures for these methods. In Section 3, we assess the finite-sample performance of these methods via extensive Monte Carlo sim-ulations, specifically evaluating their estimation accuracy, statistical efficiency, and robustness to strong feedback between exposure and covariates, alongside the utility of diagnostic statistics for examining the estimated weights. In Section 4, we illustrate the approaches by estimating the effect of statin adherence on LDL-c control using the same UK Biobank patient subset of 13,000 participants, using their genotypic data in an effort to construct an instrument for statin adherence. R code to implement our approaches is provided and in Section 5 we discuss their potential to be applied to future observational cohort studies on the horizon. 
+
+# 2 Methods 
+
+# 2.1 Longitudinal Modelling Framework and the Causal Estimand of Interest 
+
+Suppose we have a sample of n on-medication patients followed longitudinally across K time points. For each individual i and time point k (k ∈ { 1, ..., K}), we assume complete information on the following variables is available in theory: • Drug adherence status Ai,k.• A continuous clinical outcome measure Yi,k.• An l × 1 vector LLLi,k which includes all l observed covariates (both baseline and time-varying) at time point 
+
+k that confound the A −Y relationship. Additionally, to formalize the potential for confounding, we posit the existence of: • An ‘unobserved’ confounder Ui,k between Ai,k and Yi,k.The longitudinal data structure is illustrated in Figure 1 with three time points. In this setting, adherence at a given time may affect later outcomes both directly and indirectly through mediators (such as through its influence on intermediate outcomes). When we refer to the “effect of adherence at time j on outcome at time k” ( j ≤ k), we mean the total effect that operates along all pathways except those that pass through future adherence status. The 2arrows in Figure 1 use different colours to highlight the components of the total causal effect of adherence at each time point on the longitudinal outcomes: red for A1, blue for A2 and green for A3.Let the vector ¯AAAi,k denote the adherence history of individual i up to time point k, so that ¯AAAi,k =  Ai,1, ..., Ai,k
+
+.Define Yi,k( ¯aaak) as the potential outcome at time point k given that the adherence history took, possibly contrary to fact, the value ¯ aaak. We are interested in quantifying the difference between mean potential outcomes under different intervention histories in order to inform future policy decisions and, more broadly, to compare different statistical approaches for estimating them from observational data. In principle, we can consider contrasts between any two adherence histories ¯ aaak and ¯ aaa′
+
+> k
+
+. In this paper our primary focus is the comparison between sustained full adherence and sustained non-adherence, represented by the constant histories ¯ aaak = 1k (full adherence at every time up to k)and ¯ aaa′ 
+
+> k
+
+= 0k (no adherence at any time up to k), respectively. Our primary estimand of interest is therefore the difference in mean potential outcomes among the medication initiators: 
+
+E[Yi,k(111k) −Yi,k(000k) | S = 1] for k = 1, ..., K. (1) In Equation (1), S = 1 denotes that we are conditioning on being treated with the chosen medication (e.g., statin), and the target estimand is defined among those prescribed the medication. For brevity, we implicitly assume and therefore omit this conditioning from now on in subsequent expressions. For the remainder of the methodology sections, we anchor our theoretical development to an arbitrary target time point k. To simplify notation, we drop the subscript k and denote this target outcome simply as Y (i.e., Y ≡ Yi,k), with the understanding that the framework applies identically to any chosen time horizon k ∈ { 1, . . . , K}. Throughout, we also suppress the individual patient subscript i for notational convenience. 
+
+# LLL1,U1 LLL2,U2 LLL3,U3
+
+# A1 A2 A3
+
+# Y1 Y2 Y3       
+
+> Figure 1: Illustration of the assumed longitudinal causal structure with three time points. Arrows are colour-coded to reflect the components of the total causal effect of adherence at each time point: red for A1, blue for A2and green for A3. For visual clarity, we omit some arrows (such as the direct effect of A1on LLL3), but the framework allows for general relationships where variables may depend on the entire past history.
+
+# 2.2 Parameterizing the Causal Estimand via MSM and SNMM 
+
+To estimate the causal contrast defined in Equation (1), we link potential outcomes to observed data using two modelling frameworks commonly used for longitudinal causal inference: SNMM and MSM [11, 23, 27]. We begin with the SNMM which models the causal effect of adherence at each time point through the blip function. We define patients’ observed history HHH j as the collection of all information available up to time j:
+
+HHH j = ( ¯AAA j−1, ¯YYY j−1, ¯LLL j)
+
+for j = 1, . . . , k. Here, ¯ LLL j denotes the observed covariate history up to time j, and ¯ YYY j−1 denotes the observed intermediate outcome history up to time j − 1. The blip at time j is defined as the contrast in conditional mean potential outcomes when adherence at time j is set to a j versus set to 0, given the observed history HHH j, holding the past adherence fixed and setting the future adherence as 0 [12, 23]: 
+
+E[Y ( ¯aaa j−1, a j, 000k− j) −Y ( ¯aaa j−1, 0, 000k− j) | HHH j, A j = a j] = ψ j(a j, HHH j). (2) 3It is a conditional causal effect that compares switching on/off adherence at time j among individuals with the same observed history HHH j. Here we assume no effect modification by exposure, outcome and covariate histories, and let the blip function depend only on the current adherence level a j. Additionally, we assume “no current treatment interaction” (NCTI), which states that the causal effect is invariant to the actual adherence status A j.Following the notation in Tompsett et al. [28], we formalize the NCTI assumption as: 
+
+E[Y ( ¯aaa j−1, a j, 000k− j) −Y ( ¯aaa j−1, 0, 000k− j) | HHH j, A j = a′]= E[Y ( ¯aaa j−1, a j, 000k− j) −Y ( ¯aaa j−1, 0, 000k− j) | HHH j, A j = a′′ ] ∀a′, a′′ .
+
+Collectively, under these structural assumptions, the blip function simplifies to the following form: 
+
+ψ j(a j, HHH j) = β ja j for all HHH j. (3) In Appendix A.1, we show that under the linear blip specification in Equation (3), the estimand in Equation (1) can be written as a function of the SNMM parameters βββ k = ( β1, . . . , βk) such that: 
+
+E[Y ( ¯aaak) −Y (000k)] = 
+
+> k
+
+# ∑
+
+> j=1
+
+β ja j. (4) Each β j represents the incremental causal effect of adherence at time j, and the total effect of sustained full ad-herence (setting all a j = 1) versus sustained non-adherence is obtained by summing all the β j.Next we turn to the MSM [11], which specifies the marginal mean of the potential outcome Y ( ¯aaak) as a func-tion of the adherence history ¯ aaak with the parameter vector ηηηk = ( η0, η1, ..., ηk). Here we focus on a linear additive MSM, which is a natural choice given that the outcome Y is continuous. We write: 
+
+E[Y ( ¯aaak)] = η0 +
+
+> k
+
+# ∑
+
+> j=1
+
+η ja j. (5) Under this specification, η0 represents the mean potential outcome under sustained non-adherence (i.e., ¯ aaak = 0k), and each coefficient η j can be interpreted as the marginal contribution to the mean outcome of adhering at time j
+
+rather than not adhering, holding adherence at all other times fixed [27]. For the causal estimand in (1), it follows directly from (5) that 
+
+E[Y (111k)] − E[Y (000k)] = 
+
+> k
+
+# ∑
+
+> j=1
+
+η j.Thus, under their respective specifications, both SNMM and MSM allow us to estimate the target causal estimand in Equation (1) by summing their time-specific coefficients, ensuring that both frameworks align with the same estimand. Furthermore, in Appendix A.1, we show that under these model specifications, the SNMM parameters 
+
+β j and the MSM parameters η j coincide (i.e., β j = η j for all j). This equivalence implies that both models target the same time-varying causal effects, allowing us to evaluate their performance against a common ground truth in our simulation study in Section 3. In practice, the MSM parameter ηηηk and the SNMM blip parameters βββ k
+
+can be estimated from the observed data using IPTW and G-estimation, respectively [11, 23, 29], under suitable identification assumptions, which are described in the next subsection. 
+
+# 2.3 IPTW and G-estimation under NUC 
+
+Now that we have established that both the MSM and the SNMM provide parametric representations of the same causal estimand, we turn to its identification and estimation from the observed data under both models. We invoke three standard identification conditions: consistency , positivity , and conditional exchangeability [30, 31]. 
+
+Assumption 1: Sequential Exchangeability [27, 29]. This assumption can be viewed as the longitudinal for-mulation of NUC [27, 31, 32]. It states that at each time point j, once we condition on the observed history, no unmeasured confounders remain that influence both the adherence decision and the potential outcome: 
+
+Y ( ¯aaak) ⊥⊥ A j | HHH j =   ¯AAA j−1, ¯YYY j−1, ¯LLL j
+
+ for all ¯ aaak and j ∈ { 1, . . . , k}. (6) 4Thus, within strata of HHH j, the adherence choice at time j can be treated as if it were “as good as random” with re-spect to the potential outcomes. While HHH j formally includes the entire observed history, in practice, identification may only require conditioning on a sufficient subset of HHH j that renders the adherence decision independent of the potential outcomes. 
+
+Assumption 2: Consistency . This assumption links the potential outcomes to the observed data. It states that for any adherence history ¯ aaak, if a patient’s observed adherence path matches ¯ aaak, then their observed outcome coincides with the corresponding potential outcome [27, 33]: 
+
+Y = Y ( ¯aaak) if ¯AAAk = ¯aaak. (7) 
+
+Assumption 3: Positivity . This assumption states that for each time j and any history HHH j that occurs in the population, the conditional density of adherence must be positive over the range of adherence levels relevant to the study [26, 34]. Formally, for any hhh j = ( ¯aaa j−1, ¯yyy j−1, ¯ℓℓℓ j) with f ( ¯AAA j−1 = ¯aaa j−1, ¯YYY j−1 = ¯yyy j−1, ¯LLL j = ¯ℓℓℓ j)̸ = 0, 
+
+f  A j = a j | HHH j = hhh j
+
+ > 0 (8) for all a j in the support considered by the model. Intuitively, this assumption requires that within every observed history stratum we would actually see in the data that there is sufficient variation in adherence across the range of interest. This is particularly important when estimating fully time-specific effects, where a distinct causal pa-rameter is associated with each pair of A j and Yk ( j ≤ k). Later we show under more parsimonious (unsaturated) model specifications, the positivity assumption can be less stringent in the sense that estimation may rely on suf-ficient adherence variation across the overall follow-up period, rather than requiring positivity to hold for every single time point. In practice, practical violations or ‘near-violations’ of the positivity assumption are particularly common with continuous exposures in finite samples [26, 35–37]. This issue may be exacerbated in the pres-ence of strong exposure–covariate feedback [11, 12], where adherence levels become highly predictable based on patient history, thereby restricting the observed adherence distribution to narrow ranges. Such weak positivity can substantially destabilize estimation, particularly for weighting-based approaches such as IPTW, which may yield highly variable or extreme weights [11, 37–39]. We illustrate this impact in our simulation study in Section 3. Under the identification assumptions above, IPTW estimates ηηηk by modelling the conditional distribution of adherence at each time point to construct inverse probability weights. We then fit the MSM using weighted regression, effectively creating a pseudo-population where adherence is unconfounded [11, 27]. To implement this, we model the conditional density of adherence A j given the observed history HHH j =   ¯AAA j−1, ¯YYY j−1, ¯LLL j
+
+. For a continuous exposure, the stabilized inverse probability weight Wj for each individual at time j is defined as: 
+
+Wj =
+
+> j
+
+# ∏
+
+> s=1
+
+ws =
+
+> j
+
+# ∏
+
+> s=1
+
+f (As | IIIs)
+
+f (As | HHHs) (9) for j ∈ { 1, . . . , k}, where IIIs is a reduced conditioning set typically containing baseline covariates and/or past ad-herence history, or empty (in which case, f (As | IIIs) corresponds to the marginal density f (As)). The denominator is the conditional density of adherence given the full observed history, while the numerator is included to stabilize the weights and reduce variance [11, 22, 32, 34, 40]. Since the weights are constructed from the conditional adherence distribution given HHH j, they create a pseudo-population in which adherence is independent of the measured history [11, 27]. Under sequential exchangeability (that HHH j contains all confounders of adherence and the potential outcomes), adherence is unconfounded in this weighted pseudo-population (see Figure 2, Top Panel (a) for illustration) and the MSM parameters can therefore be interpreted causally. We then estimate the MSM parameters ηηηk using weighted least squares regression: 
+
+bηηηk = arg min 
+
+> ηηηk
+> n
+
+# ∑
+
+> i=1
+
+Wi,k
+
+
+
+Yi,k − ˜AAA⊤
+
+> i,k
+
+ηηηk
+
+2
+
+for ηηηk = ( η0, η1, ..., ηk)⊤ (10) where ˜AAAi,k = ( 1, Ai,1..., Ai,k)⊤.Conversely, G-estimation exploits the structure of the SNMM together with sequential exchangeability to con-struct a “blipped-down” (or “adherence-free”) outcome, serving as a proxy for the relevant counterfactual out-come. The SNMM parameter βββ k is then chosen so that, under the correctly specified model, the blipped-down 5outcome behaves like the relevant counterfactual in conditional expectation, and therefore should be mean inde-pendent of adherence conditional on the observed history [29, 32]. For each time point j ∈ { 1, . . . , k}, based on our specification of the blip function in Equation (3), define the blipped-down outcome as 
+
+Y ( j)(βββ k) = Y −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βsAs,
+
+which subtracts from the observed outcome Y the cumulative effect of adherence from time j onward implied by the SNMM with parameter βββ k. According to Robins [23] and Robins [29], under correct model specification and 
+
+consistency , and evaluated at the true SNMM parameter βββ ∗ 
+
+> k
+
+, we have the following conditional mean equivalence between the blipped-down outcome and the counterfactual outcome under the regime that sets adherence to zero from time j onward: 
+
+E[Y ( j)(βββ ∗ 
+
+> k
+
+) | HHH j, A j] = E[Y ( ¯AAA j−1, 0, 000k− j) | HHH j, A j]. (11) Furthermore, if sequential exchangeability holds (together with positivity and consistency ), it follows from (11) and standard SNMM results that the blipped-down outcome is mean independent of the current adherence condi-tional on the observed history [29]: 
+
+E[Y ( j)(βββ ∗ 
+
+> k
+
+) | HHH j, A j] = E[Y ( j)(βββ ∗ 
+
+> k
+
+) | HHH j]. (12) For details and proofs of Equations (11) and (12), see Section 8.3 of Robins [29] or Sections 5.1 and 6.1 of Vansteelandt and Joffe [12]. Based on the mean-independence restriction in Equation (12), G-estimation can be formulated in terms of un-conditional moment restrictions. In particular, Equation (12) implies that the blipped-down outcome is orthogonal to the residualized adherence, yielding the moment condition: 
+
+E
+
+h
+
+{A j − E(A j | HHH j)}Y ( j)(βββ ∗ 
+
+> k
+
+)
+
+i
+
+= 0, j = 1, . . . , k. (13) Building on (13), statistical efficiency can be improved by additionally residualizing the blipped-down outcome with respect to HHH j, yielding the alternative moment condition 
+
+E
+
+hA j − E(A j | HHH j)
+
+n
+
+Y ( j)(βββ ∗ 
+
+> k
+
+) − E
+
+
+
+Y ( j)(βββ ∗ 
+
+> k
+
+) | HHH j
+
+oi 
+
+= 0, j = 1, . . . , k. (14) Estimation based on (14) attains local semiparametric efficiency under homoscedasticity [12]. A brief derivation of (13) and justification of the efficiency property of (14) are provided in Appendix A.2. The moment-condition formulation highlights the close connection between G-estimation and GMM framework, and allows estimation and inference to be carried out using standard GMM machinery including sandwich variance estimators [41, 42]. In the traditional recursive implementation of G-estimation, estimation proceeds backwards in time: at each time point j, one updates the blipped-down outcome and solves the corresponding estimating equation for the current blip parameter (see Figure 2, middle panel (b)). Alternatively, the moment conditions in Equation (13) and (14) can be stacked over j = 1, ..., k and solved jointly within a GMM framework, yielding a single estimator for βββ k.Section 2.5 provides further implementation details. In summary, both IPTW and G-estimation rely on the identification assumptions of sequential exchangeability, consistency and positivity. In addition, IPTW depends on the correct specification of the MSM, whereas G-estimation requires correct specification of the SNMM blip function. The two approaches differ in how the adher-ence process enters estimation: IPTW requires modelling the conditional density of adherence given the observed history through the weights, while G-estimation only requires a model for the conditional mean of adherence given the history in order to construct the residualized adherence term [24]. When these models are correctly specified, both approaches target the same causal estimand and yield consistent estimation, but they can differ in statistical efficiency and in finite-sample performance, as we will demonstrate in Section 3. 
+
+# 2.4 G-estimation via Instrumental Variables 
+
+When the NUC assumption is doubtful, an alternative is to augment the SNMM with an instrumental variable for adherence and use an IV version of G-estimation to identify the same hypothetical estimand. In clinical trials, randomized assignment to a treatment arm naturally plays this role, and has been used to relax NUC when esti-mating hypothetical estimands both for single-time outcomes [18] and, more recently, for longitudinal outcomes 6IPTW 
+
+L1 L2 L3
+
+A1 A2 A3
+
+Y1 Y2 Y3
+
+L1 L2 L3
+
+A1 A2 A3
+
+Y1 Y2 Y3
+
+L1 L2 L3
+
+A1 A2 A3
+
+Y1 Y2 Y3
+
+IPTW estimation applied forwards from time point 1 to 3 
+
+# (a) IPTW re-weights individuals in the sample forward in time so that each exposure Ak is independent of the measured con-founders. Dashed arrows indicate the exposure-confounder links that are “removed” by the weights in the pseudo-population. 
+
+> G-estimation
+
+L1 L2 L3
+
+A1 A2 A3
+
+Y1 Y2 Y3(0003)
+
+L1 L2 L3
+
+A1 A2 A3
+
+Y1 Y2 Y3(A1, 0002)
+
+L1 L2 L3
+
+A1 A2 A3
+
+Y1 Y2 Y3( ¯AAA2, 0)
+
+G-estimation applied backwards from time point 3 to 1. 
+
+# (b) G-estimation applied backwards from time point 3 to 1. At each step we “blip down” the outcome by removing the effect of the current exposure Ak, yielding transformed outcomes such as Y3( ¯AAA2, 0), Y3(A1, 0002) and Y3(0003). Dashed arrows indicate the effects that are removed at each blip-down step. 
+
+IV 
+
+G
+
+L1,U1 L2,U2 L3,U3
+
+A1 A2 A3
+
+Y1(0) Y2(0002) Y3(0003)
+
+G
+
+L1,U1 L2,U2 L3,U3
+
+A1 A2 A3
+
+Y1 Y2 Y3
+
+IV-based G-estimation applied backwards in one step 
+
+# (c) IV-based G-estimation uses the instrument G to “blip down” the joint effect of the whole exposure history (A1, A2, A3) on the outcome in a single backward step. The left panel shows the transformed “adherence-free” outcomes Y1(0), Y2(0002) and 
+
+Y3(0003) after removing the adherence effects (dashed arrows) from the observed data structure (the right panel). Figure 2: Conceptual illustration of (a) IPTW, (b) SNMM G-estimation, and (c) IV-based G-estimation for the effect of adherence history (A1, A2, A3) on the selected final outcome Y3. For visual clarity, we omit some arrows (such as the direct effect of A1 on LLL3), but the framework allows for general relationships where variables may depend on the entire past history. 
+
+7[19]. We will use the IV framework proposed in Bowden et al. [19] as a basis for the longitudinal analysis in the observational data setting. In previous sections we suppressed the outcome time index k and wrote Y for a generic chosen horizon, since the standard SNMM and G-estimation arguments apply identically for any fixed k.In the IV extension, however, identification relies on moment conditions indexed by the outcome time point. We therefore reintroduce the index k and write Yk for k = 1, . . . , K throughout this section. Correspondingly, we in-dex the SNMM parameters by the outcome time point and write βk( j) for j ≤ k as the causal parameter of A j on Yk.Without randomized assignment in observational studies, we must identify an IV for adherence that satisfies the three key IV assumptions [19, 27, 43]. It should: • Be sufficiently correlated with ¯AAAk.• Be independent of unmeasured confounders of the A j–Yk relationship for any j ≤ k, conditional on baseline covariates. • Only influence Yk through ¯AAAk.To mimic the applied analysis setting of this paper, let G be a germ line genetic variant or score that is a valid IV for adherence, which naturally is time-fixed and determined at baseline. It does not predict treatment initiation, but does influence the amount of drug taken, for example by affecting its bio-availability [44]. Using the notation of Tompsett et al. [28], the latter two IV assumptions can be summarized as 
+
+Yk( ¯aaak) ⊥⊥ G | ˜LLL0, S = 1 for all ¯ aaak,
+
+where ˜ LLL0 is a sufficient subset of the baseline covariates to ensure the validity of G. We will assume implicit conditioning on ˜ LLL0 throughout and therefore omit it from the conditioning set in what follows. The condition 
+
+S = 1 ensures that G is a valid instrument for the treated-only population and it will also be implicitly assumed, with further discussion provided in Section 4.3. Following the practice in, e.g., Matsouaka and Tchetgen Tchetgen (2017), Shi et al. (2021), and Tompsett et al. (2025), the SNMM can be extended to incorporate the instrument G
+
+by defining the blip at time j as 
+
+E[Yk( ¯aaa j−1, a j, 000k− j) −Yk( ¯aaa j−1, 0, 000k− j) | HHH j, A j = a j, G] = ψk( j)( a j, HHH j, G).
+
+Additionally, we assume no effect modification of the blip by the instrument, so that the blip function retains the form ψk( j)( a j, HHH j, G) = βk( j)a j. Under this specification, all of the arguments in Section 2.2 continue to hold and we still obtain 
+
+E[Yk( ¯aaak) −Yk(000k)] = 
+
+> k
+
+# ∑
+
+> j=1
+
+βk( j)a j, (15) with βββ k = ( βk(1), . . . , βk(k)) having the same causal interpretation as before. Without sequential exchangeability , but assuming a valid IV G, we now show that βββ k can be identified as fol-lows. Maintaining the consistency assumption, it follows from Equation (15) that for the observed adherence path ¯AAAk:
+
+E[Yk −Yk(000k) | ¯AAAk] = 
+
+> k
+
+# ∑
+
+> j=1
+
+βk( j)A j.
+
+We can therefore write 
+
+Yk −Yk(000k) = 
+
+> k
+
+# ∑
+
+> j=1
+
+βk( j)A j + ek
+
+where ek is a random error and E[ek | ¯AAAk] = 0 by definition. By the IV validity assumption that Yk( ¯aaak) ⊥⊥ G for all ¯aaak, in particular Yk(000k) ⊥⊥ G, it follows that the centred instrument G − E(G) satisfies the moment condition 
+
+E
+
+h
+
+(G − E(G)) 
+
+n
+
+Yk −
+
+> k
+
+# ∑
+
+> j=1
+
+βk( j)A j
+
+oi 
+
+= 0 for k = 1, ..., K. (16) 8This provides the basis for the G-estimation formula based on the following score equation S(θθθ ) proposed in Bowden et al. [19], where θθθ collects all parameters βk( j) ( j ≤ k, k = 1, . . . , K):
+
+S(θθθ ) =
+
+> n
+
+# ∑
+
+> i=1
+
+(Gi − ¯G)Σ−1
+
+
+
+Yi,1 − β1(1)Ai,1
+
+Yi,2 − {β2(1)Ai,1 + β2(2)Ai,2}
+
+...
+
+Yi,K − ∑Kj=1 βK ( j)Ai, j
+
+
+
+, (17) where K is the total number of time points under study; ¯ G is the mean value of Gi across all n individuals and ΣΣΣ is an arbitrary K × K positive definite matrix (e.g., the K-dimensional identity matrix). The parameters βk( j) ( j ≤ k)can then be estimated via minimization of ST (θθθ )S(θθθ ). Here, G-estimation is again applied backward in time but is always in a single joint step (see Figure 2, bottom panel (c)). A key distinction between NUC-based G-estimation in (13) and IV-based G-estimation in (16) is that (16) is under-identified in general for K > 1, since the number of parameters K(K + 1)/2 exceeds the number of moment conditions K. Intuitively, in the standard SNMM setting (13) the residualized adherence terms {A j − E(A j | HHH j)}
+
+provide a distinct set of instruments at each time point, whereas in the IV setting a single time-fixed instrument G
+
+yields only one moment restriction per outcome time. As a result, IV-based G-estimation requires stacking mo-ment conditions across k = 1, . . . , K, but still provides fewer moment restrictions than unknown parameters when 
+
+K > 1. Therefore, we need to impose further parametric assumptions on the βk( j) structure to achieve identifi-cation. For example, the two-parameter model proposed in Bowden et al. [19], which assumes: βk( j) = β α tk−t j ,where tk −t j measures the lag between time point k and j. Hypothetical estimands can therefore be quantified after estimation of θθθ = ( β , α). In the time-saturated SNMM, each βk( j) is a distinct parameter, so identification re-quires sufficient variation in adherence at every time point across histories appearing in the model (i.e. positivity). By contrast, the decay model βk( j) = β α tk−t j specifies a smooth trajectory of effects over time using only two parameters. This non-saturated parameterization allows information to be “shared” across time points, so that lack of variation in adherence at a particular time is less problematic. We show in Section 2.5 that this same smoothing trick can also be applied to IPTW and NUC-based G-estimation, if needed. 
+
+# 2.5 Implementation of the Methods 
+
+For IPTW, several methods have been proposed in the literature for estimating the inverse probability weights defined in (9). Here we focus on covariate balancing propensity score (CBPS) methods, which are available for continuous exposures [22]. In the parametric CBPS for a continuous treatment, the conditional distribution of 
+
+A j given covariates is modelled as approximately normal with mean specified by a linear predictor in the covari-ates, and the parameters are chosen so that sample covariate–treatment associations are minimized subject to the implied moment conditions for covariate balance [22]. Nonparametric CBPS extensions are also available for continuous exposures, but we focus on the parametric formulation in this paper. In the longitudinal setting, CBPS can be applied at each time point to estimate the conditional densities f (As | HHHs)
+
+and hence the stabilized weights ws, which are then multiplied to obtain the cumulative weights Wj in (9). Fol-lowing the standard continuous-treatment CBPS formulation, we take Is = /0 so that the numerator is the marginal density f (As). Alternative methods estimate the weights jointly across all time points, for example the longitu-dinal CBPS for marginal structural models of Imai and Ratkovic [45] or the Stable Estimand Adaptive IPTW of Avagyan and Vansteelandt [46]. However, these developments are primarily formulated for binary or categorical treatments and are therefore less directly applicable to our continuous adherence measure. As noted by Imai and Ratkovic [45], fitting exposure models separately at each time point may entail some loss of efficiency, but still yields accurate estimators when the exposure models are correctly specified. Austin [47] suggests to assess covariate balance by examining the absolute weighted correlation between the exposure and each covariate, taking values below 0.1 to indicate adequate balance. Any covariates with an abso-lute weighted correlation exceeding 0.1 are then additionally included as adjustment variables in the second-stage weighted regression. To assess the stability of the IPTW weights and potential practical violations of the positivity assumption, we examined several summary diagnostics of the cumulative weights in our simulation studies and real-world application. First, we computed an effective sample size (ESS) measure, which provides an intuitive summary of how much information remains after weighting. Second, we calculated the proportion of total weight 9carried by the largest 1% of observations, which reflects whether a small subset of individuals dominates the weighted pseudo-population. Finally, we examined the upper tail of the weight distribution using a high percentile (e.g., the 99.9th percentile) to assess the extent of extreme weights [34, 48–50]. Full definitions and additional details are provided in Appendix B.2. As we demonstrate in simulation studies, the standard errors obtained from the second-stage weighted regres-sion tend to underestimate the true variability of the IPTW estimates, as they do not account for the uncertainty introduced by the weighting process. Following the recommendation of Daniel et al. [32] and Blackwell and Glynn [13], one option to estimate the standard errors is using a block bootstrap procedure, in which individuals are resampled as blocks, preserving all of their associated time points. A more computationally efficient alterna-tive is to compute sandwich standard errors from the weighted regression, see Appendix A.5 for details. G-estimation can be implemented by the classic sequential recursive procedure which solves the moment con-ditions in (13) backwards over time (see the summary of the procedure in Appendix A.3). Alternatively, we can estimate all components of βββ k = ( β1, . . . , βk) jointly. For each j we form the sample analogue of the moment condition in (13) as: ˆm j(βββ k) = 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+{Ai, j − \E(Ai, j | Hi, j)}Y ( j) 
+
+> i
+
+(βββ k),
+
+where Y ( j) 
+
+> i
+
+(βββ k) = Yi − ∑ks= j βsAi,s, and \E(Ai, j | Hi, j) is obtained by fitting a regression model for Ai, j given HHHi, j
+
+(e.g., a linear model). Stacking these moment conditions across j = 1, ..., k yields the k × 1 vector ˆmmmk(βββ ) =   ˆm1(βββ k), . . . , ˆmk(βββ k)⊤.
+
+The basic joint GMM estimator chooses βββ k to make all these sample moments close to zero by minimizing ˆβββ GMM  
+
+> k
+
+= arg min  
+
+> βββk
+
+ˆmmm(βββ k)⊤ΣΣΣg ˆmmm(βββ k) (18) where ΣΣΣg is a k × k positive definite weighting matrix. In practice, we can set ΣΣΣg = IIIk (the identity matrix) and compute ˆβββ GMM  
+
+> k
+
+using numerical optimization, with user-specified starting values. This joint approach treats all time points symmetrically. In Appendix A.4 we describe a more efficient two-step GMM estimator based on the double-residualized moment condition in (14). Appendix A.2 provides a brief justification that the algorithm in Appendix A.4 is a direct implementation of (14). A practical advantage of the joint GMM formulation over the purely recursive approach is that it naturally yields a joint variance–covariance matrix for all components of ˆβββ k
+
+via the usual sandwich estimator for GMM (see Appendix A.5 for details). This allows us to construct standard errors and confidence intervals for the hypothetical estimand, as described in Section 4. So far we have treated the MSM and SNMM as saturated in time with each ηk( j) and βk( j) a distinct param-eter. As in the IV setting, we can also impose a lower–dimensional parametric structure on these effects, for example the two-parameter decay model βk( j) = β α tk−t j introduced in Section 2.4, with parameter θθθ = ( β , α),if we believe the decay form is a reasonable approximation. This simply amounts to replacing the saturated co-efficients in the minimization problem in (10) and (18) by the chosen decay model, and minimizing over the low-dimensional parameter θθθ instead. In this setup, identification no longer requires full positivity at every time point, therefore extending its applicability in practice. In the score equation (17) for the IV method, ΣΣΣ can be any arbitrary K × K positive definite matrix, with the identity matrix being a convenient choice. However, to improve the efficiency of the parameter estimates, a more appropriate choice for ΣΣΣ should account for the correlation structure [51]. Specifically, it can be the variance-covariance matrix of the K residuals, Yi,k − ∑kj=1 βk( j)Ai, j, where k = 1, ..., K [19]. To enhance efficiency, Bowden et al. [19] proposed the “partial-out” estimation strategy: regressing each Ak and Yk (k = 1, ..., K) on the baseline covariates LLL0, and then replacing Ak and Yk with the residuals from these regressions. See Section 2.6.2 in Bow-den et al. [19] for further details. The variance–covariance matrix of bθθθ = ( bβ , bα) is obtained using the sandwich formula of Bowden et al. [19]; details are provided in Appendix A.5. 10 3 Monte Carlo Simulations 
+
+# 3.1 Data Generation Process and Simulation Scenarios 
+
+We perform Monte Carlo simulations to evaluate the performance of IPTW, G-estimation and IV in different settings by generating data for K = 3 time points across n = 5, 000 individuals. For simplicity, we make the time intervals equally spaced, so that tk = k. Based on the longitudinal structure shown in Figure 1, assume both the adherence and outcome are continuous, and that: 
+
+Ai,k = γGGi + ηAAi,k−1 + ηY Yi,k−1 + η1F1i + η2F2i + ηV Vi,k + ξi,k. (19) 
+
+Yi,k =
+
+> k
+
+# ∑
+
+> j=1
+
+πk( j)Ai, j + βY Yi,k−1 + βF1F1i + βF2F2i + βV Vi,k + εi,k. (20) for k = 1, 2, 3. In the adherence equation (19), we assume that the initial adherence for k = 1 is determined as follows: • Ai,0 = Yi,0 = 0 and ηA = 0.2, ηY = 0.1. • The instrumental variable Gi is generated from a Binomial(2, p) distribution with p=0.2 and set γG = 0.5. • F1i and F2i are time fixed baseline covariates following N(0.2, 1) and N(−0.1, 1) distributions respectively. Set η1 = 0.2 and η2 = 0.3. • The baseline value for the time-varying covariate, denoted by BV i,k, is generated from an AR(1) process as 
+
+BV i,k = 0.98 × BV i,k−1 + et where et follows a N(0, 0.2) distribution and Vi,0 = 0. Since the time-varying covariate can be affected by the past exposure, we set Vi,k = BV i,k + τAi,k−1 with varying τ. Set ηV = 0.5. • The random errors εi,k and ξi,k follow a N(0, 1) distribution. In the outcome equation (20), we set βY = 0.5, βF1 = 0.4, βF2 = −0.1 and βV = −0.6. For simplicity, under model (19) and (20), we assume that only the immediate previous adherence and outcome exert direct effects on the current A and Y , but this can be easily extend to the full past history. We aim to estimate the causal effect of A j
+
+on Yk, denoted by βk( j), with j ≤ k. As discussed in Section 2, the effect βk( j) incorporates both the direct effect 
+
+πk( j) and indirect effects. To make the IV model identifiable and the estimation results comparable across meth-ods, we maintain the assumption that the overall effect βk( j) follows a causal decay relation as βk( j) = β α k− j
+
+with β = −1.1 and α = 0.95. We set the values of πk( j) accordingly so the total effect βk( j) fits into the decay structure. See the Appendix B.1 for further details. Under this specification, IPTW and G-estimation estimate a six-parameter time-saturated model with each βk( j) while IV targets the estimation of only β and α.We evaluated the performance of the methods under three simulation scenarios: 1. No unobserved confounding with (a) strong feedback between exposure A and time-varying covariate V (τ = 0.8); (b) no exposure-covariate feedback ( τ = 0). 2. Unobserved confounding present where we treat F1 as the unobserved confounder and omit it from the estimation for all methods. For this design, we additionally examine the IV method with two variations: (a) Make G a weak instrument by setting γG = 0.05. Under this setting, the partial first-stage F-statistics for the association between G and A, conditional on covariates, are well below the conventional rule-of-thumb threshold of 10, indicating a weak instrument [52, 53]. (b) In addition to regressing A and Y on baseline covariates in the “partial-out” process, we incorrectly adjust for the time-varying covariates as well. 3. No unobserved confounding, but with model misspecification: β1(1) = −1.1, β2(1) = −0.6, β2(2) = −1.05, 
+
+β3(1) = −0.2, β3(2) = −0.55 and β3(3) = −0.1 do not follow the decay model βk( j) = β α k− j.11 3.2 Simulation Results 
+
+For each method, we summarize their performance using statistics averaged over 1,000 Monte Carlo replications. For IPTW and G-estimation, we report the Monte Carlo mean of the point estimates ( Estimate ), the mean absolute error ( MAE ), and the root mean squared error ( RMSE ) relative to the true causal effects. To assess inferential performance, we report the empirical standard deviation of the estimates across replications ( EmpSD ), the average sandwich standard errors ( Sand SE ), and the coverage rates of the 95% confidence intervals constructed using these sandwich standard errors ( Cov(sand) ). For IPTW, we additionally report the standard errors from the weighted regression ( Reg SE ) and the corresponding 95% confidence interval coverage ( Cov(reg) ). For G-estimation, re-sults are presented for both the basic and two-step efficient GMM implementations, which yield identical point estimates but differ in their estimated variances. For the IV approach implemented under a two-parameter decay model, we report analogous summaries for β and α, including the Monte Carlo mean of the point estimates, MAE, RMSE, empirical standard deviation, sandwich standard errors, and 95% confidence interval coverage. Table 1 provides a high level summary of the simulation study main findings, with full details provided in Ap-pendix B.2, Table S1 – Table S14. In Table S6, we report three summary diagnostics of the IPTW weights: the effective sample size (ESS) of the cumulative inverse probability weights, the share of total weight carried by the largest 1% of observations (Top 1% weight share), and the upper tail of the weight distribution ( q0.999 ). See Appendix B.2 for detailed definitions of the statistics and further discussion of the results. 
+
+Method Design 1 Design 2 Design 3 IPTW Finite-sample performance degrades under strong exposure–confounder feedback due to near-positivity violations. Instability and bias are most pronounced for lagged effects. Without exposure–confounder feedback, IPTW estimates are close to the truth but remain less accurate than G-estimation, with slightly larger bias. Regression-based SE severely undercovers, while sandwich SE is conservative. Inconsistent due to violation of NUC. Regression SE undercovers; sandwich SE is more conservative but cannot correct inconsistency arising from identification failure. Consistent for each parameter in the time-saturated six-parameter model, provided NUC holds. 
+
+G-estimation (basic GMM) 
+
+Stable and essentially unbiased across scenarios; sandwich standard errors are conservative and systematically exceed empirical SD, leading to near-100% coverage. Inconsistent under NUC violation, reflecting failure of identification rather than a variance-estimation issue. Consistent for each parameter; sandwich SE tends to be conservative. 
+
+G-estimation (efficient GMM) 
+
+Unbiased across scenarios. Sandwich standard errors closely match empirical variability, yielding near-nominal coverage. Also inconsistent; efficiency gains do not mitigate bias arising from identification failure, and coverage can remain very poor. Consistent for each parameter with improved efficiency; sandwich SE is well calibrated to empirical variability. 
+
+IV G-estimation Consistent and robust to practical positivity problems, but less efficient than basic G-estimation when NUC holds. Remains consistent under valid IV assumptions in the baseline setting. Performance deteriorates sharply under weak instruments and when incorrectly adjusting for time-varying covariates. Misspecified under decay violation. Implied cumulative effects provide interpretable summaries of total effects. Table 1: Summary of main simulation findings across designs and approaches. Each cell summarizes estimation accuracy, finite-sample performance, and inferential behavior based on the detailed results reported in Table S1 – Table S14 in Appendix B.2. 
+
+12 4 Applied Example 
+
+# 4.1 Data Description 
+
+We illustrate the application of the three approaches by applying them to a real-world data example to estimate the effect of sustained adherence to statin medication on LDL-c control. This builds on our own recent work detailed in Türkmen et al. [20] that used a cohort of ≈ 69,000 UK Biobank participants with detailed linked elec-tronic primary care health records who were prescribed statin medication. We specifically focused on individuals prescribed simvastatin or atorvastatin (the most commonly prescribed statins), who in addition had at least one pre-treatment and three post-treatment low density lipoprotein (LDL-c) measurements; accordingly, the longitudi-nal dataset consists of three post-treatment time points ( k = 1, 2, 3). This reduced the sample size to approximately 13,000 patients. Following Türkmen et al. [20], adherence is proxied using patients’ prescription records and the time they are treated. In this paper, we refer to this measure as the medication possession ratio (MPR), defined as the propor-tion of days within a given period for which medication is available [2, 9]. In practice, and following common implementations in the literature (e.g., Cordioli et al. [3] and Shields, Hattersley, and Farmer [54]), days’ supply is inferred from prescribed drug quantity under standard dosing assumptions, such that MPR is calculated as MPR = Number of tablets prescribed in study period Length of study period (days) × 100 .
+
+In our previous work [20], we referred to this quantity as the proportion of days covered (PDC); here, we adopt the term MPR for greater precision. Values of MPR can exceed 100% either because patients are prescribed more than one tablet per day during a given period, or because of early refills or stockpiling. In the latter case, excess supply in one period may be offset by lower MPR values in subsequent periods, such that overall adherence is still appropriately reflected. The outcome variable at time point k is defined as the percentage change in LDL-c relative to the pre-treatment baseline, calculated as: 
+
+Yk = LDL k − LDL 0
+
+LDL k
+
+,
+
+where LDL k is the post-statin LDL-c level for time point k and LDL 0 is the pre-treatment baseline level (mea-sured <180 days prior to statin initiation). In addition to adherence and LDL-c measurements, our analysis dataset also included the following baseline covariates LLL0: age (in years) at first statin prescription, biological sex (male or female), education level (measured as self-reported highest qualification) and assessment center. The timing of Yk, tk (in years) was also recorded and used as a time-varying covariate. For each follow-up time, ad-herence was calculated as the average MPR over the interval between the current and previous follow-up time points. Following Türkmen et al. [20], we excluded individuals with extreme adherence values (here any MPR > 200). We additionally restricted the analysis to individuals with valid polygenic score (PGS) values, which serve as the instrumental variable for statin adherence (see Section 4.3 for details), yielding a final longitudinal sample of n=13,285 participants. For these individuals, we constructed a longitudinal dataset with the variables (Y1,Y2,Y3, MPR 1, MPR 2, MPR 3,t1,t2,t3, LLL0). For each time point k, we can then define an observed history set HHHk,for example, HHH3 = ( Y1,Y2, MPR 1, MPR 2,t1,t2,t3, LLL0).Figure 3 Panel (a) shows the distribution of all follow-up times: t1 was highly concentrated within one year with an approximate mean of 0 .5 and the average value of t3 was approximately 3 years (with a maximum of 10). Figure 3 Panel (b) shows the distribution of MPR 1, which is centered close to 100% but shows that a noticeable subset of patients already have substantially lower MPR values in this early period. 
+
+# 4.2 IPTW and G-estimation Analysis 
+
+We apply IPTW and G-estimation of the SNMM to estimate a six-parameter saturated model: the causal effects of MPR 1 on Y1; MPR 1 and MPR 2 on Y2; MPR 1, MPR 2 and MPR 3 on Y3. For IPTW, in the first stage, we estimate inverse probability weights using the CBPS method [22], adjusting for the observed history HHHk. We consider two CBPS options: the method = “exact” specification chooses weights so that the selected covariates are exactly bal-anced in the weighted sample, whereas method = “over” imposes additional (over-identifying) moment conditions that encourage balance while allowing some slack to potentially improve efficiency [55]. In the second stage, for each time point we estimate the causal effects by performing weighted regression of Y on the current and lagged 13 (a) Frequency distribution of the first three post-statin LDL-c measure-ment times. The x-axis shows time since statin initiation (years); the y-axis shows relative frequency. 
+
+# (b) Distribution of MPR from baseline to the first follow-up interval. The x-axis shows individual MPR values; the y-axis shows the estimated den-sity. Figure 3: Distributions of (a) LDL-c follow-up times and (b) MPR from baseline to the first LDL-c follow-up. 
+
+MPR simultaneously, using the CBPS-derived weights. For G-estimation, we use the joint GMM procedure de-scribed in Section 2.5. Specifically, we treat Y1, Y2 and Y3 in turn as the final outcome and stack the corresponding moment conditions into a single GMM problem, as defined in (18), so that all causal parameters are estimated jointly. We report results from both the basic and the two-step efficient versions of the joint GMM estimation. Tables S15 and S16 in Appendix C.2 report the estimated effects of MPR at each time point on LDL-c change, ob-tained using IPTW and G-estimation respectively, together with their sandwich standard errors. Tables S18, S19, and S20 report diagnostic statistics for the CBPS weights and exposure–confounder correlations after weighting, with nearly all correlations falling below the 0.1 threshold. Almost all coefficients are negative and highly statis-tically significant, indicating that higher adherence at any of the three windows is associated with larger LDL-c reduction. Our primary estimand of interest is the overall LDL-c reduction difference between two hypothetical adherence regimes: full adherence at any time (all MPR = 100%) and non-adherence (all MPR = 0). As each co-efficient in Tables S15–S16 represents the effect per one percentage increase of MPR, the implied contrast at time 
+
+k is obtained by summing the relevant coefficients for Yk and multiplying by 100. More generally, the estimated coefficients can define contrasts between any two adherence regimes (e.g., MPR = 50% versus MPR = 100%); here, we focus on the contrast between full adherence and non-adherence for interpretability. For example, if the effects of MPR 1, MPR 2 and MPR 3 on Y3 are denoted β31 , β32 and β33 , then the contrast of full versus non-adherence for the third LDL-c reduction would be ˆ ∆3 = ( 100 × ∑3 
+
+> k=1
+
+ˆβ3k).To quantify uncertainty for this estimand, we use a parametric bootstrap to obtain the 95% confidence intervals. For each method and each time point k, we treat the vector of coefficients ˆβββ k as approximately multivariate normal with mean equal to the point estimates and variance-covariance matrix given by the sandwich estimator. We then draw 1000 samples of ˆβββ k from this distribution, compute the corresponding ∆k for each draw, and summarize the simulated values by their mean and standard deviation. The 95% confidence intervals for ∆k are then obtained from these simulated values, see Figure 4a and Table S17 in Appendix C.2. Across methods, full adherence versus no adherence is consistently associated with substantially larger LDL-c reduction. IPTW with the “exact” weighting option yields estimated differences of roughly 15% to 17%, whereas IPTW with “over” weighting gives larger effects of about 23% to 24% LDL-c reduction. G-estimation produces estimates in between these two IPTW specifications, with efficient GMM and basic GMM giving identical point estimates (around 15% larger LDL-c reduction at time point 1 and 19–20% at the later time points). As expected, the efficient GMM yields slightly narrower confidence intervals. Across all methods, the total effect (expressed as a summation across the time points) remained remarkably similar. The slope plots (from IPTW with “exact” weights and efficient GMM) in Figure 4b further decompose the overall contrast into contributions from each adherence window. They show a clear timing pattern: adherence closest to the LDL-c measurement ( MPR 3) has the largest impact on Y3, followed by initial adherence ( MPR 1), while mid-14 (a) The 95% confidence intervals of LDL-c reduction difference between MPR = 100 versus MPR = 0 implied by estimates from IPTW (with “exact” and “over” weights) and G-estimation (with basic and efficient GMM). We also show the point estimates of the LDL-c reduction difference from the IV approach. 
+
+# (b) Estimated trajectories of effects of statin adherence on LDL-c change. The red line shows the effect of MPR 1 on Y1;the two segments of the green line correspond to MPR 1 and MPR 2 on Y2; and the three segments of the blue line correspond to MPR 1, MPR 2 and MPR 3 on Y3. The top left, top right and bottom panels show IPTW with “exact” weights, efficient G-estimation, and the IV approach, respectively. Figure 4: Estimation results of IPTW, G-estimation and IV. 
+
+15 period adherence ( MPR 2) contributes less. This pattern is broadly consistent across both IPTW and G-estimation, highlighting the importance of early follow-up monitoring [20]. The comparison of methods highlights that the IPTW results can be sensitive to the choice of CBPS weight-ing option: “over” weighting accentuates the estimated adherence effect and yields wider intervals, whereas the “exact” option produces more moderate estimates. The magnitudes from G-estimation and IPTW with “exact” weights are similar: for each time point the implied LDL-c reduction difference from full versus non-adherence is all in the 15 − 20% range and the 95% confidence intervals overlap substantially. Therefore, while the precise effect size to some extent depends on the estimation approach, the qualitative conclusions that substantial overall benefit of adherence and greater impact of recent adherence, are consistent across methods. 
+
+# 4.3 IV Analysis 
+
+To construct an IV for statin adherence, we attempted to use the PGS for on-statin LDL-c response developed by Mayerhofer et al. [56]. This score is based on genetic associations reported by the Genomic Investigation of Statin Therapy Consortium, who conducted a pharmacogenetic meta-analysis of genome-wide association studies (GWAS) of on-statin LDL-c response in 40 , 914 statin-treated individuals of European ancestry [57]. A total of 35 independent single nucleotide polymorphisms (SNPs) were selected for inclusion in the PGS, with pairwise linkage disequilibrium r2 < 0.001. All selected SNPs were associated with on-statin LDL-c response at genome-wide significance ( p < 5 × 10 −8) [56]. 
+
+S = 1 MPR k Yk
+
+U
+
+G           
+
+> Figure 5: Conceptual illustration of conditioning on statin initiation. Sindicates statin initiation. Solid black arrows represent the assumed causal structure. Conditioning on S=1 (restricting to treated individuals) can induce additional associations between the instrument G, unobserved confounder Uand outcome Yk(shown as red dashed arrows), potentially violating the IV independence and exclusion assumptions within the selected sample.
+
+To enhance the validity of the PGS as an instrument for adherence, we follow the practice in Mayerhofer et al. [56] and exclude 4 SNPs that are also associated with off-statin LDL-c levels, thereby minimizing the risk of direct effects on the outcome induced by conditioning on statin initiation (see Figure 5 and discussion in Appendix C.1). Our PGS was constructed using the ukbrapR package v0.3.9 ( https://github.com/lcpilling ) for the final 31 variant PGS from UK Biobank-provided DRAGEN variant calls from the whole genome sequencing data on 490,000 participants (field:24309). Crucially, this sample does not overlap with the GWAS meta-analysis sample used to derive the associations. See Mayerhofer et al. [56] and Postmus et al. [57] for details; a list of the 35 SNPs and the 4 excluded SNPs can be found in Supplementary Table S5 in Mayerhofer et al. [56]. As explained in Section 2.4, the proposed instrument is designed to influence the LDL-c at time point k, Yk,via MPR k but not Yk directly, and to be independent of unmeasured confounders of statin initiation, MPR k and 
+
+Yk (Figure 5). In practice, however, only a very small association between the instrument and adherence was present (partial F-statistics = 0 .422, 1 .041 and 0 .856 for MPR1, MPR2 and MPR3 respectively), indicating that the instrument is empirically extremely weak in this dataset. As a consequence, the IV coefficient estimates are accompanied by very large standard errors and conventional weak-instrument concerns apply. 16 For illustration purposes only, we present the estimation results from the two-parameter decay specification as described in Section 2.4, where we estimate the ‘main effect’ β and the decaying factor α. Figure 4b displays the same “MPR = 100 vs MPR = 0” contrasts used earlier, translated from the IV point estimates ( ˆβ = −0.0039 and ˆα = 0.1293). The trajectories are directionally consistent with the IPTW and G-estimation results in the sense that higher adherence is associated with larger LDL-c reduction, and the estimated effect increases over time, with the largest LDL-c reduction attributed to adherence closest to the LDL-c measurement. Numerically, the LDL-c reduction difference between full adherence versus non-adherence implied by the IV point estimates is roughly 40–50% (see Figure 4a), which is qualitatively closer to the 30-50% LDL-c reduction often cited in treat-ment guidelines for high-risk patients shortly after statin initiation [58–60] than the 15-20% reductions estimated by IPTW and G-estimation. However, because the instrument is so weak, these point estimates are extremely imprecise, with very wide confidence intervals (not shown). 
+
+# 5 Discussion 
+
+In this paper, we compared three longitudinal causal methods for estimating time-varying causal effects in set-tings with a continuous exposure, motivated by drug adherence and long-term health outcomes. Under a unified longitudinal modelling framework and a common target hypothetical estimand, we clarified the identification as-sumptions required by each approach and described how point estimates and confidence intervals can be obtained in practice. We provided implementation details and illustrated the methods in an applied analysis of UK Biobank participants with linked primary care data on statin adherence and LDL-c control. We conducted a simulation study to evaluate their finite-sample performance under various scenarios. Under the “no unmeasured confound-ing” assumption, our simulation results showed that G-estimation of the SNMM was generally more statistically efficient than IPTW estimation of the MSM. In addition, we found that IPTW could be fragile in settings with a continuous exposure, particularly when there is strong exposure–covariate feedback, where practical violations of positivity and unstable weights can arise. These findings are consistent with existing theoretical and empirical work highlighting challenges for weighting-based approaches with continuous time-varying exposures, and moti-vate the use of G-estimation as a natural alternative in such settings [12, 24]. In practice, IPTW benefits from mature and widely available software for implementation, whereas G-estimation is less commonly implemented in standard applied workflows. A contribution of our work is therefore to provide accessible R code implementing both the basic and efficient GMM formulations of longitudinal G-estimation, alongside the simulated dataset used in our study as a resource for future methodological comparisons. From a modelling perspective, SNMMs parameterize causal effects through conditional blip functions given the observed history, which in principle allows interactions between adherence and time-varying covariates to be incorporated more directly than in MSMs, which target marginal effects [11, 32]. Exploring such effect modification represents a natural direction for future work. Finally, when the “no unmeasured confounding” assumption is doubtful, our results illustrate how an IV-based extension of G-estimation can be used to relax this assumption under appro-priate instrument conditions. Although motivated by drug adherence, the modelling framework and estimation strategies considered here apply more broadly to longitudinal settings with continuous time-varying exposures, such as blood pressure trajectories. In the real-world example where we applied the methods to estimate the effect of sustained statin adherence on LDL-c reduction with a UK Biobank cohort, the absolute size of the estimated LDL-c reduction from IPTW and G-estimation (15–20%) was smaller than the 30–50% LDL-c reduction guideline targets [58–60]. However, this difference might be due to the fact that the MPR measure is only a proxy for true adherence based on prescrip-tion records. It crucially does not capture whether tablets are dispensed or actually taken. Also, the guidelines are based largely on randomized trials of high-intensity statin therapy in carefully selected patients with tightly controlled follow-up, whereas our estimates come from routinely collected data on a much more heterogeneous patient cohort. For example, our data almost certainly includes patients whose cholesterol levels are relatively low on their own, but are prescribed a statin because of a perceived high risk of cardiovascular disease, as measured by their QRISK. The true effect of full adherence to treatment on their LDL-c levels may be lower than in other patient groups. In this more noisy observational data setting, although IPTW and G-estimation adjust for a set of observed covariates, residual confounding and measurement error in both the adherence and outcome measures are still potentially present, which could lead to dilution in the estimated adherence effect. Our IPTW estimates are also smaller than those from our previous work Türkmen et al. [20], where the IPTW analysis suggested an LDL-c reduction of around 35%. In that earlier analysis we fitted the outcome model with-17 out an intercept, implicitly assuming that LDL-c reduction would be zero when statin adherence (MPR) is zero. Our subsequent exploration of untreated individuals (those not on statins) showed that LDL-c levels still reduce on average after GP visits even when statins are not prescribed and adherence is by definition zero. This could be due to non-statin health interventions such as diet and lifestyle change resulting from patients being made aware of their current disease risk. In the present analysis we therefore reintroduced the intercept, allowing for non–statin-related changes in LDL-c at MPR = 0. It should be noted that our analysis is conducted in a selected sample. Unlike in randomized controlled trials, where individuals are assigned to treatment and control groups, meaningful measures of statin adherence are only defined among individuals who initiate treatment. Consequently, our causal estimands pertain to treated individ-uals only. In addition, to construct a longitudinal dataset with multiple time points, we further restrict attention to individuals with at least three post-treatment LDL-c measurements, which imposes an additional selection cri-terion. While in principle, individuals with fewer follow-up measurements could be incorporated via imputation, this would require jointly imputing missing LDL-c values, adherence measures, and irregular follow-up times, introducing substantial additional uncertainty and modelling complexity. For these reasons, we focus on a well-defined longitudinal subset for which adherence, outcomes, and follow-up timing were all directly observed. In our real-world application, the genetic instrument for statin adherence was weak, with partial F statistics well below conventional thresholds. Using synthetic data calibrated to our setting, we estimated that a sample approx-imately nine times larger would be required to achieve partial F statistics above the standard threshold of 10 at each time point, giving a rough indication of the sample size needed for a reliable IV analysis of this type. As a result, our IV estimates should be viewed as exploratory, illustrating the potential scale of adherence effects rather than providing precise effect sizes. Future work using larger and richer longitudinal resources such as Our Future Health [61] will soon dramatically increase the size of genotyped individuals with linked medication records to over 5 million individuals. There is also the potential to increase power further by synthesising data from other US and European cohorts such as All of Us and FinnGen [62, 63]. Our hope is that researchers will be able to revisit the analyses described here to obtain much more robust IV-based estimates of longitudinal adherence effects once such data become available. 
+
+# Data Availability 
+
+The empirical data used in the applied analysis were obtained from the UK Biobank, approved by the North West Multi-Centre Research Ethics Committee (Research Ethics Committee reference 11/NW/0382). Due to the data access agreement and strict privacy regulations, the authors are not permitted to share the raw patient-level data publicly. Qualified researchers can apply to access the UK Biobank resource directly via their official portal (www.ukbiobank.ac.uk). The R code used to implement the methods and generate the simulated datasets is freely available on GitHub at: https://github.com/xiaoran-liang/longitudinal-causal 
+
+# References 
+
+[1] Eduardo Sabaté. Adherence to long-term therapies: evidence for action . World health organization, 2003. [2] Susan E Andrade, Kristijan H Kahler, Feride Frech, and K Arnold Chan. “Methods for evaluation of medi-cation adherence and persistence using automated databases”. In: Pharmacoepidemiology and drug safety 
+
+15.8 (2006), pp. 565–574. [3] M Cordioli, A Corbetta, HM Kariis, S Jukarainen, P Vartiainen, T Kiiskinen, M Ferro, Estonian Biobank Research Team FinnGen, M Niemi, S Ripatti, et al. “Socio-demographic and genetic risk factors for drug adherence and persistence: a retrospective nationwide and biobank study across 5 medication classes and 1 845 665 individuals”. In: medRxiv (2023), pp. 2023–10. [4] Christian M Sperber, Suren R Samarasinghe, and Grace P Lomax. “An upper and lower bound of the medication possession ratio”. In: Patient preference and adherence (2017), pp. 1469–1478. [5] Hayden B Bosworth, Bradi B Granger, Phil Mendys, Ralph Brindis, Rebecca Burkholder, Susan M Cza-jkowski, Jodi G Daniel, Inger Ekman, Michael Ho, Mimi Johnson, et al. “Medication adherence: a call for action”. In: American heart journal 162.3 (2011), pp. 412–424. [6] Wai Yin Lam and Paula Fresco. “Medication adherence measures: an overview”. In: BioMed research international 2015.1 (2015), p. 217047. 18 [7] Patricia Maningat, Bruce R Gordon, and Jan L Breslow. “How do we improve patient compliance and adherence to long-term statin therapy?” In: Current atherosclerosis reports 15.1 (2013), p. 291. [8] Fatima Rodriguez, David J Maron, Joshua W Knowles, Salim S Virani, Shoutzu Lin, and Paul A Heidenre-ich. “Association of statin adherence with mortality in patients with atherosclerotic cardiovascular disease”. In: JAMA cardiology 4.3 (2019), pp. 206–213. [9] Lisa M Hess, Marsha A Raebel, Douglas A Conner, and Daniel C Malone. “Measurement of adherence in pharmacy administrative databases: a proposal for standard definitions and preferred measures”. In: Annals of pharmacotherapy 40.7-8 (2006), pp. 1280–1288. [10] James M Robins, Donald Blevins, Grant Ritter, and Michael Wulfsohn. “G-estimation of the effect of pro-phylaxis therapy for Pneumocystis carinii pneumonia on the survival of AIDS patients”. In: Epidemiology 
+
+3.4 (1992), pp. 319–336. [11] James M Robins, Miguel Angel Hernan, and Babette Brumback. “Marginal structural models and causal inference in epidemiology”. In: Epidemiology 11.5 (2000), pp. 550–560. [12] Stijn Vansteelandt and Marshall Joffe. “Structural nested models and G-estimation: the partially realized promise”. In: Statistical Science 29.4 (2014), pp. 707–731. [13] Matthew Blackwell and Adam N Glynn. “How to make causal inferences with time-series cross-sectional data under selection on observables”. In: American Political Science Review 112.4 (2018), pp. 1067–1082. [14] ICH-E9 Addendum. ICH E9(R1) Addendum on Estimands and Sensitivity Analysis in Clinical Trials .
+
+https://www.ema.europa.eu/en/documents/scientific-guideline/ich-e9-r1-addendum-estimands-and-sensitivity-analysis-clinical-trials-guideline-statistical-principles-clinical-trials-step-5_en.pdf . Accessed: 2025-09-16. 2020. [15] Camila Olarte Parra, Rhian M Daniel, and Jonathan W Bartlett. “Hypothetical estimands in clinical trials: a unification of causal inference and missing data methods”. In: Statistics in Biopharmaceutical Research 
+
+15.2 (2023), pp. 421–432. [16] Florian Lasch, Lorenzo Guizzaro, and Wen Wei Loh. “Comparison of g-estimation approaches for handling symptomatic medication at multiple timepoints in Alzheimer’s Disease with a hypothetical strategy”. In: 
+
+Statistics in Biopharmaceutical Research just-accepted (2025), pp. 1–20. [17] Camila Olarte Parra, Rhian M Daniel, David Wright, and Jonathan W Bartlett. “Estimating hypothetical estimands with causal inference and missing data estimators in a diabetes trial case study”. In: Biometrics 
+
+81.1 (2025), ujae167. [18] Jack Bowden, Björn Bornkamp, and Ekkehard Glimm. “Connecting Instrumental Variable methods for causal inference to the Estimand Framework”. In: Statistics in Medicine 40.25 (2021), pp. 5605–5627. DOI :
+
+10.1002/sim.9143 .[19] Jack Bowden, Jesper Madsen, Bryan Goldman, Aske Thorn Iversen, Xiaoran Liang, and Stijn Vansteelandt. “Instrumental Variable Methods to Target Hypothetical Estimands With Longitudinal Repeated Measures Data: Application to the STEP 1 Trial”. In: Statistics in Medicine 44.7 (2025), e70076. DOI : 10.1002/ sim.70076 .[20] Deniz Türkmen, Xiaoran Liang, Jane AH Masoli, Dipender Gill, Luke C Pilling, and Jack Bowden. “Un-derstanding the causes and consequences of low statin adherence: evidence from UK Biobank primary care data”. In: BMC medicine 23.1 (2025), p. 436. [21] Philip J Clare, Timothy A Dobbins, and Richard P Mattick. “Causal models adjusting for time-varying confounding—a systematic review of the literature”. In: International journal of epidemiology 48.1 (2019), pp. 254–265. [22] Christian Fong, Chad Hazlett, and Kosuke Imai. “Covariate balancing propensity score for a continuous treatment: Application to the efficacy of political advertisements”. In: The Annals of Applied Statistics 12.1 (2018), pp. 156–177. [23] James M Robins. “Correcting for non-compliance in randomized trials using structural nested mean mod-els”. In: Communications in Statistics-Theory and methods 23.8 (1994), pp. 2379–2412. [24] Stijn Vansteelandt and Arvid Sjolander. “Revisiting g-estimation of the effect of a time-varying exposure subject to time-varying confounding”. In: Epidemiologic Methods 5.1 (2016), pp. 37–56. [25] Sylvie Goetgeluk, Stijn Vansteelandt, and Els Goetghebeur. “Estimation of controlled direct effects”. In: 
+
+Journal of the Royal Statistical Society Series B: Statistical Methodology 70.5 (2008), pp. 1049–1066. 19 [26] Daniel Westreich and Stephen R Cole. “Invited commentary: positivity in practice”. In: American journal of epidemiology 171.6 (2010), pp. 674–677. [27] Miguel A. Hernán and James M. Robins. Causal Inference: What If . Boca Raton: Chapman & Hall/CRC, 2020. [28] Daniel Tompsett, Stijn Vansteelandt, Richard Grieve, Will Dixon, and Manuel Gomes. “Instrumental vari-able approaches for estimating time-varying treatment effects in comparative effectiveness research”. In: 
+
+BMC Medical Research Methodology 25.1 (2025), p. 208. [29] James M Robins. “Causal inference from complex longitudinal data”. In: Latent variable modeling and applications to causality . Ed. by Maia Berkane. New York: Springer, 1997, pp. 69–117. [30] Paul R Rosenbaum and Donald B Rubin. “The central role of the propensity score in observational studies for causal effects”. In: Biometrika 70.1 (1983), pp. 41–55. [31] Garrett Fitzmaurice, Marie Davidian, Geert Verbeke, and Geert Molenberghs. Longitudinal data analysis .CRC press, 2008. [32] Rhian M Daniel, Sara N Cousens, Bianca L De Stavola, Michael G Kenward, and Jonathan AC Sterne. “Methods for dealing with time-dependent confounding”. In: Statistics in medicine 32.9 (2013), pp. 1584– 1618. [33] Stephen R Cole and Constantine E Frangakis. “The consistency statement in causal inference: a definition or an assumption?” In: Epidemiology 20.1 (2009), pp. 3–5. [34] Stephen R Cole and Miguel A Hernán. “Constructing inverse probability weights for marginal structural models”. In: American journal of epidemiology 168.6 (2008), pp. 656–664. [35] Michael Schomaker, Helen McIlleron, Paolo Denti, and Iván Díaz. “Causal inference for continuous mul-tiple time point interventions”. In: Statistics in Medicine 43.28 (2024), pp. 5380–5400. [36] Han Bao and Michael Schomaker. “Addressing Positivity Violations in Continuous Interventions through Data-Adaptive Strategies”. In: arXiv preprint arXiv:2502.14566 (2025). [37] Maya L Petersen, Kristin E Porter, Susan Gruber, Yue Wang, and Mark J Van Der Laan. “Diagnosing and responding to violations in the positivity assumption”. In: Statistical methods in medical research 21.1 (2012), pp. 31–54. [38] Shaun R Seaman, Ruth H Keogh, Oliver Dukes, and Stijn Vansteelandt. “Using generalized linear models to implement g-estimation for survival data with time-varying confounding”. In: Statistics in medicine 40.16 (2021), pp. 3779–3790. [39] Marta Spreafico. “Impact of Near-Positivity Violations on IPTW-Estimated Marginal Structural Survival Models With Time-Dependent Confounding”. In: Biometrical Journal 67.6 (2025), e70093. [40] Ashley I Naimi, Erica EM Moodie, Nathalie Auger, and Jay S Kaufman. “Constructing inverse probability weights for continuous exposures: a comparison of methods”. In: Epidemiology 25.2 (2014), pp. 292–299. [41] Lars Peter Hansen. “Large sample properties of generalized method of moments estimators”. In: Econo-metrica: Journal of the econometric society (1982), pp. 1029–1054. [42] Whitney K Newey and Daniel McFadden. “Large sample estimation and hypothesis testing”. In: Handbook of econometrics 4 (1994), pp. 2111–2245. [43] Joshua D Angrist, Guido W Imbens, and Donald B Rubin. “Identification of causal effects using instrumen-tal variables”. In: Journal of the American statistical Association 91.434 (1996), pp. 444–455. [44] Jack Bowden, Lucy C. Pilling, Deniz Türkmen, Chiao-Ling Kuo, and David Melzer. “The Triangulation Within a Study (TWIST) Framework for Causal Inference in Pharmcogenetic Research”. In: PLoS Genetics 
+
+17(9) (2021), e1009783. [45] Kosuke Imai and Marc Ratkovic. “Robust estimation of inverse probability weights for marginal structural models”. In: Journal of the American Statistical Association 110.511 (2015), pp. 1013–1023. [46] Vahe Avagyan and Stijn Vansteelandt. “Stable inverse probability weighting estimation for longitudinal studies”. In: Scandinavian journal of statistics 48.3 (2021), pp. 1046–1067. [47] Peter C Austin. “Assessing covariate balance when using the generalized propensity score with quantitative or continuous exposures”. In: Statistical methods in medical research 28.5 (2019), pp. 1365–1377. [48] Bonnie E Shook-Sa and Michael G Hudgens. “Power and sample size for observational studies of point exposure effects”. In: Biometrics 78.1 (2022), pp. 388–398. 20 [49] Brian K Lee, Justin Lessler, and Elizabeth A Stuart. “Weight trimming and propensity score weighting”. In: PloS one 6.3 (2011), e18174. [50] Peter C Austin and Elizabeth A Stuart. “Moving towards best practice when using inverse probability of treatment weighting (IPTW) using the propensity score to estimate causal treatment effects in observational studies”. In: Statistics in medicine 34.28 (2015), pp. 3661–3679. [51] Ming Wang. “Generalized estimating equations in longitudinal data analysis: a review and recent develop-ments”. In: Advances in Statistics 2014.1 (2014), p. 303728. [52] Douglas Staiger and James H. Stock. “Instrumental Variables Regression with Weak Instruments”. In: 
+
+Econometrica 65.3 (1997), pp. 557–586. DOI : 10.2307/2171753 . URL : https://www.jstor.org/ stable/2171753 .[53] James H. Stock and Motohiro Yogo. “Testing for Weak Instruments in Linear IV Regression”. In: Iden-tification and Inference for Econometric Models: Essays in Honor of Thomas Rothenberg . Ed. by Donald W. K. Andrews and James H. Stock. Cambridge, UK: Cambridge University Press, 2005, pp. 80–108. ISBN :9780521846831. [54] Beverley M Shields, Andrew T Hattersley, and Andrew J Farmer. “Identifying routine clinical predictors of non-adherence to second-line therapies in type 2 diabetes: A retrospective cohort analysis in a large primary care database”. In: Diabetes, Obesity and Metabolism 22.1 (2020), pp. 59–65. [55] Christian Fong, Chad Hazlett, and Kosuke Imai. CBPS: Covariate Balancing Propensity Score . R package version 0.24. 2025. URL : https://CRAN.R-project.org/package=CBPS .[56] Ernst Mayerhofer, Rainer Malik, Livia Parodi, Stephen Burgess, Andreas Harloff, Martin Dichgans, Jonathan Rosand, Christopher D Anderson, and Marios K Georgakis. “Genetically predicted on-statin LDL response is associated with higher intracerebral haemorrhage risk”. In: Brain 145.8 (2022), pp. 2677–2686. [57] Iris Postmus, Stella Trompet, Harshal A Deshmukh, Michael R Barnes, Xiaohui Li, Helen R Warren, Daniel I Chasman, Kaixin Zhou, Benoit J Arsenault, Louise A Donnelly, et al. “Pharmacogenetic meta-analysis of genome-wide association studies of LDL cholesterol response to statins”. In: Nature communications 5.1 (2014), p. 5068. [58] National Institute for Health and Care Excellence. Cardiovascular disease: risk assessment and reduction, including lipid modification . https://www.nice.org.uk/guidance/ng238 . NICE guideline NG238. Accessed 10 December 2025. 2023. [59] Salim S. Virani, L. Kristin Newby, Suzanne V. Arnold, Vera Bittner, LaPrincess C. Brewer, Sherita H. Demeter, and et al. “2023 AHA/ACC/ACCP/ASPC/NLA/PCNA Guideline for the Management of Pa-tients With Chronic Coronary Disease”. In: Circulation 148.9 (2023), e9–e119. DOI : 10 . 1161 / CIR . 0000000000001168 . URL : https://www.ahajournals.org/doi/10.1161/CIR.0000000000001168 .[60] Donna K. Arnett, Roger S. Blumenthal, Michelle A. Albert, Andrew B. Buroker, Zachary D. Goldberger, Ellen J. Hahn, and et al. “2019 ACC/AHA Guideline on the Primary Prevention of Cardiovascular Disease: A Report of the American College of Cardiology/American Heart Association Task Force on Clinical Prac-tice Guidelines”. In: Circulation 140.11 (2019), e596–e646. DOI : 10 . 1161 / CIR . 0000000000000678 .
+
+> URL
+
+: https://www.ahajournals.org/doi/10.1161/CIR.0000000000000678 .[61] Michael B Cook, Naomi Adams, Ashley Adjetey, Ryan Arathimos, Marko Balabanovic, Ros Blackwood, Adam Booth, Benjamin J Cairns, Ali Connell, Sidra Ellis, et al. “Cohort Profile: Our Future Health”. In: 
+
+International Journal of Epidemiology 54.6 (2025), dyaf171. [62] The All of Us Research Program Investigators. “The “All of Us” Research Program”. In: New England Journal of Medicine 381.7 (2019), pp. 668–676. DOI : 10.1056/NEJMsr1809937 .[63] Mitja I Kurki, Juha Karjalainen, Priit Palta, Tapio P Sipilä, Kati Kristiansson, Kilian Donner, Mari P Reeve, Hannele Laivuori, Mervi Aavikko, Mari A Kaunisto, et al. “FinnGen provides genetic insights from a well-phenotyped isolated population”. In: Nature 613.7944 (2023), pp. 508–518. DOI : 10.1038/s41586-022-05473-8 .21 Appendix to “Living forwards or understanding backwards? A comparison of Inverse Probability of Treatment Weighting and G-estimation methods for targeting hypothetical full adherence estimands in longitudinal cohort studies ” 
+
+Xiaoran Liang a, Deniz Türkmen a, Jane A H Masoli a,b, Luke C Pilling a, Jack Bowden a,caDepartment of Clinical and Biomedical Sciences, University of Exeter, Exeter, UK 
+
+> b
+
+Royal Devon University Healthcare NHS Foundation Trust, Barrack Road, Exeter, UK 
+
+> c
+
+Novo Nordisk Research Centre (NNRCO), Oxford, U.K 6 March, 2026 A Modelling and Method Details 
+
+# A.1 Linking SNMM Parameters to the Causal Estimand 
+
+Following the argument in Tompsett et al. [1], we show that under the linear blip specification in (3) and the NCTI assumption, the estimand in (1) can be written as a function of the SNMM parameters βββ = ( β1, . . . , βk). To fix ideas, take k = 3 and consider the contrast between the regimes ¯ aaa = ( 1, 1, 1) and ¯ aaa′ = ( 1, 1, 0) at the final time point. From the definition of the blip at time 3 in (2), we have 
+
+E[Y (1, 1, 1) −Y (1, 1, 0) | HHH3, A3 = 1] = β3
+
+where HHH3 = ( A1, A2, L1, L2, L3) denotes the observed history up to time 3. Under NCTI, the expected difference in potential outcomes is independent of observed adherence A3 so that 
+
+E[Y (1, 1, 1) −Y (1, 1, 0) | HHH3, A3 = 1] = E[Y (1, 1, 1) −Y (1, 1, 0) | HHH3] = β3.
+
+By the law of iterated expectations it follows 
+
+E[Y (1, 1, 1) −Y (1, 1, 0) | A1, L1, L2, L3]= EA2 {E[Y (1, 1, 1) −Y (1, 1, 0) | HHH3 = ( A1, A2, L1, L2, L3)] }
+
+= EA2 (β3) = β3.
+
+Repeating the same procedure for each variable in HHH3 and eventually we achieve 
+
+E[Y (1, 1, 1) −Y (1, 1, 0)] = β3.
+
+From the MSM in (2), the same contrast E[Y (1, 1, 1) −Y (1, 1, 0)] equals η3, so under the specifications above we have β3 = η3.Repeating the same argument for times j = 2 and j = 1 yields 
+
+E[Y (1, 1, 0) −Y (1, 0, 0)] = β2
+
+and 
+
+E[Y (1, 0, 0) −Y (0, 0, 0)] = β1.
+
+1Summing these three contrasts gives 
+
+E[Y (1, 1, 1) −Y (0, 0, 0)] = β1 + β2 + β3.
+
+More generally, for k time points we obtain 
+
+E[Y (111k) −Y (000k)] = 
+
+> k
+
+# ∑
+
+> j=1
+
+β j,
+
+which coincides with the causal estimand defined in (1). In fact, the same argument gives, for any adherence history ¯ aaak,
+
+E[Y ( ¯aaak) −Y (000k)] = 
+
+> k
+
+# ∑
+
+> j=1
+
+β ja j.
+
+# A.2 Moment Conditions for G-estimation 
+
+We show that the conditional mean independence assumption in (12): 
+
+E[Y ( j)(βββ ∗ 
+
+> k
+
+) | HHH j, A j] = E[Y ( j)(βββ ∗ 
+
+> k
+
+) | HHH j]
+
+implies the moment condition in (13): 
+
+E
+
+h
+
+{A j − E(A j | HHH j)}Y ( j)(βββ ∗ 
+
+> k
+
+)
+
+i
+
+= 0.
+
+As Y ( j)(βββ ∗ 
+
+> k
+
+) and A j are mean independent given HHH j, we have 
+
+E
+
+h
+
+A j Y ( j) βββ ∗
+
+> k
+
+ | HHH j
+
+i
+
+= E(A j | HHH j) E
+
+h
+
+Y ( j) βββ ∗
+
+> k
+
+ | HHH j
+
+i
+
+.
+
+Then we have 
+
+E
+
+h
+
+A j Y ( j) βββ ∗
+
+> k
+
+ | HHH j
+
+i
+
+− E(A j | HHH j) E
+
+h
+
+Y ( j) βββ ∗
+
+> k
+
+ | HHH j
+
+i
+
+= 0and 
+
+E
+
+h
+
+A j Y ( j) βββ ∗
+
+> k
+
+ | HHH j
+
+i
+
+− E
+
+h
+
+E(A j | HHH j) Y ( j) βββ ∗
+
+> k
+
+ | HHH j
+
+i
+
+= 0.
+
+It follows that 
+
+E
+
+h
+
+{A j − E(A j | HHH j)}Y ( j) βββ ∗
+
+> k
+
+ HHH j
+
+i
+
+= 0.
+
+By the Law of Iterated Expectations, we have the unconditional moment condition 
+
+E
+
+h
+
+{A j − E(A j | HHH j)}Y ( j) βββ ∗
+
+> k
+
+i
+
+= 0.
+
+2Vansteelandt and Joffe [2, Equation (33)] considers a general class of estimating equations for SNMM parameters of the form 
+
+E
+
+d j(HHH j, A j) − Ed j(HHH j, A j) | HHH j
+
+ h
+
+Y ( j)(βββ k) − E
+
+n
+
+Y ( j)(βββ k) | HHH j
+
+oi 
+
+= 0,
+
+where d j(HHH j, A j) is an arbitrary function of the appropriate dimension. Under homoscedasticity, local semipara-metric efficiency is attained by choosing 
+
+d j(HHH j, A j) = E
+
+"
+
+∂Y ( j)(βββ ∗ 
+
+> k
+
+)
+
+∂ β j
+
+HHH j, A j
+
+#
+
+.
+
+Under the linear SNMM blip function used in this paper, ψ j(a j, HHH j) = β ja j, the blipped-down outcome is linear in β j, and thus 
+
+∂Y ( j)(βββ ∗ 
+
+> k
+
+)
+
+∂ β j
+
+= −A j.
+
+Therefore, the efficient choice of d j(HHH j, A j) is proportional to A j (up to sign), which yields the double-residualized moment condition in (14). The efficient moment condition in (14) can be written as 
+
+E
+
+hA j − E(A j | HHH j)
+
+n
+
+Y ( j)(βββ ∗ 
+
+> k
+
+) − E
+
+
+
+Y ( j)(βββ ∗ 
+
+> k
+
+) | HHH j
+
+oi 
+
+= 0. (S1) Appendix A.4 implements (S1) by constructing a residualized blipped-down outcome. Specifically, for each 
+
+j = 1, . . . , k, define the residualized outcome and exposures as 
+
+eYj = Y − E(Y | HHH j), eA j,s = As − E(As | HHH j), s = j, . . . , k.
+
+The residualized blipped-down outcome in Appendix A.4 is then defined as 
+
+eY ( j)(βββ k) = eYj −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βs eA j,s.
+
+Substituting the definitions of eYj and eA j,s gives 
+
+eY ( j)(βββ k) = Y − E(Y | HHH j) −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βs
+
+As − E(As | HHH j)
+
+=
+
+(
+
+Y −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βsAs
+
+)
+
+−
+
+(
+
+E(Y | HHH j) −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βsE(As | HHH j)
+
+)
+
+.
+
+By linearity of conditional expectation, 
+
+E(Y | HHH j) −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βsE(As | HHH j) = E Y −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βsAs HHH j
+
+!
+
+3Therefore, 
+
+eY ( j)(βββ k) = Y ( j)(βββ k) − E
+
+n
+
+Y ( j)(βββ k) | HHH j
+
+o
+
+,
+
+where Y ( j)(βββ k) = Y − ∑ks= j βsAs denotes the blipped-down outcome under the linear SNMM. Consequently, the moment condition implemented in Appendix A.4 as 
+
+E
+
+h eA j, j eY ( j)(βββ ∗ 
+
+> k
+
+)
+
+i
+
+= 0,
+
+is exactly equivalent to (S1). 
+
+# A.3 The Sequential G-estimation Procedure 
+
+For the implementation of the G-estimation, here we summarize the classic sequential G-estimation procedure, which solves the moment conditions in (13) backwards over time. Let Y denote the chosen final outcome at time 
+
+k and let H j be the recorded history up to time j. The basic procedure can be summarized as follows [3]: 1. Final time point. Regress the observed outcome Y on the final adherence Ak, adjusting for Hk, and the coefficient of Ak from this regression is taken as the estimate ˆβk of the contemporaneous adherence effect. 2. Blip down the effect of Ak. Construct a “blipped-down” outcome that removes the estimated effect of adherence at time k:
+
+Y (k−1) = Y − ˆβkAk.
+
+3. Previous time point. Regress the blipped-down outcome Y (k−1) on adherence at the previous time point 
+
+Ak−1, again adjusting for the corresponding history Hk−1 and take the coefficient of Ak−1 as ˆβk−1.4. Iterate backwards. Update the blipped outcome by subtracting the newly estimated effect of Ak−1,
+
+Y (k−2) = Y (k−1) − ˆβk−1Ak−1,
+
+and repeat step 3 for j = k − 2, k − 3, . . . , 1, each time regressing the current blipped outcome Y ( j) on A j and 
+
+H j and taking the coefficient of A j as ˆβ j.At the end of this backward sequence we obtain ˆβββ rec  
+
+> k
+
+= ( ˆβ1, . . . , ˆβk), which are the recursive G-estimates of the SNMM parameters. 
+
+# A.4 Efficient GMM estimation 
+
+Fix the final outcome at time point k and let Y ≡ Yk.41. Residualize the outcome. For each j = 1, . . . , k, regress Y on the corresponding observed history HHH j and obtain the fitted value bE(Y | HHH j). Define the residualized outcome as 
+
+eYj = Y − bE(Y | HHH j).
+
+2. Residualize the exposures. For each j = 1, . . . , k, and for each s = j, . . . , k, regress As on HHH j and obtain the fitted value bE(As | HHH j). Define the residualized exposure as 
+
+eA j,s = As − bE(As | HHH j).
+
+3. Construct residualized blipped-down outcomes. For each j = 1, . . . , k, construct the residualized blipped-down outcome 
+
+eY ( j)(βββ ) = eYj −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βs eA j,s.
+
+4. Efficient moment conditions. For each j = 1, . . . , k, use the residualized exposure eA j, j and the residulized blipp-down outcome eY ( j)(βββ ), define the moment condition 
+
+E
+
+h eA j, j eY ( j)(βββ ∗)
+
+i
+
+= 0.
+
+The corresponding sample moment is ˆmeff  
+
+> j
+
+(βββ ) = 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+eAi, j, j eY ( j) 
+
+> i
+
+(βββ ), j = 1, . . . , k.
+
+5. Joint GMM estimation. Stack the moment conditions as ˆmmmeff (βββ ) =   ˆmeff 1 (βββ ), . . . , ˆmeff  
+
+> k
+
+(βββ )⊤,
+
+and estimate βββ by solving the joint GMM minimization problem ˆβββ eff = arg min 
+
+> βββ
+
+ˆmmmeff (βββ )⊤WWW e f f ˆmmmeff (βββ ),
+
+where WWW e f f is a k × k positive definite weighting matrix which can be set to the identity matrix. The efficient GMM estimation can be implemented using a two-step procedure. In the first step, the pa-rameter vector βββ is estimated by minimizing the GMM objective with the identity matrix as the weighting 5matrix, yielding a preliminary estimate ˆβββ (1). Using ˆβββ (1), define the k-dimensional vector ˆgggi(βββ ) = 
+
+eAi,1,1 eY (1) 
+
+> i
+
+(βββ )
+
+...
+
+eAi,k,k eY (k) 
+
+> i
+
+(βββ )
+
+ .
+
+Note that the stacked sample moments can be written as ˆmmmeff (βββ ) = 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+ˆgggi(βββ ).
+
+Estimate the covariance matrix of the moment vector by ˆΩ = 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+
+
+ˆgggi( ˆβββ (1)) − ¯ggg
+
+ 
+
+ˆgggi( ˆβββ (1)) − ¯ggg
+
+⊤
+
+,
+
+where ¯ ggg = 1 
+
+> n
+
+∑ni=1 ˆgggi( ˆβββ (1)). In words, ˆ Ω is the sample variance-covariance matrix of ˆ gggi( ˆβββ (1)). We then update the weighting matrix to WWW e f f = ˆΩΩΩ−1 and use ˆβββ (1) as the initial value to solve the minimization and obtain the two-step efficient GMM estimator ˆβββ (2).
+
+# A.5 Sandwich Variance Estimators 
+
+All IPTW and NUC-based G-estimation estimators considered in this paper are just-identified and can be written as solutions to a system of estimating equations or equivalently, as generalized method of moments (GMM) estimators. In this setting, all estimators admit a heteroskedasticity robust (HC1) sandwich variance estimator which can be generally defined as [4, 5]: 
+
+cVar HC1 ( ˆϕϕϕ) = 1
+
+n ˆJJJ−1 ˆΩΩΩHC1 ˆJJJ−⊤ , (S2) where ˆ JJJ is the Jacobian matrix of the stacked sample moment conditions evaluated at the estimated parameter vector ˆ ϕϕϕ, and ˆΩΩΩHC1 is the HC1-corrected variance-covariance matrix of the moment conditions. Specifically, let ˆmmm(ϕϕϕ) = 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+gggi(ϕϕϕ)
+
+denote the vector of stacked sample moments. The Jacobian matrix is ˆJJJ = ∂ ˆmmm(ϕϕϕ)
+
+∂ ϕ ϕϕ⊤ ϕϕϕ= ˆϕϕϕ
+
+,
+
+6and the moment variance-covariance matrix is estimated as ˆΩΩΩHC0 = 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+ gggi( ˆϕϕϕ) − ¯ggg  gggi( ˆϕϕϕ) − ¯ggg⊤, ¯ggg = 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+gggi( ˆϕϕϕ),
+
+with the HC1 correction ˆΩΩΩHC1 = nn − q ˆΩΩΩHC0 ,
+
+where q is the number of moment conditions. For the IPTW, parameters are estimated by solving the estimating equations 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+Wi,k ˜Ai,k
+
+
+
+Yi,k − ˜A⊤
+
+> i,k
+
+ηηηk
+
+
+
+= 000.
+
+In the notation of Equation S2, the moment function is therefore 
+
+gggi(ηηηk) = Wi,k ˜Ai,k
+
+
+
+Yi,k − ˜A⊤
+
+> i,k
+
+ηηηk
+
+
+
+,
+
+and the sandwich variance estimator is obtained by evaluating the general HC1 formula in Equation S2 using these estimating equations. In practice, the HC1 sandwich variance for the IPTW can be implemented via the vcovHC 
+
+function in R with the type = "HC1" .For the basic G-estimation procedure, define the blipped-down outcomes 
+
+Ui, j(βββ ) = Yi,k −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βsAi,s, j = 1, . . . , k.
+
+Let Ri, j = Ai, j − E(Ai, j | HHHi, j) denote the residualized exposure at time j. The estimating equations are then given by 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+Ri, j Ui, j(βββ ) = 0, j = 1, . . . , k.
+
+In the notation of Equation S2, the moment function is therefore 
+
+gggi(βββ ) =  Ri,1Ui,1(βββ ), . . . , Ri,kUi,k(βββ )⊤.
+
+The sandwich variance estimator for ˆβββ is obtained by evaluating the general HC1 formula in Equation S1 using these moment conditions. For efficient G-estimation, the moment conditions are constructed using residualized outcomes and residualized 7exposures. Let 
+
+eYi, j = Yi,k − E(Yi,k | HHHi, j), eAi, j,s = Ai,s − E(Ai,s | HHHi, j),
+
+and define the residualized blipped-down outcomes 
+
+eUi, j(βββ ) = eYi, j −
+
+> k
+
+# ∑ 
+
+> s=j
+
+βs eAi, j,s, j = 1, . . . , k.
+
+The efficient estimating equations are 1
+
+n
+
+> n
+
+# ∑
+
+> i=1
+
+eAi, j, j eUi, j(βββ ) = 0, j = 1, . . . , k.
+
+In the notation of Equation S2, the corresponding moment function is 
+
+gggeff  
+
+> i
+
+(βββ ) =   eAi,1,1 eUi,1(βββ ), . . . , eAi,k,k eUi,k(βββ )⊤.
+
+The sandwich variance estimator is obtained by evaluating the general HC1 formula in Equation S1 using these efficient moment conditions. For IV estimation, in the two-parameter decay model with βk( j) = β α tk−t j , the variance-covariance matrix of of the causal estimates bθ =
+
+ bβ , bα
+
+
+
+can be estimated with the following sandwich formula proposed in Bowden et al. [6]: Var (bθ ) = 1
+
+n G−1Gen (bθ ) Var [Si(bθ )] G−1Gen (bθ )′,where • Var [Si(bθ )] is the sample variance of the individual scores Si(bθ ) evaluated at bθ .• GGen (bθ ) is the sample average of the gradient matrix, where each row corresponds to the derivative of a score component with respect to each element of θ .• The outer terms represent the Moore-Penrose generalized inverse of GGen (bθ ) evaluated at ˆ θ .
+
+# B Simulation Studies 
+
+# B.1 Parameter Specification 
+
+We derive the direct causal effect πk( j) given the total effect βk( j), based on the following data generation process: 
+
+Ai,k = γGGi + ηAAi,k−1 + ηY Yi,k−1 + η1F1i + η2F2i + ηV Vi,k + ξi,k. (S3) 8Yi,k =
+
+> k
+
+# ∑
+
+> j=1
+
+πk( j)Ai, j + βY Yi,k−1 + βF1F1i + βF2F2i + βV Vi,k + εi,k. (S4) It follows directly that for contemporaneous effects, we have π1(1) = β1(1), π2(2) = β2(2) and π3(3) = β3(3) as there are no indirect effects in this case. For time point k = 2, we have 
+
+Yi,2 = β2(2)Ai,2 + π2(1)Ai,1 + βY Yi,1 + βF1F1i + βF2F2i + βV Vi,2 + εi,2
+
+= β2(2)Ai,2 + π2(1)Ai,1 + βY (β1(1)Ai,1 + βF1F1i + βF2F2i + βV Vi,1 + εi,1)+ βF1F1i + βF2F2i + βV Vi,2 + εi,2
+
+= β2(2)Ai,2 + π2(1)Ai,1 + βY (β1(1)Ai,1 + βF1F1i + βF2F2i + βV Vi,1 + εi,1)+ βF1F1i + βF2F2i + βV (BV i,2 + τAi,1) + εi,2
+
+= β2(2)Ai,2 + ( π2(1) + βY β1(1) + βV τ) Ai,1
+
++ βF1 (βY + 1) F1i + βF2 (βY + 1) F2i + βY βV Vi,1 + βV BV i,2 + ei,2
+
+where the random error term ei,2 is implicitly defined with εi,1, εi,2. Given the total effect β2(1), for example, 
+
+β2(1) = β α , we impose 
+
+π2(1) = β2(1) − βY β1(1) − βV τ.
+
+Similarly, for time point t = 3, we have 
+
+π3(2) = β3(2) − βY β2(2) − βV τ
+
+and 
+
+π3(1) = β3(1) − βY π2(1) − β 2 
+
+> Y
+
+β1(1) − βV βY τ.
+
+# B.2 Simulation Results 
+
+Simulation results are presented in Table S1 to Table S14. In terms of estimation accuracy, we report the mean absolute error (MAE) and the root mean squared error (RMSE), defined as follows: Suppose R Monte Carlo replications are performed, indexed by r = 1, . . . , R. Let ˆβ (r) denote the estimate obtained from replication r, and let β denote the true parameter value. The MAE is defined as MAE = 1
+
+R
+
+> R
+
+# ∑
+
+> r=1
+
+ˆβ (r) − β .
+
+9The RMSE is defined as RMSE = 1
+
+R
+
+> R
+
+# ∑
+
+> r=1
+
+ ˆβ (r) − β
+
+2
+
+!1/2
+
+.
+
+To understand the finite-sample behavior of IPTW under strong exposure-confounder feedback, we examined diagnostics for practical violations of the positivity assumption. In particular, we summarized the effective sample size (ESS) of the cumulative inverse probability weights, the concentration of total weight mass among the largest weights, and the upper tail of the weight distribution. The ESS, defined as 
+
+# ∑
+
+> i
+
+wi
+
+!2 .
+
+# ∑
+
+> i
+
+w2 
+
+> i
+
+,
+
+provides a measure of the amount of information retained after weighting and is widely used to quantify efficiency loss and instability induced by highly variable weights in marginal structural models [7, 8]. Weight concentration was quantified as the proportion of total weight carried by the largest 1% of observations ordered by weights, which offers an intuitive assessment of whether a small subset of individuals dominates the weighted pseudo-population [9, 10]. Finally, the 99.9th percentile of the weight distribution was used to characterize the heaviness of the upper tail, which is known to drive finite-sample instability and sensitivity of IPTW estimation to a small number of influential observations [10, 11]. In our simulation design, the identification assumptions of no unmeasured confounding and consistency are satisfied, and the positivity assumption holds in theory. However, under strong exposure-confounder feedback (τv = 0.8) and high covariate persistence (AR(1) = 0.98), the conditional adherence density becomes extremely small for certain histories, leading to practical positivity problems in finite samples. This is reflected empirically by a substantial reduction in ESS for the time point 3 cumulative weights, pronounced concentration of total weight mass among a small number of observations, and heavy-tailed weight distributions. As either the feedback strength or covariate persistence was reduced, or when a less restrictive covariate-balancing procedure was used, the ESS increased and weight concentration decreased correspondingly. See Table S6. These patterns closely mirrored the observed finite-sample bias and increased RMSE of IPTW for lagged treat-ment effects (see Table S5), indicating that the degraded performance of IPTW in these settings is driven by unstable weights arising from practical positivity problems rather than by misspecification of the causal estimand. In contrast, G-estimation remained stable across all configurations considered, reflecting its reduced sensitivity to near-violation of positivity. Together, these results highlight that even when identification assumptions are sat-isfied, IPTW can exhibit substantial finite-sample bias in longitudinal settings with strong exposure–confounder feedback, whereas G-estimation may offer improved robustness in such scenarios. 10 Truth IPTW (CBPS, exact) G-estimation (GMM) Estimand Truth Estimate MAE RMSE Estimate MAE RMSE 
+
+β1(1) -1.100 -1.100 0.018 0.023 -1.100 0.011 0.014 
+
+β2(1) -1.045 -1.073 0.058 0.075 -1.046 0.013 0.017 
+
+β2(2) -1.100 -1.096 0.041 0.055 -1.099 0.011 0.014 
+
+β3(1) -0.993 -1.032 0.092 0.118 -0.994 0.015 0.018 
+
+β3(2) -1.045 -1.061 0.089 0.119 -1.044 0.014 0.018 
+
+β3(3) -1.100 -1.101 0.073 0.099 -1.100 0.011 0.014   
+
+> Table S1: Design 1 ( τv=0.8, AR(1)=0.98): estimation accuracy for IPTW and G-estimation (Monte Carlo mean over 1,000 replications).
+
+IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand EmpSD Reg SE Sand SE EmpSD Sand SE EmpSD Sand SE 
+
+β1(1) 0.023 0.015 0.028 0.014 0.017 0.014 0.014 
+
+β2(1) 0.069 0.018 0.063 0.017 0.027 0.017 0.017 
+
+β2(2) 0.055 0.017 0.058 0.014 0.030 0.014 0.014 
+
+β3(1) 0.111 0.020 0.086 0.018 0.030 0.018 0.018 
+
+β3(2) 0.118 0.018 0.086 0.018 0.040 0.018 0.017 
+
+β3(3) 0.099 0.018 0.077 0.014 0.046 0.014 0.014 IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand Cov(Reg) Cov(Sand) Cov Cov 
+
+β1(1) 0.797 0.973 0.989 0.955 
+
+β2(1) 0.378 0.908 1.000 0.956 
+
+β2(2) 0.520 0.962 1.000 0.937 
+
+β3(1) 0.278 0.847 0.999 0.947 
+
+β3(2) 0.282 0.883 1.000 0.945 
+
+β3(3) 0.326 0.900 1.000 0.937   
+
+> Table S2: Design 1 ( τv=0.8, AR(1)=0.98): inferential performance. EmpSD is Monte Carlo SD of estimates; SE columns are averages across replications; coverage is empirical coverage of 95% CIs.
+
+Truth IPTW (CBPS, exact) G-estimation (GMM) Estimand Truth Estimate MAE RMSE Estimate MAE RMSE 
+
+β1(1) -1.100 -1.100 0.018 0.023 -1.100 0.011 0.014 
+
+β2(1) -1.045 -1.049 0.029 0.039 -1.045 0.012 0.015 
+
+β2(2) -1.100 -1.100 0.029 0.039 -1.099 0.011 0.014 
+
+β3(1) -0.993 -0.996 0.043 0.058 -0.994 0.013 0.016 
+
+β3(2) -1.045 -1.048 0.042 0.056 -1.044 0.013 0.016 
+
+β3(3) -1.100 -1.098 0.041 0.060 -1.100 0.011 0.014   
+
+> Table S3: Design 1 ( τv=0, AR(1)=0.98): estimation accuracy for IPTW and G-estimation (Monte Carlo mean over 1,000 replications).
+
+11 IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand EmpSD Reg SE Sand SE EmpSD Sand SE EmpSD Sand SE 
+
+β1(1) 0.023 0.015 0.028 0.014 0.017 0.014 0.014 
+
+β2(1) 0.039 0.018 0.042 0.015 0.022 0.015 0.015 
+
+β2(2) 0.039 0.018 0.042 0.014 0.030 0.014 0.014 
+
+β3(1) 0.058 0.020 0.053 0.016 0.024 0.016 0.016 
+
+β3(2) 0.055 0.020 0.052 0.016 0.032 0.016 0.015 
+
+β3(3) 0.060 0.021 0.052 0.014 0.041 0.014 0.014 IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand Cov(Reg) Cov(Sand) Cov Cov 
+
+β1(1) 0.797 0.973 0.989 0.955 
+
+β2(1) 0.697 0.982 0.997 0.962 
+
+β2(2) 0.693 0.971 1.000 0.937 
+
+β3(1) 0.563 0.959 0.997 0.947 
+
+β3(2) 0.563 0.955 0.999 0.940 
+
+β3(3) 0.640 0.949 1.000 0.937   
+
+> Table S4: Design 1 ( τv=0, AR(1)=0.98): inferential performance. EmpSD is Monte Carlo SD of estimates; SE columns are averages of estimated standard errors; coverage is the empirical coverage of 95% CIs.
+
+Truth τv = 0 τv = 0.2 τv = 0.8 τv = 0.8 τv = 0.8AR(1)=0.98 AR(1)=0.98 AR(1)=0.98 AR(1)=0.1 AR(1)=0.98 (over) 
+
+Panel A: Monte Carlo mean of point estimates 
+
+β1(1) -1.100 -1.100 -1.100 -1.100 -1.100 -1.107 
+
+β2(1) -1.045 -1.049 -1.051 -1.073 -1.041 -1.053 
+
+β2(2) -1.100 -1.100 -1.098 -1.096 -1.101 -1.109 
+
+β3(1) -0.993 -0.996 -0.999 -1.032 -0.985 -1.005 
+
+β3(2) -1.045 -1.048 -1.048 -1.061 -1.031 -1.052 
+
+β3(3) -1.100 -1.098 -1.098 -1.101 -1.100 -1.110 
+
+Panel B: MAE/RMSE 
+
+β1(1) 0.018/0.023 0.018/0.023 0.018/0.023 0.013/0.016 0.021/0.026 
+
+β2(1) 0.029/0.039 0.031/0.041 0.058/0.075 0.032/0.042 0.052/0.071 
+
+β2(2) 0.029/0.039 0.031/0.042 0.041/0.055 0.024/0.031 0.050/0.065 
+
+β3(1) 0.043/0.058 0.048/0.063 0.092/0.118 0.050/0.069 0.076/0.101 
+
+β3(2) 0.042/0.056 0.048/0.062 0.089/0.119 0.053/0.071 0.086/0.115 
+
+β3(3) 0.041/0.060 0.045/0.065 0.073/0.099 0.039/0.051 0.069/0.092  
+
+> Table S5: Design 1 (IPTW sensitivity analysis): estimation accuracy across alternative settings. Panel A reports Monte Carlo mean estimates. Panel B reports MAE/RMSE, where each entry is MAE /RMSE . All summaries are averaged over 1,000 Monte Carlo replications.
+
+Scenario ESS (median [IQR]) Top 1% share (median [IQR]) q0.999 (median [IQR]) 
+
+τv = 0, AR(1)=0.98, exact 1126.3 [811.3, 1384.3] 0.133 [0.122, 0.147] 20.893 [18.461, 24.003] 
+
+τv = 0.2, AR(1)=0.98, exact 917.2 [638.6, 1129.7] 0.152 [0.140, 0.168] 24.353 [21.485, 27.809] 
+
+τv = 0.8, AR(1)=0.98, exact 246.3 [138.2, 372.9] 0.282 [0.254, 0.320] 47.510 [41.054, 55.544] 
+
+τv = 0.8, AR(1)=0.1, exact 580.6 [369.7, 791.8] 0.188 [0.170, 0.210] 30.396 [26.347, 35.272] 
+
+τv = 0.8, AR(1)=0.98, over 376.9 [206.2, 544.7] 0.229 [0.206, 0.262] 38.360 [32.766, 45.069] 
+
+> Table S6: Design 1 (IPTW sensitivity analysis): diagnostics of cumulative inverse probability weights at time 3. Entries are median [Q1, Q3] across 1,000 Monte Carlo replications.
+
+12 Truth IPTW (CBPS, exact) G-estimation (GMM) Estimand Truth Estimate MAE RMSE Estimate MAE RMSE 
+
+β1(1) -1.100 -1.028 0.072 0.075 -1.028 0.072 0.073 
+
+β2(1) -1.045 -1.008 0.063 0.084 -0.972 0.073 0.075 
+
+β2(2) -1.100 -1.039 0.068 0.082 -1.043 0.057 0.059 
+
+β3(1) -0.993 -0.973 0.088 0.116 -0.918 0.075 0.078 
+
+β3(2) -1.045 -1.008 0.098 0.129 -0.987 0.058 0.061 
+
+β3(3) -1.100 -1.056 0.082 0.108 -1.055 0.045 0.048   
+
+> Table S7: Design 2 ( τv=0.8, AR(1)=0.98): estimation accuracy for IPTW and G-estimation (Monte Carlo mean over 1,000 replications).
+
+IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand EmpSD Reg SE Sand SE EmpSD Sand SE EmpSD Sand SE 
+
+β1(1) 0.023 0.015 0.028 0.014 0.017 0.014 0.014 
+
+β2(1) 0.075 0.018 0.066 0.019 0.028 0.019 0.019 
+
+β2(2) 0.055 0.017 0.058 0.015 0.030 0.015 0.014 
+
+β3(1) 0.115 0.020 0.088 0.021 0.026 0.021 0.021 
+
+β3(2) 0.124 0.018 0.088 0.019 0.033 0.019 0.019 
+
+β3(3) 0.099 0.019 0.078 0.015 0.033 0.021 0.020 IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand Cov(Reg) Cov(Sand) Cov Cov 
+
+β1(1) 0.030 0.201 0.003 0.002 
+
+β2(1) 0.367 0.902 0.185 0.032 
+
+β2(2) 0.251 0.797 0.568 0.028 
+
+β3(1) 0.307 0.895 0.227 0.054 
+
+β3(2) 0.262 0.845 0.899 0.129 
+
+β3(3) 0.302 0.866 0.999 0.124   
+
+> Table S8: Design 2 ( τv=0.8, AR(1)=0.98): inferential performance. EmpSD is Monte Carlo SD of estimates; SE columns are averages of estimated standard errors; coverage is the empirical coverage of 95% CIs.
+
+Truth IPTW (CBPS, exact) G-estimation (GMM) Estimand Truth Estimate MAE RMSE Estimate MAE RMSE 
+
+β1(1) -1.100 -1.028 0.072 0.075 -1.028 0.072 0.073 
+
+β2(1) -1.045 -0.957 0.086 0.093 -0.950 0.095 0.097 
+
+β2(2) -1.100 -1.046 0.057 0.065 -1.043 0.057 0.059 
+
+β3(1) -0.993 -0.893 0.101 0.113 -0.886 0.107 0.109 
+
+β3(2) -1.045 -0.980 0.071 0.084 -0.969 0.076 0.078 
+
+β3(3) -1.100 -1.052 0.059 0.072 -1.055 0.045 0.048   
+
+> Table S9: Design 2 ( τv=0, AR(1)=0.98): estimation accuracy for IPTW and G-estimation (Monte Carlo mean over 1,000 replications).
+
+13 IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand EmpSD Reg SE Sand SE EmpSD Sand SE EmpSD Sand SE 
+
+β1(1) 0.023 0.015 0.028 0.014 0.017 0.014 0.014 
+
+β2(1) 0.036 0.019 0.040 0.017 0.022 0.017 0.017 
+
+β2(2) 0.036 0.019 0.041 0.015 0.030 0.015 0.014 
+
+β3(1) 0.053 0.021 0.053 0.019 0.025 0.019 0.018 
+
+β3(2) 0.054 0.021 0.052 0.017 0.032 0.017 0.017 
+
+β3(3) 0.052 0.021 0.050 0.015 0.041 0.015 0.014 IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand Cov(Reg) Cov(Sand) Cov Cov 
+
+β1(1) 0.029 0.205 0.003 0.002 
+
+β2(1) 0.061 0.361 0.000 0.000 
+
+β2(2) 0.332 0.768 0.554 0.028 
+
+β3(1) 0.096 0.502 0.000 0.000 
+
+β3(2) 0.259 0.738 0.231 0.007 
+
+β3(3) 0.407 0.835 0.990 0.124   
+
+> Table S10: Design 2 ( τv=0, AR(1)=0.98): inferential performance. EmpSD is Monte Carlo SD of estimates; SE columns are averages of estimated standard errors; coverage is the empirical coverage of 95% CIs.
+
+Truth IPTW (CBPS, exact) G-estimation (GMM) Estimand Truth Estimate MAE RMSE Estimate MAE RMSE 
+
+β1(1) -1.100 -1.100 0.018 0.023 -1.100 0.011 0.014 
+
+β2(1) -0.600 -0.604 0.029 0.039 -0.600 0.012 0.015 
+
+β2(2) -1.050 -1.050 0.029 0.039 -1.049 0.011 0.014 
+
+β3(1) -0.200 -0.203 0.042 0.056 -0.201 0.013 0.016 
+
+β3(2) -0.550 -0.554 0.041 0.055 -0.549 0.013 0.016 
+
+β3(3) -1.000 -0.998 0.041 0.060 -1.000 0.011 0.014   
+
+> Table S11: Design 3 ( τv=0, AR(1)=0.98): estimation accuracy for IPTW and G-estimation (Monte Carlo mean over 1,000 replications).
+
+IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand EmpSD Reg SE Sand SE EmpSD Sand SE EmpSD Sand SE 
+
+β1(1) 0.023 0.015 0.028 0.014 0.017 0.014 0.014 
+
+β2(1) 0.039 0.018 0.042 0.015 0.022 0.015 0.015 
+
+β2(2) 0.039 0.018 0.042 0.014 0.025 0.014 0.014 
+
+β3(1) 0.056 0.020 0.053 0.016 0.024 0.016 0.016 
+
+β3(2) 0.055 0.020 0.052 0.016 0.025 0.016 0.016 
+
+β3(3) 0.060 0.020 0.052 0.014 0.028 0.014 0.014 IPTW (CBPS, exact) GMM (basic) GMM (efficient) Estimand Cov(Reg) Cov(Sand) Cov Cov 
+
+β1(1) 0.797 0.973 0.989 0.955 
+
+β2(1) 0.697 0.982 0.997 0.962 
+
+β2(2) 0.693 0.971 1.000 0.937 
+
+β3(1) 0.579 0.965 0.997 0.945 
+
+β3(2) 0.559 0.956 0.999 0.940 
+
+β3(3) 0.624 0.948 1.000 0.937   
+
+> Table S12: Design 3 ( τv=0, AR(1)=0.98): inferential performance. EmpSD is Monte Carlo SD of estimates; SE columns are averages of estimated standard errors; coverage is the empirical coverage of nominal 95% CIs.
+
+14 Design 1 Design 2 (baseline) Design 2 (weak IV) Design 2 (wrong adj.) 
+
+β α β α β α β α
+
+Truth -1.100 0.950 -1.100 0.950 -1.100 0.950 -1.100 0.950 
+
+Estimation accuracy 
+
+Estimate -1.099 0.953 -1.098 0.953 -1.146 2.709 -0.976 0.520 MAE 0.037 0.033 0.039 0.034 0.464 2.497 0.125 0.430 RMSE 0.046 0.043 0.049 0.043 0.828 15.313 0.137 0.434 
+
+Inferential performance 
+
+Empirical SD 0.046 0.043 0.049 0.043 0.827 15.219 0.057 0.059 Sandwich SE 0.045 0.041 0.048 0.042 1.154 143.323 0.052 0.053 CI Coverage 0.948 0.951 0.944 0.944 0.967 0.986 0.352 0.000 
+
+Table S13: IV results under τv = 0.8 and AR(1)=0.98. Columns correspond to Design 1 and Design 2 under three specifications: baseline, weak instrument ( γG = 0.05), and an incorrectly adjusted model that additionally controls for time-varying covariates. Results are summarized over 1,000 replications. 
+
+β α
+
+Estimate -1.130 0.408 Empirical SD 0.058 0.041 Sandwich SE 0.057 0.042 Truth Estimate MAE RMSE EmpSD 
+
+Implied cumulative effects 
+
+C2 = β (1 + α) -1.650 -1.590 0.070 0.086 0.061 
+
+C3 = β (1 + α + α2) -1.750 -1.779 0.062 0.077 0.071 
+
+Table S14: IV results for Design 3 ( τv = 0, AR(1)=0.98). The decay restriction is violated in the DGP, so (β , α) are reported as working-model parameters (no truth-based metrics). We additionally report implied cumulative effects C2 = β (1 + α) and 
+
+C3 = β (1 + α + α2), for which truth is well-defined from the six total effects. Summaries are over 1,000 replications. 
+
+15 C Further Details of the Applied Example 
+
+# C.1 Validity of the Genetic Instrument for Treat-only Cohorts 
+
+One potential concern is that our IV analysis conditions on statin initiation (i.e., restricting to treated individuals only), so the instrument G is effectively used to predict adherence among initiators. As illustrated in Figure 5, if there exist unmeasured common causes U of statin initiation, adherence and the outcome, and if G is also related to the statin initiation decision S, then conditioning on S = 1 (i.e., treated individuals), can open spurious pathways between G, U and Yk through the collider S [12]. This would violate the IV independence and potentially exclusion assumptions in the selected sample, even if they held in the full population. To explore this, we constructed an expanded dataset of UK Biobank individuals, including both statin initiators and non-initiators, and examined the association between G and statin initiation. Empirically this association appeared very weak, suggesting that any collider bias induced by conditioning on S = 1 is unlikely to be large. However, because the instrument is already extremely weak for adherence in our data, these diagnostics are themselves noisy, and the IV estimates should be interpreted with caution as estimates of adherence effects specifically among statin initiators. 
+
+# C.2 Application Results 
+
+Outcome Adherence IPTW (exact) IPTW (over) 
+
+Y1 MPR 1 −1.50 × 10 −3 (7 .82 × 10 −5) −2.31 × 10 −3 (1 .06 × 10 −4)
+
+Y2 MPR 1 −6.41 × 10 −4 (1 .94 × 10 −4) −6.35 × 10 −4 (2 .15 × 10 −4)
+
+Y2 MPR 2 −1.10 × 10 −3 (1 .59 × 10 −4) −1.81 × 10 −3 (1 .71 × 10 −4)
+
+Y3 MPR 1 −4.33 × 10 −4 (1 .24 × 10 −4) −6.83 × 10 −4 (1 .26 × 10 −4)
+
+Y3 MPR 2 −1.55 × 10 −4 (1 .16 × 10 −4) −7.30 × 10 −4 (1 .37 × 10 −4)
+
+Y3 MPR 3 −1.11 × 10 −3 (1 .22 × 10 −4) −9.63 × 10 −4 (1 .10 × 10 −4)
+
+Table S15: Estimated effects of adherence (MPR) on LDL-c reduction from IPTW. Entries are point estimates with sandwich standard errors in parentheses. All effects are per 1% increase in MPR. 
+
+Outcome Adherence G-est (basic GMM) G-est (efficient GMM) 
+
+Y1 MPR 1 −1.55 × 10 −3 (7 .94 × 10 −5) −1.55 × 10 −3 (6 .93 × 10 −5)
+
+Y2 MPR 1 −5.52 × 10 −4 (8 .71 × 10 −5) −5.52 × 10 −4 (6 .66 × 10 −5)
+
+Y2 MPR 2 −1.35 × 10 −3 (9 .12 × 10 −5) −1.35 × 10 −3 (6 .90 × 10 −5)
+
+Y3 MPR 1 −4.46 × 10 −4 (8 .58 × 10 −5) −4.46 × 10 −4 (6 .28 × 10 −5)
+
+Y3 MPR 2 −3.70 × 10 −4 (9 .88 × 10 −5) −3.70 × 10 −4 (6 .32 × 10 −5)
+
+Y3 MPR 3 −1.13 × 10 −3 (9 .86 × 10 −5) −1.13 × 10 −3 (6 .59 × 10 −5)
+
+Table S16: Estimated effects of adherence (MPR) on LDL-c reduction from G-estimation. Entries are point estimates with sandwich standard errors in parentheses. All effects are per 1% increase in MPR. 
+
+16 Method Time point Estimate 95% CI (lower) 95% CI (upper) IPTW (over) 1 −0.23 −0.25 −0.21 IPTW (over) 2 −0.24 −0.28 −0.21 IPTW (over) 3 −0.24 −0.27 −0.20 IPTW (exact) 1 −0.15 −0.17 −0.13 IPTW (exact) 2 −0.17 −0.20 −0.150 IPTW (exact) 3 −0.17 −0.20 −0.14 G-est (basic GMM) 1 −0.15 −0.17 −0.14 G-est (basic GMM) 2 −0.19 −0.21 −0.17 G-est (basic GMM) 3 −0.19 −0.22 −0.17 G-est (efficient GMM) 1 −0.16 −0.17 −0.14 G-est (efficient GMM) 2 −0.19 −0.21 −0.18 G-est (efficient GMM) 3 −0.19 −0.21 −0.18 
+
+> Table S17: Estimated LDL-c reduction (MPR = 100 vs MPR = 0) at each outcome time point: point estimates and 95% confidence intervals from IPTW and G-estimation.
+
+Time point ESS share_top1 q0.999 
+
+Panel A: CBPS (exact) 
+
+W1 12640.21 0.02 3.26 
+
+W2 7843.19 0.04 5.35 
+
+W3 7493.43 0.05 6.75 
+
+Panel B: CBPS (over) 
+
+W1 11674.73 0.02 2.07 
+
+W2 10241.26 0.02 2.33 
+
+W3 10059.88 0.02 2.52    
+
+> Table S18: IPTW weight diagnostic statistics in the statin adherence and LDL-c reduction analysis. We report effective sample size (ESS), top 1% weight share, and the 99.9th percentile of the cumulative weight distribution at each time point, comparing CBPS exact versus over -identified weighting.
+
+MPR1 MPR2 MPR3 
+
+Baseline covariates 
+
+Age 0.000/0.020 0.005/0.011 0.004/0.014 Sex 0.000/0.013 0.013/0.016 0.005/0.004 Education 0.000/0.005 0.016/0.018 0.009/0.000 Assessment centre 0.000/0.016 0.006/0.040 0.002/0.003 Baseline LDL-c 0.000/0.017 0.016/0.012 0.008/0.010 
+
+Follow-up time 
+
+Follow-up time 1 0.001/ 0.173 0.072/0.010 0.080/0.010 Follow-up time 2 NA 0.048/0.034 0.047/0.010 Follow-up time 3 NA NA 0.040/0.007 
+
+Past adherence (MPR) 
+
+MPR1 NA 0.049/0.060 0.050/0.073 MPR2 NA NA 0.058/0.047 
+
+Past LDL-c percentage change 
+
+LDL-c percentage change 1 NA 0.000/0.037 0.002/0.010 LDL-c percentage change 2 NA NA 0.001/0.030   
+
+> Table S19: Absolute weighted correlations between adherence measures (MPR1–MPR3) and covariates under CBPS weighting (method = exact). Each cell reports the absolute weighted Pearson and Spearman correlations (Pearson / Spearman). Cells marked NA indicate that the correlation is not applicable (e.g., correlations with future variables or self-correlations). Values exceeding the 0.1 threshold are highlighted in bold.
+
+17 MPR1 MPR2 MPR3 
+
+Baseline covariates 
+
+Age 0.033/0.040 0.047/0.049 0.008/0.027 Sex 0.024/0.036 0.018/0.024 0.000/0.006 Education 0.000/0.006 0.010/0.019 0.009/0.006 Assessment centre 0.002/0.021 0.012/0.024 0.014/0.013 Baseline LDL-c 0.021/0.034 0.010/0.015 0.003/0.006 
+
+Follow-up time 
+
+Follow-up time 1 0.001/ 0.144 0.010/0.002 0.012/0.007 Follow-up time 2 NA 0.026/0.026 0.020/0.005 Follow-up time 3 NA NA 0.004/0.002 
+
+Past adherence (MPR) 
+
+MPR1 NA 0.172 /0.185 0.023/0.086 MPR2 NA NA 0.070/ 0.126 
+
+Past LDL-c percentage change 
+
+LDL-c percentage change 1 NA 0.060/0.072 0.012/0.009 LDL-c percentage change 2 NA NA 0.007/0.029   
+
+> Table S20: Absolute weighted correlations between adherence measures (MPR1–MPR3) and covariates under CBPS weighting (method = over). Each cell reports the absolute weighted Pearson and Spearman correlations (Pearson / Spearman). Cells marked NA indicate that the correlation is not applicable (e.g., correlations with future variables or self-correlations). Values exceeding the 0.1 threshold are highlighted in bold.
+
+18 References 
+
+[1] Daniel Tompsett, Stijn Vansteelandt, Richard Grieve, Will Dixon, and Manuel Gomes. “Instrumental vari-able approaches for estimating time-varying treatment effects in comparative effectiveness research”. In: 
+
+BMC Medical Research Methodology 25.1 (2025), p. 208. [2] Stijn Vansteelandt and Marshall Joffe. “Structural nested models and G-estimation: the partially realized promise”. In: Statistical Science 29.4 (2014), pp. 707–731. [3] Matthew Blackwell and Adam N Glynn. “How to make causal inferences with time-series cross-sectional data under selection on observables”. In: American Political Science Review 112.4 (2018), pp. 1067–1082. [4] Lars Peter Hansen. “Large sample properties of generalized method of moments estimators”. In: Econo-metrica: Journal of the econometric society (1982), pp. 1029–1054. [5] Whitney K Newey and Daniel McFadden. “Large sample estimation and hypothesis testing”. In: Handbook of econometrics 4 (1994), pp. 2111–2245. [6] Jack Bowden, Jesper Madsen, Bryan Goldman, Aske Thorn Iversen, Xiaoran Liang, and Stijn Vansteelandt. “Instrumental Variable Methods to Target Hypothetical Estimands With Longitudinal Repeated Measures Data: Application to the STEP 1 Trial”. In: Statistics in Medicine 44.7 (2025), e70076. DOI : 10.1002/ sim.70076 .[7] Leslie Kish. “Survey sampling.” In: (1965). [8] Bonnie E Shook-Sa and Michael G Hudgens. “Power and sample size for observational studies of point exposure effects”. In: Biometrics 78.1 (2022), pp. 388–398. [9] Brian K Lee, Justin Lessler, and Elizabeth A Stuart. “Weight trimming and propensity score weighting”. In: PloS one 6.3 (2011), e18174. [10] Stephen R Cole and Miguel A Hernán. “Constructing inverse probability weights for marginal structural models”. In: American journal of epidemiology 168.6 (2008), pp. 656–664. [11] Peter C Austin and Elizabeth A Stuart. “Moving towards best practice when using inverse probability of treatment weighting (IPTW) using the propensity score to estimate causal treatment effects in observational studies”. In: Statistics in medicine 34.28 (2015), pp. 3661–3679. [12] Jack Bowden, Luke C Pilling, Deniz Türkmen, Chia-Ling Kuo, and David Melzer. “The Triangulation WIthin a STudy (TWIST) framework for causal inference within pharmacogenetic research”. In: PLoS Genetics 17.9 (2021), e1009783. 19

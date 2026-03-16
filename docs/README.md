@@ -6,73 +6,73 @@
 - [推荐链路与日报结构说明](/newbie/workflow)
 
 ## 每次日报
-- 最新运行日期：2026-03-14
-- 运行时间：2026-03-14 19:22:00 UTC
+- 最新运行日期：2026-03-16
+- 运行时间：2026-03-16 19:55:15 UTC
 - 运行状态：成功
 - 本次总论文数：17
 - 精读区：6
 - 速读区：11
 
 ### 今日简报（AI）
-今日深度复盘 17 篇 AI 论文，重点攻克智能体系统的预期落差与合规化工程交付难题。
-最值得关注 Agile V 框架对 AI 研发审计的支持，以及在对话服务中平衡效用与成本的强化学习策略。
-建议从代码库现代化工具和 4D 人机场景重建入手，探索 AI 智能体在真实物理与工程环境的落地路径。
-- 详情：[/202603/14/README](/202603/14/README)
+今日精选 17 篇前沿论文，深度剖析具身智能安全漏洞与全流程科研智能体。
+重点关注具身 LLM 的动作级越狱风险，以及 SciDER 如何通过数据驱动实现端到端的自动化科学研究。
+建议开发者关注 RAG 动态内存优化与代码推理智能体，以提升复杂任务的系统鲁棒性与执行效率。
+- 详情：[/202603/16/README](/202603/16/README)
 
 ### 精读区论文标签
-1. [Quantifying the Expectation-Realisation Gap for Agentic AI Systems](/202603/14/2602.20292v2-quantifying-the-expectation-realisation-gap-for-agentic-ai-systems)  
+1. [Jailbreaking Embodied LLMs via Action-level Manipulation](/202603/16/2603.01414v1-jailbreaking-embodied-llms-via-action-level-manipulation)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：软件工程中智能体AI性能的实证证据
-2. [Agile V: A Compliance-Ready Framework for AI-Augmented Engineering -- From Concept to Audit-Ready Delivery](/202603/14/2602.20684v1-agile-v-a-compliance-ready-framework-for-ai-augmented-engineering----from-concept-to-audit-ready-delivery)  
+   evidence：具身大语言模型与物理动作风险
+2. [SciDER: Scientific Data-centric End-to-end Researcher](/202603/16/2603.01421v1-scider-scientific-data-centric-end-to-end-researcher)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：用于软件工程和合规性的AI智能体
-3. [Mirroring the Mind: Distilling Human-Like Metacognitive Strategies into Large Language Models](/202603/14/2602.22508v1-mirroring-the-mind-distilling-human-like-metacognitive-strategies-into-large-language-models)  
+   evidence：具有自我进化记忆和专业智能体的自主科学发现
+3. [Learning Structured Reasoning via Tractable Trajectory Control](/202603/16/2603.01641v1-learning-structured-reasoning-via-tractable-trajectory-control)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：元认知行为微调用于推理中的自我调节控制
-4. [Heterogeneous Agent Collaborative Reinforcement Learning](/202603/14/2603.02604v1-heterogeneous-agent-collaborative-reinforcement-learning)  
+   evidence：通过轨迹控制和强化学习学习结构化推理
+4. [Behind the Prompt: The Agent-User Problem in Information Retrieval](/202603/16/2603.03630v1-behind-the-prompt-the-agent-user-problem-in-information-retrieval)  
    标签：评分：8.0/10、query:ai-ux
-   evidence：异构智能体协作强化学习
-5. [The Geometry of Learning Under AI Delegation](/202603/14/2603.02950v1-the-geometry-of-learning-under-ai-delegation)  
+   evidence：人机交互中的智能体-用户问题
+5. [Structure-aware Prompt Adaptation from Seen to Unseen for Open-Vocabulary Compositional Zero-Shot Learning](/202603/16/2603.03815v1-structure-aware-prompt-adaptation-from-seen-to-unseen-for-open-vocabulary-compositional-zero-shot-learning)  
    标签：评分：8.0/10、query:ai-ux
-   evidence：AI委派与协作下人类技能演化的数学模型
-6. [Architecting Trust in Artificial Epistemic Agents](/202603/14/2603.02960v1-architecting-trust-in-artificial-epistemic-agents)  
+   evidence：零样本学习中的提示词适配与微调
+6. [In-Context Environments Induce Evaluation-Awareness in Language Models](/202603/16/2603.03824v1-in-context-environments-induce-evaluation-awareness-in-language-models)  
    标签：评分：8.0/10、query:ai-ux
-   evidence：构建自主认知 AI 智能体的信任机制
+   evidence：上下文提示词的对抗性优化
 
 ### 速读区论文标签
-1. [RepoMod-Bench: A Benchmark for Code Repository Modernization via Implementation-Agnostic Testing](/202603/14/2602.22518v1-repomod-bench-a-benchmark-for-code-repository-modernization-via-implementation-agnostic-testing)  
+1. [Discrete World Models via Regularization](/202603/16/2603.01748v1-discrete-world-models-via-regularization)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：自主仓库级工程的基准测试
-2. [Reinforcing Real-world Service Agents: Balancing Utility and Cost in Task-oriented Dialogue](/202603/14/2602.22697v1-reinforcing-real-world-service-agents-balancing-utility-and-cost-in-task-oriented-dialogue)  
+   evidence：用于规划的无监督布尔世界模型学习
+2. [GAM-RAG: Gain-Adaptive Memory for Evolving Retrieval in Retrieval-Augmented Generation](/202603/16/2603.01783v1-gam-rag-gain-adaptive-memory-for-evolving-retrieval-in-retrieval-augmented-generation)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：任务导向型对话智能体的强化学习
-3. [EmbodMocap: In-the-Wild 4D Human-Scene Reconstruction for Embodied Agents](/202603/14/2602.23205v1-embodmocap-in-the-wild-4d-human-scene-reconstruction-for-embodied-agents)  
+   evidence：RAG中用于演化检索的增益自适应记忆
+3. [Agentic Code Reasoning](/202603/16/2603.01896v2-agentic-code-reasoning)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：用于训练具身智能体的野外人机场景重建
-4. [From Static Benchmarks to Dynamic Protocol: Agent-Centric Text Anomaly Detection for Evaluating LLM Reasoning](/202603/14/2602.23729v1-from-static-benchmarks-to-dynamic-protocol-agent-centric-text-anomaly-detection-for-evaluating-llm-reasoning)  
+   evidence：用于软件工程任务的智能体代码推理和半形式化推理
+4. [VoiceAgentRAG: Solving the RAG Latency Bottleneck in Real-Time Voice Agents Using Dual-Agent Architectures](/202603/16/2603.02206v2-voiceagentrag-solving-the-rag-latency-bottleneck-in-real-time-voice-agents-using-dual-agent-architectures)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：针对演进中推理能力的智能体中心化基准测试
-5. [Trust in Autonomous Human--Robot Collaboration: Effects of Responsive Interaction Policies](/202603/14/2603.00154v1-trust-in-autonomous-human--robot-collaboration-effects-of-responsive-interaction-policies)  
+   evidence：用于实时语音智能体的双智能体记忆路由
+5. [The Alignment Flywheel: A Governance-Centric Hybrid MAS for Architecture-Agnostic Safety](/202603/16/2603.02259v1-the-alignment-flywheel-a-governance-centric-hybrid-mas-for-architecture-agnostic-safety)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：自主的人机协作与交互策略
-6. [LOGIGEN: Logic-Driven Generation of Verifiable Agentic Tasks](/202603/14/2603.00540v1-logigen-logic-driven-generation-of-verifiable-agentic-tasks)  
+   evidence：针对自主决策组件的以治理为中心的多智能体系统架构
+6. [Generalized Per-Agent Advantage Estimation for Multi-Agent Policy Optimization](/202603/16/2603.02654v1-generalized-per-agent-advantage-estimation-for-multi-agent-policy-optimization)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：逻辑驱动的可验证智能体任务生成
-7. [CelloAI Benchmarks: Toward Repeatable Evaluation of AI Assistants](/202603/14/2603.01051v1-celloai-benchmarks-toward-repeatable-evaluation-of-ai-assistants)  
+   evidence：多智能体协作与策略优化
+7. [Retrievit: In-context Retrieval Capabilities of Transformers, State Space Models, and Hybrid Architectures](/202603/16/2603.02874v1-retrievit-in-context-retrieval-capabilities-of-transformers-state-space-models-and-hybrid-architectures)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：科学软件中基于LLM的代码辅助基准测试
-8. [Agents Learn Their Runtime: Interpreter Persistence as Training-Time Semantics](/202603/14/2603.01209v2-agents-learn-their-runtime-interpreter-persistence-as-training-time-semantics)  
+   evidence：混合架构中的上下文检索
+8. [AI Space Physics: Constitutive boundary semantics for open AI institutions](/202603/16/2603.03119v1-ai-space-physics-constitutive-boundary-semantics-for-open-ai-institutions)  
    标签：评分：8.0/10、query:sr-ai
-   evidence：工具增强型LLM中的解释器状态持久化
-9. [Validation of a Small Language Model for DSM-5 Substance Category Classification in Child Welfare Records](/202603/14/2603.06836v1-validation-of-a-small-language-model-for-dsm-5-substance-category-classification-in-child-welfare-records)  
+   evidence：多个运行时和智能体机构的协调
+9. [Novel g-computation algorithms for time-varying actions with recurrent and semi-competing events](/202603/16/2603.10169v1-novel-g-computation-algorithms-for-time-varying-actions-with-recurrent-and-semi-competing-events)  
    标签：评分：6.0/10、query:pr-ef
-   evidence：儿童虐待和福利叙述的分类
-10. [Living forwards or understanding backwards? A comparison of Inverse Probability of Treatment Weighting and G-estimation methods for targeting hypothetical full adherence estimands in longitudinal cohort studies](/202603/14/2603.06916v1-living-forwards-or-understanding-backwards-a-comparison-of-inverse-probability-of-treatment-weighting-and-g-estimation-methods-for-targeting-hypothetical-full-adherence-estimands-in-longitudinal-cohort-studies)  
+   evidence：针对具有随时间变化的混杂因素的纵向数据因果效应的g-计算算法
+10. [Module control in youth symptom networks across COVID-19](/202603/16/2603.10454v1-module-control-in-youth-symptom-networks-across-covid-19)  
    标签：评分：6.0/10、query:pr-ef
-   evidence：时变效应的纵向因果模型
-11. [Touching Emotions, Smelling Shapes: Exploring Tactile, Olfactory and Emotional Cross-sensory Correspondences in Preschool Aged Children](/202603/14/2603.08889v1-touching-emotions-smelling-shapes-exploring-tactile-olfactory-and-emotional-cross-sensory-correspondences-in-preschool-aged-children)  
+   evidence：青少年症状网络与模块控制
+11. [Redefining shared information: a heterogeneity-adaptive framework for meta-analysis](/202603/16/2603.10918v1-redefining-shared-information-a-heterogeneity-adaptive-framework-for-meta-analysis)  
    标签：评分：6.0/10、query:pr-ef
-   evidence：学龄前儿童的情绪调节与感官整合
+   evidence：处理研究异质性的高级元分析框架
 
 
 ### ⚡ 这个站点能做什么

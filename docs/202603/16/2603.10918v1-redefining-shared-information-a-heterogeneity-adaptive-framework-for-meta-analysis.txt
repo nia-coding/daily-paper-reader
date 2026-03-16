@@ -1,0 +1,1879 @@
+Title: Redefining shared information: a heterogeneity-adaptive framework for meta-analysis
+
+URL Source: https://arxiv.org/pdf/2603.10918v1
+
+Published Time: Thu, 12 Mar 2026 01:13:35 GMT
+
+Number of Pages: 47
+
+Markdown Content:
+# Redefining shared information: a heterogeneity-adaptive framework for meta-analysis 
+
+## Elizabeth M. Davis and Emily C. Hector Department of Biostatistics, University of Michigan 
+
+Abstract 
+
+Meta-analytic methods tend to take all-or-nothing approaches to study-level hetero-geneity, assuming all studies are heterogeneous or homogeneous, leading to inefficiency and/or bias in estimation and inference. In this paper, we develop a heterogeneity-adaptive meta-analysis in linear models that adapts to the amount of information 
+
+shared between datasets. The primary mechanism for the information-sharing is a shrinkage of dataset-specific distributions towards a new “centroid” distribution through a Kullback-Leibler divergence penalty. The Kullback-Leibler divergence is uniquely ge-ometrically suited for measuring relative information between datasets, and leads to relatively simple closed form estimators with intuitive interpretations. We establish our estimator’s desirable inferential properties without assuming homogeneity of dataset parameters. Among other results, we show that our estimator has a provably smaller mean squared error than the dataset-specific maximum likelihood estimators, and es-tablish asymptotically valid inference procedures. A comprehensive set of simulations highlights our estimator’s versatility, and an analysis of data from the eICU Collabo-rative Research Database illustrates its performance in a real-world setting. 
+
+Keywords: Data fusion, Information geometry, Linear model, Ridge regression, Stein shrink-age. 
+
+# 1 Introduction 
+
+Meta-analyses estimate a single, shared parameter using summary statistics from different studies. Parameter heterogeneity across studies is fundamentally undesirable; in this case, a single unifying parameter may not exist or be interpretable. Prior work has mostly focused on limiting or controlling for heterogeneity. Meta-analyses begin with systematic literature reviews intended to exclude studies that may be measuring different parameters (Pigott and Polanin, 2020). More recent work accomplishes this exclusion empirically, by down-weighting studies that have a different parameter from a shared parameter of interest (Xie et al., 2011; Wang et al., 2023; Noma et al., 2024). Additional heterogeneity may be incorporated by formally modeling the distribution of study-specific effects, as in random-effects meta-analysis. In random-effects meta-analysis, study parameters are conceptualized as randomly 1
+
+> arXiv:2603.10918v1 [stat.ME] 11 Mar 2026
+
+drawn from a population, and the meta-estimator is a function of the variance in the study parameters (Dersimonian and Laird, 1986). In the absence of a common, shared parameter, these approaches do not provide meaningful inference. We propose an alternative treatment of heterogeneity in meta-analysis using the lin-ear model, one which shifts the focus from estimating a single, homogeneous parameter to improving estimation of individual study parameters by allowing adaptive information sharing across studies. Our approach requires neither the existence of a shared parameter nor a specified underlying generative model for the study parameters. The primary mech-anism for the information-sharing is a shrinkage of study-specific distributions towards a new “centroid” distribution through a Kullback-Leibler divergence (KLD) penalty (Kull-back and Leibler, 1951). This centroid distribution, while not meaningfully interpretable in the presence of heterogeneity, serves a crucial role in linking the individual studies because its estimation introduces additional flexibility into the information-borrowing. Indeed, our formulation jointly estimates parameters of both the unknown study-specific distributions 
+
+and the centroid distribution. By equipping each study with its own shrinkage parameter and selecting the shrinkage parameters that minimize the mean squared error of the study-specific estimators, our framework borrows information adaptively and efficiently according to heterogeneity in the observed data. In contrast to more frequently used measures of heterogeneity such as the Euclidean distance between parameters, we use the KLD of the study distributions from the centroid distribution. This difference is important because it accounts not only for differences between the parameters but also for other important features of the data that induce heterogeneity, such as the error and covariate variances. The KLD is the appropriate divergence on the information space, and we argue that it is a more geometrically appropriate quantification of the similarity between study distributions than the more common Euclidean distance. We show that our use of the KLD to quantify the similarity between studies yields relatively simple parameter estimates with desirable and intuitive interpretations. In conjunction with the flexibility of our estimated centroid, this has important consequences for the statisti-cal advantages of our estimator, such as asymptotic bias control and smaller mean squared errors. Notably, we show that our estimator outperforms the study-specific maximum likeli-hood estimators, in a mean squared error sense, while also yielding asymptotically unbiased inference on the individual study parameters. This paper is organized as follows. Section 2 chronicles the evolution of meta-analysis and its responses to heterogeneity through to recent developments. Section 3 describes the model, presents a closed form solution for our estimator and develops an intuition for its behavior under different shrinkage parameter settings. In Section 4, we investigate the theoretical properties of our estimator. We show that, similar to a Stein shrinkage result, it is always better in a mean squared error sense to borrow information across studies, even in the presence of substantial heterogeneity. Under mild conditions, we also show that our estimator is consistent and we derive asymptotically valid inference procedures. Section 5 describes the data-driven selection of the amount of information borrowed, and the theoretical “gap” between the optimal information borrowed and its data-driven counterpart. Section 6 examines the performance of our estimator in simulation studies. An analysis of data from the eICU Collaborative Research Database in Section 7 illustrates our estimator’s behavior in a real-life setting. Lengthy derivations, proofs and additional numerical results 2are deferred to the supplement. 
+
+# 2 Historical evolution of meta-analysis 
+
+Meta-analysis became a field for concentrated methodological development in the 1970s. Ex-isting methods for synthesizing studies, including vote counting, proved insufficient to handle the growing body of research findings in education and psychology (Shadish and Lecy, 2015). Glass (1976), coining the term meta-analysis , advocated for the development of systematic practices to synthesize findings from primary studies and proposed averaging standardized effect sizes to estimate an underlying parameter of interest. Earlier work by Cochran (1954) in the context of agricultural experiments similarly proposed taking a weighted average of estimates, using the inverse of a study estimate’s standard error as the weight. Becker and Wu (2007) expanded this procedure to multiple linear regression parameters. While this 
+
+fixed-effect meta-estimator is the best linear unbiased estimator when all study parameters are equal, the most prevalent critique is that it may include studies measuring different parameters, leading to misinterpretation of the meta-estimate (Eysenck, 1978; Rice et al., 2018; Hector et al., 2024; Gurevitch et al., 2018). The random-effects meta-analysis model was an early response to concerns of parameter heterogeneity and became one of the primary approaches to meta-analysis (Hedges, 1983; Dersimonian and Laird, 1986). This approach views the study-specific parameters as sampled from a distribution centered around a shared parameter of interest. Then, the heterogene-ity of the study parameters is due solely to this sampling mechanism and is incorporated into estimation of the shared parameter through random study effects. One limitation to this approach is that it often assumes that the study parameters are normally distributed about the shared parameter, an assumption that often does not hold in practice (Liu et al., 2023). Bayesian approaches consider other underlying distributions (Lee and Thompson, 2008; Noma et al., 2022) but the issue remains of identifying a suitable distribution for the random effects. Frequentist approaches have focused on consistent meta-estimation in the presence of outliers and individual studies that violate normality. For example, Noma et al. (2024) estimate a shared effect by minimizing the density power divergence, which can be less sensitive to outliers than fixed- or random-effects methods. The fusion-extraction method proposed by Wang et al. (2023) assumes a critical mass of included studies estimate a single parameter of interest; inconsistent study-specific estimators for that parameter are down-weighted. Similarly, Xie et al. (2011) proposes a confidence distribution-based method that leverages the central limit theorem to allow inference on a shared parameter when the majority of studies are drawn from the population of interest. In the multivariate context, Liu et al. (2015) develop a method to combine confidence densities from different studies, but this technique requires that heterogeneity can be effectively ignored by transforming the heterogeneous parameter to a homogeneous one through known link functions. Each of these methods focuses on preserving what we term general inference : estimators target parameters for the population of studies from which the selected studies are assumed to be randomly drawn. General inference approaches require an underlying model linking the study parameters to an overarching common parameter of interest. In contrast, a newer ap-proach to handling heterogeneity relies on what we term limited inference . Limited inference 
+
+3does not assume a distributional model for the study-specific parameters, and consequently, inference is limited to the populations represented by the included studies. For example, a limited inference approach proposed by Xie et al. (2011) allows for inference on the median of the study-specific parameters. Claggett et al. (2014) extends this method by connecting confidence distributions with bootstrap sampling to conduct inference on the ordered set of study-specific parameters. Existing meta-analytic methods face a trade-off: either they require strong assumptions about the structure of the heterogeneity, or their inference is generalizable only to the study populations. Recent work in transfer learning from Hector and Martin (2024) suggests a mechanism to calibrate the generality of inference according to the amount of heterogeneity by allowing partial borrowing based on a data-driven quantification of heterogeneity. They propose an “information-based regularization” where a target study estimate borrows dif-ferentially from a source estimate depending on the magnitude of the KLD from the source likelihood. This differential information borrowing does not require prespecifying a model that links the parameters of the two studies. By introducing a controlled amount of bias, Hector and Martin (2024) show that the optimal estimator (in a mean squared error sense) should always incorporate some information from the external study, even in the presence of unstructured heterogeneity. On the one hand, this result is promising because it suggests that some information borrowing may be useful in the meta-analysis context, even in the presence of heterogeneity. On the other hand, the existence of a similar result for meta-analysis is not obvious. The transfer learning goal is a fundamentally asymmetric inference focusing on a target study, while meta-analysis considers inference on all studies. Our introduction of a “centroid” distribution becomes crucial for linking the individual studies because it adapts to this asymmetry by effectively introducing a “source” distribution. The main difference between our centroid and a source distribution, however, is that the centroid is not fixed but rather needs to be estimated. This fundamental difference leads to both additional complications and intuitive and desirable interpretations. For example, as we will show in the next section, in some settings this estimated centroid yields the fixed-effect meta-estimator. 
+
+# 3 The heterogeneity-adaptive estimator 
+
+## 3.1 Estimation with common covariates 
+
+Consider a scenario with k independent studies, indexed j = 1 , . . . , k , where each study collects nj observations consisting of an outcome vector Y j ∈ Rnj and a matrix of co-variates Xj ∈ Rnj ×p. We assume the covariates are associated with the outcomes in each study through the model Y j ∼ N (Xj βj , σ 2 
+
+> j
+
+Inj ), with Inj the nj × nj identity matrix. Let 
+
+X = block-diag {X1, . . . , Xk} be the block-diagonal assembly of covariate matrices Xj with dimension Pkj=1 nj × pk and Y = ( Y 1, . . . , Y k) be the outcome vectors appended in the same order. Then, the joint model for all k studies is 
+
+Y = Xβ + ϵ, ϵ ∼ N (0, Σ),
+
+4where Σ = block-diag {σ21 In1 , . . . , σ 2
+
+> k
+
+Ink } is the block-diagonal matrix of dataset-specific variances and β = ( β1, . . . , βk) ∈ Rpk . Estimating β using maximum likelihood estimation returns a stacked vector of the maximum likelihood estimators (MLEs) for the individual datasets, ˜β = ( ˜β1, . . . , ˜βk)′, without any information shared between them; modeling in this way treats βj and βj′ for any studies j and j′ as though there is complete heterogeneity. In contrast, if we believe it is reasonable to assume perfect homogeneity so that βj = βj′ for all j, j ′ ∈ { 1, . . . , k }, the MLE is the uniformly minimum variance unbiased estimator used in fixed-effects meta-analysis, 
+
+˜βFE = ( X⊤Σ−1X)−1X⊤Σ−1Y = ( X⊤Σ−1X)−1X⊤Σ−1X ˜β. (1) Clearly, there is a homogeneity/heterogeneity continuum between the assumptions that 
+
+βj̸ = βj′ for all j̸ = j′ and βj = βj′ for all j̸ = j′ that is not captured by ˜β or ˜βFE .Further, the ends of the spectrum, i.e. the full homogeneity and full heterogeneity as-sumptions, treat all studies equally by assuming the same level of heterogeneity (no or full heterogeneity) for all parameters. In contrast, we propose an estimator for β along the ho-mogeneity/heterogeneity continuum that is fully adaptive in the sense that each study may be more or less heterogeneous than the others. First, we encourage information-sharing between studies by shrinking estimates for βj
+
+from outcome distributions that are “far” from the other studies. We begin by defining a “centroid” outcome distribution for study j, N (Xj θ, σ 2 
+
+> j
+
+I), where θ ∈ Rp. As an algebraic simplification, the centroid distribution’s variance is allowed to vary with dataset j. To measure the difference between using N (Xj θ, σ 2 
+
+> j
+
+Inj ) and N (Xj βj , σ 2 
+
+> j
+
+Inj ) to model Y j , we seek a topologically appropriate measure that, in contrast to the Euclidean distance between parameters, accounts for other features of the distributions, such as the error and covari-ate variances. To compare the distributions, we use the Kullback-Leibler divergence (KLD) (Amari, 2020; Kullback and Leibler, 1951). The KLD is the unique Bregman divergence on the manifold of Gaussian distributions, and it measures the relative entropy of a distribution 
+
+N (Xj βj , σ 2 
+
+> j
+
+Inj ) with respect to another distribution N (Xj θ, σ 2 
+
+> j
+
+Inj ). It also measures the excess surprise from using N (Xj θ, σ 2 
+
+> j
+
+Inj ) over N (Xj βj , σ 2 
+
+> j
+
+Inj ), when N (Xj βj , σ 2 
+
+> j
+
+Inj ) is the true distribution. Since a manifold is locally equivalent to a Euclidean space, small diver-gences between the distributions are equivalent to small distances between the parameters themselves. This deformation only holds locally, however, so that large divergences between 
+
+N (Xj θ, σ 2 
+
+> j
+
+Inj ) and N (Xj βj , σ 2 
+
+> j
+
+Inj ) do not necessarily equate to large distances between θ
+
+and βj .To estimate β, we maximize the joint log-likelihood subject to the constraint that all study-specific distributions be close in relative entropy to the centroid distribution, or equiv-alently 
+
+O(Y , X; β, θ, σ2) = 
+
+> k
+
+X
+
+> j=1
+
+n
+
+− 12σ2
+
+> j
+
+∥Y j − Xj βj ∥2 −
+
+ πj
+
+1 − πj
+
+ 12σ2
+
+> j
+
+
+
+∥Xj βj − Xj θ∥2
+
+o
+
+, (2) where the shrinkage parameter for each study is πj /(1 − πj ), πj ∈ [0 , 1]. At πj = 1, the penalty is infinite and the estimate for βj is required to equal the estimate for θ. For simplicity of exposition, we treat σ2 
+
+> j
+
+as known in all derivations; in practice, we estimate it 5using its MLE from study j. Define π = ( π1, . . . , π k)′, the vector of shrinkage parameters. We give the closed-form estimators that maximize O(Y , X; β, θ, σ2) below, with the non-trivial derivations relegated to Section A of the supplement. The centroid that maximizes this objective function is 
+
+bθ(π) = 
+
+ kX
+
+> j=1
+
+πj
+
+σ2
+
+> j
+
+X′ 
+
+> j
+
+Xj
+
+−1 kX
+
+> j=1
+
+πj
+
+σ2
+
+> j
+
+X′ 
+
+> j
+
+Y j =
+
+ kX
+
+> j=1
+
+πj
+
+σ2
+
+> j
+
+X′ 
+
+> j
+
+Xj
+
+−1 kX
+
+> j=1
+
+πj
+
+σ2
+
+> j
+
+X′ 
+
+> j
+
+Xj ˜βj , (3) and study j’s estimator for βj , bβj (π), can be written as a convex combination of the MLE, 
+
+˜βj , and the centroid estimator: 
+
+bβj (π) = (1 − πj ) ˜βj + πj bθ(π). (4) The full vector of bβ(π) = { bβ1(π)′, . . . , bβk(π)′}′ is 
+
+bβ(π) = ( Ipk − Π) ˜β + ΠK bθ(π) = ˜β + Π{KA (π) − Ipk } ˜β, (5) where K = 1k ⊗Ip is a matrix which stacks the vector to its right with ⊗ the Kronecker prod-uct, Π = block-diag {πj Ip} ∈ Rpk ×pk , and A(π) = ( K′ΠX⊤Σ−1XK )−1K′ΠX⊤Σ−1X.Both bβ(π) and bθ(π) are extremely flexible because they shift with the choice of shrinkage parameter π. The dependence of bθ(π) on the shrinkage parameters π makes the centroid capable of representing the space of heterogeneity patterns. This includes representation of some recognizable meta-estimators. When πj = πj′ for all j̸ = j′, bθ(π) = ˜βFE the fixed-effect meta-estimator in equation (1). If π is zero for k − x studies and non-zero and equal for the remaining x studies ( x ∈ Z, 0 ≤ x ≤ k), then bθ(π) is the fixed-effect meta-estimator for the studies with non-zero πj . If π contains zeroes for all studies except the jth , then 
+
+bθ(π) = ˜βj . Panel A in Figure 1 shows the possible values of bθ(π) given the maximum likelihood estimates ˜βj and information matrices for four studies with p = 2 covariates. The estimates bβj (π) for the study-specific parameters also depend on π. Panels B and C of Figure 1 show the set of feasible estimates bβ(π) for the same data as displayed in panel A, with examples for changes in π. Each corner is the MLE for a particular study. In panel B, we see that a move from π = (0 .2, 0.2, 0.2, 0.2) to π = (0 .8, 0.8, 0.8, 0.8) pulls all estimates for bβj (π) towards the fixed-effect meta-estimator ˜βFE . In panel C, which displays a move from π = (0 .5, 0.5, 0.5, 0) to π = (0 .5, 0.5, 0.5, 0.3), an increase in the contribution from study 4 shifts the estimates for studies 1, 2, and 3 towards ˜β4. We aim to select π to minimize the mean squared error (MSE) of bβ(π), which we discuss further in Section 4. Our objective function is equivalent to a penalized seemingly unrelated regression (Zell-ner, 1962). Prior work on Stein shrinkage in seemingly unrelated regression by Mehrabani and Ullah (2020) takes a weighted average of the fixed-effect meta-estimator ˜βFE and the individual study MLEs ˜βj . The new insight afforded by our formulation shows that the weighted average proposed in Mehrabani and Ullah (2020) maximizes our objective function in equation (2) when πj ≡ π. Our formulation, however, not only allows each study to have its own weight, as shown in equation (4), but also incorporates alternative patterns of 6Figure 1: Panel A displays possible values for bθ(π) for four datasets. Any coordinate pair within the outlined shape can be obtained for an appropriate π vector. Panels B and C display possible values for each bβj (π) for k = 4. For a given dataset, denoted by color, any coordinate pair within the polygon may be obtained for an appropriate π vector. In example A, arrows display a shift from π = (0 .2, 0.2, 0.2, 0.2) to π = (0 .8, 0.8, 0.8, 0.8). In example B, arrows display a shift from π = (0 .5, 0.0, 0.5, 0.5) to π = (0 .5, 0.5, 0.5, 0.3). heterogeneity beyond the fixed-effect meta-estimator. Further, by selecting our weights to minimize the MSE, we show in Section 4 that our framework enables asymptotically valid inference, a property absent in Mehrabani and Ullah (2020). 
+
+## 3.2 Estimation with overlapping covariates 
+
+In Section 3.1, we assumed that the same covariates are measured across the k datasets, which may not always be the case in practice. Consider instead the setting where the jth study has qj ≥ p covariates, p of which are common across studies. The remaining qj − p covariates may be measuring different features. This captures a common structure of univariate meta-analyses: each study may control for different covariates, and the standardized effect sizes for a main effect of interest are combined. For study j, denote the nj × p matrix for the effects of interest as Xj and denote the 
+
+nj × (qj − p) matrix of control covariates as Zj . Outcomes for study j are modeled as 
+
+Y j = Xj βj + Zj γj + ϵj , ϵj ∼ N (0, σ 2 
+
+> j
+
+Inj ). (6) Our goal is to estimate β = ( β1, . . . , βk) in the framework proposed in Section 3.1. Assume study j reports the maximum likelihood estimators ˜βj and ˜γj for βj and γj , re-spectively, and the covariance matrix for the estimators, 
+
+σ2
+
+> j
+
+X⊤ 
+
+> j
+
+Xj X⊤ 
+
+> j
+
+Zj
+
+Z⊤ 
+
+> j
+
+Xj Z⊤ 
+
+> j
+
+Zj
+
+−1
+
+. (7) To reformulate equation (6) with only the covariates in common across datasets, we first 7project the outcome model onto the null space of Zj . Let M j = Inj − Zj (Z⊤ 
+
+> j
+
+Zj )−1Z⊤
+
+> j
+
+when qj > p , and M j = Inj when qj = p. In this projected outcome model, additional covariates Zj are removed: 
+
+M j Y j = M j Xj βj + M j ϵj , M j ϵj ∼ N (0, σ 2 
+
+> j
+
+M j ). (8) Given the outcome model in equation (8), the objective function in equation (2) becomes 
+
+> k
+
+X
+
+> j=1
+
+n
+
+− 12σ2
+
+> j
+
+(M j Y j − M j Xj βj )⊤M + 
+
+> j
+
+(M j Y j − M j Xj βj )
+
+−
+
+ πj
+
+1 − πj
+
+ 12σ2
+
+> j
+
+
+
+(M j Xj βj − M j Xj θ)⊤M + 
+
+> j
+
+(M j Xj βj − M j Xj θ)
+
+o
+
+, (9) where M + 
+
+> j
+
+is the generalized inverse of M j ; as M j is idempotent, it only has an inverse when M j = Inj . In the objective function in equation (9), the KLD penalty shrinks βj
+
+towards the centroid for the distribution of M j Y j . We derive maximizers bθs(π) and bβs(π)of equation (9) in Section A of the supplement, and give their closed forms here: 
+
+bθs(π) = 
+
+ kX
+
+> j=1
+
+πj
+
+σ2
+
+> j
+
+X′ 
+
+> j
+
+M j Xj
+
+−1 kX
+
+> j=1
+
+πj
+
+σ2
+
+> j
+
+X′ 
+
+> j
+
+M j Xj ˜βj , bβs(π) = ( I − Π) ˜β + ΠK bθs(π),
+
+where M = block-diag {M 1, . . . , M k}. Provided we have access to the full covariance matrix in equation (7), we can compute X⊤ 
+
+> j
+
+M j Xj following 
+
+X⊤ 
+
+> j
+
+M j Xj = X⊤ 
+
+> j
+
+{I − Zj (Z⊤ 
+
+> j
+
+Zj )−1Z⊤ 
+
+> j
+
+}Xj = X⊤ 
+
+> j
+
+Xj − X⊤ 
+
+> j
+
+Zj (Z⊤ 
+
+> j
+
+Zj )−1Z⊤ 
+
+> j
+
+Xj .
+
+When covariates Zj are orthogonal to Xj for all j = 1 , . . . , k , the above estimators simplify to those from Section 3.1: bθs(π) = bθ(π) and bβs(π) = bβ(π). 
+
+# 4 Theoretical support 
+
+For simplicity of exposition, we focus on deriving theoretical support for the estimators in Section 3.1; similar results can be shown for those in Section 3.2 and are omitted. Our goal is to improve estimation across all studies on average by selecting the shrinkage parameter vector π that minimizes the mean squared error of bβ(π). The MSE-minimizing π balances both variance and bias of our estimator and, hopefully, leads to an improvement over the MLE, ˜β. We begin by demonstrating that such an improvement exists using the simplified setting where πj ≡ π. We subsequently extend our results to general π vectors by developing an alternative parameterization that yields an interpretable closed-form solution for the op-timal scale of borrowing between datasets. Finally, we show that our estimator is consistent and asymptotically normal at the optimal scaling, enabling asymptotically valid inference. Our objective is to select π to minimize the MSE of bβ(π), derived in Section B of the 8supplement and given by 
+
+MSE { bβ(π)} = ∥Π{KA (π) − Ipk }β∥2 + tr (Var [Π{KA (π) − Ipk } ˜β]) + 2 tr (Cov [ ˜β, Π{KA (π) − Ipk } ˜β]) + tr {Var ( ˜β)}, (10) where tr (·) denotes the trace of a matrix. A preliminary question is whether minimizing this MSE leads to a choice of π that necessarily offers an improvement, in mean squared error, over using the study-specific MLEs. To see that it does, we consider a simpler case where all 
+
+πj ≡ π. If an improvement in MSE exists for this simpler case, then selecting π to minimize equation (10) over the full space [0 , 1] k must yield an estimator bβ(π) with smaller MSE than the MLE. Theorem 1 states this result formally: there exists a vector π, πj not all zero, such that the MSE of bβ(π) is strictly less than the MSE of ˜β, the vector of study-specific MLEs. 
+
+Theorem 1. There exists a π̸ = 0 such that MSE { bβ(π)} < MSE ( ˜β). In the case where 
+
+πj ≡ π, the MSE-minimizing π is 
+
+π⋆ = −tr {(KA − Ipk )( X⊤Σ−1X)−1}
+
+tr {(KA − Ipk )( X⊤Σ−1X)−1(KA − Ipk )′} + ∥(KA − Ipk )β∥2 ,
+
+where A = ( K′X⊤Σ−1XK )−1K′X⊤Σ−1X.
+
+As discussed in Section 3, when πj ≡ π, bθ(π) is no longer a function of π and is equal to the fixed-effect meta-estimator displayed in equation (1). Consequently, π can be interpreted as the proportion of bβj (π) coming from the fixed-effect meta-estimator: 
+
+bβj (π) = (1 − π) ˜β + π bθ = ˜β + π(KA − Ipk ) ˜β.
+
+When π = 0, bβj (0) = ˜β and the estimator is unbiased. As π increases to 1, estimation of 
+
+bβj (π) leverages more information from the other studies, and the variance of bβj (π) decreases while the bias increases. The proof of Theorem 1 shows further that the bias does not increase too rapidly relative to the variance’s decrease, implying that a range of π exists for which the MSE of bβ(π) is less than that of the MLE. In fact, any π ∈ (0 , 2π⋆) yields an estimator 
+
+bβ(π) with smaller MSE than the MLE. Mathematical details are given in Section C of the supplement. In our implementation, we use the closed form of π⋆ in Theorem 1 as a starting value when searching for the optimal π vector by plugging ˜β in for the unknown β.Theorem 1 shows that there exists a π such that our estimator offers a smaller MSE than the MLE, but it does not provide guidance on how to choose the optimal π. We next develop a reparameterization of our estimator that decouples the role of π in selecting both the centroid and the amount of shrinkage towards the centroid. While technically involved, the reparameterization delivers a closed-form solution for the optimal amount of information borrowing. With this solution, we will be able to show that our estimator is consistent and asymptotically normal under mild conditions. We motivate the reparameterization in Figure 2 using an example with k = 2 studies. This figure shows that each pair of π values along a ray from the origin gives the same bθ(π). 9Mathematically, this is due to the fact that, through a simple rescaling, 
+
+bθ(π) = 
+
+ kX
+
+> j=1
+
+πj
+
+1
+
+σ2
+
+> j
+
+X⊤ 
+
+> j
+
+Xj )−1
+
+> k
+
+X
+
+> j=1
+
+πj
+
+1
+
+σ2
+
+> j
+
+X⊤ 
+
+> j
+
+Xj ˜β =
+
+ kX
+
+> j=1
+
+aπ j
+
+1
+
+σ2
+
+> j
+
+X⊤ 
+
+> j
+
+Xj )−1
+
+> k
+
+X
+
+> j=1
+
+aπ j
+
+1
+
+σ2
+
+> j
+
+X⊤ 
+
+> j
+
+Xj ˜β
+
+= bθ(aπ), a ∈ R+, aπ j ≤ 1.
+
+As we move along a ray away from the origin, bβ(π) moves away from ˜β towards bθ(π)but bθ(π) remains fixed. Thus, the determination of our estimator can be thought of as a 0 0.2 0.4 0.6 0.8 100.20.40.60.81
+
+π1
+
+> π2
+
+Figure 2: Each ray represents a line of equal bθ(π). As π1 and π2 get further from the origin, 
+
+bβ(π) is more heavily weighted towards the combined estimator, borrowing more information. two-step process: first the centroid bθ(π) is selected by choosing a ray, and then a global scaling factor dictates how much each bβj (π) shrinks toward the centroid along the ray. This observation suggests an alternative formulation of our estimator: represent π as the product of a constrained vector πr = ( πr, 1, . . . , π r,k ) characterizing the centroid-selecting ray (as visualized in Figure 2), and a scaling factor c ∈ [0 , 1], which determines the amount of borrowing. For general k, we use the k-dimensional equivalent to the constraint in Figure 2 and require that the constrained vector πr has all πr,j ∈ [0 , 1] and at least one πr,j = 1. This restricts πr to the surface of a unit hypercube, including only surfaces where at least one πr,j = 1. We thus define the reparameterized estimator 
+
+bβ(c, πr) = ( Ipk − cΠr) ˜β + cΠrK bθ(πr) = [ Ipk + cΠr{KA (πr) − Ipk }] ˜β, (11) where Πr = block-diag {πr, 1Ip, . . . , π r,k Ip} ∈ Rpk ×pk . The restriction on πr is necessary as it identifies the estimator bβ(c, π), but the choice of constraint is a matter of convenience and, regardless of the constraint, c = max j πj . We also note that there are k values of πr that give identical estimates for the full vector bβ(c, πr); bβ(c, π) ≡ ˜β for any πr with a single element πr,j = 1 and all other πr,j ′ = 0, j̸ = j′, j, j ′ ∈ { 1, . . . , k }. These values for πr are 10 mathematically equivalent to analyzing each study separately, and by Theorem 1, are not an optimal choice of πr.With this reparameterization in hand, we can rewrite the MSE of our estimator as a quadratic function of the scaling parameter c:
+
+MSE { bβ(c, πr)} = c2 ∥Πr{KA (πr) − Ipk }β∥2 + c2 tr (Var [Πr{KA (πr) − Ipk } ˜β]) + 2 c tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) + tr {Var ( ˜β)} (12) We show in Theorem 2 that there is a closed-form solution for the scaling factor c that minimizes the MSE given πr, the data, and the parameter β.
+
+Theorem 2. For any constrained πr such that bβ(c, πr)̸ = ˜β, there exists a set {c† : c† > 0}
+
+such that MSE { bβ(c†, πr)} < MSE ( ˜β). Given πr, the optimal c is 
+
+c⋆(πr) = min 
+
+h −tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) 
+
+tr (Var [Πr{KA (πr) − Ipk } ˜β]) + ∥Πr{KA (πr) − Ipk }β∥2 , 1
+
+i
+
+. (13) The proof is given in Section D of the supplement. The result of Theorem 2 consists of two parts. The first part confers on our estimator similar properties to those of James-Stein shrinkage estimators (James and Stein, 1961) and the more recent information-based shrinkage estimator proposed by Hector and Martin (2024): as the optimal scaling is strictly positive, the optimal version of our estimator has a smaller MSE than the MLE. The second part is more surprising: this result holds regardless of which πr defines the centroid. In words, it is always beneficial in a MSE-sense, relative to the MLE, to borrow information across studies, regardless of the interpretation, value and, indeed, existence of a homogeneous parameter! In Corollary 2.1 below, we identify the complete set of scaling factors c over which bβ(c, πr)offers an improvement in MSE over the MLE. 
+
+Corollary 2.1. For a given πr, MSE { bβ(c, πr)} < MSE ( ˜β) if and only if c < 2c⋆(πr).
+
+A proof of Corollary 2.1 is given in Section E of the supplement. For each πr, our estimator outperforms the MLE for scaling factors c up to twice the value of c⋆(πr). This complete characterization of the improvement set gives us hope that a reasonable estimate for c⋆(πr) can also improve the MSE. Finally, we show in Theorem 3 and Corollary 4 below that selecting the scaling factor c⋆(πr) that minimizes the MSE yields an estimator that is consistent and asymptotically normal, enabling asymptotically valid inference. 
+
+Theorem 3. For studies j ∈ { 1, . . . , k } assume nj = na j , where aj ∈ R+. Assume also that, for each study j,
+
+ 1
+
+nj σ2
+
+> j
+
+X′ 
+
+> j
+
+Xj
+
+−1
+
+→ Q−1 
+
+> j
+
+and 1
+
+nj σ2
+
+> j
+
+X′ 
+
+> j
+
+ϵjp
+
+→ 0,
+
+where Q−1 
+
+> j
+
+is a positive definite matrix. Then, for any πr and any c⋆(πr) as defined in Theorem 2, bβ(c⋆, πr) is a consistent estimator of β as n → ∞ .
+
+11 Theorem 4. Assume the conditions in Theorem 3 hold. Then 
+
+(∇βE{ bβ(c⋆, πr)}(X⊤Σ−1X)−1∇βE{ bβ(c⋆, πr)}′)−1/2{ bβ(c⋆, πr) − β} d
+
+→ N (0, Ipk ),
+
+where 
+
+∇βE{ bβ(c⋆, πr)} = Ipk + c⋆(πr)Πr{KA (πr) − Ipk }.
+
+We outline the argument in the proof of Theorem 3 and give a complete proof in Section F of the supplement. First, for any fixed πr, the total variance of bβ{c⋆(πr), πr} goes to zero as n → ∞ . To attain consistency, we need only for the bias of bβ{c⋆(πr), πr}, given by 
+
+c⋆(πr)Πr{Kθ (πr) − β}, to also go to zero. We can consider three cases for this condition. In the first, if all study-specific parameters are equal ( βj = βj′ ), then the bias will be zero at any sample size and for any πr. This is because in the scenario with full homogeneity, there is no drawback to combining the studies. In the second case, suppose ∥Πr{Kθ (πr) − β}∥ 2
+
+does not go to zero as n → ∞ : there is heterogeneity among all studies that does not vanish as the sample size grows. In this case, we show that c⋆(πr) goes to zero as n → ∞ . This is desirable behavior because, intuitively, the optimal scaling factor and therefore the amount of borrowing shrinks as the sample size increases when there is heterogeneity between all studies. In the final case, ∥Πr{Kθ (πr) − β}∥ 2 goes to zero as n → ∞ . We need not draw a conclusion about c⋆(πr) in this scenario, because this condition implies that the bias will also go to zero. This event only occurs if either πr,j = 0 or if θ(πr) = βj for each study j;that is, either our estimator leaves study j out of the centroid or βj is equal for all studies included within the centroid. It follows from Corollary 4 that an asymptotically valid 100(1 − α)% confidence interval for the ℓth parameter, βℓ, of β is 
+
+ bβℓ(c⋆, π) ± z1−α/ 2
+
+q
+
+[∇βE{ bβ(c⋆, π)}(X⊤Σ−1X)−1∇βE{ bβ(c⋆, π)}′]ℓℓ 
+
+
+
+. (14) When working with a subset of the covariates as described in Section 3.2, the asymptotically valid 100(1 − α)% confidence interval for βℓ is nearly identical to that given in equation (14). The only adjustment needed is to use X⊤M Σ−1M X in place of X⊤Σ−1X in the calculation of the estimate and its variance. Put together, the results of this section confer on our estimator several surprising and beneficial theoretical properties. First, selecting a vector of shrinkage parameters with the goal of minimizing the MSE yields an estimator with asymptotically valid inference that outperforms the MLE in finite samples. Even more surprising, consistency and asymptotic normality hold for any πr with scaling c⋆(πr); that is, we do not require the MSE-minimizing choice for the centroid θ(πr) to achieve these properties, so long as the appropriate scaling is selected. This increases our likelihood of success in estimating the k shrinkage parameters. Rather than needing to correctly select all k parameters to minimize the MSE, we can select k − 1 freely and are only required to choose the kth correctly to guarantee asymptotic inference. 12 5 Data-driven shrinkage 
+
+Our goal is to estimate β using the estimator bβ(c, πr) with c and πr chosen so as to minimize the MSE displayed in equation (12), but this MSE depends on β, which is not available in practice. A reasonable approach would be to select c and πr by minimizing an unbiased estimator of the MSE. In this section, we first show that this leads to over-borrowing, and we then propose an alternative objective function for data-driven selection of the shrinkage parameters that mitigates this risk. The MSE of bβ(c, πr), displayed in equation (12), depends on β only through the term 
+
+c2 ∥Πr{KA (πr) − Ipk }β∥2. Estimating this term by na¨ ıvely plugging in the MLE for β
+
+yields a positively biased estimator for the MSE, 
+
+BMSE { bβ(c, πr)} = c2 ∥Πr{KA (πr) − Ipk } ˜β∥2 + c2 tr (Var [Πr{KA (πr) − Ipk } ˜β]) + 2 c tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) + tr {Var ( ˜β)}. (15) Indeed, we show in Section G of the supplement that the expected value of BMSE is 
+
+MSE { bβ(c, πr)} + c2 tr (Var [Πr{KA (πr) − Ipk } ˜β]). The shrinkage parameters that mini-mize BMSE { bβ(c, πr)} are not those that minimize the MSE. In the spirit of Stein (1981), who proposed an unbiased risk estimator, we derive the unbiased estimator for the MSE (UMSE), 
+
+UMSE { bβ(c, πr)} = c2 ∥Πr{KA (πr) − Ipk } ˜β∥2 + 2 c tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) + tr {Var ( ˜β)}. (16) The full derivation is shown in Section H of the supplement. Due to its unbiasedness, minimizing UMSE as a function of c and πr leads to asymptotically unbiased estimators of the minimizers of the MSE under mild regularity conditions. Due to their finite-sample bias, however, these minimizers lead to over-borrowing on average and therefore sub-optimal performance of bβ(c, πr). To see this, by Jensen’s inequality, 
+
+E(bc⋆) = E
+
+−tr (Cov [ ˜β, Πr{KA (πr) − I} ˜β]) 
+
+∥Πr{KA (πr) − I} ˜β∥2
+
+
+
+≥ −tr (Cov [ ˜β, Πr{KA (πr) − I} ˜β]) 
+
+E[∥Πr{KA (πr) − I} ˜β∥2] = c⋆.
+
+where c⋆ and bc⋆ respectively denote the values of c that minimize the MSE and UMSE, omitting dependence on πr.We propose to reduce over-borrowing with a strategy adapted from Firth (1993) and il-lustrated in Figure 3. We first describe the main idea. The derivative of the UMSE has a root at bc⋆ that is positively biased for c⋆. Therefore, for some δ > 0, [ ∂UMSE { bβ(c, πr)}]/(∂c ) + δ
+
+has a root at c⋆. In words, the optimal borrowing c⋆ is obtained by shifting the UMSE derivative curve up by δ. The shift needed to obtain a root at c⋆ is 
+
+δ = ∂2
+
+∂c 2 UMSE { bβ(c, πr)}(bc⋆ − c⋆) = 2 ∥Πr{KA (πr) − I} ˜β∥2(bc⋆ − c⋆).
+
+As bc⋆ − c⋆ is unknown, we propose to estimate it with bc⋆ − ˜c, where ˜ c minimizes BMSE in 13 Figure 3: A demonstration of the proposed correction to the UMSE. The solid line yields the optimal scaling, c⋆, as the root. The lower dashed line over-borrows, on average. Shifting the lower line up by δ to the parallel dashed line above it gives a root at c⋆.equation (15). The root of this corrected derivative will reduce borrowing and be closer, on average, to the optimal c⋆. We show in Section I of the supplement that finding the root of this corrected derivative and selecting a MSE-minimizing πr can be achieved by minimizing the loss function 
+
+∥Π{KA (π) − I} ˜β∥2 − 2∥Π{KA (π) − I} ˜β}∥ 2 × tr (Cov [ ˜β, Π{KA (π) − I} ˜β]) 
+
+tr (Var [Π{KA (π) − I} ˜β]) + ∥Π{KA (π) − I} ˜β∥2 (17) as a function of the unconstrained π.We refer to equation (17) as the pseudo-MSE , so-named to recognize that it is designed and used only for selecting the shrinkage parameters. The asymptotic results discussed in Section 4 hold under shrinkage parameter selection with the pseudo-MSE, as the minimizer of the pseudo-MSE converges to c⋆ as n → ∞ . We term our final proposed estimator the heterogeneity-adaptive meta-estimator (HAM estimator) bβ(πHAM ) with the shrinkage parameters, πHAM = ( πj, HAM )kj=1 , minimizing equation (17). A simulation study in Section J of the supplement illustrates the performance of bβ(π) under different shrinkage parameter selection mechanisms. 
+
+# 6 Numerical support 
+
+## 6.1 Overview 
+
+In this section, we investigate the performance of the HAM estimator through four simulation settings. In each setting, we compare the HAM estimator bβHAM = bβ(πHAM ) to the vector of study-specific MLEs ˜β. We also develop a ridge-like penalized regression competitor bβR
+
+14 in Section K of the supplement that uses a Euclidean-distance penalty to encourage similar estimates of β, similar in spirit to the fused ridge estimator (Lettink et al., 2023). In each setting, we evaluate bβHAM , ˜β and bβR in 1000 Monte Carlo replicates. We report the empirical mean squared error (eMSE) and coverage of 95% confidence intervals using equation (14) for the HAM estimator and the large sample distribution of the MLE for ˜β.
+
+## 6.2 Setting 1: Varying sample size and number of parameters 
+
+We consider a low-heterogeneity setting with k = 3 studies, p ∈ { 2, 4, 10 , 20 } and ten unique combinations of nj ∈ { 100 , 200 , 300 }. Within each Monte Carlo replicate, we generate nj
+
+observations Xj and error terms ϵj ∼ N (0, Inj ): when p = 2, X1j = 1, X2j ∼ N (0, Inj ); when p = 4, we further include X3ij ∼ Bern(0 .5), X4ij = X2ij X3ij , i = 1 , . . . , n j ; when 
+
+p = 10 and p = 20, the additional covariates are simulated independently from standard normal distributions. The process for generating study-specific parameters intentionally violates a key assump-tion of random-effects meta-analysis: while the study parameters are generated from the same distribution, they do not come from a normal distribution. Specifically, for each (n1, n 2, n 3, p ) combination, we generate βj = βm + uj with uj ∈ Rp independent draws from Unif( −0.25 , 0.25) rounded to two decimal places. The values of βj are held constant across Monte Carlo replicates in each combination; values of βj are included in Table 10 of the supplement. Table 1 displays the eMSE of the three estimators ˜β, bβHAM , and bβR. Across all combinations, the HAM estimator has a smaller eMSE than the MLE. As sample sizes increase, the ratio of the eMSE for the HAM estimator to the eMSE for the MLE gets closer to 1; at larger sample sizes, the heterogeneity of the datasets is more easily detected and the HAM estimator reverts to the study-specific MLEs, preventing over-borrowing and enabling inference. The HAM estimator also yields a smaller eMSE than the ridge-like estimator across the majority of settings. 
+
+p = 2 p = 4 p = 10 p = 20 
+
+n1, n 2, n 3 ˜β bβHAM bβR ˜β bβHAM bβR ˜β bβHAM bβR ˜β bβHAM bβR
+
+100, 100, 100 6.3 4.6 4.8 37.4 27.3 28.4 60.8 40.2 41.7 105.5 77.1 76.6 
+
+100, 200, 100 5.2 3.8 4.2 31.6 23.8 24.8 50.4 33.7 34.6 85.9 64.4 64.0 
+
+100, 200, 200 4.1 3.2 3.6 24.7 18.7 18.9 38.8 27.2 28.4 66.3 51.7 52.2 100, 300, 100 4.8 3.5 3.9 29.4 21.7 22.4 47.4 31.4 32.0 80.9 60.0 59.5 
+
+100, 300, 200 3.6 2.8 3.3 23.2 17.3 17.3 35.6 24.6 25.9 60.8 47.1 47.6 100, 300, 300 3.4 2.7 3.2 20.0 14.7 14.5 32.7 22.7 24.4 55.2 43.0 43.5 200, 200, 200 3.0 2.5 2.8 18.5 15.2 15.9 28.8 21.7 22.6 47.0 40.0 40.1 200, 300, 200 2.7 2.3 2.6 16.8 13.8 14.3 25.5 19.4 20.2 41.2 35.4 35.4 
+
+200, 300, 300 2.4 2.1 2.3 14.7 12.0 12.2 22.1 17.4 18.5 35.6 31.2 31.6 300, 300, 300 2.0 1.7 1.9 12.2 10.4 10.9 18.6 15.1 15.8 30.0 27.0 27.1 Table 1: Empirical MSEs for each estimator multiplied by 100 for Setting 1. The smallest eMSE for each ( n1, n 2, n 3, p ) combination is bolded. Table 2 reports coverage rates of 95% large-sample confidence intervals using bβHAM .Study-level coverages grow closer to the nominal level with increasing p. As the number 15 of covariates increases, our method more easily distinguishes between the study outcome distributions and appropriately decreases the amount of information sharing. Increasing the sample size for one study while holding others constant increases coverage for that study, but can decrease coverage for the others. For example, moving from study sizes (100 , 100 , 100) to (100 , 200 , 100) increases the coverage for study 2 but decreases the coverage for study 3 because the centroid shifts towards study 2’s outcome distribution, which moves bβ3,HAM 
+
+further from β3.
+
+p = 2 p = 4 p = 10 p = 20 
+
+n β1 β2 β3 β1 β2 β3 β1 β2 β3 β1 β2 β3
+
+100, 100, 100 87.9 92.6 89.7 93.3 90.4 89.8 93.0 91.7 92.4 92.3 92.2 92.0 100, 200, 100 88.6 93.1 88.5 92.4 91.5 88.5 92.6 91.9 91.0 91.9 93.2 91.5 100, 200, 200 85.2 93.3 90.6 92.2 90.3 89.0 92.5 91.0 91.6 92.0 92.8 92.5 100, 300, 100 86.5 93.8 88.8 92.8 92.9 86.8 91.7 92.9 90.2 91.8 93.7 91.5 100, 300, 200 85.4 94.3 90.5 91.8 90.2 87.9 92.6 91.7 91.2 91.4 93.6 92.2 100, 300, 300 84.5 93.2 90.6 92.9 90.1 89.3 91.9 90.6 91.7 91.2 93.4 92.8 200, 200, 200 89.2 92.0 89.3 92.4 90.1 90.0 93.0 91.6 92.2 92.7 92.5 92.9 200, 300, 200 86.6 93.2 87.5 91.5 90.5 89.8 92.7 92.5 91.4 92.5 93.4 92.5 200, 300, 300 85.9 92.8 90.0 92.0 90.9 89.8 92.5 91.5 92.0 92.4 93.4 92.9 300, 300, 300 89.0 92.3 89.4 92.2 91.1 90.5 93.1 91.6 92.0 93.2 93.3 93.1 Table 2: Average coverage rate (%) of 95% confidence intervals using bβHAM in Setting 1. 
+
+## 6.3 Setting 2: Varying number of studies and heterogeneity 
+
+We now examine the HAM estimator’s performance with p = 4 parameters as the number of studies k ∈ { 5, 10 , 15 } increases under varying parameter heterogeneity conditions. In the first condition, there is no heterogeneity and βj ≡ βm, j = 1 , . . . , k . In the second, the βj display mild heterogeneity with βj ∼ N (βm, . 1I4). The βj in the third condition are moderately heterogeneous: βj ∼ N (βm, . 5I4). Finally, the βj in the fourth condition have a mixture of no heterogeneity and high heterogeneity: βj ≡ βm for j = 1 , 2, 3 and 
+
+βj ∼ N (βm, I4) for j = 4 , . . . , k . We emulate the study parameter generation process assumed for random-effects meta-analysis by drawing new values of βj with each Monte Carlo replicate. For each Monte Carlo replicate, we generate nj = 200 observations Xj
+
+and error terms, ϵj ∼ N (0, Inj ) following X1j = 1, X2j ∼ N (0, Inj ), X3ij ∼ Bern( .5) and 
+
+X4ij = X2ij X3ij , i = 1 , . . . , n j .Table 3 displays the eMSE of ˜β, bβHAM , and bβR and the coverage rate of bβHAM ’s large-sample 95% confidence interval. The coverage is closest to its nominal value in the condition with complete homogeneity and is furthest in the condition with mild heterogeneity. In the mild heterogeneity condition, the study outcome distributions are close together, and our method consequently over-borrows. Across all combinations of heterogeneity and k, bβHAM 
+
+has eMSE less than or equal to that of ˜β. The HAM estimator’s eMSE is slightly larger than bβR’s with no, mild or moderate heterogeneity, but is smaller than bβR’s in the mixture condition due to the added flexibility of study-specific shrinkage parameters. A smaller 16 eMSE is only desirable, however, if the inference is calibrated, and the ridge-like estimator has no inferential guarantees. eMSE ×100 Coverage rate (%) Heterogeneity k ˜β bβHAM bβR bβHAM 
+
+None 5 29.9 12.6 8.1 94.5 10 62.1 21.3 8.4 94.4 15 92.5 28.6 7.5 94.8 Mild 5 30.5 28.3 27.1 91.1 10 61.3 56.1 52.2 90.9 15 91.9 83.7 77.7 90.9 Moderate 5 30.8 30.8 30.0 93.2 10 61.4 61.3 59.1 93.0 15 92.8 92.5 89.4 92.7 Mixture 5 30.6 24.4 29.2 92.7 10 61.4 55.8 59.9 92.9 15 92.0 86.0 89.6 93.3 Table 3: Empirical MSEs for each estimator (multiplied by 100) and coverage rate of 95% confidence intervals using bβHAM in setting 2. Examining the selected shrinkage parameters πHAM provides additional insight into the information-borrowing mechanism. Figure 4 shows the distribution of πHAM for each hetero-geneity condition across replicates when k = 15. In the condition with no heterogeneity, the selected πHAM are centered around 0 .5, which is slightly more conservative than the MSE-minimizing πj of 1. In the mixture condition, the πHAM ,j associated with the homogeneous studies are separated from the πHAM ,j associated with the heterogeneous studies, as desired. 
+
+Figure 4: πHAM values across heterogeneity conditions when k = 15 in setting 2. 17 6.4 Setting 3: Meta-analysis with overlapping covariates 
+
+Meta-analyses often combine the effect sizes for a shared covariate of interest after controlling for any relevant covariates at the study-level, as described in Section 3.2. We consider 
+
+k = 20 studies ( nj = 200 , j = 1 , . . . , 20) with p = 1 and qj = 4 where all studies share the first covariate but the other covariates vary across studies. We consider two scenarios for the generation of βj , the coefficient of interest. In the first scenario, βj is drawn from a single distribution, βj = 3 .47 + uj with uj ∼ Unif( −0.25 , 0.25). In the second, more challenging scenario, βj is drawn from one of two distributions, βj ∼ Unif( −0.25 , 0.25) for 
+
+j = 1 , . . . , 5 and βj = 3 .47 + uj , uj ∼ Unif( −0.25 , 0.25) for j = 6 , . . . , 20. Values of γj are independently drawn from N (0, I4). All parameter values are rounded to two decimal places and held constant over Monte Carlo replicates. The first, shared covariate is an intercept and the remaining covariates are simulated independently from standard normal distributions. Error terms are generated independently from standard normal distributions. Table 4 displays the eMSE for ˜β, bβHAM , and bβR. In both scenarios, the eMSE of bβHAM 
+
+is smaller than the eMSE of ˜β. When βj are drawn from a single distribution, bβHAM and bβR
+
+have similar eMSEs. As in Setting 2 (Section 6.3), bβHAM outperforms bβR when βj is drawn from one of two distributions. 
+
+βj scenario eMSE ×100 Coverage rate using bβHAM (%) 
+
+˜β bβHAM bβR
+
+Single distribution 10.4 8.2 8.1 83.8 Two distributions 10.4 9.1 10.3 87.3 Table 4: Empirical MSEs for each estimator (multiplied by 100) and coverage of 95% confi-dence intervals using bβHAM in setting 3. Table 4 also reports the coverage rate of bβHAM ’s large-sample 95% confidence interval. We investigate the observed undercoverage in Figure 5, where we plot the coverage of bβHAM ,j 
+
+versus βj ; we use colour to denote which quartile the average (across the 1000 Monte Carlo replicates) πj, HAM belongs to, with the quartiles computed across all studies. When βj is drawn from a single distribution, studies with βj values closest to 3 .47, the center of the distribution, have the largest average πj, HAM and coverage nearest to the nominal level. When βj is drawn from one of two distributions, the coverage is closer to the nominal level for the five studies with βj ∼ Unif( −0.25 , 0.25). These studies are far enough away from the others that their selected shrinkage parameters are close to zero. In both scenarios, coverage is lower for studies where the parameter is not too far from 3 .47. As a rule of thumb, our estimator tends to over-borrow in situations where it struggles to distinguish between studies because the MLEs are close to each other. Increasing the dimension p or the sample size alleviates this issue, as seen in setting 1 (Section 6.2). 
+
+## 6.5 Setting 4: Varying covariate data generation process 
+
+We investigate the performance of bβHAM in the presence of population heterogeneity by varying the covariate data generation process. We consider k = 3 studies with p = 4 18 Figure 5: Coverage of bβHAM ,j versus βj for each study in setting 3. covariates each, and generate βj ∼ Unif( −0.25 , 0.25), rounding to two decimal places and holding these values constant over the Monte Carlo replicates. The sample sizes are nj ≡
+
+n ∈ { 20 , 50 , 100 , 200 , 500 } and the error terms are ϵj ∼ N (0, σ 2 
+
+> j
+
+In). In each study, Xj has a column of ones for the intercept with the remaining covariates independently generated from N (μj , b 2Ip−1), with b = 1 when μj = 0 and b = μj otherwise. We consider four scenarios for μ = ( μ1, μ 2, μ 3) and σ2 = ( σ21 , σ 22 , σ 33 ): (i) μ = (0 , 0, 0), σ2 = (1 , 1, 1); (ii) 
+
+μ = (10 , 10 , 10), σ2 = (100 , 100 , 100); (iii) μ = (0 , 1, 2), σ2 = (1 , 1, 4); (iv) μ = (0 , 5, 10), 
+
+σ2 = (1 , 25 , 100). Across every setting, the variation of the error term is equal to the variation in the non-intercept covariates to allow us to isolate the impact of increasing the scale of the non-intercept covariates. Table 5 displays the eMSE and coverage rate of 95% asymptotic confidence intervals. Scenarios (ii) and (iv), each having at least one study with μj = 10, have lower coverage than the nominal rate even as the sample size grows large. These scenarios also show a greater reduction in eMSE relative to the MLE at large sample sizes, compared to scenarios (i) and (iii). To diagnose the coverage issue we examine the 95% confidence intervals of ˜β
+
+at n = 500 in Figure 6. The overlap in confidence intervals for the intercept coefficient β1 in scenarios (ii) and (iv) is leading our estimator to over-borrow, yielding large reductions in eMSE at the expense of coverage. We remedy the over-borrowing by computing bβHAM using data that have been rescaled so that each non-intercept covariate has a standard deviation of 1. This standardization prevents the intercept covariate from becoming overly informative, and can be done without accessing the raw data when the standard deviation for each covariate is available, which is usually the case in practice. The results are shown in Table 6. Across all scenarios, the eMSE improvement on the standardized data is smaller than on the original data and the coverage approaches the nominal level faster as n grows. We thus recommend this simple rescaling as a general pre-processing step to improve the finite-sample performance of our 19 scenario (i) scenario (ii) scenario (iii) scenario (iv) eMSE ×100 CR eMSE ×100 CR eMSE ×100 CR eMSE ×100 CR n ˜β bβHAM bβR bβHAM ˜β bβHAM bβR bβHAM ˜β bβHAM bβR bβHAM ˜β bβHAM bβR bβHAM                                                                                 
+
+> 20 77.5 44.8 40.2 91.1 7756.1 4320.0 3569.1 91.4 198.7 100.0 92.0 90.4 3262.6 1427.1 997.3 90.3 50 25.9 17.7 17.7 91.7 2771.6 1631.6 1383.8 90.1 66.3 37.9 34.7 90.0 1120.9 477.6 355.8 87.6 100 12.6 10.0 10.4 91.1 1240.9 719.4 593.9 87.3 31.5 20.9 17.9 88.4 539.3 233.3 172.3 83.2 200 6.2 5.5 5.6 91.2 624.5 375.5 309.2 81.5 15.9 12.4 9.8 87.9 255.5 114.0 83.5 76.9 500 2.4 2.3 2.3 92.5 246.3 151.5 120.7 69.6 6.0 5.8 4.3 88.8 104.2 52.5 36.7 69.1
+
+Table 5: Empirical MSEs, multiplied by 100, and coverage rate (CR, %) for 95% confidence intervals in simulation setting 4. 
+
+Figure 6: Average 95% confidence intervals at n = 500 for ˜β. In scenarios (ii) and (iv), the confidence intervals for the intercept, β1, overlap substantially. estimator. 
+
+# 7 Real data analysis 
+
+We illustrate the practical advantages of the HAM estimator in a meta-analysis of covari-ates of intensive-care unit (ICU) length of stay using real data from the eICU Collaborative Research Database (Pollard et al., 2019). Section M in the supplement describes the access procedure for these data. Longer ICU stays are associated with higher healthcare costs and adverse health outcomes, including an increased risk of mortality after discharge (Williams et al., 2010; Moitra et al., 2016). Anticipating and reducing the length of stay is also valu-able to hospitals for resource management, especially in the presence of ICU bed shortages (Rapoport et al., 2003; Bai et al., 2018). We investigate the association between ICU length of stay and a set of covariates measured at admission to the ICU across multiple hospitals. Fitting a random-effects meta-analysis requires unverifiable assumptions on the distribution 20 scenario (i) scenario (ii) scenario (iii) scenario (iv) eMSE ×100 CR eMSE ×100 CR eMSE ×100 CR eMSE ×100 CR n ˜β bβHAM bβHAM ˜β bβHAM bβHAM ˜β bβHAM bβHAM ˜β bβHAM bβHAM                                                             
+
+> 20 71.4 58.7 89.3 13073.0 9842.3 88.5 246.0 227.3 88.9 5447.7 5269.2 90.2 50 25.1 21.2 91.0 4697.8 3739.3 89.1 84.4 80.4 92.2 1919.6 1889.2 92.8 100 12.4 10.9 91.5 2150.5 1768.2 89.8 40.3 38.8 92.6 919.4 919.8 94.3 200 6.1 5.7 91.5 1074.3 914.9 90.1 20.5 19.8 92.8 440.0 441.9 94.5 500 2.4 2.3 92.8 426.2 390.8 91.0 7.8 7.7 92.8 178.2 178.7 94.9
+
+Table 6: Empirical MSEs, multiplied by 100, and coverage rate (CR, %) of 95% confidence intervals in simulation setting 4 on rescaled data. of hospital-level parameters, but fitting hospital-level models individually does not take full advantage of similarities between hospitals. The HAM estimator provides inference for each hospital while also allowing information borrowing to improve precision. We conduct the meta-analysis using the log transform of the ICU length of stay as the outcome. We assess the association between length of stay and a patient’s age, gender, systolic and diastolic blood pressure when entering the ICU, whether a patient was admitted from the emergency department (ED) or from another source, and the Acute Physiology and Chronic Health Evaluation (APACHE) IV score. The APACHE IV score incorporates clinical and health history data collected from patients within the first day in the ICU, but it is designed with ICU mortality as the primary outcome (Zimmerman et al., 2006). Prior work indicates that the APACHE IV score is a poor predictor of ICU length of stay; we include it in our model to help account for initial health status and to assess whether the association between the score and length of stay varies across hospitals (Verburg et al., 2014; Zangmo and Khwannimit, 2023). We consider only patients discharged alive from the ICU. Our data consist of k = 29 hospitals from the West region of the eICU database for which there were at least 100 patients recorded as discharged alive from the ICU in 2014 and 2015. We standardize the continuous predictors as discussed in Section 6.5. A preliminary examination shows substantial heterogeneity among hospitals ( I2 = 79 .6%) suggesting that conducting a traditional meta-analysis is not meaningfully interpretable. To implement our method, we find the vector πHAM that minimizes the pseudo-MSE in equation (17). As visualized in Figure 7, the majority of hospitals have πj, HAM between 0.3 and 0.5, while four hospitals have a smaller πj, HAM . The variability in πHAM echoes the large I2;we would expect to see πj, HAM close to 0.5 for all studies in the presence of homogeneity. Using πHAM , we first compare the estimated centroid bθ(πHAM ) to results from fixed- and random-effect meta-analyses in Table 7, which displays the 95% confidence intervals for the meta-estimates (the confidence interval using bθ(πHAM ) is constructed using the distribution of the MLE ˜β). While the fixed- and random-effect confidence intervals give inference on a shared parameter βm, the confidence interval for bθ(πHAM ) is built to capture the true value of the centroid θ, which is not necessarily equal to βm. Nevertheless, in this case, the three confidence intervals cover similar regions. To show the efficiency gain from borrowing information across studies, we compare the study-specific MLEs to the HAM estimates, bβ(πHAM ). Table 8 reports the result of hypoth-esis tests by covariate and, as expected, in all but one case the HAM estimates are more 21 often significant at level α = 0 .05. In particular, the “age” and “admission from an ED” effect estimates gain statistical significance using HAM for several hospitals. Figure 7 plots the HAM and MLE confidence intervals for βAPACHE IV with the corresponding πj, HAM . Esti-mates for hospitals with high πj, HAM experience a large shift in their point estimate toward the centroid estimate, as well as a reduction in the width of the corresponding confidence interval. Figure 8 displays the 95% confidence intervals for all covariates, with hospitals sorted from smallest to largest πj, HAM . Changes in significance between the MLE and HAM estimators are more frequent as πj, HAM increases, reflecting the decrease in variance with more information sharing. Overall, an increasing APACHE IV score, indicative of worse clinical condition at ICU entry, is associated with a longer ICU length of stay for all hospitals. In fact, out of the selected covariates, the APACHE IV score is the only one which is significantly related to the log-transformed length of stay for all hospitals using the HAM estimator. All else held constant, patients admitted from the ED tend to have shorter stays in the ICU than other patients, for most hospitals. Counterintuitively, for most hospitals, older patients also have shorter stays in the ICU after accounting for other covariates. This result is perhaps a by-product of keeping only patients who are discharged alive; filtering disproportionately removes older individuals with longer ICU stays. Fixed-Effect Random-Effect bθ(πHAM )Covariate Lower Upper Lower Upper Lower Upper Intercept 0.475 0.527 0.479 0.632 0.498 0.553 Gender −0.016 0.040 −0.012 0.069 −0.003 0.056 Admission from ED −0.083 −0.027 −0.146 −0.040 −0.126 −0.067 APACHE IV score 0.344 0.374 0.329 0.381 0.348 0.379 Age −0.091 −0.060 −0.094 −0.055 −0.089 −0.057 Diastolic BP 0.020 0.057 0.023 0.064 0.024 0.064 Systolic BP −0.055 −0.017 −0.063 −0.019 −0.057 −0.018 Table 7: Lower and upper bounds of 95% confidence intervals for meta-estimators. 
+
+pHAM ≤ 0.05 pHAM > 0.05 Covariate pMLE ≤ 0.05 pMLE > 0.05 pMLE ≤ 0.05 pMLE > 0.05 Intercept 1 0 2 26 Gender 26 0 0 3Admission from ED 16 1 7 5APACHE IV Score 0 0 1 28 Age 9 0 9 11 Diastolic BP 23 0 1 5Systolic BP 26 0 0 3Table 8: Hypothesis test results across k = 29 hospitals for each coefficient versus a null hypothesis of 0. The pHAM and pMLE denote p-values for each covariate effect using the HAM and MLE, respectively. 22 Figure 7: Hospital-level 95% confidence intervals for βAPACHE IV using bβ(πHAM ) and ˜β, and corresponding πj, HAM . Hospitals are ordered from smallest to largest MLE. 
+
+# 8 Conclusion 
+
+Several unique aspects of our proposal bear emphasizing. First, we introduce a new centroid as the data-sharing mechanism that links estimates from individual studies. This centroid symmetrizes the transfer learning inferential goal to adapt it to the meta-analysis setting, and its estimation introduces important flexibility for data-adaptive borrowing. Study-specific shrinkage parameters further allow our estimator to differentially borrow according to a study’s similarity to the centroid. Second, our use of a Kullback-Leibler divergence shrink-age penalty leads to intuitive and interpretable estimators with the familiar fixed-effect meta-estimator as a special case. Third, by carefully choosing the amount of shrinkage, our estimator is both more efficient than the MLE in finite samples and has large-sample inferen-tial guarantees critical for practical use. The proof of these properties relies on an important new parameterization that decouples the selection of the centroid from the selection of the amount of shrinkage. Finally, while data integration methods often rely on cross-validation or raw data access to estimate the optimal amount of data sharing (e.g. Han et al., 2025; Wu and Yang, 2023), our new approach relies on a bias-reduced estimator of shrinkage pa-rameters that balances both finite-sample and asymptotic bias. Put together, these results bestow on our estimator data-adaptive flexibility with statistical efficiency guarantees that 23 Figure 8: 95% confidence intervals for each coefficient using the HAM estimator with sig-nificance at level 0 .05 using both HAM and MLE estimators. Hospitals are ordered from smallest to largest πj, HAM .preserve practical advantages. One limitation of the HAM estimator is that it requires the complete covariance matrix for the study-specific MLEs. While it may not be always readily available, it contains 24 no participant-level data and can therefore be shared without violating data privacy. In fact, practitioners have advocated for its automatic inclusion in publications (Zientek and Thompson, 2009). Empirically, we also found evidence that our estimator’s large-sample properties benefit from standardized covariate inputs. These can be obtained without access to the raw data when the standard deviations of covariates are reported, as is usually the case. Future work should focus on extending the HAM estimator to generalized linear models to enable its implementation in a wider variety of models. Future work may also consider different inferential goals and investigate the theoretical and empirical properties of the HAM estimator when selecting shrinkage parameters using a different loss function than the MSE. For example, one could instead select π to minimize the mean squared prediction error or the MSE for a subset of study effects. We leave these open questions to the interested reader. 
+
+# Acknowledgments 
+
+This work was supported by a grant from the National Science Foundation (DMS 2337943). 
+
+# References 
+
+Amari, S.-i. (2020). Information geometry and its applications . Springer Japan. Bai, J., F¨ ugener, A., Schoenfelder, J., and Brunner, J. O. (2018). Operations research in intensive care unit management: a literature review. Health Care Management Science ,21(1):1–24. Becker, B. J. and Wu, M.-J. (2007). The synthesis of regression slopes in meta-analysis. 
+
+Statistical Science , 22(3):414–429. Claggett, B., Xie, M., and Tian, L. (2014). Meta-analysis with fixed, unknown, study-specific parameters. Journal of the American Statistical Association , 109(508):1660–1671. Cochran, W. G. (1954). The combination of estimates from different experiments. Biomet-rics , 10(1):101–129. Dersimonian, R. and Laird, N. (1986). Meta-analysis in clinical trials. Controlled Clinical Trials , 7:177–188. Eysenck, H. J. (1978). An exercise in mega-silliness. The American Psychologist , page 517. Firth, D. (1993). Bias reduction of maximum likelihood estimates. Biometrika , 80(1):27–38. Frisch, R. and Waugh, F. V. (1933). Partial time regressions as compared with individual trends. Econometrica , 1(4):387–401. Glass, G. V. (1976). Primary, secondary, and meta-analysis of research. Educational Re-searcher , 5(10):3–8. 25 Gurevitch, J., Koricheva, J., Nakagawa, S., and Stewart, G. (2018). Meta-analysis and the science of research synthesis. Nature , 555(7695):175–182. Han, L., Hou, J., Cho, K., Duan, R., and Cai, T. (2025). Federated adaptive causal estima-tion (FACE) of target treatment effects. Journal of the American Statistical Association ,120(551):1503–1516. Hector, E. C. and Martin, R. (2024). Turning the information-sharing dial: efficient inference from different data sources. Electronic Journal of Statistics , 18:2974–3020. Hector, E. C., Tang, L., Zhou, L., and Song, P. X. (2024). Data integration and model fusion in the bayesian and frequentist frameworks. In Berger, J., Meng, X.-L., Reid, N., and Xie, M.-g., editors, Handbook of Bayesian, Fiducial, and Frequentist Inference , pages 238–263. Chapman and Hall/CRC. Hedges, L. V. (1983). A random effects model for effect sizes. Psychological Bulletin ,93(2):388–395. Horn, R. A. and Johnson, C. R. (1985). Chapter 7: Positive definite matrices. In Matrix Analysis . Cambridge University Press, Cambridge. James, W. and Stein, C. (1961). Estimation with quadratic loss. In Proceedings of the Fourth Berkeley Symposium on Mathematical Statistics and Probability, Volume 1: Contributions to the Theory of Statistics , volume 4.1, pages 361–380. University of California Press. Kullback, S. and Leibler, R. A. (1951). On information and sufficiency. The Annals of Mathematical Statistics , 22(1):79–86. Lee, K. J. and Thompson, S. G. (2008). Flexible parametric models for random-effects distributions. Statistics in Medicine , 27(3):418–434. Lettink, A., Chinapaw, M., and van Wieringen, W. N. (2023). Two-dimensional fused targeted ridge regression for health indicator prediction from accelerometer data. Journal of the Royal Statistical Society, Series C , 72:1064–1078. Liu, D., Liu, R. Y., and Xie, M. (2015). Multivariate meta-analysis of heterogeneous stud-ies using only summary statistics: Efficiency and robustness. Journal of the American Statistical Association , 110(509):326–340. Liu, Z., Al Amer, F. M., Xiao, M., Xu, C., Furuya-Kanamori, L., Hong, H., Siegel, L., and Lin, L. (2023). The normality assumption on between-study random effects was question-able in a considerable number of Cochrane meta-analyses. BMC Medicine , 21(1):112. Lovell, M. C. (1963). Seasonal adjustment of economic time series and multiple regression analysis. Journal of the American Statistical Association , 58(304):993–1010. Mehrabani, A. and Ullah, A. (2020). Improved average estimation in seemingly unrelated regressions. Econometrics , 8(2). 26 Moitra, V. K., Guerra, C., Linde-Zwirble, W. T., and Wunsch, H. (2016). Relationship between ICU length of stay and long-term mortality for elderly ICU survivors. Critical care medicine , 44(4):655–662. Noma, H., Nagashima, K., Kato, S., Teramukai, S., and Furukawa, T. A. (2022). Meta-analysis using flexible random-effects distribution models. Journal of Epidemiology ,32(10):441–448. Noma, H., Sugasawa, S., and Furukawa, T. A. (2024). Robust inference methods for meta-analysis involving influential outlying studies. Statistics in Medicine , 43(20):3778–3791. Pigott, T. D. and Polanin, J. R. (2020). Methodological guidance paper: High-quality meta-analysis in a systematic review. Review of Educational Research , 90(1):24–46. Pollard, T., Johnson, A., Raffa, J., Celi, L. A., Badawi, O., and Mark, R. (2019). eICU Collaborative Research Database (version 2.0). PhysioNet. Rapoport, J., Teres, D., Zhao, Y., and Lemeshow, S. (2003). Length of stay data as a guide to hospital economic performance for icu patients. Medical Care , 41(3):386–397. Rice, K., Higgins, J. P. T., and Lumley, T. (2018). A re-evaluation of fixed effect(s) meta-analysis. Journal of the Royal Statistical Society, Series A , 181(1):205–227. Shadish, W. R. and Lecy, J. D. (2015). The meta-analytic big bang. Research Synthesis Methods , 6(3):246–264. Stein, C. M. (1981). Estimation of the mean of a multivariate normal distribution. The Annals of Statistics , 9(6). Verburg, I. W. M., Keizer, N. F. d., Jonge, E. d., and Peek, N. (2014). Comparison of regression methods for modeling intensive care length of stay. PLOS ONE , 9(10):e109684. Wang, R., Wang, Q., and Miao, W. (2023). A robust fusion-extraction procedure with summary statistics in the presence of biased sources. Biometrika , 110(4):1023–1040. Williams, T. A., Ho, K. M., Dobb, G. J., Finn, J. C., Knuiman, M., Webb, S. A. R., and on behalf of the Royal Perth Hospital ICU Data Linkage Group (2010). Effect of length of stay in intensive care unit on hospital and long-term mortality of critically ill adult patients. BJA: British Journal of Anaesthesia , 104(4):459–464. Wu, L. and Yang, S. (2023). Transfer learning of individualized treatment rules from experi-mental to real-world data. Journal of Computational and Graphical Statistics , 32(3):1036– 1045. Xie, M., Singh, K., and Strawderman, W. E. (2011). Confidence distributions and a unifying framework for meta-analysis. Journal of the American Statistical Association ,106(493):320–333. 27 Zangmo, K. and Khwannimit, B. (2023). Validating the APACHE IV score in predicting length of stay in the intensive care unit among patients with sepsis. Scientific Reports ,13:5899. Zellner, A. (1962). An efficient method of estimating seemingly unrelated regressions and tests for aggregation bias. Journal of the American Statistical Association , 57(298):348– 368. Zhan, X. (2002). Inequalities in the L¨ owner Partial Order. In Matrix Inequalities , volume 1790. Springer Berlin Heidelberg, Berlin, Heidelberg. Zientek, L. R. and Thompson, B. (2009). Matrix summaries improve research reports: Secondary analyses using published literature. Educational Researcher , 38(5):343–352. Zimmerman, J. E., Kramer, A. A., McNair, D. S., and Malila, F. M. (2006). Acute Physiology and Chronic Health Evaluation (APACHE) IV: Hospital mortality assessment for today’s critically ill patients. Critical Care Medicine , 34(5):1297–1310. 28 A Derivation of estimators 
+
+In this section, we derive the estimators in equations (3) and (4) of the main manuscript, as well as those in Section 3.2. We derive these estimators for the general case where study j
+
+has qj covariates, p of which are common across studies. In this context, for study j, denote the nj × p matrix for the effects of interest as Xj
+
+and denote the nj × (qj − p) matrix of control covariates as Zj . Outcomes for study j are modeled as 
+
+Y j = Xj βj + Zj γj + ϵj , ϵj ∼ N (0, σ 2 
+
+> j
+
+Inj ). (18) Let K = 1k ⊗ Ip ∈ Rpk ×p matrix which stacks the vector to its right, and define 
+
+Πblock-diag {π1Ip, . . . , π kIp} ∈ Rpk ×pk . As in Section 3.2, define M j = Inj −Zj (Z⊤ 
+
+> j
+
+Zj )−1Z⊤
+
+> j
+
+when qj > p , and M j = Inj when qj = p. Let Y = ( Y 1, . . . , Y k), X = block-diag {X1, . . . , Xk},
+
+M = block-diag {M 1, . . . , M k}, and Σ = block-diag {σ21 In1 , . . . , σ 2
+
+> k
+
+Ink }.First, note that we can change the multiplication order for some sets of matrices: 
+
+ΠX⊤M Σ−1M X = X⊤M Σ−1M X Π
+
+(Ipk − Π)X⊤M Σ−1M X = X⊤M Σ−1M X (Ipk − Π).
+
+Next, as the objective function in equation (9) contains the generalized inverse for M j , we can write (M j Y j − M j Xj βj )⊤M + 
+
+> j
+
+(M j Y j − M j Xj βj )= ( Y j − Xj βj )⊤M j M ⊤ 
+
+> j
+
+M j (Y j − Xj βj )= ( Y j − Xj βj )⊤M j (Y j − Xj βj )= ( M j Y j − M j Xj βj )⊤(M j Y j − M j Xj βj ).
+
+Using this, we maximize the objective function 
+
+O(β, θ; Π) = − 12(M Y − M Xβ )′Σ−1(M Y − M Xβ )
+
+− 12(β − Kθ )′Π(I − Π)−1X⊤M Σ−1M X (β − Kθ ),
+
+with respect to θ and β. This is the objective function in equation (2) from Section 3 in matrix form. We begin by taking the partial derivative of the objective function with respect to θ:
+
+∇θO(β, θ; λ) = −12{− 2K′Π(Ipk − Π)−1X⊤M Σ−1M X (β − Kθ )}.
+
+29 The root of this gradient is given by 
+
+bθ(π) = {K′Π(Ipk − Π)−1X⊤M Σ−1M XK }−1K′Π(Ipk − Π)−1X⊤M Σ−1M X bβ(π)=
+
+ dX
+
+> j=1
+
+πj
+
+(1 − πj )σ2
+
+> j
+
+X′ 
+
+> j
+
+M j Xj
+
+−1 dX
+
+> j=1
+
+πj
+
+(1 − πj )σ2
+
+> j
+
+X′ 
+
+> j
+
+M j Xj bβj (π). (19) We will show that this can be simplified after obtaining a closed form for bβ(π), discussed next. The next step is to derive the bβ(π) that maximizes O(β, θ; λ). In the derivation below, we suppress the dependence of bβ(π) and bθ(π) on π for brevity, and write I for Ipk . The gradient of the objective function with respect to β is 
+
+∇βO(β, θ; π) = −12{− 2X′M Σ−1(M Y − M Xβ )}− 12{2Π(I − Π)−1X⊤M Σ−1M X (β − Kθ )}.
+
+We again find the root of the gradient, denoted by bβ:
+
+0 = X⊤M Σ−1M Y − X⊤M Σ−1M X bβ − Π(I − Π)−1X⊤M Σ−1M X bβ
+
++ Π(I − Π)−1X⊤M Σ−1M XK bθ.
+
+Rearranging, we obtain 
+
+X⊤M Σ−1M Y = ( I − Π)−1X⊤M Σ−1M X bβ − Π(I − Π)−1X⊤M Σ−1M XK bθ,
+
+or, equivalently, 
+
+X⊤M Σ−1M Y = ( I − Π)−1X⊤M Σ−1M X ( bβ − ΠK bθ).
+
+Plugging in the form of bθ, the above can be rewritten as 
+
+X⊤M Σ−1M Y 
+
+= ( I − Π)−1X⊤M Σ−1M X 
+
+· [I − ΠK{K′Π(I − Π)−1X⊤M Σ−1M XK }−1K′Π(I − Π)−1X⊤M Σ−1M X ] bβ.
+
+Rearranging, the estimator of β is 
+
+bβ(π) =[ I − ΠK{K′Π(I − Π)−1X⊤M Σ−1M XK }−1K′Π(I − Π)−1X⊤M Σ−1M X ]−1
+
+· (I − Π)( X⊤M Σ−1M X )−1X⊤M Σ−1M Y . (20) We now proceed to simplify this expression. First, the Frisch-Waugh-Lovell theorem states that for a partitioned model like the one in equation (6), the MLE for βj is ˜βj =(X′ 
+
+> j
+
+M j Xj )−1X′ 
+
+> j
+
+M j Y j (Frisch and Waugh, 1933; Lovell, 1963). In our block-diagonalized 30 notation, the MLE for β is 
+
+˜β = ( X⊤M Σ−1M X )−1X⊤M Σ−1M Y .
+
+Substituting this MLE into equation (20) gives 
+
+bβ(π) =[ I − ΠK{K′Π(I − Π)−1X⊤M Σ−1M XK }−1K′Π(I − Π)−1X⊤M Σ−1M X ]−1
+
+· (I − Π) ˜β.
+
+Next, we use the Woodbury identity to simplify the first inverse term of bβ(π): [I − ΠK{K′Π(I − Π)−1X⊤M Σ−1M XK }−1K′Π(I − Π)−1X⊤M Σ−1M X ]−1
+
+= I + ΠK{K′Π(I − Π)−1X⊤M Σ−1M XK − K′Π2(I − Π)−1X⊤M Σ−1M XK }−1
+
+· K′Π(I − Π)−1X⊤M Σ−1M X 
+
+= I + ΠK{K′Π(I − Π)( I − Π)−1X⊤M Σ−1M XK }−1K′Π(I − Π)−1X⊤M Σ−1M X 
+
+= I + ΠK(K′ΠX⊤M Σ−1M XK )−1K′Π(I − Π)−1X⊤M Σ−1M X .
+
+Plugging this into equation (20) yields a simplified form of our estimator, 
+
+bβ(π) = {I + ΠK(K′ΠX⊤M Σ−1M XK )−1K′Π(I − Π)−1X⊤M Σ−1M X }· (I − Π) ˜β
+
+= ( I − Π) ˜β + ΠK(K′ΠX⊤M Σ−1M XK )−1K′ΠX⊤M Σ−1M X ˜β. (21) Before simplifying this further, we turn our attention back to our estimator of the centroid 
+
+θ. Plugging the form of bβ(π) in equation (21) into equation (19), we obtain 
+
+bθ(π) = {K′Π(I − Π)−1X⊤M Σ−1M XK }−1K′Π(I − Π)−1X⊤M Σ−1M X bβ(π)= {K′Π(I − Π)−1X⊤M Σ−1M XK }−1K′Π(I − Π)−1X⊤M Σ−1M X 
+
+· { (I − Π) + ΠK(K′ΠX⊤M Σ−1M XK )−1K′ΠX⊤M Σ−1M X } ˜β.
+
+Denoting Π2 = Π Π , and using the commutative nature of Π, this can be simplified as 
+
+bθ(π) = {K′Π(I − Π)−1X⊤M Σ−1M XK }−1
+
+· { K′ΠX⊤M Σ−1M X + K′Π2(I − Π)−1X⊤M Σ−1M XK 
+
+· (K′ΠX⊤M Σ−1M XK )−1K′ΠX⊤M Σ−1M X } ˜β
+
+= {K′Π(I − Π)−1X⊤M Σ−1M XK }−1
+
+· { I + K′Π2(I − Π)−1X⊤M Σ−1M XK (K′ΠX⊤M Σ−1M XK )−1}· K′ΠX⊤M Σ−1M X ˜β.
+
+We focus next on the term on the second-to-last line. In the first step, write 
+
+I = K′ΠX⊤M Σ−1M XK (K′ΠX⊤M Σ−1M XK )−1,
+
+31 and then factor, pulling the inverse term out to the right. 
+
+I + K′Π2(I − Π)−1X⊤M Σ−1M XK (K′ΠX⊤M Σ−1M XK )−1
+
+= {K′ΠX⊤M Σ−1M XK + K′Π2(I − Π)−1X⊤M Σ−1M XK }· (K′ΠX⊤M Σ−1M XK )−1
+
+To further simplify, we multiply by ( I − Π)( I − Π)−1 within the first term. This allows us to group the first and second terms together, and the Π2 term cancels out. [K′{(Π − Π2)( I − Π)−1 + Π2(I − Π)−1}X⊤M Σ−1M XK ]
+
+· (K′ΠX⊤M Σ−1M XK )−1
+
+= {K′Π(I − Π)−1X⊤M Σ−1M XK }(K′ΠX⊤M Σ−1M XK )−1.
+
+Finally, we substitute this term back into the expression for bθ(π). After cancellation of terms, we obtain 
+
+bθ(π) = {K′Π(I − Π)−1X⊤M Σ−1M XK }−1{K′Π(I − Π)−1X⊤M Σ−1M XK }· (K′ΠX⊤M Σ−1M XK )−1K′ΠX⊤M Σ−1M X ˜β
+
+= ( K′ΠX⊤M Σ−1M XK )−1K′ΠX⊤M Σ−1M X ˜β. (22) Equation (22) reveals that bβ(π) in equation (21) can be written as a weighted average of the individual study MLEs and the estimated centroid: 
+
+bβ(π) = ( I − Π) ˜β + ΠK bθ(π).
+
+# B Derivation of MSE 
+
+In this section, we derive the mean squared error (MSE) of bβ(π). Recall from equation (5) in Section 3.1 that we may write bβ(π) in terms of the MLE ˜β through 
+
+bβ(π) = ˜β + Π{KA (π) − Ipk } ˜β.
+
+We begin by rewriting the MSE of bβ(π) in terms of the bias and the variance: 
+
+MSE { bβ(π)} = E[{ bβ(π) − β}′{ bβ(π) − β}]= E([ bβ(π) − E{ bβ(π)} + E{ bβ(π)} − β]′[ bβ(π) − E{ bβ(π)} + E{ bβ(π)} − β]) = E([ bβ(π) − E{ bβ(π)}]′[ bβ(π) − E{ bβ(π)}]) + 2 E([ bβ(π) − E{ bβ(π)}]′[E{ bβ(π)} − β]) + E([ E{ bβ(π)} − β]′[E{ bβ(π)} − β]) .
+
+32 The first term in the MSE expression above is a scalar, and thus is unchanged by the trace operator: 
+
+tr {E([ bβ(π) − E{ bβ(π)}]′[ bβ(π) − E{ bβ(π)}]) } = tr {E([ bβ(π) − E{ bβ(π)}][ bβ(π) − E{ bβ(π)}]′)}
+
+= tr [Var { bβ(π)}]. (23) The second term in the MSE expression is 0: 
+
+E([ bβ(π) − E{ bβ(π)}]′[E{ bβ(π)} − β]) = E{ bβ(π)}′[E{ bβ(π)} − β] − E{ bβ(π)}′[E{ bβ(π)} − β]= 0 . (24) The third term in the MSE expression is the inner product of the bias of bβ(π). Together with equations (23) and (24), this allows us to rewrite the MSE of bβ(π) as 
+
+MSE { bβ(π)} = tr [Var { bβ(π)}] + ∥Bias { bβ(π)}∥ 2. (25) The variance of bβ(π) is 
+
+Var { bβ(π)} = Var ( ˜β) + 2 Cov [Π{KA (π) − Ipk } ˜β, ˜β] + Var [Π{KA (π) − Ipk } ˜β], (26) and the bias is Bias { bβ(π)} = E[ ˜β + Π{KA (π) − Ipk } ˜β] − β
+
+= Π{KA (π) − Ipk }β. (27) Plugging equations (26) and (27) into equation (25), the MSE of bβ(π) and, equivalently, the MSE of bβ(c, πr), are 
+
+tr {Var ( ˜β)} + tr (Var [Π{K bθ(π) − ˜β}]) + 2 · tr (Cov [ ˜β, Π{K bθ(π) − ˜β}]) + ∥Π{KA (π) − Ipk }β∥2. (28) 
+
+# C Proof of Theorem 1 
+
+In this proof, we demonstrate that there is a vector of π̸ = 0 such that MSE { bβ(π)} <
+
+MSE ( ˜β). We show that such a vector exists by restricting π to the subset where πj ≡ π.First, we write the MSE of bβ(π), given in Equation (28), for the case where πj ≡ π. To do so, first note that when all πj are equal, A(π) = ( K′X⊤Σ−1XK )−1K′X⊤Σ−1X: A(π)is no longer a function of π and we write A(π) = A. Then, 
+
+MSE { bβ(π)} = tr {(X⊤Σ−1X)−1} + 2 π · tr {(KA − Ipk )( X⊤Σ−1X)−1}
+
++ π2 · tr {(KA − Ipk )( X⊤Σ−1X)−1(KA − Ipk )′} + π2 · ∥ (KA − Ipk )β∥2.
+
+To select the π that minimizes the MSE, we find the root of the derivative of the 33 MSE { bβ(π)} with respect to π:
+
+∂∂π MSE { bβ(π)} = 2 π · ∥ (KA − Ipk )β∥2 + 2 π · tr {(KA − Ipk )( X⊤Σ−1X)−1(KA − Ipk )′}
+
++ 2 · tr {(KA − Ipk )( X⊤Σ−1X)−1}.
+
+The root π⋆ of this derivative satisfies 0 = 2 π⋆ · tr {(KA − Ipk )( X⊤Σ−1X)−1(KA − Ipk )′} + 2 · tr {(KA − Ipk )( X⊤Σ−1X)−1}
+
++ 2 π⋆ · ∥ (KA − Ipk )β∥2.
+
+Rearranging, π⋆ is given by 
+
+π⋆ = −tr {(KA − Ipk )( X⊤Σ−1X)−1}
+
+tr {(KA − Ipk )( X⊤Σ−1X)−1(KA − Ipk )′} + ∥(KA − Ipk )β∥2 .
+
+The second derivative of the MSE with respect to π is 2∥(KA − Ipk )β∥2 + 2 tr {(KA − Ipk )( X⊤Σ−1X)−1(KA − Ipk )′} ≥ 0,
+
+and so π⋆ minimizes the MSE. The final step is to show that π⋆ > 0. The denominator for π⋆ is strictly positive, as it consists of the sum of the trace of a variance matrix and an inner product. Thus, we need only consider the numerator, 
+
+−tr {(KA − Ipk )( X⊤Σ−1X)−1} = −tr {K(K′X⊤Σ−1XK )−1K′} + tr {(X⊤Σ−1X)−1}
+
+= −tr {K′K(K′X⊤Σ−1XK )−1} + tr {K′(X⊤Σ−1X)−1K}
+
+= −k · tr {(K′X⊤Σ−1XK )−1} + tr {K′(X⊤Σ−1X)−1K},
+
+where we used the fact that K′K = kIp to factor out k in the first term. The second term in the numerator is 
+
+tr {K′(X⊤Σ−1X)−1K} = tr {
+
+> k
+
+X
+
+> j=1
+
+( 1
+
+σ2
+
+> j
+
+X⊤ 
+
+> j
+
+Xj )−1} =
+
+> p
+
+X
+
+> ℓ=1
+> k
+
+X
+
+> j=1
+
+( 1
+
+σ2
+
+> j
+
+X⊤ 
+
+> j
+
+Xj )−1
+
+> ℓℓ
+
+=
+
+> pk
+
+X
+
+> ℓ=1
+
+(X⊤Σ−1X)−1 
+
+> ℓℓ
+
+= tr {(X⊤Σ−1X)−1}.
+
+We now show that, for k ≥ 2, tr {K′(X⊤Σ−1X)−1K − k(K′X⊤Σ−1XK )−1} > 0, which completes the proof. 
+
+Proof. It will suffice to show that the interior of the trace, 
+
+K′(X⊤Σ−1X)−1K − k(K′X⊤Σ−1XK )−1,
+
+34 is positive definite. Following the proof technique in Zhan (2002), define a block matrix: 
+
+D =
+
+k−1K′X⊤Σ−1XK Ip
+
+Ip k−1K′(X⊤Σ−1X)−1K
+
+
+
+=
+
+k−1K′X⊤Σ−1XK k−1K′K
+
+k−1K′K k−1K′(X⊤Σ−1X)−1K
+
+
+
+If D is positive semi-definite, then k−1K′(X⊤Σ−1X)−1K − (k−1K′X⊤Σ−1XK )−1 is also positive semi-definite (Horn and Johnson, 1985): 
+
+K′(X⊤Σ−1X)−1K ⪰ k2(K′X⊤Σ−1XK )−1
+
+This relationship would imply that 
+
+K′(X⊤Σ−1X)−1K ≻ k(K′X⊤Σ−1XK )−1,
+
+for k ≥ 2. Thus, we need to show that D is positive semi-definite. To see that D is positive semi-definite, first note that X⊤Σ−1X = Ppk ℓ=1 ξℓuℓu′
+
+> ℓ
+
+, where 
+
+uℓ is the normalized eigenvector for the ℓth eigenvalue, ξℓ, of X⊤Σ−1X. Further, as Ppk ℓ=1 uℓu′ 
+
+> ℓ
+
+= Ipk , we can rewrite D as 
+
+D =
+
+k−1K′ Pkℓ=1 ξℓuℓu′
+
+> ℓ
+
+K k−1K′ Pkℓ=1 uℓu′
+
+> ℓ
+
+K
+
+k−1K′ Pkℓ=1 uℓu′
+
+> ℓ
+
+K k−1K′ Pkℓ=1 ξ−1 
+
+> ℓ
+
+uℓu′
+
+> ℓ
+
+K
+
+
+
+=
+
+> pk
+
+X
+
+> ℓ=1
+
+ ξℓ 11 ξ−1
+
+> ℓ
+
+
+
+⊗ k−1K′uℓu′
+
+> ℓ
+
+K
+
+
+
+.
+
+We argue that the matrices to the left and right of the Kronecker product are positive semi-definite, and then show that the eigenvalues of a Kronecker product of positive semi-definite matrices are non-negative. The matrix to the left of the Kronecker product has eigenvalue ξℓ + ξ−1 
+
+> ℓ
+
+, ξℓ > 0, and so is positive semi-definite. The matrix to the right of the Kronecker product is diagonal with non-negative values along the diagonal, so it is positive semi-definite: 
+
+K′uℓu′
+
+> ℓ
+
+K = K′
+
+
+
+u11 
+
+...
+
+ukp 
+
+
+
+u11 
+
+...
+
+ukp 
+
+
+
+> ′
+
+K
+
+=
+
+Pki=1 u2 
+
+> i1
+
+. . . 0... . . . ...0 . . . Pki=1 u2
+
+> ip
+
+.
+
+
+
+Now we show that the eigenvalues of a Kronecker product of matrices A and B are the product of the eigenvalues of A and B. Let x be an eigenvector for A with corresponding 35 eigenvalue λ and y be an eigenvector for B with corresponding eigenvalue μ:(A ⊗ B)( x ⊗ y) = ( Ax ) ⊗ (By )= λx ⊗ μy = λμ (x ⊗ y)Then, the Kronecker product of two positive semi-definite matrices is also positive semi-definite, so D is positive semi-definite and K′(X⊤Σ−1X)−1K ≻ k × (K′X⊤Σ−1XK )−1.Consequently, 
+
+−ktr {(K′X⊤Σ−1XK )−1} + tr {K′(X⊤Σ−1X)−1K} > 0,
+
+and π⋆ > 0. As a result, for any β and X⊤Σ−1X, there exists a bβ(π) that has a smaller MSE than the MLE. When all πj ≡ π, π⋆ minimizes the MSE. When πj ≡ π, we can further show that MSE { bβ(π)} < MSE ( ˜β) for π ∈ (0 , 2π⋆). Indeed, 
+
+MSE { bβ(π)} is a quadratic function of π and is thus symmetric about its minimum at π⋆;since MSE { bβ(0) } = MSE ( ˜β), we know that MSE { bβ(2 π⋆)} = MSE ( ˜β). As a consequence, any π ∈ (0 , 2π⋆) yields an improvement in MSE over the MLE. 
+
+# D Proof of Theorem 2 
+
+Define K = ( 1k ⊗ Ip) and let c ∈ [0 , 1]. The estimators are 
+
+bθ(πr) = 
+
+ kX
+
+> j=1
+
+πr,j 
+
+1
+
+σ2
+
+> j
+
+X⊤ 
+
+> j
+
+Xj
+
+−1 kX
+
+> j=1
+
+πr,j 
+
+1
+
+σ2
+
+> j
+
+X⊤ 
+
+> j
+
+Xj ˜βj
+
+bβ(c, πr) = ( Ipk − cΠr) ˜β − cΠrK bθ(π),
+
+where at least one πr,j = 1 The MSE of bβ(c, π) is 
+
+tr {Var ( ˜β)} + tr (Var [Π{K bθ(π) − ˜β}]) + 2 tr (Cov [ ˜β, Π{K bθ(π) − ˜β}]) + ∥Π{KA (π) − Ipk }β∥2
+
+= tr {Var ( ˜β)} + 2 c tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) + c2 tr (Var [Πr{KA (πr) − Ipk } ˜β]) + c2 ∥Πr{KA (πr) − Ipk }β∥2.
+
+The root of the derivative of this MSE with respect to c is 
+
+c⋆(πr) = −tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) 
+
+tr (Var [Πr{KA (π) − Ipk } ˜β]) + ∥Πr{KA (πr) − Ipk }β∥2
+
+This will be a minimum, as the second derivative of the MSE with respect to c is positive. The denominator for c⋆(πr) is always positive, as it is the sum of an inner product and the trace of a variance. Then, if tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) < 0 for all constrained 36 πr, every πr offers an improvement over the MLE with sufficiently small scaling. To see the conditions under which this term will be strictly negative, we first rewrite it in terms of 
+
+X⊤Σ−1X.
+
+tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) = tr (Cov [ ˜β, Πr{K(K′ΠrX⊤Σ−1XK )−1K′ΠrX⊤Σ−1X − Ipk } ˜β]) = tr [Var ( ˜β){X⊤Σ−1XΠrK(K′ΠrX⊤Σ−1XK )−1K′ − Ipk }Πr]The variance of ˜β is ( X⊤Σ−1X)−1. We substitute this term in: = tr [{ΠrK(K′ΠrX⊤Σ−1XK )−1K′ − (X⊤Σ−1X)−1}Πr]= tr {K′Π2 
+
+> r
+
+K(K′ΠrX⊤Σ−1XK )−1} − tr {Πr(X⊤Σ−1X)−1}
+
+The trace of Πr(X⊤Σ−1X)−1 is equal to K′Πr(X⊤Σ−1X)−1K. Then, to show that the numerator of c⋆(πr) is negative, we need to show 
+
+K′Πr(X⊤Σ−1X)−1K ≻ K′Π2 
+
+> r
+
+K(K′ΠrX⊤Σ−1XK )−1.
+
+This term will always be less than or equal to zero, no matter the value of πr - it follows from the same logic that allowed us to say that Pkj=1 ( 1
+
+> σ2
+> j
+
+X⊤ 
+
+> j
+
+Xj )−1 ≻ k × { Pkj=1 ( 1
+
+> σ2
+> j
+
+X⊤ 
+
+> j
+
+Xj )−1} in Section C. First, write a matrix M :
+
+D =
+
+K′ΠrX⊤Σ−1XK (K′ΠrK)−1 Ip = K′ΠrK(K′ΠrK)−1
+
+Ip = K′ΠrK(K′ΠrK)−1 K′Πr(X⊤Σ−1X)−1K(K′ΠrK)−1
+
+
+
+As in the proof technique for 1, if D is positive semi-definite, then 
+
+K′Πr(X⊤Σ−1X)−1K(K′ΠrK)−1 − (K′ΠrK)( K′ΠrX⊤Σ−1XK )−1 ⪰ 0
+
+K′Πr(X⊤Σ−1X)−1 ⪰ (K′ΠrK)( K′ΠrX⊤Σ−1XK )−1(K′ΠrK)
+
+K′Πr(X⊤Σ−1X)−1 ⪰ (
+
+> k
+
+X
+
+> j=1
+
+πj )2(K′ΠrX⊤Σ−1XK )−1
+
+≻
+
+> k
+
+X
+
+> j=1
+
+π2 
+
+> j
+
+(K′ΠrX⊤Σ−1XK )−1
+
+The last ordering holds as long as at least two πj /∈ { 0, 1}; that is, as long as bβ(c, πr)̸ = ˜β.To see that D is positive definite, as before write X⊤Σ−1X = Ppk k=1 ξkuku′
+
+> k
+
+, where uk is the normalized eigenvector for the kth eigenvalue. The sum, Ppk k=1 uku′ 
+
+> k
+
+is the pd × pd identity matrix. Then rewrite D as the following sum: 
+
+D =
+
+> pk
+
+X
+
+> k=1
+
+ ξk 11 ξ−1
+
+> k
+
+
+
+⊗ K′Πruku′
+
+> k
+
+K(K′ΠrK)−1
+
+
+
+37 This is the Kronecker product of two positive semi-definite matrices, so it is positive semi-definite. 
+
+# E Proof of Corollary 2.1 
+
+Consider the MSE of bβ(c, πr). We want to find c such that MSE ( ˜β) − MSE { bβ(c, πr)} ≥ 0, i.e. 0 ≤ MSE ( ˜β) − MSE { bβ(c, πr)}
+
+= −c2 × tr (Var [πr{K bθ(πr) − ˜β}]) − 2c × tr (Cov [ ˜β, πr{K bθ(πr) − ˜β}]) 
+
+− c2 × ∥ πr{Kθ (πr) − β}∥ 2.
+
+Rearranging, we want to find c such that 0 ≥ c × tr (Var [πr{K bθ(πr) − ˜β}]) + 2 × tr (Cov [ ˜β, πr{K bθ(πr) − ˜β}]) + c × ∥ πr{Kθ (πr) − β}∥ 2.
+
+The solution is the set 
+
+n
+
+c : c ≤ −2tr (Cov [ ˜β, πr{K bθ(πr) − ˜β}]) 
+
+tr (Var [Π{K bθ(πr) − ˜β}]) + ∥πr{Kθ (πr) − β}∥ 2
+
+o
+
+= {c : c ≤ 2c⋆}.
+
+That is, for a given π = c(πr)πr, MSE { bβ(c, πr)} ≤ MSE ( ˜β) if and only if c ≤ 2c⋆(πr). 
+
+# F Proof of Theorem 3 
+
+In this section, we show that the estimator bβ(c⋆, πr) is consistent under the assumptions of Theorem 3. The proof proceeds as follows. We first show the exact distribution for bβ(c, πr)with a general scaling factor c and then demonstrate that the estimator’s bias goes to zero as 
+
+n → ∞ for the optimal scaling c⋆(πr). Finally, we show that the estimator’s total variance also goes to zero as n → ∞ . We occasionally suppress c⋆’s dependence on πr for notational brevity. To begin, write bβ(c, πr) in terms of ˜β, as in equation (11): 
+
+bβ(c, π) = [ Ipk + cΠr{KA (πr) − Ipk }] ˜β.
+
+As ˜β ∼ N { β, (X⊤Σ−1X)−1}, the estimator bβ(c, πr) is also normally distributed with mean 
+
+β + cΠr{KA (πr) − Ipk }β
+
+and variance [Ipk + cΠr{KA (πr) − Ipk }]( X⊤Σ−1X)−1[Ipk + c{KA (πr) − Ipk }′Πr]38 We now argue that the bias goes to zero asymptotically. The bias vector for bβ(c, πr) is 
+
+cΠr{KA (πr)−Ipk }β. We begin by showing that the matrix KA (πr)−Ipk is asymptotically a constant for a fixed πr. Denote the scaled Gram matrices, Gj = n−1 
+
+> j1
+> σ2
+> j
+
+X⊤ 
+
+> j
+
+Xj . As assumed above, G−1 
+
+> j
+
+→ Q−1 
+
+> j
+
+, a positive definite matrix, as n → ∞ . The matrix A(πr) can be re-expressed in terms of the scaled Gram matrices, 
+
+A(πr) = ( K′ΠrX⊤Σ−1XK )−1K′ΠrX⊤Σ−1X
+
+=
+
+h
+
+(Pkj=1 πr,j aj Gj )−1πr, 1a1G1 . . . (Pkj=1 πr,j aj Gj )−1πr,k akGk
+
+i
+
+To simplify the notation, let Bn(πr) = KA (πr) − Ipk . We examine the behavior of 
+
+Bn(πr) as n → ∞ , for an arbitrary and fixed value of πr. By the continuous mapping theorem, Gj → Qj and therefore, again by the continuous mapping theorem, P 
+
+> j
+
+πr,j aj Gj →P 
+
+> j
+
+πr,j aj Qj . As we are considering a fixed πr, we may take a weighted sum of the matrices 
+
+Gj and they will converge to the weighted sum of Qj . Then, the inverse of the weighted sum of Gj converges to the weighted sum of Qj :
+
+X 
+
+> j
+
+πr,j aj Gj
+
+−1
+
+→
+
+X 
+
+> j
+
+πr,j aj Qj
+
+−1
+
+.
+
+This implies that 
+
+X 
+
+> j
+
+πr,j aj Gj
+
+−1
+
+πr,i aiGi →
+
+X 
+
+> j
+
+πr,j aj Qj
+
+−1
+
+πr,i aiQi,
+
+which again implies that 
+
+X 
+
+> j
+
+πr,j aj Gj
+
+−1
+
+πr,i aiGi − I →
+
+X 
+
+> j
+
+πr,j aj Qj
+
+−1
+
+πr,i aiQi − I.
+
+The left-hand side of the above equation is a single sub-matrix on the diagonal of Bn(πr): 
+
+Bn(πr) = 
+
+
+
+(P 
+
+> j
+
+πr,j aj Gj )−1πr, 1a1G1 − I . . . (P 
+
+> j
+
+πr,j aj Gj )−1πr,k akGk
+
+... . . . ...(P 
+
+> j
+
+πr,j aj Gj )−1πr, 1a1G1 . . . (P 
+
+> j
+
+πr,j aj Gj )−1πr,k akGk − I
+
+ .
+
+Each sub-matrix of Bn(πr) converges to a constant matrix for an arbitrary fixed πr, so 
+
+Bn(πr) → B(πr). Denote θn→∞ = lim n→∞ θn. Then, for arbitrary πr,Bias { bβ(c, πr)} = cΠrBn(πr)β → cΠrB(πr)β =
+
+
+
+cπ r, 1{θn→∞ (πr) − β1}
+
+...
+
+cπ r,k {θn→∞ (πr) − βk}
+
+
+
+We first consider the bias in the case with general scaling, c. The value of θn→∞ (πr) is finite, as its components are finite. Then, the bias goes to zero asymptotically if (i) βj = βj′ for 39 all studies j, j′, (ii) πr,j {θn→∞ (πr) − βj } → 0 for every study j, or (iii) if c → 0. For case (i), β = Kβ 1 (where β1 is selected without loss of generality). Then, 
+
+cΠr{KA (πr) − Ipk }Kβ 1 = cΠr{KA (πr)K − K}β1.
+
+The bracketed term on the right-hand side is zero as A(πr)K = Ip, and so the bias is zero. Now we consider cases (ii) and (iii), using the optimal scaling, c⋆(πr) at an arbitrary πr.Recall that 
+
+c⋆(πr) = −tr [Cov { ˜β, ΠrBn(πr) ˜β}]
+
+tr [Var {ΠrBn(πr) ˜β)}] + ∥ΠrBn(πr)β∥2
+
+= −tr {ΠrBn(πr)( X⊤Σ−1X)−1}
+
+tr {ΠrBn(πr)( X⊤Σ−1X)−1Bn(πr)Πr} + ∥ΠrBn(πr)β∥2 .
+
+We rescale trace terms in the numerator and denominator to put them more clearly in terms of n:
+
+c⋆(πr) = −n−1tr {ΠrBn(πr)G−1}
+
+n−1tr {ΠrBn(πr)G−1Bn(πr)Πr} + ∥ΠrBn(πr)β∥2 .
+
+The traces contain only matrices that are finite as n → ∞ , so that 
+
+n−1tr {ΠrBn(πr)G−1} → 0,n−1tr {ΠrBn(πr)G−1Bn(πr)Πr} → 0.
+
+Then, in case (iii) where the inner product of the bias does not go to zero, c⋆ = o(1), and 
+
+bβ(c, πr) is asymptotically unbiased. In case (ii), ∥ΠrBn(πr)β∥2 goes to zero, implying 
+
+πr,j {θn→∞ (πr) − βj } → 0 for all j; this also yields asymptotic unbiasedness of bβ(c, πr). Because we consider these at an arbitrary πr, c⋆(πr) is asymptotically unbiased for all values of πr, including the optimal choice π⋆r , which may vary in n.Finally, we show that the total variance goes to zero. The total variance of bβ(c, πr) is 
+
+tr [Var { bβ(c, πr)}] = tr [{I + cΠrBn(πr)}(X⊤Σ−1X)−1{I + cBn(πr)′Πr}]= tr {(X⊤Σ−1X)−1} + 2 c × tr {ΠrBn(πr)( X⊤Σ−1X)−1}
+
++ c2tr {ΠrBn(πr)( X⊤Σ−1X)−1Bn(πr)′Πr}
+
+= 1
+
+ntr (G−1) + 2cn tr {ΠrBn(πr)G−1} + c2
+
+n tr {ΠrBn(πr)G−1Bn(πr)′Πr}.
+
+Each trace term converges to a finite scalar because Bn(πr) → B(πr). Then, as long as 
+
+c = o(√n), the total variance converges to zero as n → ∞ . This condition is met for general 
+
+c, as the c is at most 1. 40 G Expected value of biased estimator of the MSE 
+
+Plugging in the MLE ˜β for β within the MSE for bβ(c, πr) yields a biased MSE, 
+
+BMSE { bβ(c, πr)} = c2∥Πr{KA (πr) − Ipk } ˜β∥2 + c2tr (Var [Πr{KA (πr) − Ipk } ˜β]) + 2 c × tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) + tr {Var ( ˜β)}.
+
+The expected value of this function is 
+
+E[BMSE { bβ(c, πr)}] = c2E[∥Πr{KA (πr) − Ipk } ˜β∥2] + c2tr (Var [Πr{KA (πr) − Ipk } ˜β]) + 2 c × tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) + tr {Var ( ˜β)}.
+
+# H Derivation for Unbiased MSE Estimator 
+
+Our derivation follows Stein (1981). We first rewrite the MSE in terms of ˜β.
+
+MSE { bβ(c, πr)} = E∥ bβ(c, πr) − β∥2
+
+= E∥ bβ(c, πr) − ˜β + ˜β − β∥2
+
+= E∥ bβ(c, πr) − ˜β∥2 + 2 { bβ(c, πr) − ˜β}′( ˜β − β) + tr {Var ( ˜β)}
+
+= E∥ bβ(c, πr) − ˜β∥2 + 2 tr [Cov { ˜β, bβ(c, πr) − ˜β}] + tr {Var ( ˜β)}.
+
+The expression bβ(c, πr) − ˜β is equal to cΠr{KA (πr) − I} ˜β.
+
+c2E∥Πr{KA (πr) − I} ˜β∥2 + 2 c tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) + tr {Var ( ˜β)}.
+
+which yields the unbiased estimator for the MSE (UMSE), 
+
+c2 ∥Πr{KA (πr) − Ipk } ˜β∥2 + 2 c tr (Cov [ ˜β, Πr{KA (πr) − Ipk } ˜β]) + tr {Var ( ˜β)}.
+
+# I Pseudo-MSE for Implementation 
+
+In this section, we derive the objective function to estimate πr and c, or equivalently, π.We start from the adjustment to the derivative of the UMSE with respect to c, proposed in Section 5. We refer to this shifted derivative as f (c, πr), and it takes the form 
+
+f (c, πr) = ∂UMSE { bβ(c, πr)}
+
+∂c + ∂2UMSE { bβ(c, πr)}
+
+c2 (bc⋆ − ˜c).
+
+The c that minimizes the UMSE in equation (16) is 
+
+bc⋆ = −tr (Cov [ ˜β, Πr{KA (πr) − I} ˜β]) 
+
+∥Πr{KA (πr) − I} ˜β∥2 ,
+
+41 and the minimizer of the biased MSE in equation (15) is ˜c = −tr (Cov [ ˜β, Πr{KA (πr) − I} ˜β]) 
+
+tr [Var {Πr{KA (πr) − I} ˜β)}] + ∥Πr{KA (πr) − I} ˜β∥2 .
+
+To simplify the notation, denote B(π) = KA (πr) − Ipk . Plugging the form of these minimizers into the function f (c, πr), 
+
+f (c, πr) = ∂UMSE { bβ(c, πr)}
+
+∂c + ∂2UMSE { bβ(c, πr)}
+
+c2
+
+−tr {Cov ( ˜β, ΠrB ˜β)}∥ΠrB ˜β∥2 + tr {Cov ( ˜β, ΠrB ˜β)}
+
+tr {Var (ΠrB ˜β)} + ∥ΠrB ˜β∥2
+
+
+
+= ∂UMSE { bβ(c, πr)}
+
+∂c + ∂2UMSE { bβ(c, πr)}
+
+c2
+
+−tr {Var (ΠrB ˜β)}tr {Cov ( ˜β, ΠrB ˜β)}∥ΠrB ˜β∥2[tr {Var (ΠrB ˜β)} + ∥ΠrB ˜β∥2].
+
+We substitute in the first and second derivatives for the UMSE with respect to c:
+
+f (c, π) = 2 c∥ΠrB ˜β∥2 + 2 tr (Cov [ ˜β, ΠrB ˜β]) + 2 ∥ΠrB ˜β∥2 −tr {Var (ΠrB ˜β)}tr {Cov ( ˜β, ΠrB ˜β)}∥ΠrB ˜β∥2[tr {Var (ΠrB ˜β)} + ∥ΠrB ˜β∥2]= 2 c∥ΠrB ˜β∥2 + 2 tr (Cov [ ˜β, ΠrB ˜β]) − 2tr {Var (ΠrB ˜β)}tr {Cov ( ˜β, ΠrB ˜β)}
+
+tr {Var (ΠrB ˜β)} + ∥ΠrB ˜β∥2
+
+= 2 c∥ΠrB ˜β∥2 + 2 ∥ΠrB ˜β∥2tr {Cov ( ˜β, ΠrB ˜β)}
+
+tr {Var (ΠrB ˜β)} + ∥ΠrB ˜β∥2 .
+
+Plugging back in the form of B, the shifted derivative is therefore 
+
+f (c, πr) = 2 c∥Πr{KA (πr) − Ipk } ˜β∥2
+
++ 2 ∥Πr{KA (πr) − Ipk } ˜β∥2tr {Cov ( ˜β, Πr{KA (πr) − Ipk } ˜β)}
+
+tr (Var [Πr{KA (πr) − Ipk } ˜β]) + ∥Πr{KA (πr) − Ipk } ˜β∥2 .
+
+The c at which this function is 0 is ˜ c, the minimizer for the biased MSE in equation (15), but the vector πr need not be the same as that which minimizes the biased MSE. We next construct an objective function whose minimum is given by the root of f (c, πr). Integrating f (c, πr) over c, an objective function is given by 
+
+c2∥Πr{KA (πr) − Ipk } ˜β∥2
+
++ 2 c∥Πr{KA (πr) − Ipk } ˜β∥2tr {Cov ( ˜β, Πr{KA (πr) − Ipk } ˜β)}
+
+tr (Var [Πr{KA (πr) − Ipk } ˜β]) + ∥Πr{KA (πr) − Ipk } ˜β∥2 .
+
+Finally, in practice, to avoid constraints on the shrinkage parameters, we minimize the 42 objective function 
+
+O(π) = ∥Π{KA (π) − Ipk } ˜β∥2
+
++ 2 ∥Π{KA (π) − Ipk } ˜β∥2tr {Cov ( ˜β, Π{KA (π) − Ipk } ˜β)}
+
+tr (Var [Π{KA (π) − Ipk } ˜β]) + ∥Π{KA (π) − Ipk } ˜β∥2 ,
+
+as a function of the unrestricted π.
+
+# J MSE Estimator Simulation 
+
+We investigate the finite sample properties of the HAM estimator in Sections 6 and 7. Here, we conduct a small simulation study to illustrate the performance of bβ(π) under different shrinkage parameter selection mechanisms. We select π by minimizing the true MSE, the UMSE, the BMSE, and the pseudo-MSE. For the minimization of the true MSE, we assume that Σ is known, and for the remaining measures, Σ is estimated. We compare the analytical MSE of bβ(π) at each of these π vectors to the analytical MSE of the individual study MLEs, where the analytical MSEs are computed using equation (12). We consider 
+
+k = 3 studies with p = 4 covariates. We generate the βj ’s from a multivariate normal distribution with shared mean βm and covariance matrix 0 .1I4, and round to two significant digits. We consider four combinations of sample sizes ( n1, n 2, n 3): (100, 100, 100), (100, 100, 500), (100, 500, 500) and (500, 500, 500). Covariates Xj are sampled following Xj1 = 1,
+
+Xj2 ∼ N (0, Inj ), Xj3 ∼ Bin( nj , 0.5) , Xj4 = X2j X3j . The parameters βj and covariates 
+
+Xj are held constant across Monte Carlo replicates. Within each Monte Carlo replicate, we generate errors ϵj ∼ N (0, 0.25 Inj ). MLE MSE UMSE Biased MSE Pseudo-MSE                                                                               
+
+> nMSE MSE PL Ratio MSE PL Ratio MSE PL Ratio MSE PL Ratio 100, 100, 100 9.62 8.83 00.92 8.96 15.7 0.93 8.93 4.8 0.93 8.92 3.2 0.93 100, 100, 500 6.76 5.83 00.86 5.92 11.4 0.88 5.91 1.8 0.87 5.90 1.3 0.87 100, 500, 500 4.78 4.14 00.87 4.19 8.6 0.88 4.19 2.2 0.88 4.19 2.8 0.88 500, 500, 500 1.75 1.72 00.98 1.72 1.7 0.98 1.72 0.7 0.98 1.72 0.7 0.98 All ––00.89 –9.35 0.93 –2.38 0.92 –2.00 0.92
+
+Table 9: “MSE” columns give the median MSE for bβ(π) multiplied by 100; “PL” columns show the percent of replicates in which bβ(π) has a larger MSE than ˜β; and “Ratio” columns give the median for the ratio of bβ(π)’s MSE to ˜β’s MSE. Table 9 displays the median analytical MSE across 1000 Monte Carlo replicates at each sample size setting. As the theory guarantees, the optimal bβ(π⋆) with π⋆ chosen to minimize the true MSE has smaller MSE than the MLE in all instances. Across all settings, choosing 
+
+π to minimize the UMSE yields an estimator that has larger MSE than the MLE in 9.35% of the 1000 Monte Carlo replicates. In contrast, minimizing BMSE and our proposed pseudo-MSE yields estimators that have larger MSE than the MLE in 2.38% and 2.0% of the 1000 Monte Carlo replicates, respectively. Minimizing the pseudo-MSE is at its most beneficial when all studies have a sample size of 100: in this case, the UMSE-based estimator has a larger MSE than the MLE in 15.7% of the replicates. 43 K Ridge-like estimator 
+
+In the simulation studies, we demonstrate the advantages of shrinking towards a centroid distribution by comparing the heterogeneity-adaptive estimator bβ(πHAM ) to an estimator that uses an L2 penalty to shrink the estimators towards each other. We refer to this as the “ridge-like” estimator. Let β = ( β′
+
+> 1
+
+, . . . , β′
+
+> k
+
+)′ ∈ Rpk . The ridge-like estimator maximizes 
+
+O(β, λ ) = 
+
+> k
+
+X
+
+> j=1
+
+log fj (Y j ; βj , γ j ) − λ
+
+> k
+
+X 
+
+> j̸=j′
+
+∥βj − βj′ ∥2
+
+.We re-express P  
+
+> j̸=j′
+
+∥βj − βj′ ∥2 as follows. Let C be a k ×  k
+
+> 2
+
+ matrix containing every combination of contrasts: 
+
+C =
+
+
+
+1 1 . . . 0
+
+−1 0 . . . 00 −1 . . . 0... ... ... ...0 0 . . . 10 0 . . . −1
+
+
+
+.
+
+The sum of pairwise parameter differences can be rewritten as 
+
+> k
+
+X 
+
+> j̸=j′
+
+∥βj − βj′ ∥2 = β′(C ⊗ Ip)( C ⊗ Ip)′β
+
+= β′(CC ′ ⊗ Ip)β.
+
+The objective function is therefore 
+
+O(β) = −12(Y − Xβ )′Σ−1(Y − Xβ ) − λβ′(CC ′ ⊗ Ip)β.
+
+We maximize the objective function with respect to β by finding the root of its derivative, 
+
+∇βO(β, λ )′ = −12(−2X′Σ−1Y + 2 X⊤Σ−1Xβ ) − 2λ(CC ′ ⊗ Ip)β.
+
+The root is the solution to the equation 0 = −X′Σ−1Y + X⊤Σ−1X bβ + 2 λ(CC ′ ⊗ Ip) bβ.
+
+Rearranging, we obtain the estimator 
+
+bβR(λ) = {X⊤Σ−1X + 2 λ(CC ′ ⊗ Ip)}−1X′Σ−1Y
+
+= {X⊤Σ−1X + 2 λ(CC ′ ⊗ Ip)}−1X⊤Σ−1X ˜β = R(λ) ˜β.
+
+This estimator resembles the traditional ridge estimator, but instead of constraining the length of β it constrains the sum of pairwise distances between combination of βj s. We 44 define a matrix R(λ) = {X⊤Σ−1X + 2 λ(CC ′ ⊗ Ip)}−1X⊤Σ−1X for the extent of this discussion, to simplify the notation. To have a fair comparison to our estimator, we need to find the λ that minimizes the MSE. The bias component is Bias { bβR(λ)} = E{ bβR(λ)} − β = {R(λ) − Ipk }β.
+
+The variance component is 
+
+Var { bβR(λ)} = R(λ) × Var ( ˜β) × R′(λ) = R(λ)( X⊤Σ−1X)−1R′(λ).
+
+The MSE is thus 
+
+MSE { bβR(λ)} = tr [Var { bβR(λ)}] + ∥Bias { bβR(λ)}∥ 2
+
+= ∥(R(λ) − Ipk )β∥2 + tr [Var { bβR(λ)}].
+
+As we do not know β, we minimize the unbiased estimator of the MSE using the identity 
+
+∥{ R(λ) − Ipk }β∥2 = E[∥{ R(λ) − Ipk } ˜β∥2] − tr (Var [{R(λ) − Ipk } ˜β]) = E[∥{ R(λ) − Ipk } ˜β∥2] − tr [Var { bβR(λ)}] + 2 tr [Cov { bβR(λ), ˜β}] − tr {Var ( ˜β)}
+
+= E[∥{ R(λ) − Ipk } ˜β∥2] − tr [Var { bβR(λ)}] + 2 tr [Cov {R(λ) ˜β, ˜β}] − tr {Var ( ˜β)}
+
+= E[∥{ R(λ) − Ipk } ˜β∥2] − tr [Var { bβR(λ)}] + tr [{2R(λ) − Ipk }Var ( ˜β)] .
+
+We may then rewrite the MSE for the ridge-like estimator as 
+
+E{∥ (R − Ipk ) ˜β∥2} + tr [{2R(λ) − Ipk }(X⊤Σ−1X)−1].
+
+Thus, an unbiased estimator of the MSE of bβR(λ) is 
+
+∥{ R(λ) − Ipk } ˜β∥2 + tr [{2R(λ) − Ipk }(X⊤Σ−1X)−1]. (29) We select λ to minimize this estimator. In the setting of Section 3.2 where we conduct meta-analysis only on a subset of covariates, the ridge-like estimator minimizes a modified objective function, 
+
+O(β) = −12(M Y − M Xβ )′Σ−1(M Y − M Xβ ) − λβ′(CC ′ ⊗ Ip)β,
+
+where M is the block-diagonal matrix of projection matrices M j = I −Z(Z′Z)−1Z′ defined in 3.2. This yields the estimator 
+
+bβR,S(λ) = {X⊤M Σ−1M X + 2 λ(CC ′ ⊗ Ip)}−1X⊤M Σ−1M Y 
+
+= {X⊤M Σ−1M X + 2 λ(CC ′ ⊗ Ip)}−1X⊤M Σ−1M X ˜β
+
+45 L Additional numerical support 
+
+In simulation setting 1, we hold β across Monte Carlo replicates while varying the study sample size. Table 10 displays the parameter values at each level of p.
+
+p Parameter Index Study 1 Study 2 Study 3 2 1 3.53 3.37 3.27 2 4.50 4.49 4.52 4 1 3.37 3.18 3.59 2 4.49 4.53 4.30 3 2.17 2.16 2.41 4 0.14 −0.13 0.26 10 1 3.26 3.24 3.42 2 4.26 4.24 4.36 3 2.48 2.09 2.30 4 −0.08 0.18 0.05 5 −0.92 −1.18 −0.85 6 0.15 0.22 −0.01 7 −2.97 −2.93 −2.95 8 0.46 0.43 0.46 9 −4.49 −4.64 −4.52 10 0.66 0.65 0.69 20 1 3.24 3.23 3.17 2 4.24 4.69 4.74 3 2.09 2.52 2.06 4 0.18 0.08 0.10 5 −1.18 −1.13 −0.89 6 0.22 0.06 0.23 7 −2.93 −2.80 −2.63 8 0.43 0.68 0.37 9 −4.64 −4.61 −4.60 10 0.65 0.77 1.06 11 −3.07 −3.21 −3.22 12 −4.82 −4.55 −4.85 13 3.44 3.30 3.40 14 −3.87 −3.68 −3.98 15 2.07 1.68 2.01 16 3.13 3.09 3.37 17 −2.40 −2.31 −2.35 18 −2.61 −2.49 −2.61 19 3.12 3.12 3.07 20 −3.70 −3.50 −3.49 Table 10: β values for setting 1, for each number of covariates p.46 M eICU data access 
+
+Obtaining access to the eICU Collaborative Research Database requires credentialing on PhysioNet and completion of the required CITI training. To replicate the results we present here, one should download the patient, ApachePredVar, hospital, and ApachePatientResult tables. The data are structured with each patient allocated a different unit stay ID (pa-tientunitstayid) when they transfer to a new unit, and each unit stay ID is allowed multiple results from the APACHE IV score calculation. Some patients do not receive an APACHE IV score calculation or any APACHE-related predictor variables. While the patient ID is ostensibly unique, we should conceive of each patient as a distinct ‘patient visit’; that is, an individual may be assigned multiple ‘uniquepid’ if they are not recognized as the same person across visits. We conduct the following data cleaning: 
+
+• Keep the largest result for each unit stay ID in the Apache patient result table. 
+
+• Each patient visit in the patient table has multiple rows indicating transfer to a new unit. Keep the first instance of the patient in the hospital. 
+
+• Merge these de-duplicated patients and patient results with the APACHE predictor vari-ables table and the hospital table. 
+
+• Keep only observations where the APACHE version is “IVa” and the APACHE score is not missing. Treat all APACHE scores of -1 as missing. 
+
+• Keep only the following variables: hospital id, gender, age, hospital discharge status, diastolic and systolic blood pressure, APACHE score, and actual ICU length of stay. Keep only observations that have data for all of these variables. Individuals aged 89 years and older will be removed from analysis, as these ages are censored. 47

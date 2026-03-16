@@ -1,0 +1,658 @@
+Title: The Alignment Flywheel: A Governance-Centric Hybrid MAS for Architecture-Agnostic Safety
+
+URL Source: https://arxiv.org/pdf/2603.02259v1
+
+Published Time: Wed, 04 Mar 2026 01:01:44 GMT
+
+Number of Pages: 30
+
+Markdown Content:
+# The Alignment Flywheel: A Governance-Centric Hybrid MAS for Architecture-Agnostic Safety 
+
+Elias Malomgré 12[0009 −0000 −3052 −7047] and Pieter Simoens 13[0000 −0002 −9569 −9373]  
+
+> 1
+
+IDLab, Ghent University - imec, Belgium  
+
+> 2
+
+elias.malomgre@ugent.be  
+
+> 3
+
+pieter.simoens@ugent.be 
+
+Abstract. Multi-agent systems provide mature methodologies for role decomposition, coordination, and normative governance, capabilities that remain essential as increasingly powerful autonomous decision compo-nents are embedded within agent-based systems. While learned and gen-erative models substantially expand system capability, their safety be-havior is often entangled with training, making it opaque, difficult to audit, and costly to update after deployment. This paper formalizes the Alignment Flywheel as a governance-centric hybrid MAS architecture that decouples decision generation from safety governance. A Proposer, representing any autonomous decision component, generates candidate trajectories, while a Safety Oracle returns raw safety signals through a stable interface. An enforcement layer applies explicit risk policy at runtime, and a governance MAS supervises the Oracle through audit-ing, uncertainty-driven verification, and versioned refinement. The cen-tral engineering principle is patch locality: many newly observed safety failures can be mitigated by updating the governed oracle artifact and its release pipeline rather than retracting or retraining the underlying decision component. The architecture is implementation-agnostic with respect to both the Proposer and the Safety Oracle, and specifies the roles, artifacts, protocols, and release semantics needed for runtime gat-ing, audit intake, signed patching, and staged rollout across distributed deployments. The result is a hybrid MAS engineering framework for in-tegrating highly capable but fallible autonomous systems under explicit, version-controlled, and auditable oversight. 
+
+Keywords: Multi-agent systems · hybrid agent architectures · AI gov-ernance · runtime enforcement · safety oracle · Alignment Flywheel 
+
+# 1 Introduction 
+
+Engineering Multi-Agent Systems increasingly involves integrating heterogeneous autonomy components into coherent, governable deployments. In such systems, safety and compliance failures rarely originate in a single module. They of-ten emerge at interfaces, under version skew, and during asynchronous updates across components that evolve at different speeds, a pattern long observed in  
+
+> arXiv:2603.02259v1 [cs.MA] 28 Feb 2026 2Elias Malomgré and Pieter Simoens
+
+complex ML systems as dependency entanglement, hidden feedback loops, and hard-to-localize regressions accumulate [33, 6]. In production settings, such fail-ures are frequently silent , becoming tractable only through end-to-end observ-ability across the full pipeline [35]. Recent MLOps research likewise emphasizes that operational governance problems are cross-component and lifecycle-driven rather than localized to model internals [38]. A recurring engineering difficulty is that governance requirements are often entangled with the internal parameters of the decision policy [8, 29, 36]. This is not specific to language models. It arises for any autonomous agent whose policy changes through retraining, optimization, model replacement, or configuration updates across domains and modalities. When governance is embedded within the policy itself, the resulting safety behavior becomes difficult to inspect, patch, qualify operationally, and redeploy, especially under dataset shift and drift [28, 11]. The operational consequence is concrete: when a newly shipped policy ver-sion introduces a safety regression, a common response is to retract or roll back the policy, diagnose the failure, rebuild or retrain a replacement, rerun qualifica-tion, and then redeploy. During that interval, the system either remains exposed to the regression or loses capability by freezing on an older version. This paper proposes an alternative engineering unit of change: small, tar-geted governance patches that constrain newly unsafe trajectory classes without requiring policy retraction or full policy redeployment. The separation between an optimizing policy and an external, specification-driven enforcement mecha-nism is related to runtime enforcement and shielding ideas [3, 14]. Our focus, however, is not shielding in isolation, but the engineering required to make gov-ernance patchable, auditable, and operable across a hybrid MAS deployment. Concretely, we introduce a hybrid Proposer-Oracle architecture in which a Proposer generates candidate actions or plans as trajectories, while a Safety Oracle returns safety-relevant signals through a stable interface contract. Nor-mative intelligence remains external to the decision component: an Enforcement layer interprets Oracle outputs under an explicit risk policy, and a governance MAS supervises the Oracle through monitoring, auditing, uncertainty-driven verification, and versioned refinement. The central engineering principle is patch locality : many safety fixes are applied to the Oracle artifact and its governed update pipeline, rather than by modifying or retracting the Proposer policy. This separation is particularly valuable in hybrid systems [5, 27], where compo-nents evolve on different cadences and incur different qualification costs. Policy upgrades may be expensive to train and certify, whereas Oracle patches can be small, reviewable, and narrowly scoped to newly observed failures at the proposer-oracle boundary. This motivation is consistent with documented main-tenance and upgrade risks in complex ML systems [33, 6] and with the need to localize operational response where failures manifest [35]. Within this architecture, governance is treated as an externalized service layer rather than as a property embedded only in policy parameters. The Align-ment Flywheel provides verification-as-a-service : at deployment time, candidate trajectories are checked against explicit norms and operational evidence before The Alignment Flywheel 3
+
+execution. It also provides alignment-as-a-service : during training, fine-tuning, or online adaptation, the system monitors visited contexts and trajectory seg-ments and detects when learning enters regions in which governance judgments are insufficiently certain, triggering audit and refinement in those regions. Such uncertainty may arise from low Oracle confidence, distributional novelty, or in-terface drift detected through monitoring [26, 17, 22]. Prior work established two pieces of the broader agenda. Our AAMAS Blue Sky paper [21] introduced the Alignment Flywheel as a lifecycle view of align-ment in which governance is an ongoing process organized around coordinated roles and iterative refinement. In [20], we further showed that IIRL can serve as one viable Oracle instantiation, demonstrating that a safety Oracle can be real-ized as a standalone artifact queried independently of the underlying Proposer policy. Building on those results, the present paper contributes the hybrid MAS architecture, protocol layer, and deployment semantics needed to operational-ize the Flywheel in production settings. In particular, our focus here is not on motivating the lifecycle concept or arguing for a specific Oracle construction, but on specifying the engineering structure by which governed Oracle updates can be audited, released, monitored, and refined within a deployable multi-agent system. A second contribution is a deployment and release model tailored to hybrid agent stacks. We treat Oracle updates as versioned release artifacts that can be distributed across a fleet under bounded propagation delay, monitored for re-gressions, and rolled back safely, drawing on established results and practices in continuous integration and deployment [34]. Because patches function as gover-nance controls distributed across many agents, signed update semantics [23] and anti-rollback checks [15] are used to prevent stale or tampered Oracle versions from being accepted during rollout and rollback. In hybrid deployments, we also model proposer-oracle compatibility constraints and monitoring signals specific to interface regressions, such as uncertainty-calibration drift [26] and decision-distribution shifts conditioned on Proposer version, which are detectable only with pipeline-level observability [35]. This paper makes four contributions to the engineering of deployable hy-brid multi-agent systems. First, it defines a Proposer-Oracle topology and a trajectory-level gating model that applies to both single-step actions and multi-step plans across domains and modalities. Second, it specifies the Alignment Flywheel as an executable hybrid MAS design, with coordinated roles for mon-itoring, escalation, auditing, refinement, and enforcement, together with the ar-tifacts they exchange and their authority boundaries. Third, it formalizes an Oracle interface contract covering decision outputs, uncertainty signals, and ev-idence hooks, enabling audit and patch workflows while preserving architectural invariants such as patch locality and version stability. Fourth, it introduces de-ployment semantics for proposer-oracle systems in which safety fixes are released as small, versioned Oracle patches rather than as full policy redeployments, in-cluding progressive rollout, regression monitoring, rollback under bounded prop-agation delay, and signed update metadata for fleet distribution. 4 Elias Malomgré and Pieter Simoens 
+
+# 2 Background and positioning 
+
+This section situates the paper within three strands of prior work: alignment from preferences and demonstrations, hybrid agent architectures, and guardrails or shielding for safe deployment. 
+
+2.1 Alignment from preferences and demonstrations 
+
+In this paper, we use alignment in the broad engineering sense of shaping an au-tonomous agent’s behavior to satisfy normative constraints and stakeholder pref-erences. A dominant family of methods does this by directly modifying policy pa-rameters using preference data: Reinforcement Learning from Human Feedback typically combines supervised fine-tuning on demonstrations with preference-based optimization [41, 25], while Direct Preference Optimization targets a sim-ilar objective without an explicit reward model or RL fine-tuning loop [29]. A complementary paradigm is Inverse Reinforcement Learning, in which the objec-tive or constraints are inferred from expert behavior rather than hand-specified, usually by recovering a reward function from demonstrations [24, 1, 40]. IRL can be studied in both offline settings with fixed demonstration datasets and online or interactive settings with additional information gathering, but in both cases it faces well-known challenges of identifiability, noise, and generalization [2, 4]. We build on Interactionless Inverse Reinforcement Learning [21, 20] as a val-idated working oracle instantiation learned from expert behavior. This matters for systems engineering because it yields a safety artifact that can be queried independently of the proposer policy, enabling governance updates without nec-essarily changing the underlying policy component. [21] introduces the Align-ment Flywheel as a lifecycle view, iteratively hardened through coordinated roles rather than treated as a one-time training outcome. This paper assumes the ex-istence of a working IIRL-style oracle and focuses on specifying the hybrid MAS architecture, protocols, and deployment semantics required to operate the fly-wheel in production. 
+
+2.2 Hybrid agent architectures as the systems context 
+
+In this setting, the core engineering difficulty is asynchronous evolution of het-erogeneous components. A Proposer policy may change via retraining or re-placement at a slow, expensive cadence, while governance constraints should be able to change quickly as new failure cases are observed. This concentrates risk at interfaces: representational drift, version skew, and calibration mismatch between what the proposer produces and what the governance layer assumes. Such cross-component failure modes and interface-driven regressions are a re-curring theme in the engineering of production AI/ML systems, where entangle-ment and boundary erosion make them difficult to localize and remediate [33, 6]. More recent work argues that these problems are only tractable with pipeline-level observability that can attribute failures to changes across data, model, and surrounding components [35]. Our Proposer-Oracle architecture is designed as The Alignment Flywheel 5
+
+a hybrid separation of concerns that stabilizes the interface through an explicit contract and allocates lifecycle responsibilities to governance agents. 
+
+2.3 Guardrails and safe deployment 
+
+A practical deployment analogue of external governance is the guardrails pattern: constraining a powerful generator at runtime using modular checks and rules external to the base model. NeMo Guardrails is a representative toolkit that frames guardrails as programmable rails added at deployment time rather than embedded solely through training [31]. More broadly, the guardrails perspective argues that deployment controls should be systematic and evaluated, rather than a loose collection of application heuristics [31]. Our work positions the Safety Oracle as guardrails done in an engineering-hardened way: not a naive heuristic layer, but a governed artifact that is (i) learned from expert behavior, (ii) versioned and auditable, and (iii) iteratively hardened via a lifecycle. This immediately turns guardrails into a deployment discipline: safe release, monitoring, and rollback become first class, which is aligned with runtime enforcement shielding, separating optimizing policies from an external, specification-driven safety mechanism, but we focus on oracle patch-ability, audit, and lifecycle governance in hybrid multi-agent deployments [3, 14]. 
+
+# 3 System Overview: Governance Roles, Artifacts, and Interfaces 
+
+The Alignment Flywheel treats AI safety not as an internal model-training prob-lem, but as an externalized verification-as-a-service : a control plane that checks and constrains candidate trajectories at runtime against explicit norms and oper-ational evidence. In many real-world deployments, the entity providing the Safety Oracle is a third-party vendor. This vendor provides a statistical artifact (the model) but cannot be expected to maintain up-to-date knowledge of dynamic, domain-specific regulatory requirements (e.g., GDPR, EU AI Act, HIPAA), nor organization-specific compliance interpretations and documentation practices. In addition, the Flywheel provides alignment-as-a-service ; during alignment of a proposer policy, the Flywheel monitors visited contexts and trajectory segments and checks whether they lie in regions where governance judgments are suffi-ciently certain under the current oracle and monitoring regime. When learning enters uncertain regions, or monitoring flags distributional novelty or interface drift, the system audits those regions in the background by logging the cases and routing them for verification and refinement, rather than waiting for down-stream incidents. This design relies on end-to-end observability and monitoring to attribute failures and uncertainty to cross-component interface changes rather than single modules [35]. Therefore, the Flywheel MAS acts as an independent regulatory shell. It maintains the normative specifications ( Φ) and actively audits the third-party 6 Elias Malomgré and Pieter Simoens 
+
+Oracle to ensure it complies with current norms and policies, providing auto-mated documentation and runtime enforcement, as meaningful AI governance requires third-party oversight mechanisms [30]. 
+
+3.1 Notation (minimal) 
+
+Table 1 summarizes the symbols used throughout the architecture.                   
+
+> Table 1. Minimal notation used in the architecture.
+> Symbol Meaning
+> Σcontext (task state, inputs, metadata; any modality)
+> τtrajectory (action, tool call, message, or plan)
+> PProposer producing τcand from ΣOSafety Oracle (Third-party statistical artifact)
+> sSafety Oracle raw safety score
+> ∆O patch for a Safety Oracle
+> cSafety Oracle’s uncertainty
+> cthresh Safety Oracle’s allowed uncertainty threshold
+> EEnforcement Layer (Gates execution, logs evidence)
+> ΦNormative Specification (Maintained by the MAS)
+> vOOracle version identifier
+> KKnowledge Base (Demonstrations, failures, patches, ledger)
+> Qver Verification Queue (Raw candidates from Red Team)
+> Qref Refinement Queue (Clustered/Prioritized flaws for Humans)
+
+3.2 Multi-Agent Governance Roles 
+
+The architecture comprises five specialized roles. Crucially, each role can be instantiated by an autonomous agent, a human expert, or a hybrid collective, supporting configurable degrees of autonomy and escalation [32]. 
+
+– Red Team (Discovery): Audits the Oracle’s “Claimed Safe” boundary. It generates targeted stress cases to discover low-uncertainty false-negative instances where the vendor’s Oracle uncertainty claims an action is safe (c ≪ cthresh ), but the MAS determines it violates a norm in Φ.
+
+– Blue Team (Monitoring): Maintains observability over the Red Team’s activities, the alignment-time visitation distribution of the Proposer, and the live performance of deployed Proposers. It identifies statistical drift and aggregates failure records, leveraging pipeline-level monitoring practices to detect silent failures and interface regressions across components. [35] Drift and non-stationarity are treated as first-class triggers for audit backlog cre-ation rather than as purely offline evaluation concerns. [17] The Alignment Flywheel 7
+
+– Verification Team (Validation): Consumes the raw Verification Queue (Qver ). Programmatic agents validate formal constraints, while human ex-perts handle uncertain or “hard-to-formalize” normative judgments. Verified breaches are passed to the Triage Agent. 
+
+– Triage Agent (Queue Governance): Acts as the operational bottleneck manager. It semantically clusters the verified breaches and ranks them by a Risk Score ( Rf law ), populating the Refinement Queue ( Qref ) to ensure the Refinement Team focuses on high-severity vulnerabilities. 
+
+– Refinement Team (Correction): Consumes the Refinement Queue .Responsible for synthesizing patches ( ∆O ) to correct identified flaws. This team serves as the “Root of Trust”; every update must be signed off before deployment, consistent with supply-chain integrity principles for distributed update artifacts [23]. 
+
+3.3 Scalable and Tunable Oversight 
+
+A core requirement of verification-as-a-service and alignment-as-a-service is the ability to dynamically adapt the degree of human involvement based on specific use cases and risk profiles. The Flywheel provides an architecture for tunable autonomy , where escalation policies are explicit rather than implicit [32]. 
+
+– Fully Automated (Low Risk): For low-severity domains, the Verification and Refinement roles are fully agentic. The system automatically detects drift, synthesizes a patch, validates it against the regression suite, and de-ploys it. 
+
+– Human-on-the-Loop (Medium Risk): The Triage Agent clusters hun-dreds of flaws and presents a curated summary. A human reviews the cluster policy and authorizes a programmatic agent to execute the patch. 
+
+– Strict Human-in-the-Loop (High Risk): In critical domains, every item in Qref must be explicitly reviewed, and every patch ∆O must be crypto-graphically signed by a human expert before deployment. 
+
+3.4 Knowledge Base K: event store, provenance, and queryable views 
+
+The governance MAS operates over an append-only Knowledge Base K that acts as the system’s event store : all governance-relevant state changes are recorded as immutable, typed artifacts, and operational state is derived by replaying or querying these artifacts rather than by mutating shared in-memory state. This design supports stateless agents (Sec. 4.1) and enables audits and rollbacks to be analyzed as transformations over a trace. 
+
+Tamper-evident provenance. To support external auditability, K is treated as a transparency log: appended artifacts are committed into an append-only struc-ture with verifiable consistency over time (e.g., a Merkle-tree-backed log), en-abling detection of omission, reordering, or equivocation by a compromised op-erator. Patch releases and governance decisions are linked to signed provenance 8 Elias Malomgré and Pieter Simoens 
+
+metadata so that a deployed oracle version can be traced back to the exact set of validated failures and regression evidence that justified it. 
+
+Artifact typing and causal links. We treat K as a set of typed artifacts with ex-plicit causal references (parent pointers). Every derived artifact records the IDs of its inputs (e.g., VerificationResult →CandidateFlaw, PatchCommit →VerifiedBreach set). This enables lineage queries (“why was this blocked?”) and supports idempo-tent retries: queues store references into K rather than payloads, and consumers can safely reprocess a message by checking whether a derived artifact already exists for a given parent ID. 
+
+Materialized views for operations. To support monitoring and steering at scale, 
+
+K maintains queryable views (indices) such as (i) a norm coverage map over Φ,(ii) drift/novelty summaries, (iii) open breach clusters and their risk scores, and (iv) a fleet rollout state derived from the release ledger. This aligns with pro-duction ML observability needs, where attribution requires querying structured traces across data, model, and surrounding components. 
+
+Artifact inventory. Concretely, K stores the following typed artifacts: 
+
+– Normative artifacts Φ: rules, tests, and severity weights defining gover-nance judgments. 
+
+– Failure records F : confirmed breaches (Σ, τ, label , evidence , v O) with lin-eage pointers. 
+
+– Queue references: Qver and Qref store only artifact IDs and priority meta-data. 
+
+– Patch commits ∆O : patch objects with parent version, linked breaches, regression evidence, and signature. 
+
+– Release ledger L: rollout/rollback records and version transitions for fleet distribution. 
+
+– Monitoring reports: drift/novelty alerts, calibration summaries, and cov-erage metrics used to steer OODA loops. 
+
+3.5 Oracle Interface Contract (The Vendor API) 
+
+To preserve strict separation of concerns, the third-party Safety Oracle O is treated as a black-box statistical evaluator. It does not contain symbolic business logic, nor does it know the current regulations Φ. It merely evaluates a trajectory and outputs its internal statistical state. The Enforcement Layer E queries the vendor’s Oracle as follows:                 
+
+> Inputs: Context Σ, candidate trajectory τ.
+> Outputs:
+> (1) s∈R: The raw safety score (distance to the Oracle’s learned unsafe manifold). (2) c∈R: The Oracle’s internal uncertainty in its prediction s.(3) cthresh ∈R: The vendor-defined uncertainty threshold required for the Oracle to claim certainty. (4) vO: The version identifier of the Oracle returning the prediction.
+
+The Alignment Flywheel 9
+
+Proposer P   
+
+> Σ7→τcand
+
+Enforcement E 
+
+> derive a, u
+> log + gate
+
+Safety Oracle O
+
+> vendor API
+
+τcand query (Σ, τ )    
+
+> raw: (s, c, c thresh , v O)
+> (opt: φhint , evid)
+> revise( φhint )
+
+Knowledge Base K (append-only) 
+
+> decision records + evidence + audit intake
+> decision record / escalate / audit intake
+
+Fig. 1. Runtime enforcement during deployment. From context Σ, proposer P gener-ates a candidate trajectory τcand . Enforcement E queries safety oracle O, which returns raw signals (s, c, c thresh , v O ), safety score, uncertainty, uncertainty threshold, and or-acle version, plus optional hooks (φhint , evid) . Enforcement then derives the action a
+
+and the uncertainty u, logs the decision, and writes the audit intake to the append-only knowledge base K. Dotted paths indicate optional revision and escalation under the configured risk policy. 
+
+3.6 Enforcement Logic and Prioritization 
+
+Because the Oracle outputs only raw signals, the normative intelligence resides within the MAS. As shown in Figure 1, the Oracle does not decide policy; instead, the Enforcement layer interprets the returned signals, applies the configured risk policy, logs the outcome, and escalates relevant cases for later hardening. A simple risk policy is: 
+
+– If c ≥ cthresh (the Oracle is uncertain), E defaults to Fail-Closed and routes the case to Qver for later verification. 
+
+– If c < c thresh and s indicates Unsafe, E blocks execution. 
+
+– If c < c thresh and s indicates Safe, E allows execution. This low-uncertainty claimed-safe region is later audited by the Red Team for suspected false negatives. 
+
+3.7 Alignment-as-a-service: Uncertainty-Aware Coverage Auditing 
+
+In addition to runtime verification, the Flywheel audits policy improvement it-self. During training or adaptation, the Proposer produces a stream of visited contexts and trajectory segments (Σt, τ t). The Blue Team monitors coverage and interface health, while the Oracle provides uncertainty via c relative to cthresh . If 
+
+(Σt, τ t) falls into an uncertain region (e.g., c ≥ cthresh or Blue Team flags distri-butional novelty), the system logs the case and routes it to Qver for background audit. This turns uncertain regions into an operational work queue: verification clarifies whether the region violates Φ, triage prioritizes by risk, and refinement synthesizes a patch ∆O or a new targeted audit policy. The net effect is to harden Oracle and Φ in the regions the Proposer actually explores, consistent 10 Elias Malomgré and Pieter Simoens 
+
+with uncertainty-driven querying and selective data-acquisition patterns used to improve learning systems. 
+
+# 4 Interaction Protocols and OODA Dynamics 
+
+The operational efficacy of the Alignment Flywheel relies on rigorous coordi-nation among distributed governance agents. Rather than hard-coding specific behaviors, we model all governance roles (Red, Blue, Verification, Triage, Refine-ment) as autonomous entities driven by OODA loops (Observe–Orient–Decide– Act). [7] This abstraction decouples the mechanism of governance (what infor-mation is consumed and what artifacts are produced) from the strategy (how candidates are generated, validated, or patched), enabling the system to hot-swap testing methodologies (e.g., fuzzing vs. gradient-based search) or verifica-tion logic without altering the architecture. [18, 13, 19] Coordination is achieved through a double-filter pipeline stored in the Knowl-edge Base K, governed by triage at two checkpoints: the Verification Queue (Qver ) and the Refinement Queue ( Qref ). This mirrors triage patterns used at scale to manage high-volume issue streams (incidents, alerts, bug reports) by prioritizing, routing, and batching work before it reaches scarce expert attention [39, 37]. 
+
+4.1 The OODA abstraction for flexible governance 
+
+Each agent operates according to a standardized cycle, interacting only with the Knowledge Base K and queues. This supports fault-tolerant scaling: agents can be restarted, replicated, or replaced without invalidating the global governance state because the state is externalized into artifacts and queue positions. Also, Appendix A contains pseudo OODA implementations for all the teams. 
+
+– Observe (global state acquisition): The agent queries K for relevant artifacts (e.g., a Red Team agent retrieves the active Oracle version vO and current high-severity norms; a Refinement agent pulls the top job from Qref ). 
+
+– Orient (contextualization): Interpreting the retrieved artifacts relative to its role. For example, a Red Team agent may identify a high-severity norm 
+
+φ12 has low empirical coverage and orient its search toward that blind spot, consistent with coverage-guided testing and systematic red-teaming. [18, 13] 
+
+– Decide (strategy selection): The agent selects a strategy module from its library. Because strategies are modules, they can be swapped dynamically (e.g., prompt mutation for a language-model proposer vs. physics perturba-tion for a control-policy proposer) while preserving the same artifact and queue interfaces. 
+
+– Act (execution and logging): The agent executes the chosen strategy (e.g., generates candidates and queries O) and writes results back to K as typed artifacts (candidate flaws, verification results, or patch commits). The Alignment Flywheel 11 
+
+4.2 The double-filter pipeline 
+
+To manage high-volume automated probes without overwhelming human ex-perts, the system implements a two-stage triage architecture. 
+
+Stage 1: Verification loop ( P → Qver ). Red Team agents operate at machine speed, generating large numbers of candidate trajectories τ .1. Injection: Red Team agents push raw candidate flaws to the Verification Queue (Qver ). 2. Triage I (noise filtering): A Triage Agent monitors Qver and prioritizes candidates using the dangerous-certainty margin ∆ = cthresh − c. High-uncertainty candidates (where the Oracle already signals uncertainty, i.e. 
+
+c ≥ cthresh ) are lower priority for false-negative auditing, whereas low-uncertainty “claimed safe” candidates (i.e. c < c thresh with s = Safe) are escalated as likely high-value audit targets. 3. Validation: The Verification Team pulls from Qver and checks trajectories against the normative specification Φ. Confirmed violations are upgraded to 
+
+verified breaches and logged as immutable failure records in K.
+
+Stage 2: Refinement loop ( K → Qref ). Verified breaches must be translated into governed updates. 1. Ingestion: Verified breaches are hashed and stored in K for traceability and de-duplication. 2. Triage II (semantic clustering): A second Triage Agent clusters breaches into coherent failure families (e.g., tool-injection variants, SQL injection fam-ilies, policy-evasion templates). Clustering and routing are consistent with common triage mechanisms in software engineering and operational alert handling, where grouping reduces cognitive load and enables batch remedi-ation [39, 37]. 3. Job creation: The Triage Agent pushes a Refinement Job (a prioritized cluster) to the Refinement Queue (Qref ). 4. Correction: The Refinement Team pulls the highest-risk job from Qref ,synthesizes a patch ∆O , and commits it to the release ledger L.
+
+4.3 Message protocols 
+
+Inter-agent coordination is enforced through strict message schemas stored in 
+
+K, which define the handoff points between governance roles and ensure that each stage of the hardening loop records sufficient context for audit, replay, and patch attribution. The protocol specifications are in Appendix B. 
+
+– CandidateFlaw (Red → Qver ): The intake artifact produced by discovery. It records the candidate context-trajectory pair together with the oracle signals observed at discovery time. 
+
+〈id , Σ, τ, s, c, c thresh , v O, ts , seedRef 〉12 Elias Malomgré and Pieter Simoens 
+
+– VerificationResult (Verification → K, Triage): The result of check-ing a candidate flaw against Φ. It separates raw suspicion from an explicit governance judgment. 
+
+〈refId , isViolation ∈ { T, F }, φ broken , evidenceRef , reviewerRef , ts 〉
+
+– VerifiedBreach (if isViolation = T ): A durable failure record created only for confirmed violations. This is the unit later clustered, prioritized, and linked to patches. 
+
+〈breachId , refId , Σ, τ, s, c, c thresh , φ broken , evidenceRef , v O, ts 〉
+
+– RefinementJob (Triage → Qref ): A clustered repair task derived from one or more verified breaches. It converts many failures into a single priori-tized refinement unit. 
+
+〈jobId , clusterId , centroidRef , size , riskScore , sampleSetRefs , ts 〉
+
+– PatchCommit (Refinement → K, L ): A governed patch artifact ready for controlled release. It binds the patch to its parent version, motivating breaches, regression evidence, and authorization signature. 
+
+〈commitId , ∆O, parentVersion , breachRefs , testResultRef , signature , ts 〉
+
+4.4 Risk-driven prioritization logic 
+
+The Triage Agent governing Qref serves as the MAS’s attention mechanism, allocating scarce refinement capacity to the most consequential failures. Risk-based triage is widely used in operational settings to prioritize and route issues under overload [39]. We compute cluster priority dynamically: Priority (C) = ∑ 
+
+> f∈C
+
+(Sev (φf ) · max(0 , c thresh − cf ) · Nov (f )) (1) where Sev (φf ) is the normative severity from Φ, max(0 , c thresh − cf ) captures dangerous certainty (i.e., the oracle assigned low uncertainty to a case proved to be a violation), and Nov (f ) captures novelty relative to prior history in K.
+
+4.5 Human oversight and strategic steering 
+
+While the Flywheel operates as an autonomous MAS, it is designed for tunable oversight . Humans interact via a governance workbench that provides real-time analytics and strategic controls, allowing them to steer the swarm by adjust-ing norms, thresholds, and strategy modules rather than managing individual tasks. Tunable autonomy and mixed-initiative control are standard patterns for scalable human-agent teams in operational settings [32, 10]. 
+
+– Agent efficacy and strategy rotation: The workbench surfaces agent performance metrics (e.g., unique verified breaches per unit time). Humans can deprecate underperforming strategies and rotate in new ones. 
+
+– Normative coverage and prioritization: The workbench visualizes veri-fication coverage across φ ∈ Φ and allows humans to adjust severity weights or introduce new norms, immediately re-orienting governance OODA loops. The Alignment Flywheel 13 
+
+– Adversarial seeding and directed search: Humans can inject seed tra-jectories into Qver ; Red Team agents observe these seeds and switch to ex-ploitation/mutation strategies to discover variants [13, 19]. 
+
+– Feedback from deployment: High-uncertainty cases flagged at runtime are surfaced as incidents; humans can direct targeted coverage expansion and verification toward the specific regions where the proposer failed. 
+
+# 5 Runtime Enforcement During Deployment 
+
+This section specifies how the deployed system uses a fixed oracle version to gate proposer outputs under latency constraints, how uncertainty triggers escalation, and how runtime evidence is captured for the next hardening cycle. The resulting topology is closely related to safety filtering / runtime assurance architectures in which a primary (potentially untrusted) controller is supervised by an assurance mechanism that can reject or modify unsafe outputs while remaining largely agnostic to the controller internals [9, 12]. 
+
+5.1 Execution loop 
+
+At runtime, the Proposer P produces a candidate trajectory τcand from the current context Σ. The Enforcement layer E mediates execution by querying a fixed oracle version vO and then applying a local enforcement policy. 1. Propose: P (Σ) → τcand .2. Oracle evaluation: O. predict( Σ, τ cand ) → (s, c, c thresh , v O , φ hint , evid) (Sec-tion 3.5). 4
+
+3. Enforcement decision : E derives an uncertainty estimate u from the safety oracle and the monitoring statistics via g(c, c thresh , monitoring ) and an action a ∈ { allow , block , revise , escalate } according to the configured risk policy (Section 5.2). Uncertainty and monitoring as first-class runtime signals are consistent with deployment practice for ML systems under shift. [26, 35] 4. Log: E records an auditable decision record in K (Section 3.4). The oracle is treated as a governed control-plane component: its behavior is tied to an explicit version identifier and does not change except via a governed release. This makes regressions attributable to a specific vO and patch lineage. 
+
+5.2 Decision policy: allow, block, revise 
+
+The enforcement action is not limited to a binary allow/block response. We there-fore distinguish Oracle outputs from enforcement actions: the Oracle returns raw safety-relevant signals, whereas the Enforcement layer maps those signals to an operational response under the configured risk policy.          
+
+> 4Only (s, c, c thresh , v O)are required by the Vendor API contract; φhint and evid are optional explanation/evidence hooks. 14 Elias Malomgré and Pieter Simoens
+
+Base rule. If E selects a = allow , it may execute τcand subject to local risk checks. If a = block , E blocks execution. 
+
+Revision requests. If a trajectory is blocked, E may request a revised proposal, optionally passing a structured hint back to the Proposer: 
+
+revise (τcand , φ hint ) → τ ′
+
+> cand
+
+.
+
+This supports iterative negotiation in which governance constraints are enforced at runtime without requiring proposer retraining. In LLM deployments, this corresponds closely to “guardrails” patterns that apply external constraints and re-prompting strategies rather than modifying the base model [31]. 
+
+Risk-tiered enforcement. For high-risk actions (e.g., irreversible actions, privi-leged tool use, high-impact actuation), E can adopt a fail-closed posture: 
+
+– default to blocking when u is high or the oracle times out, 
+
+– require explicit confirmation for irreversible actions, 
+
+– restrict tool invocation to an allowlisted subset unless explicitly authorized. For low-risk actions, E can be less conservative (e.g., allow with logging under moderate uncertainty). 
+
+5.3 Uncertainty-based escalation and audit intake 
+
+The uncertainty estimate u enables unknown cases. In the presence of dataset shift and interface drift, uncertainty is a practical trigger for deciding when a model’s output should not be trusted [26]. 
+
+Escalation triggers. E creates a new audit case k ∈ C in the knowledge base K
+
+when any of the following holds: 1. u ≥ θu (high uncertainty), 2. φhint indicates a novel or unclassified constraint family, 3. repeated block-revise cycles exceed a configured limit, 4. monitoring detects anomalies (e.g., spikes in blocks, new failure clusters, or drift indicators) [35]. 
+
+What is escalated. An audit case minimally includes 
+
+(Σ, τ cand , a, s, c, c thresh , u, v O, evid , source ), where source indicates whether the case arose from deployment traffic, stress tests, or human reports. This focuses the governance MAS on high-value hardening opportunities rather than raw volume. In extreme cases, a call can be made to a human team to take over the actions from the Proposer to avoid dangers. The Alignment Flywheel 15 
+
+5.4 Logging and evidence requirements 
+
+Every runtime decision produces an immutable record sufficient for post-hoc attribution and replay, consistent with runtime monitoring/verification practice in which traces are retained for later analysis [16, 35]. 
+
+– Decision record: (Σ, τ cand , a, s, c, c thresh , u, v O, evid) .
+
+– Integrity metadata: hash of the serialized trajectory, timestamp, and host identity (for fleet correlation). 
+
+– Optional attachments: oracle explanation hook φhint , counterexample identifiers, and trace references. The intent is that a future patch can be justified by concrete evidence in K,validated against regression suites, and attributed to a specific oracle version and patch object. 
+
+5.5 Latency budget and timeouts 
+
+Runtime enforcement must respect latency bounds. E therefore enforces: 1. Timeouts: if O. predict exceeds a latency budget, E triggers a policy-defined fallback. 2. Fallbacks: depending on risk tier, either (i) fail-closed (block and escalate), or (ii) fail-open with mandatory logging and escalation. 3. Circuit breakers: sustained oracle failures or timeouts switch the system into a degraded mode. Circuit breakers are a standard resilience pattern for preventing cascading failures when calling remote dependencies. 
+
+5.6 Relation to guardrails and safety filtering 
+
+This runtime topology is consistent with safety-filtering architectures in which a complex primary controller is supervised by an assurance mechanism that can reject unsafe outputs while remaining agnostic to the controller’s internals. [9, 12]. In deployed LLM systems, the nearest analogue is the guardrails pattern (programmable constraints external to the base model) [31]. Our contribution is not external gating, but coupling runtime gating to a governed artifact lifecycle: auditable decision records, uncertainty-driven audit intake, and versioned patch releases with regression validation. 
+
+# 6 Discussion, Limitations, and Conclusion 
+
+Operational implications. This paper has focused on making a hardened safety artifact operable as a versioned, auditable control-plane component in a hybrid agent stack. The central claim is not that safety can be solved once and for all, but that many safety regressions can be mitigated through governed updates to the Oracle artifact rather than through proposer retraining, model rollback, or 16 Elias Malomgré and Pieter Simoens 
+
+full system redeployment. More broadly, the architecture reframes safety hard-ening as an explicit multi-agent governance workflow over a patchable artifact with defined interfaces, provenance, and release semantics. Crucially, this en-sures end-to-end traceability across the deployment lifecycle, allowing operators to causally link any runtime enforcement decision or deployed patch directly back to its underlying evidence and normative justification, a capability that directly addresses the strict auditability mandates of emerging regulatory frameworks like the EU AI Act. 
+
+Limitations. The proposal has several important limitations. Oracle construc-tion is outside scope: we assume that at least one deployable Oracle instantiation can be built with current methods, but we do not claim that Oracle construction is easy, universal, or solved by any single approach, and the architecture is inten-tionally agnostic among rule-based, simulator-based, learned, and hybrid oracles. Specification and verification also remain partial: the normative specification Φ
+
+and any governance-time verifier VΦ may be incomplete, domain-limited, or com-putationally expensive, so the workflow treats uncertainty and evidence as first-class outputs and relies on iterative hardening rather than claims of complete correctness. Adversarial adaptation likewise remains ongoing: attack surfaces such as prompt or instruction injection and insecure tool use naturally extend from LLM applications to hybrid agent stacks with tool calls and multi-step plans, so the governance loop supports rapid remediation but does not remove the need for continuous monitoring and red-teaming. Finally, the paper does not include a complete deployed implementation or an empirical end-to-end evalu-ation. However, it is not limited to a high-level concept: Appendix A specifies the OODA-style role flows, Appendix B defines the inter-agent protocols, and Appendix C provides a reference implementation layer through class skeletons and API structure. The remaining limitation is therefore not architectural un-derspecification, but the absence of a fully instantiated system study measuring latency, operational cost, and long-horizon hardening dynamics in a concrete domain. 
+
+Conclusion. We presented a hybrid Proposer-Oracle architecture in which a governance MAS hardens a safety Oracle before deployment and continues that hardening through post-deployment feedback. The main contribution is to treat safety not as an opaque property of a monolithic model, but as a versioned, auditable, and iteratively governable artifact within a multi-agent control plane. By specifying the components, artifacts, protocols, and implementation reference needed to operationalize that workflow, the paper offers a concrete architectural basis for governed safety hardening in hybrid agent systems. 
+
+# Acknowledgment 
+
+This research was supported by funding from the Flemish Government under the “Onderzoeksprogramma Artificiele Intelligentie (AI) Vlaanderen” program. The Alignment Flywheel 17 
+
+# A OODA loop specifications for governance roles 
+
+To demonstrate the operational feasibility of the Alignment Flywheel, we detail concrete instantiations of the OODA loop for each governance role described in Sec. 3 and Sec. 4. This formalism ensures that all agents remain stateless and decoupled, interacting only through the Knowledge Base K, the queues Qver 
+
+and Qref , and the defined API contracts, as shown in Figure 2. 
+
+Knowledge Base K
+
+> shared artifacts + queues
+
+Observe  
+
+> read from K
+
+Orient 
+
+> interpret context
+
+Decide 
+
+> select strategy
+
+Act  
+
+> write to K
+> artifacts, logs, queue state
+> new artifacts, alerts, jobs Abstract role template used by Red, Blue, Verification, Triage, and Refinement agents.
+
+Fig. 2. Abstract OODA interaction pattern for governance agents. Each role reads shared state from the append-only knowledge base K during Observe , interprets it relative to its local objective during Orient , selects a strategy during Decide , and writes derived artifacts back to K during Act . Role-specific behavior is therefore captured by the strategies and artifact types, while the interaction contract with K remains uniform across the governance MAS. 
+
+A.1 Red Team (Adversarial Discovery) – Observe (Read from K): Pulls the active Normative Specification Φ (in-cluding dynamic Weight values set by humans), the current Oracle version 
+
+vO , and historical defended traces (to avoid repeating previously rejected attack vectors). 
+
+– Orient: Identifies regions of the policy manifold with high human-assigned weight Weight (φ) but low testing coverage. If a human has injected an ad-versarial seed, the agent initializes its search around that seed. 
+
+– Decide: Selects a generation strategy based on the modality (e.g., gradient-based prompt optimization for text, physical perturbation for robotics), tar-geting regions near the Oracle’s decision boundary while also probing for low-uncertainty claimed-safe cases that may conceal false negatives. 18 Elias Malomgré and Pieter Simoens 
+
+– Act (Write to Qver ): Generates a candidate trajectory τcand and queries 
+
+O. If O returns a “Safe” prediction with low uncertainty ( c < c thresh ), but the agent’s internal heuristic still suspects a violation, it pushes a CandidateFlaw 
+
+record to Qver .
+
+A.2 Verification Team (Validation) – Observe (Read from Qver & K): Pulls candidate flaws from Qver and retrieves the relevant formal norm definitions φ ∈ Φ from K.
+
+– Orient: Parses the trajectory τ into a verifiable representation (e.g., extract-ing the terminal state of a robotic trajectory or normalizing the semantic structure of an LLM output). 
+
+– Decide: Evaluates τ strictly against φ. Programmatic agents use determinis-tic validators (e.g., SMT solvers, regex constraints, or execution sandboxes). If the norm is subjective, the decision is escalated to a human reviewer or an LLM-as-a-Judge API. 
+
+– Act (Write to K): Writes a VerificationResult to K. If a violation is confirmed, the agent additionally writes a VerifiedBreach record to K. If no violation is found, it logs the attempt as a defended trace to discourage redundant rediscovery. 
+
+A.3 Triage Agent (Queue Governance) – Observe (Read from K): Continuously polls K for newly logged VerifiedBreach 
+
+records. 
+
+– Orient: Computes embeddings of new breaches and performs online seman-tic clustering (e.g., via HDBSCAN) to group structurally similar failures (e.g., “Base64-encoded jailbreak variants”). 
+
+– Decide: Calculates a risk score for each cluster based on the dangerous-certainty margins of its constituent breaches, the severity of the broken norms, and optional novelty weighting. It then performs diversity sampling within each cluster to select N representative edge cases. 
+
+– Act (Write to Qref ): Packages the cluster metadata and selected exemplars into a RefinementJob and pushes it to Qref , ranked by the computed risk score. 
+
+A.4 Refinement Team (Correction / Human-on-the-Loop) – Observe (Read from Qref & K): Pulls the highest-risk RefinementJob 
+
+from Qref and retrieves the associated breaches and Regression Suite R from 
+
+K.
+
+– Orient: The human supervisor reviews the sampled breaches to understand the semantic structure of the vulnerability cluster. 
+
+– Decide: An agentic assistant synthesizes a candidate patch ∆O (e.g., an activation-steering vector or a new symbolic rule). The human supervisor reviews the projected effect of the patch and approves, rejects, or modifies it. The Alignment Flywheel 19 
+
+– Act (Write to K and L): The agent evaluates ∆O against the Regression Suite R. If the patch passes, the human cryptographically signs it and the system writes a PatchCommit to the Release Ledger L in K, producing a new Oracle version vk+1  
+
+> O
+
+.
+
+A.5 Blue Team (Monitoring & Forensics) – Observe (Read from E & K): Reads telemetry from the live Enforcement Layer E (e.g., the rate of high-uncertainty escalations) and reads Red Team success/failure logs from K.
+
+– Orient: Computes Agent Efficacy metrics (e.g., “Red Team Agent A has found 0 validated breaches in 48 hours”) and estimates the global coverage density of the tested input and policy space. 
+
+– Decide: Determines whether a Red Team strategy has plateaued and should be rotated, or whether live traffic indicates a major distribution shift requir-ing an emergency circuit breaker. 
+
+– Act (Write to K / Control E): Writes updated coverage maps and foren-sic summaries to K, updates Agent Efficacy scores on the Human Work-bench, and, if an emergency is detected, pushes a high-priority temporary block rule to E via its control API while logging that action in K pending human refinement. 
+
+# B Protocol specifications 
+
+We specify coordination as explicit protocols between roles, rather than as im-plicit message passing. This improves substitutability (agents and strategies can be swapped without changing the interaction contract) and supports verifica-tion of compliance with the intended governance process. The protocols below implement a two-stage triage pipeline, with the append-only artifact discipline used throughout the Flywheel. 
+
+B.1 Common transport and invariants 
+
+Transport model. Protocol artifacts are stored in the append-only Knowledge Base K and referenced by immutable identifiers (e.g., hashes). Queues Qver and 
+
+Qref store only artifact references, enabling idempotent processing and decou-pled execution. 
+
+Global invariants. 
+
+– Idempotency: each protocol artifact carries a unique ID; consumers must tolerate retries without duplicating effects. 
+
+– Causal linking: every derived artifact records parent references (e.g., a 
+
+VerificationResult links to a CandidateFlaw ). 
+
+– Tamper-evident provenance: patch commits and release events are signed and recorded in ledger L to support audit, deployment control, and rollback. 20 Elias Malomgré and Pieter Simoens 
+
+B.2 Protocol P1: Candidate flaw submission (Red → Qver )
+
+Participants. Red Team agent (producer), Qver (queue), Knowledge Base K.
+
+Purpose. Submit candidate flaws for verification, emphasizing low-uncertainty “claimed safe” trajectories that may represent suspected false negatives. 
+
+Message schema. 
+
+CandidateFlaw = 〈id, Σ, τ, s, c, c thresh , v O, ts, seedRef 〉
+
+Steps. 
+
+1. Red Team appends CandidateFlaw to K and enqueues id to Qver .2. Triage-I may re-prioritize within Qver using the dangerous-certainty margin 
+
+max(0 , c thresh − c).
+
+Postconditions. K contains an immutable record of the candidate; Qver contains its reference. 
+
+Failure handling. If enqueue fails, Red Team retries; idempotency holds because 
+
+id is stable. 
+
+B.3 Protocol P2: Verification result publication (Verification → K,Triage) 
+
+Participants. Verification agent(s) and/or human reviewer(s), Knowledge Base 
+
+K, Triage agent. 
+
+Purpose. Validate a CandidateFlaw against Φ and produce a VerificationResult 
+
+plus, when applicable, a VerifiedBreach .
+
+Message schema. 
+
+VerificationResult = 〈ref Id, isV iolation, φ broken , evidenceRef, reviewerRef, ts 〉
+
+If isV iolation = T :
+
+VerifiedBreach = 〈breachId, ref Id, Σ, τ, φ broken , evidenceRef, s, c, c thresh , v O , ts 〉
+
+Steps. 
+
+1. Verifier dequeues a candidate reference id from Qver and reads the linked 
+
+CandidateFlaw from K.2. Verifier evaluates τ against Φ (via automated checks and/or human judg-ment) and appends a VerificationResult to K.3. If a violation is confirmed, the verifier additionally appends a VerifiedBreach 
+
+to K, linked to ref Id and carrying the Oracle signals recorded at discovery time. The Alignment Flywheel 21 
+
+Postconditions. All decisions are recorded in K with explicit links to parent artifacts; confirmed violations are available to Triage as VerifiedBreach records. 
+
+B.4 Protocol P3: Cluster and job creation (Triage → Qref )
+
+Participants. Triage agent, Knowledge Base K, Qref .
+
+Purpose. Convert a stream of VerifiedBreach records into batched RefinementJob 
+
+artifacts. 
+
+Message schema. 
+
+RefinementJob = 〈jobId, clusterId, centroidRef, size, riskScore, sampleSetRef s, ts 〉
+
+Steps. 
+
+1. Triage observes new VerifiedBreach artifacts in K since the last checkpoint. 2. Triage clusters semantically similar breaches, computes riskScore using the prioritization rule in Sec. 4.4, and appends the cluster metadata to K.3. Triage appends a RefinementJob to K and enqueues jobId to Qref .
+
+Postconditions. Qref contains cluster-level jobs, reducing human review load through batching and diversity-aware aggregation. 
+
+B.5 Protocol P4: Patch commit (Refinement → K, L )
+
+Participants. Refinement agent(s) and/or human supervisor(s), Knowledge Base 
+
+K, Release Ledger L.
+
+Purpose. Produce a patch ∆O with linked breach provenance, regression evi-dence, and an authorization signature. 
+
+Message schema. 
+
+PatchCommit = 〈commitId, ∆O, parentV ersion, breachRef s, testResultRef, signature, ts 〉
+
+Steps. 
+
+1. Refinement dequeues jobId from Qref and reads the linked breach set from 
+
+K.2. Refinement synthesizes ∆O and runs the regression suite, recording the re-sulting test artifact in K.3. Refinement appends a PatchCommit to K and records the corresponding immutable commit event in L.
+
+Security invariant. A commit is deployable if and only if its signature verifies and its parentVersion matches the fleet’s allowed upgrade path (root-of-trust semantics). 22 Elias Malomgré and Pieter Simoens 
+
+B.6 Protocol P5: Release, rollout, and rollback (Ledger → Oracle fleet) 
+
+Participants. Release manager (agent and/or human), L, deployment substrate, Oracle fleet endpoints. 
+
+Purpose. Distribute signed Oracle updates under progressive rollout and safe rollback. 
+
+Release record schema. 
+
+ReleaseRecord = 〈releaseId, commitId, rolloutP olicy, status, canaryM etricsRef, ts 〉
+
+Steps. 
+
+1. Release manager selects a PatchCommit and creates a ReleaseRecord in L.2. Rollout proceeds in stages (canary → expand → full), updating status with measured metrics. 3. On regression, release manager records a rollback event in L and instructs endpoints to revert to the prior allowed version. 
+
+Security motivation. Signed provenance and controlled rollout/rollback are stan-dard defenses for distributed update channels and supply-chain integrity (e.g., attested build steps and signing infrastructure) [23]. 
+
+# C System Implementation Reference (Class Skeleton & API) 
+
+This appendix lists a reference interface contract covering the safety-critical and governance-critical paths. It is not exhaustive; additional administrative endpoints (e.g., workbench steering, policy updates, bulk export) can be layered without changing the core artifact schemas or the inter-role protocols. 
+
+C.1 Data Artifacts 
+
+Trajectory. A trajectory is the unit of governance. It is intentionally generic: it can represent a single action, a tool call, a message, or a multi-step plan. The 
+
+metadata field supports provenance (timestamps, proposer identifiers) required for auditing and drift analysis. 
+
+class Trajectory: id: UUID context: ContextVector // Input state (prompt, sensor data) payload: Any // Action/tool call/message/plan kind: Enum // ACTION | TOOL | MESSAGE | PLAN metadata: Dict[str, Any] // Timestamp, proposer ID, trace IDs The Alignment Flywheel 23 
+
+Norm ( Φ). A norm is a first-class governance artifact: the MAS owns it, versions it, and uses it for verification. We allow multiple representations (logic, code, tests) so the same interface works across domains. The weight field is the tunable steering knob exposed to humans. 
+
+class Norm (Phi): id: str // e.g., "NORM_FINANCIAL_ADVICE" description: str // Human-readable intent formal_spec: LogicExpression // Regex, LTL, code, test, etc. severity: float // 0.0 to 1.0 (static risk weight) weight: int // Dynamic urgency (human steering) 
+
+OracleResponse. This is the vendor-facing contract. It contains only statistical signals and a version identifier; it does not encode Φ. The separation ensures that governance logic remains patchable without requiring retraining the proposer or modifying the vendor Oracle. 
+
+class OracleResponse: safety_score: float // s: distance to unsafe manifold (vendor-defined) uncertainty: float // c: internal uncertainty threshold: float // c_thresh: vendor-defined uncertainty threshold version: str // v_O: Oracle version identifier 
+
+CandidateFlaw. A candidate flaw is an immutable intake artifact produced by the Red Team or Enforcement Layer before verification. It records the trajectory, the Oracle signals at discovery time, and optional provenance for replay. 
+
+class CandidateFlaw: id: UUID trajectory: Trajectory safety_score: float // s uncertainty: float // c threshold: float // c_thresh oracle_version: str // v_O seed_ref: Optional[str] // Link to adversarial seed, if any timestamp: str 
+
+VerificationResult. A verification result is an immutable audit artifact recording the outcome of evaluation against Φ. It is produced for every reviewed candidate, regardless of whether a violation is confirmed. 
+
+class VerificationResult: id: UUID candidate_ref: UUID is_violation: bool violated_norm_id: Optional[str] evidence_ref: str reviewer_ref: str timestamp: str 24 Elias Malomgré and Pieter Simoens 
+
+VerifiedBreach. A verified breach is an immutable failure artifact produced only when verification confirms a norm violation. It links the observed trajectory, the violated norm, and the supporting evidence. 
+
+class VerifiedBreach: id: UUID candidate_ref: UUID trajectory: Trajectory violated_norm_id: str evidence_ref: str oracle_version: str // v_O at discovery time timestamp: str 
+
+RefinementJob. A refinement job is a batched artifact produced by Triage. It groups related breaches, links representative samples, and carries the cluster-level risk score. 
+
+class RefinementJob: id: UUID cluster_id: str centroid_ref: str size: int risk_score: float sample_set_refs: List[UUID] timestamp: str 
+
+PatchCommit. Patches are governance updates. They must be attributable (links to motivating breaches), testable (regression evidence), and authorizable (signature). This mirrors the release-ledger semantics in Sec. 3. 
+
+class PatchCommit: id: UUID patch: Any // Delta O parent_version: str // Expected v_O baseline breach_refs: List[UUID] // Links to VerifiedBreach IDs regression_test_ref: str // Reference into K signature: str // Root-of-trust authorization timestamp: str 
+
+C.2 Core Component Interfaces 
+
+ISafetyOracle. The Oracle is treated as a black-box evaluator. The only required method is predict , which must be stable across versions except for the returned 
+
+version identifier. 
+
+interface ISafetyOracle (Vendor API): // Black-box statistical evaluator def predict(trajectory: Trajectory) -> OracleResponse def get_version() -> str The Alignment Flywheel 25 
+
+IEnforcementLayer. The enforcement layer is the runtime gatekeeper. It is policy-driven: domains can configure fail-closed vs. allow-with-escalation, and can de-cide whether uncertain cases block execution or proceed while being audited. 
+
+interface IEnforcementLayer: // Runtime gatekeeper: applies governance policy using Oracle def intercept(proposal: Trajectory) -> Action: resp = Oracle.predict(proposal) if resp.uncertainty >= resp.threshold: candidate_id = KB.append_candidate_flaw(proposal, resp) KB.Queues.Verification.push(candidate_id) return ESCALATE_TO_VERIFICATION(candidate_id) if resp.safety_score < SAFETY_MARGIN: return BLOCK_AND_LOG(proposal, resp) return ALLOW(proposal) 
+
+C.3 Agent Class Skeleton (The MAS) 
+
+GovernanceAgent. All governance roles share the same control structure. Strate-gies differ, but the read/write contract to K and the queues is uniform, enabling strategy swapping without architectural change. 
+
+abstract class GovernanceAgent: def ooda_loop(): obs = self.observe(KnowledgeBase) ctx = self.orient(obs) strat = self.decide(ctx) self.act(strat) 
+
+RedTeamAgent. Discovers high-value audit targets. The core output is not “any weird case,” but low-uncertainty claimed-safe cases that warrant independent verification. 
+
+class RedTeamAgent(GovernanceAgent): strategy: ExplorationStrategy // e.g., fuzzing, gradient search def act(strategy): target_norm = KB.get_highest_weight_norm() candidate = strategy.generate_adversarial(target_norm) oracle_resp = Oracle.predict(candidate) if oracle_resp.uncertainty < oracle_resp.threshold \ 26 Elias Malomgré and Pieter Simoens 
+
+and self.suspects_violation(candidate, target_norm): candidate_id = KB.append_candidate_flaw(candidate, oracle_resp) KB.Queues.Verification.push(candidate_id) 
+
+VerificationAgent. Validates candidate flaws against Φ and records both the review outcome and, when applicable, a verified breach. 
+
+class VerificationAgent(GovernanceAgent): def act(strategy): candidate_id = KB.Queues.Verification.pop() candidate = KB.get_candidate_flaw(candidate_id) result = strategy.evaluate(candidate, KB.get_norms()) result_id = KB.append_verification_result(result) if result.is_violation: breach_id = KB.append_verified_breach(candidate, result) 
+
+TriageAgent. Converts verified breaches into prioritized refinement work. The key function is clustering and risk ranking, so human effort is spent on the largest and most consequential vulnerability families. 
+
+class TriageAgent(GovernanceAgent): def act(strategy): breaches = KB.get_new_verified_breaches() clusters = strategy.clustering_algo(breaches) for cluster in clusters: risk = 0.0 for breach in cluster.breaches: risk += (breach.norm.severity * max(0, breach.threshold - breach.uncertainty) * breach.novelty) job_id = KB.append_refinement_job(cluster, risk) KB.Queues.Refinement.push(job_id, priority=risk) 
+
+RefinementAgent (Human-on-the-Loop). Synthesizes patches and records the decision. The root-of-trust property is captured by requiring a signature before committing to the ledger. 
+
+class RefinementAgent(GovernanceAgent): def act(strategy): job_id = KB.Queues.Refinement.pop_highest_priority() job = KB.get_refinement_job(job_id) The Alignment Flywheel 27 
+
+patch = self.synthesize_patch(job) regression_ref = self.regression_test(patch, KB.RegressionSuite) if regression_ref is not None: signature = self.cryptographic_sign(patch) commit_id = KB.append_patch_commit( patch=patch, parent_version=Oracle.get_version(), breach_refs=job.sample_set_refs, regression_test_ref=regression_ref, signature=signature )KB.Ledger.commit(commit_id) 
+
+C.4 API Endpoints 
+
+Oracle prediction endpoint. The vendor Oracle can be wrapped as a REST service. The response schema must include the version identifier to support audit replay and regression localization. 
+
+POST /api/v1/oracle/predict Body: { trajectory: { context: ..., payload: ..., kind: ... } } Returns: { safety_score: 0.9, uncertainty: 0.15, threshold: 0.2, version: "v1.2" }
+
+Verification intake endpoint. Used by enforcement or Red Team agents to en-queue candidate flaws. Queues store references (IDs), not raw trajectories, to support idempotency. 
+
+POST /api/v1/kb/queue/verification Body: { candidate_flaw_id: "..." } 
+
+Refinement queue query. Human oversight and agents can query the refinement backlog sorted by risk. 
+
+GET /api/v1/kb/queue/refinement?sort=risk_desc Returns: [ { job_id: "...", cluster_id: "SQL_INJ", risk_score: 0.98, size: 450 }, ... ] 
+
+Patch commit endpoint. Records a patch commit with signature and provenance links into the ledger. 28 Elias Malomgré and Pieter Simoens 
+
+POST /api/v1/ledger/commit_patch Body: { patch: {...}, parent_version: "...", breach_refs: [...], regression_test_ref: "...", signature: "0x..." }
+
+# References 
+
+1. Abbeel, P., Ng, A.Y.: Apprenticeship learning via inverse reinforcement learning. In: Proceedings of the Twenty-First International Conference on Machine Learning. p. 1. ICML ’04, Association for Computing Machin-ery, New York, NY, USA (2004). https://doi.org/10.1145/1015330.1015430, https://doi.org/10.1145/1015330.1015430 2. Adams, S., Cody, T., Beling, P.A.: A survey of inverse reinforcement learning. Artificial Intelligence Review 55 (6), 4307–4346 (2022) 3. Alshiekh, M., Bloem, R., Ehlers, R., Könighofer, B., Niekum, S., Topcu, U.: Safe reinforcement learning via shielding. In: Proceedings of the AAAI conference on artificial intelligence. vol. 32 (2018) 4. Arora, S., Doshi, P.: A survey of inverse reinforcement learning: Challenges, meth-ods and progress. Artificial Intelligence 297 , 103500 (2021) 5. Bak, S., Johnson, T.T., Caccamo, M., Sha, L.: Real-time reachability for verified simplex design. In: 2014 IEEE Real-Time Systems Symposium. pp. 138–148. IEEE (2014) 6. Breck, E., Cai, S., Nielsen, E., Salib, M., Sculley, D.: The ml test score: A rubric for ml production readiness and technical debt reduction. In: 2017 IEEE international conference on big data (big data). pp. 1123–1132. IEEE (2017) 7. Brehmer, B.: The dynamic ooda loop: Amalgamating boyd’s ooda loop and the cybernetic approach to command and control. In: Proceedings of the 10th interna-tional command and control research technology symposium. pp. 365–368 (2005) 8. Chaudhari, S., Aggarwal, P., Murahari, V., Rajpurohit, T., Kalyan, A., Narasimhan, K., Deshpande, A., Castro da Silva, B.: Rlhf deciphered: A critical analysis of reinforcement learning from human feedback for llms. ACM Computing Surveys 58 (2), 1–37 (2025) 9. Hobbs, K.L., Mote, M.L., Abate, M.C., Coogan, S.D., Feron, E.M.: Runtime as-surance for safety-critical systems: An introduction to safety filtering approaches for complex control systems. IEEE Control Systems Magazine 43 (2), 28–65 (2023) 10. Horvitz, E.: Principles of mixed-initiative user interfaces. In: Proceedings of the SIGCHI conference on Human Factors in Computing Systems. pp. 159–166 (1999) 11. Hovakimyan, G., Bravo, J.M.: Evolving strategies in machine learning: a systematic review of concept drift detection. Information 15 (12), 786 (2024) 12. Hsu, K.C., Hu, H., Fisac, J.F.: The safety filter: A unified view of safety-critical control in autonomous systems. Annual Review of Control, Robotics, and Au-tonomous Systems 7 (2023) 13. Ji, J., Qiu, T., Chen, B., Zhang, B., Lou, H., Wang, K., Duan, Y., He, Z., Zhou, J., Zhang, Z., et al.: Ai alignment: A comprehensive survey. arXiv preprint arXiv:2310.19852 (2025) The Alignment Flywheel 29 14. Könighofer, B., Bloem, R., Jansen, N., Junges, S., Pranger, S.: Shields for safe reinforcement learning. Communications of the ACM 68 (11), 80–90 (2025) 15. Kuppusamy, T.K., Diaz, V., Cappos, J.: Mercury: {Bandwidth-Effective } preven-tion of rollback attacks against community repositories. In: 2017 USENIX Annual Technical Conference (USENIX ATC 17). pp. 673–688 (2017) 16. Leucker, M., Schallhart, C.: A brief account of runtime verification. The journal of logic and algebraic programming 78 (5), 293–303 (2009) 17. Lewis, G.A., Echeverría, S., Pons, L., Chrabaszcz, J.: Augur: A step towards real-istic drift detection in production ml systems. In: Proceedings of the 1st Workshop on Software Engineering for Responsible AI. pp. 37–44 (2022) 18. Li, J., Zhao, B., Zhang, C.: Fuzzing: a survey. Cybersecurity 1(1), 6 (2018) 19. Li, R., Wang, P., Ma, J., Zhang, D., Sha, L., Sui, Z.: Be a multitude to itself: A prompt evolution framework for red teaming. In: Findings of the Association for Computational Linguistics: EMNLP 2024. pp. 3287–3301 (2024) 20. Malomgré, E., Simoens, P.: Mixture of autoencoder experts guidance using unla-beled and incomplete data for exploration in reinforcement learning. arXiv preprint arXiv:2507.15287 (2025) 21. Malomgré, E., Simoens, P.: Interactionless inverse reinforcement learning: A data-centric framework for durable alignment (2026), https://arxiv.org/abs/2602.14844 22. Naveed, H., Barnett, S., Arora, C., Grundy, J., Khalajzadeh, H., Haggag, O.: Mon-itoring machine learning systems: A multivocal literature review. arXiv preprint arXiv:2509.14294 (2025) 23. Newman, Z., Meyers, J.S., Torres-Arias, S.: Sigstore: Software signing for every-body. In: Proceedings of the 2022 ACM SIGSAC Conference on Computer and Communications Security. pp. 2353–2367 (2022) 24. Ng, A.Y., Russell, S., et al.: Algorithms for inverse reinforcement learning. In: Icml. vol. 1, p. 2 (2000) 25. Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al.: Training language models to follow instructions with human feedback. Advances in neural information processing sys-tems 35 , 27730–27744 (2022) 26. Ovadia, Y., Fertig, E., Ren, J., Nado, Z., Sculley, D., Nowozin, S., Dillon, J., Lak-shminarayanan, B., Snoek, J.: Can you trust your model’s uncertainty? evaluating predictive uncertainty under dataset shift. Advances in neural information process-ing systems 32 (2019) 27. Phan, D., Yang, J., Clark, M., Grosu, R., Schierman, J., Smolka, S., Stoller, S.: A component-based simplex architecture for high-assurance cyber-physical systems. In: 2017 17th International Conference on Application of Concurrency to System Design (ACSD). pp. 49–58. IEEE (2017) 28. Quiñonero-Candela, J., Sugiyama, M., Schwaighofer, A., Lawrence, N.D.: Dataset shift in machine learning. Mit Press (2008) 29. Rafailov, R., Sharma, A., Mitchell, E., Manning, C.D., Ermon, S., Finn, C.: Direct preference optimization: Your language model is secretly a reward model. Advances in neural information processing systems 36 , 53728–53741 (2023) 30. Raji, I.D., Xu, P., Honigsberg, C., Ho, D.: Outsider oversight: Designing a third party audit ecosystem for ai governance. In: Proceedings of the 2022 AAAI/ACM Conference on AI, Ethics, and Society. pp. 557–571 (2022) 31. Rebedea, T., Dinu, R., Sreedhar, M.N., Parisien, C., Cohen, J.: Nemo guardrails: A toolkit for controllable and safe llm applications with programmable rails. In: Proceedings of the 2023 conference on empirical methods in natural language pro-cessing: system demonstrations. pp. 431–445 (2023) 30 Elias Malomgré and Pieter Simoens 32. Scerri, P., Pynadath, D., Tambe, M.: Adjustable autonomy in real-world multi-agent environments. In: Proceedings of the fifth international conference on Au-tonomous agents. pp. 300–307 (2001) 33. Sculley, D., Holt, G., Golovin, D., Davydov, E., Phillips, T., Ebner, D., Chaud-hary, V., Young, M., Crespo, J.F., Dennison, D.: Hidden technical debt in machine learning systems. Advances in neural information processing systems 28 (2015) 34. Shahin, M., Babar, M.A., Zhu, L.: Continuous integration, delivery and deploy-ment: a systematic review on approaches, tools, challenges and practices. IEEE access 5, 3909–3943 (2017) 35. Shankar, S., Parameswaran, A.: Towards observability for production machine learning pipelines. arXiv preprint arXiv:2108.13557 (2021) 36. Sun, H., van der Schaar, M.: Inverse reinforcement learning meets large lan-guage model post-training: Basics, advances, and opportunities. arXiv preprint arXiv:2507.13158 (2025) 37. Turcotte, M., Labrèche, F., Paquette, S.O.: Automated alert classification and triage (aact): an intelligent system for the prioritisation of cybersecurity alerts. arXiv preprint arXiv:2505.09843 (2025) 38. Zarour, M., Alzabut, H., Al-Sarayreh, K.T.: Mlops best prac-tices, challenges and maturity models: A systematic litera-ture review. Information and Software Technology 183 , 107733 (2025). https://doi.org/https://doi.org/10.1016/j.infsof.2025.107733, https://www.sciencedirect.com/science/article/pii/S0950584925000722 39. Zhao, Y., Zhang, S., Wu, Y., Sun, Y., Sun, Y., Pei, D., Bansal, C., Ma, M.: Triage in software engineering: A systematic review of research and practice. arXiv preprint arXiv:2511.08607 (2025) 40. Ziebart, B.D., Maas, A.L., Bagnell, J.A., Dey, A.K., et al.: Maximum entropy inverse reinforcement learning. In: Aaai. vol. 8, pp. 1433–1438. Chicago, IL, USA (2008) 41. Ziegler, D.M., Stiennon, N., Wu, J., Brown, T.B., Radford, A., Amodei, D., Chris-tiano, P., Irving, G.: Fine-tuning language models from human preferences. arXiv preprint arXiv:1909.08593 (2019)
